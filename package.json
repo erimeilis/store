@@ -1,0 +1,32 @@
+{
+  "name": "store-crud-api",
+  "version": "1.0.0",
+  "description": "Store CRUD API built with Hono and Cloudflare infrastructure",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "build": "tsc --noEmit"
+  },
+  "keywords": [
+    "hono",
+    "cloudflare",
+    "crud",
+    "api",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "hono": "^3.12.8"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240925.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.6.0",
+    "wrangler": "^4.32.0"
+  }
+}

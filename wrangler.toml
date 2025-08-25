@@ -1,0 +1,23 @@
+name = "store-crud-api"
+main = "src/index.ts"
+compatibility_date = "2024-08-25"
+
+# D1 Database Configuration
+[[d1_databases]]
+binding = "DB"
+database_name = "store-database"
+database_id = "a293b988-9b67-4430-ad66-6d63e3cebf20"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "store-uploads"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "faf63b06f0cf4d5c969166dda943cf36"
+
+[vars]
+NODE_ENV = "production"
+# Add your Google Sheets API key here for Google Sheets integration
+# Get your API key from: https://console.cloud.google.com/apis/credentials
+GOOGLE_API_KEY = "***REMOVED***"
