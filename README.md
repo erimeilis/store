@@ -40,8 +40,8 @@ This project provides a complete REST API for managing store items with file upl
 
 1. **Clone and install dependencies**:
    ```bash
-   git clone <repository-url>
-   cd Store
+   git clone https://github.com/erimeilis/store.git
+   cd store
    npm install
    ```
 
@@ -155,10 +155,12 @@ npm run deploy   # Deploy to Cloudflare
 
 MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 👨‍💻 Author
+
+**Eri**
+- 📧 Email: eri@redshoes.pro
+- 💬 Telegram: [@admice](https://t.me/admice)
+
 ## 📞 Support
 
 For questions about implementation details, deployment, or architecture decisions, please refer to the documentation in the `docs/` directory or create an issue.
-
----
-
-*Last updated: August 25, 2024*
