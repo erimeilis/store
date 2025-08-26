@@ -1,20 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove static export for NextAuth.js compatibility
-  // Use 'export' only for static deployment builds
-  // output: 'export',
-  trailingSlash: true,
-  images: {
-    unoptimized: true
-  },
+  // Remove static export to enable server-side features for NextAuth
+  // output: 'export', // Commented out for OpenNext.js
+  
   env: {
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8787'
+  },
+  
+  // Enable server-side features for NextAuth and OpenNext.js
+  experimental: {
+    // Add experimental features as needed
+  },
+  
+  // Image optimization can be enabled with OpenNext.js
+  images: {
+    domains: [], // Add your image domains here
   }
-}
-
-// For static export builds, use environment variable
-if (process.env.BUILD_STATIC === 'true') {
-  nextConfig.output = 'export'
 }
 
 module.exports = nextConfig

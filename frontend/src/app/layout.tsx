@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import SessionProvider from '@/components/SessionProvider'
-import AuthButton from '@/components/AuthButton'
+import AuthNav from '@/components/AuthNav'
 
 export const metadata: Metadata = {
   title: 'Store CRUD API - Dashboard',
@@ -20,7 +20,7 @@ export default function RootLayout({
           <nav className="bg-blue-600 text-white p-4 shadow-sm">
             <div className="container mx-auto flex justify-between items-center">
               <h1 className="text-2xl font-bold">Store CRUD Dashboard</h1>
-              <AuthButton />
+              <AuthNav />
             </div>
           </nav>
           <main className="container mx-auto p-6">

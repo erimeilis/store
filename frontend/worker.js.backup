@@ -1,0 +1,86 @@
+// Cloudflare Worker to serve Next.js static export
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    
+    // Handle CORS for API calls
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      });
+    }
+
+    // Get the asset from the static files
+    let pathname = url.pathname;
+    
+    // Handle root path
+    if (pathname === '/') {
+      pathname = '/index.html';
+    }
+    
+    // Handle Next.js routing - if no file extension, try to serve HTML
+    if (!pathname.includes('.') && !pathname.endsWith('/')) {
+      // Try the exact path first
+      let response = await env.ASSETS.fetch(request.url + '.html');
+      if (response.status === 200) {
+        return addHeaders(response);
+      }
+      
+      // Try with /index.html
+      response = await env.ASSETS.fetch(request.url + '/index.html');
+      if (response.status === 200) {
+        return addHeaders(response);
+      }
+      
+      // Fallback to 404.html if it exists, otherwise index.html
+      response = await env.ASSETS.fetch(new URL('/404.html', request.url).toString());
+      if (response.status !== 200) {
+        response = await env.ASSETS.fetch(new URL('/index.html', request.url).toString());
+      }
+      return addHeaders(response);
+    }
+    
+    // For files with extensions, serve directly
+    const response = await env.ASSETS.fetch(request.url);
+    
+    // If file not found, serve 404.html or fallback to index.html
+    if (response.status === 404) {
+      let fallbackResponse = await env.ASSETS.fetch(new URL('/404.html', request.url).toString());
+      if (fallbackResponse.status !== 200) {
+        fallbackResponse = await env.ASSETS.fetch(new URL('/index.html', request.url).toString());
+      }
+      return addHeaders(fallbackResponse);
+    }
+    
+    return addHeaders(response);
+  },
+};
+
+function addHeaders(response) {
+  // Clone the response to modify headers
+  const newResponse = new Response(response.body, response);
+  
+  // Add security and caching headers
+  newResponse.headers.set('X-Content-Type-Options', 'nosniff');
+  newResponse.headers.set('X-Frame-Options', 'DENY');
+  newResponse.headers.set('X-XSS-Protection', '1; mode=block');
+  
+  // Add CORS headers for frontend-to-backend communication
+  newResponse.headers.set('Access-Control-Allow-Origin', '*');
+  newResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  newResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Set appropriate caching for different file types
+  const url = new URL(response.url);
+  if (url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+    newResponse.headers.set('Cache-Control', 'public, max-age=31536000'); // 1 year for assets
+  } else if (url.pathname.endsWith('.html')) {
+    newResponse.headers.set('Cache-Control', 'public, max-age=300'); // 5 minutes for HTML
+  }
+  
+  return newResponse;
+}
