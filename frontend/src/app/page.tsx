@@ -1,22 +1,64 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { ItemsList } from '@/components/ItemsList'
 import { ItemForm } from '@/components/ItemForm'
 import { FileUpload } from '@/components/FileUpload'
-import ProtectedRoute from '@/components/ProtectedRoute'
 import { Item } from '@/types/item'
 
 export default function Dashboard() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [items, setItems] = useState<Item[]>([])
   const [editingItem, setEditingItem] = useState<Item | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'list' | 'add' | 'upload'>('list')
 
+  // Redirect to signin if not authenticated
+  useEffect(() => {
+    // Add timeout to handle cases where NextAuth status gets stuck in loading
+    const timeout = setTimeout(() => {
+      if (status === "loading" && !session) {
+        console.log('NextAuth status stuck in loading, redirecting to signin')
+        router.push('/auth/signin')
+      }
+    }, 5000) // 5 second timeout
+    
+    if (status === "loading") return // Still loading
+    
+    clearTimeout(timeout)
+    
+    if (!session) {
+      router.push('/auth/signin')
+      return
+    }
+    
+    return () => clearTimeout(timeout)
+  }, [session, status, router])
+
   const fetchItems = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8787'}/api/items`)
+      
+      // Get session token for authentication
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8787'}/api/items`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.error('Authentication required - redirecting to sign in')
+          router.push('/auth/signin')
+          return
+        }
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const data = await response.json()
       setItems(data.items || [])
     } catch (error) {
@@ -27,8 +69,10 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    fetchItems()
-  }, [])
+    if (session) {
+      fetchItems()
+    }
+  }, [session])
 
   const handleItemSaved = () => {
     fetchItems()
@@ -55,9 +99,25 @@ export default function Dashboard() {
     setActiveTab('list')
   }
 
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="space-y-4 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render anything if not authenticated (will redirect)
+  if (!session) {
+    return null
+  }
+
   return (
-    <ProtectedRoute>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Tab Navigation */}
         <div className="flex space-x-4 border-b">
           <button
@@ -121,7 +181,6 @@ export default function Dashboard() {
             <FileUpload onFileUploaded={handleFileUploaded} />
           </div>
         )}
-      </div>
-    </ProtectedRoute>
+    </div>
   )
 }

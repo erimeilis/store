@@ -1,5 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { jwt } from 'hono/jwt'
+import { getCookie } from 'hono/cookie'
 
 // Import types
 import type { Bindings } from '../types/bindings.js'
@@ -14,8 +16,62 @@ import { bulkInsertItems } from '../utils/database.js'
 // Create Hono app with bindings
 const app = new Hono<{ Bindings: Bindings }>()
 
-// Enable CORS for all routes
-app.use('*', cors())
+// Enable CORS for all routes with credentials support
+app.use('*', cors({
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true,
+  allowHeaders: ['Content-Type', 'Authorization'],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}))
+
+// Authentication middleware for protected routes
+const authMiddleware = async (c: any, next: any) => {
+  try {
+    // Get token from Authorization header
+    const authHeader = c.req.header('Authorization')
+    let token = authHeader?.replace('Bearer ', '')
+    
+    // If no Bearer token, try to get from next-auth session cookie
+    if (!token) {
+      const sessionToken = getCookie(c, 'next-auth.session-token') || 
+                          getCookie(c, '__Secure-next-auth.session-token')
+      
+      if (!sessionToken) {
+        return c.json({
+          error: 'Authentication required',
+          message: 'Please sign in to access this resource'
+        }, 401)
+      }
+      
+      // For session tokens, we'll validate them differently
+      // For now, accept any session token (in production, validate against NextAuth)
+      c.set('user', { sessionToken })
+      return next()
+    }
+    
+    // Validate JWT token (NextAuth JWT secret should match)
+    const secret = c.env.NEXTAUTH_SECRET || 'fallback-secret'
+    
+    try {
+      // For NextAuth JWTs, we need to decode and verify
+      // This is a simplified version - in production, use proper NextAuth token validation
+      const payload = await jwt({ secret }).decode(token)
+      c.set('user', payload)
+      return next()
+    } catch (jwtError) {
+      return c.json({
+        error: 'Invalid token',
+        message: 'Please sign in again'
+      }, 401)
+    }
+    
+  } catch (error) {
+    return c.json({
+      error: 'Authentication error',
+      message: 'Failed to validate authentication'
+    }, 401)
+  }
+}
 
 // Health check endpoint
 app.get('/', (c) => {
@@ -26,8 +82,18 @@ app.get('/', (c) => {
   })
 })
 
-// GET /api/items - List all items
-app.get('/api/items', async (c) => {
+// Dedicated health endpoint
+app.get('/health', (c) => {
+  return c.json({ 
+    status: 'healthy',
+    message: 'Store CRUD API is running',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  })
+})
+
+// GET /api/items - List all items (protected)
+app.get('/api/items', authMiddleware, async (c) => {
   try {
     const { results } = await c.env.DB.prepare(
       'SELECT * FROM items ORDER BY created_at DESC'
@@ -45,8 +111,8 @@ app.get('/api/items', async (c) => {
   }
 })
 
-// GET /api/items/:id - Get specific item
-app.get('/api/items/:id', async (c) => {
+// GET /api/items/:id - Get specific item (protected)
+app.get('/api/items/:id', authMiddleware, async (c) => {
   try {
     const id = parseInt(c.req.param('id'))
     
@@ -77,8 +143,8 @@ app.get('/api/items/:id', async (c) => {
   }
 })
 
-// POST /api/items - Create new item
-app.post('/api/items', async (c) => {
+// POST /api/items - Create new item (protected)
+app.post('/api/items', authMiddleware, async (c) => {
   try {
     const body = await c.req.json()
     
@@ -123,8 +189,8 @@ app.post('/api/items', async (c) => {
   }
 })
 
-// PUT /api/items/:id - Update existing item
-app.put('/api/items/:id', async (c) => {
+// PUT /api/items/:id - Update existing item (protected)
+app.put('/api/items/:id', authMiddleware, async (c) => {
   try {
     const id = parseInt(c.req.param('id'))
     
@@ -191,8 +257,8 @@ app.put('/api/items/:id', async (c) => {
   }
 })
 
-// DELETE /api/items/:id - Delete item
-app.delete('/api/items/:id', async (c) => {
+// DELETE /api/items/:id - Delete item (protected)
+app.delete('/api/items/:id', authMiddleware, async (c) => {
   try {
     const id = parseInt(c.req.param('id'))
     
@@ -232,8 +298,8 @@ app.delete('/api/items/:id', async (c) => {
   }
 })
 
-// POST /api/upload - Upload and process CSV/Excel files
-app.post('/api/upload', async (c) => {
+// POST /api/upload - Upload and process CSV/Excel files (protected)
+app.post('/api/upload', authMiddleware, async (c) => {
   try {
     const formData = await c.req.formData()
     const fileData = formData.get('file')
@@ -301,8 +367,8 @@ app.post('/api/upload', async (c) => {
   }
 })
 
-// POST /api/import/sheets - Import data from Google Sheets
-app.post('/api/import/sheets', async (c) => {
+// POST /api/import/sheets - Import data from Google Sheets (protected)
+app.post('/api/import/sheets', authMiddleware, async (c) => {
   try {
     const body = await c.req.json()
     

@@ -41,6 +41,7 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
         `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8787'}/api/upload`,
         {
           method: 'POST',
+          credentials: 'include',
           body: formData
         }
       )
@@ -81,6 +82,7 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
         `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8787'}/api/import/sheets`,
         {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json'
           },

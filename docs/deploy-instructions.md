@@ -21,7 +21,7 @@ Before deploying, ensure you have:
 - [ ] 5. Configure wrangler.toml with resource IDs
 - [ ] 6. Deploy backend API to Cloudflare Workers
 - [ ] 7. Test backend API endpoints
-- [ ] 8. Deploy frontend to Cloudflare Pages
+- [ ] 8. Deploy frontend to Cloudflare Workers
 - [ ] 9. Configure frontend API endpoints
 - [ ] 10. End-to-end testing and verification
 
@@ -266,42 +266,60 @@ const nextConfig = {
 module.exports = nextConfig
 ```
 
-### 4.3 Build and Prepare Frontend
+### 4.3 Build and Deploy Frontend to Cloudflare Workers
+
+Navigate to the frontend directory:
 
 ```bash
-# Build the Next.js application
+cd frontend
+```
+
+Build and deploy using the new Workers approach:
+
+```bash
+# Install dependencies if needed
+npm install
+
+# Build and deploy to production
+npm run deploy
+
+# Or deploy to development environment
+npm run deploy:dev
+```
+
+Manual deployment steps:
+
+```bash
+# Build the Next.js application for static export
 npm run build
 
-# Prepare for Cloudflare Pages using OpenNext.js
-npx @opennextjs/cloudflare
+# Deploy the frontend Workers manually
+wrangler deploy
 ```
 
-### 4.4 Deploy Frontend to Cloudflare Pages
+### 4.4 Local Development with Workers
+
+For local development with Workers:
 
 ```bash
-# Deploy to Cloudflare Pages
-npx wrangler pages deploy .vercel/output/static --project-name store-crud-frontend
+# Start local Workers development server
+npm run wrangler:dev
 
-# Or if that doesn't work, try:
-npx wrangler pages deploy out --project-name store-crud-frontend
+# Or use wrangler directly
+wrangler dev --local
 ```
 
-Alternative method using Cloudflare Dashboard:
-
-1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. Navigate to Pages
-3. Click "Create application"
-4. Connect your Git repository
-5. Set build settings:
-   - Build command: `npm run build`
-   - Build output directory: `out`
-6. Deploy
+The frontend will be available at the URL shown in the terminal (typically `http://localhost:8787`).
 
 ### 4.5 Configure Custom Domain (Optional)
 
 ```bash
-# Add custom domain to Pages project
-wrangler pages domain add store-crud-frontend.yourdomain.com --project-name store-crud-frontend
+# Add custom domain to Workers project
+wrangler route add store-crud-frontend.yourdomain.com store-crud-frontend
+
+# Or set up via Cloudflare Dashboard:
+# 1. Go to Workers & Pages > store-crud-frontend > Settings > Domains
+# 2. Add custom domain
 ```
 
 ## Part 5: Production Configuration
@@ -316,8 +334,8 @@ ENVIRONMENT = "production"
 API_VERSION = "1.0.0"
 GOOGLE_API_KEY = "your-google-api-key-if-needed"
 
-# For frontend (in Cloudflare Pages settings)
-NEXT_PUBLIC_API_URL = "https://store-crud-api.your-subdomain.workers.dev"
+# For frontend (in wrangler.toml [env.production.vars] section)
+NEXT_PUBLIC_API_BASE_URL = "https://store-crud-api.your-subdomain.workers.dev"
 ```
 
 ### 5.2 CORS Configuration
@@ -329,7 +347,8 @@ Ensure CORS is properly configured for your frontend domain. The backend already
 app.use('*', cors({
   origin: [
     'http://localhost:3000',
-    'https://store-crud-frontend.pages.dev',
+    'http://localhost:8787',
+    'https://store-crud-frontend.your-subdomain.workers.dev',
     'https://your-custom-domain.com'
   ],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

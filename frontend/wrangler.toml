@@ -1,0 +1,37 @@
+name = "store-crud-frontend"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+# OpenNext.js will generate the main worker file
+main = ".open-next/worker.js"
+
+# OpenNext.js configuration
+[build]
+command = "npx @opennextjs/cloudflare build"
+
+# D1 Database Configuration (shared with backend)
+[[d1_databases]]
+binding = "DB"
+database_name = "store-database"
+database_id = "a293b988-9b67-4430-ad66-6d63e3cebf20"
+
+# Environment variables for production
+[env.production.vars]
+NODE_ENV = "production"
+NEXT_PUBLIC_API_BASE_URL = "https://store-crud-api.eri-42e.workers.dev"
+# NextAuth configuration
+NEXTAUTH_SECRET = "your-secret-key-change-this-in-production"
+NEXTAUTH_URL = "https://store-crud-frontend.your-subdomain.workers.dev"
+# Google OAuth configuration (set these in Cloudflare dashboard for security)
+GOOGLE_CLIENT_ID = "your-google-client-id"
+GOOGLE_CLIENT_SECRET = "your-google-client-secret"
+
+# Development environment
+[env.development.vars]
+NODE_ENV = "development"
+NEXT_PUBLIC_API_BASE_URL = "https://store-crud-api.eri-42e.workers.dev"
+# NextAuth configuration
+NEXTAUTH_SECRET = "dev-secret-key"
+NEXTAUTH_URL = "http://localhost:3000"
+# Google OAuth configuration for development
+GOOGLE_CLIENT_ID = "your-dev-google-client-id"
+GOOGLE_CLIENT_SECRET = "your-dev-google-client-secret"

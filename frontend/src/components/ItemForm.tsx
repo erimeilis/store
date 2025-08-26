@@ -70,6 +70,7 @@ export function ItemForm({ item, onSaved, onCancel }: ItemFormProps) {
 
       const response = await fetch(url, {
         method,
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },

@@ -1,0 +1,3 @@
+export const production = {"NEXTAUTH_URL":"http://localhost:3000","NEXTAUTH_SECRET":"zFP8G2j1b8rwzAThnnpYom/948DCjCite0mtMouDgHI=","GOOGLE_CLIENT_ID":"377466090650-rb5emg40c454b9pkbl8qonvadqcm6jd4.apps.googleusercontent.com","GOOGLE_CLIENT_SECRET":"***REMOVED***","NEXT_PUBLIC_API_BASE_URL":"http://localhost:8787"};
+export const development = {"NEXTAUTH_URL":"http://localhost:3000","NEXTAUTH_SECRET":"zFP8G2j1b8rwzAThnnpYom/948DCjCite0mtMouDgHI=","GOOGLE_CLIENT_ID":"377466090650-rb5emg40c454b9pkbl8qonvadqcm6jd4.apps.googleusercontent.com","GOOGLE_CLIENT_SECRET":"***REMOVED***","NEXT_PUBLIC_API_BASE_URL":"http://localhost:8787"};
+export const test = {};

@@ -22,7 +22,10 @@ export function ItemsList({ items, isLoading, onEdit, onDelete }: ItemsListProps
       setDeletingId(id)
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8787'}/api/items/${id}`,
-        { method: 'DELETE' }
+        { 
+          method: 'DELETE',
+          credentials: 'include'
+        }
       )
 
       if (response.ok) {
