@@ -5,8 +5,8 @@ This document provides development guidelines for the Store CRUD application bui
 ## Project Overview
 
 This is a TypeScript-based CRUD application designed for Cloudflare deployment using:
-- **Backend**: Hono framework running on Cloudflare Workers
-- **Frontend**: Next.js with OpenNext.js Cloudflare adapter (planned)
+- **Backend**: Hono framework running on Cloudflare Workers (root directory)
+- **Frontend**: Separate Hono + React application running on Cloudflare Workers (frontend/ directory)
 - **Database**: Cloudflare D1 (SQLite-compatible)
 - **Storage**: Cloudflare R2 for file uploads
 - **Cache**: Cloudflare KV for sessions and caching

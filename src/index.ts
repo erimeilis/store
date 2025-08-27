@@ -1,7 +1,5 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { jwt } from 'hono/jwt'
-import { getCookie } from 'hono/cookie'
 
 // Import types
 import type { Bindings } from '../types/bindings.js'
@@ -16,84 +14,85 @@ import { bulkInsertItems } from '../utils/database.js'
 // Create Hono app with bindings
 const app = new Hono<{ Bindings: Bindings }>()
 
-// Enable CORS for all routes with credentials support
+// Enable CORS for all routes
 app.use('*', cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true,
+  origin: '*',
   allowHeaders: ['Content-Type', 'Authorization'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }))
 
-// Authentication middleware for protected routes
-const authMiddleware = async (c: any, next: any) => {
-  try {
-    // Get token from Authorization header
+// Bearer token authentication middleware
+const createBearerAuthMiddleware = (requiredPermission: 'read' | 'write') => {
+  return async (c: any, next: any) => {
     const authHeader = c.req.header('Authorization')
-    let token = authHeader?.replace('Bearer ', '')
     
-    // If no Bearer token, try to get from next-auth session cookie
-    if (!token) {
-      const sessionToken = getCookie(c, 'next-auth.session-token') || 
-                          getCookie(c, '__Secure-next-auth.session-token')
-      
-      if (!sessionToken) {
-        return c.json({
-          error: 'Authentication required',
-          message: 'Please sign in to access this resource'
-        }, 401)
-      }
-      
-      // For session tokens, we'll validate them differently
-      // For now, accept any session token (in production, validate against NextAuth)
-      c.set('user', { sessionToken })
-      return next()
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return c.json({ error: 'Unauthorized', message: 'Bearer token required' }, 401)
     }
     
-    // Validate JWT token (NextAuth JWT secret should match)
-    const secret = c.env.NEXTAUTH_SECRET || 'fallback-secret'
+    const token = authHeader.replace('Bearer ', '')
     
-    try {
-      // For NextAuth JWTs, we need to decode and verify
-      // This is a simplified version - in production, use proper NextAuth token validation
-      const payload = await jwt({ secret }).decode(token)
-      c.set('user', payload)
-      return next()
-    } catch (jwtError) {
-      return c.json({
-        error: 'Invalid token',
-        message: 'Please sign in again'
-      }, 401)
+    // Get tokens from environment variables
+    const fullAccessToken = c.env?.FULL_ACCESS_TOKEN || 'dev-full-access-token'
+    const readOnlyToken = c.env?.READ_ONLY_TOKEN || 'dev-read-only-token'
+    
+    let hasPermission = false
+    let userContext = { id: 'anonymous', permissions: [] as string[] }
+    
+    if (token === fullAccessToken) {
+      hasPermission = true
+      userContext = { id: 'full-access-user', permissions: ['read', 'write'] }
+    } else if (token === readOnlyToken) {
+      hasPermission = requiredPermission === 'read'
+      userContext = { id: 'read-only-user', permissions: ['read'] }
     }
     
-  } catch (error) {
-    return c.json({
-      error: 'Authentication error',
-      message: 'Failed to validate authentication'
-    }, 401)
+    if (!hasPermission) {
+      return c.json({ 
+        error: 'Forbidden', 
+        message: `Insufficient permissions. Required: ${requiredPermission}` 
+      }, 403)
+    }
+    
+    // Set user context for downstream handlers
+    c.set('user', userContext)
+    
+    return next()
   }
 }
 
-// Health check endpoint
+// Create specific middleware instances
+const readAuthMiddleware = createBearerAuthMiddleware('read')
+const writeAuthMiddleware = createBearerAuthMiddleware('write')
+
+// =============================================================================
+// API ROUTES
+// =============================================================================
+
+// Root endpoint - redirects to health check
 app.get('/', (c) => {
   return c.json({ 
+    status: 'healthy',
     message: 'Store CRUD API is running',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    service: 'backend-api'
   })
 })
 
-// Dedicated health endpoint
+// Health check endpoint
 app.get('/health', (c) => {
   return c.json({ 
     status: 'healthy',
     message: 'Store CRUD API is running',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    service: 'backend-api'
   })
 })
 
 // GET /api/items - List all items (protected)
-app.get('/api/items', authMiddleware, async (c) => {
+app.get('/api/items', readAuthMiddleware, async (c) => {
   try {
     const { results } = await c.env.DB.prepare(
       'SELECT * FROM items ORDER BY created_at DESC'
@@ -112,7 +111,7 @@ app.get('/api/items', authMiddleware, async (c) => {
 })
 
 // GET /api/items/:id - Get specific item (protected)
-app.get('/api/items/:id', authMiddleware, async (c) => {
+app.get('/api/items/:id', readAuthMiddleware, async (c) => {
   try {
     const id = parseInt(c.req.param('id'))
     
@@ -144,7 +143,7 @@ app.get('/api/items/:id', authMiddleware, async (c) => {
 })
 
 // POST /api/items - Create new item (protected)
-app.post('/api/items', authMiddleware, async (c) => {
+app.post('/api/items', writeAuthMiddleware, async (c) => {
   try {
     const body = await c.req.json()
     
@@ -190,7 +189,7 @@ app.post('/api/items', authMiddleware, async (c) => {
 })
 
 // PUT /api/items/:id - Update existing item (protected)
-app.put('/api/items/:id', authMiddleware, async (c) => {
+app.put('/api/items/:id', writeAuthMiddleware, async (c) => {
   try {
     const id = parseInt(c.req.param('id'))
     
@@ -258,7 +257,7 @@ app.put('/api/items/:id', authMiddleware, async (c) => {
 })
 
 // DELETE /api/items/:id - Delete item (protected)
-app.delete('/api/items/:id', authMiddleware, async (c) => {
+app.delete('/api/items/:id', writeAuthMiddleware, async (c) => {
   try {
     const id = parseInt(c.req.param('id'))
     
@@ -299,7 +298,7 @@ app.delete('/api/items/:id', authMiddleware, async (c) => {
 })
 
 // POST /api/upload - Upload and process CSV/Excel files (protected)
-app.post('/api/upload', authMiddleware, async (c) => {
+app.post('/api/upload', writeAuthMiddleware, async (c) => {
   try {
     const formData = await c.req.formData()
     const fileData = formData.get('file')
@@ -368,7 +367,7 @@ app.post('/api/upload', authMiddleware, async (c) => {
 })
 
 // POST /api/import/sheets - Import data from Google Sheets (protected)
-app.post('/api/import/sheets', authMiddleware, async (c) => {
+app.post('/api/import/sheets', writeAuthMiddleware, async (c) => {
   try {
     const body = await c.req.json()
     

@@ -156,8 +156,15 @@ preview_id = "YOUR_KV_NAMESPACE_ID_HERE"
 [vars]
 ENVIRONMENT = "production"
 API_VERSION = "1.0.0"
-# Add Google API key if using Google Sheets integration
+
+# Bearer Token Authentication - IMPORTANT: Change these in production!
+FULL_ACCESS_TOKEN = "your-secure-full-access-token-here"
+READ_ONLY_TOKEN = "your-secure-read-only-token-here"
+
+# Google API Configuration (Optional - for Google Sheets integration)
 # GOOGLE_API_KEY = "your-google-api-key-here"
+# GOOGLE_CLIENT_ID = "your-google-oauth-client-id"
+# GOOGLE_CLIENT_SECRET = "your-google-oauth-client-secret"
 
 # Build configuration
 [build]
@@ -217,21 +224,43 @@ wrangler deploy
 ### 3.4 Test Production Backend
 
 ```bash
-# Test health endpoint
+# Test health endpoint (no authentication required)
 curl https://store-crud-api.your-subdomain.workers.dev/health
 
-# Test items endpoint
-curl https://store-crud-api.your-subdomain.workers.dev/api/items
+# Test items endpoint with read-only token
+curl https://store-crud-api.your-subdomain.workers.dev/api/items \
+  -H "Authorization: Bearer your-secure-read-only-token-here"
 
-# Test creating an item
+# Test creating an item with full access token
 curl -X POST https://store-crud-api.your-subdomain.workers.dev/api/items \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-secure-full-access-token-here" \
   -d '{"name": "Production Test", "description": "Testing production deployment"}'
+
+# Test getting a specific item with read-only token
+curl https://store-crud-api.your-subdomain.workers.dev/api/items/1 \
+  -H "Authorization: Bearer your-secure-read-only-token-here"
+
+# Test updating an item with full access token
+curl -X PUT https://store-crud-api.your-subdomain.workers.dev/api/items/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-secure-full-access-token-here" \
+  -d '{"name": "Updated Production Test", "description": "Updated description"}'
+
+# Test deleting an item with full access token
+curl -X DELETE https://store-crud-api.your-subdomain.workers.dev/api/items/1 \
+  -H "Authorization: Bearer your-secure-full-access-token-here"
 ```
+
+**Important Authentication Notes:**
+- All API endpoints (except `/health`) require Bearer token authentication
+- Use `READ_ONLY_TOKEN` for GET operations (read access)
+- Use `FULL_ACCESS_TOKEN` for POST, PUT, DELETE operations (write access)
+- Replace the token placeholders with your actual tokens from wrangler.toml
 
 ## Part 4: Frontend Deployment
 
-### 4.1 Install OpenNext.js Cloudflare Adapter
+### 4.1 Setup Frontend Hono + React Application
 
 ```bash
 # Navigate to frontend directory
@@ -240,30 +269,28 @@ cd frontend
 # Install dependencies if not already installed
 npm install
 
-# Install OpenNext.js Cloudflare adapter
-npm install @opennextjs/cloudflare
+# Verify Hono and React dependencies are installed
+npm list hono react
 ```
 
 ### 4.2 Configure Frontend for Production
 
-Update `frontend/next.config.js`:
+Create or update `frontend/wrangler.toml`:
 
-```javascript
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: 'export',
-  trailingSlash: true,
-  images: {
-    unoptimized: true
-  },
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NODE_ENV === 'production' 
-      ? 'https://store-crud-api.your-subdomain.workers.dev'
-      : 'http://localhost:8787'
-  }
-}
+```toml
+name = "store-crud-frontend"
+main = "src/index.ts"
+compatibility_date = "2024-08-25"
+compatibility_flags = ["nodejs_compat"]
 
-module.exports = nextConfig
+# Environment Variables
+[vars]
+ENVIRONMENT = "production"
+API_URL = "https://store-crud-api.your-subdomain.workers.dev"
+
+# Build configuration
+[build]
+command = "npm run build"
 ```
 
 ### 4.3 Build and Deploy Frontend to Cloudflare Workers
@@ -274,38 +301,33 @@ Navigate to the frontend directory:
 cd frontend
 ```
 
-Build and deploy using the new Workers approach:
+Build and deploy the Hono + React frontend:
 
 ```bash
 # Install dependencies if needed
 npm install
 
-# Build and deploy to production
-npm run deploy
-
-# Or deploy to development environment
-npm run deploy:dev
-```
-
-Manual deployment steps:
-
-```bash
-# Build the Next.js application for static export
+# Build the Hono + React application
 npm run build
 
-# Deploy the frontend Workers manually
+# Deploy to Cloudflare Workers
 wrangler deploy
+
+# Expected output:
+# Uploaded store-crud-frontend (X.XX sec)
+# Published store-crud-frontend (X.X sec)
+#   https://store-crud-frontend.your-subdomain.workers.dev
 ```
 
 ### 4.4 Local Development with Workers
 
-For local development with Workers:
+For local development with the Hono + React frontend:
 
 ```bash
-# Start local Workers development server
-npm run wrangler:dev
+# Start local Hono development server
+npm run dev
 
-# Or use wrangler directly
+# Or use wrangler directly for Workers environment
 wrangler dev --local
 ```
 
@@ -334,8 +356,8 @@ ENVIRONMENT = "production"
 API_VERSION = "1.0.0"
 GOOGLE_API_KEY = "your-google-api-key-if-needed"
 
-# For frontend (in wrangler.toml [env.production.vars] section)
-NEXT_PUBLIC_API_BASE_URL = "https://store-crud-api.your-subdomain.workers.dev"
+# For frontend (in frontend/wrangler.toml [vars] section)
+API_URL = "https://store-crud-api.your-subdomain.workers.dev"
 ```
 
 ### 5.2 CORS Configuration
@@ -507,7 +529,7 @@ wrangler deployments list
 You now have a fully deployed Store CRUD application running on:
 
 - **Backend API**: Cloudflare Workers with D1, R2, and KV
-- **Frontend**: Cloudflare Pages with Next.js
+- **Frontend**: Cloudflare Workers with Hono + React
 - **Database**: Cloudflare D1 with proper schema
 - **File Storage**: Cloudflare R2 for uploads
 - **Caching**: Cloudflare KV for sessions
@@ -549,7 +571,7 @@ The application is now ready for production use and further development!
 - KV Namespace: Created for caching
 
 ✅ **Frontend Deployment**
-- Next.js Application: Built and deployed to Cloudflare Pages
+- Hono + React Application: Built and deployed to Cloudflare Workers
 - Static Export: Optimized for edge delivery
 - API Integration: Configured for production backend
 

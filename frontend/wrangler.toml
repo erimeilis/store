@@ -1,37 +1,21 @@
-name = "store-crud-frontend"
+name = "store-crud-front"
 compatibility_date = "2024-09-23"
-compatibility_flags = ["nodejs_compat"]
-# OpenNext.js will generate the main worker file
-main = ".open-next/worker.js"
+compatibility_flags = ["nodejs_compat_v2"]
+pages_build_output_dir = "dist"
 
-# OpenNext.js configuration
-[build]
-command = "npx @opennextjs/cloudflare build"
+# Environment Variables
+[vars]
+ENVIRONMENT = "production"
+API_URL = "https://store-crud-api.eri-42e.workers.dev"
+GOOGLE_CLIENT_ID = "377466090650-rb5emg40c454b9pkbl8qonvadqcm6jd4.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "***REMOVED***"
+GOOGLE_REDIRECT_URI = "https://store-crud-front.pages.dev/auth/callback/google"
 
-# D1 Database Configuration (shared with backend)
-[[d1_databases]]
-binding = "DB"
-database_name = "store-database"
-database_id = "a293b988-9b67-4430-ad66-6d63e3cebf20"
-
-# Environment variables for production
-[env.production.vars]
-NODE_ENV = "production"
-NEXT_PUBLIC_API_BASE_URL = "https://store-crud-api.eri-42e.workers.dev"
-# NextAuth configuration
-NEXTAUTH_SECRET = "your-secret-key-change-this-in-production"
-NEXTAUTH_URL = "https://store-crud-frontend.your-subdomain.workers.dev"
-# Google OAuth configuration (set these in Cloudflare dashboard for security)
-GOOGLE_CLIENT_ID = "your-google-client-id"
-GOOGLE_CLIENT_SECRET = "your-google-client-secret"
-
-# Development environment
-[env.development.vars]
-NODE_ENV = "development"
-NEXT_PUBLIC_API_BASE_URL = "https://store-crud-api.eri-42e.workers.dev"
-# NextAuth configuration
-NEXTAUTH_SECRET = "dev-secret-key"
-NEXTAUTH_URL = "http://localhost:3000"
-# Google OAuth configuration for development
-GOOGLE_CLIENT_ID = "your-dev-google-client-id"
-GOOGLE_CLIENT_SECRET = "your-dev-google-client-secret"
+# Preview environment configuration
+[env.preview]
+[env.preview.vars]
+ENVIRONMENT = "preview"
+API_URL = "http://localhost:8787"
+GOOGLE_CLIENT_ID = "377466090650-rb5emg40c454b9pkbl8qonvadqcm6jd4.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "***REMOVED***"
+GOOGLE_REDIRECT_URI = "http://localhost:5173/auth/callback/google"

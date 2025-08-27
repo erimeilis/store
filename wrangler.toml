@@ -18,6 +18,19 @@ id = "faf63b06f0cf4d5c969166dda943cf36"
 
 [vars]
 NODE_ENV = "production"
-# Add your Google Sheets API key here for Google Sheets integration
-# Get your API key from: https://console.cloud.google.com/apis/credentials
+
+# Bearer Token Authentication
+FULL_ACCESS_TOKEN = "eeb77aa92c4763586c086b89876037dc74b3252e19fe5dbd2ea0a80100e3855f"
+READ_ONLY_TOKEN = "605a8a7c3b85ae828cfd56c5fc2c653662dfdc392a924174757b7d716dd357d9"
+
+# Better Auth Configuration
+AUTH_BASE_URL = "https://store-crud-api.eri-42e.workers.dev"
+AUTH_SECRET = "zFP8G2j1b8rwzAThnnpYom/948DCjCite0mtMouDgHI="
+
+# Google OAuth Configuration (Better Auth)
+GOOGLE_CLIENT_ID = "377466090650-rb5emg40c454b9pkbl8qonvadqcm6jd4.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "***REMOVED***"
+
+# Google Sheets API key for data import functionality
 GOOGLE_API_KEY = "***REMOVED***"
+GOOGLE_SHEETS_API_KEY = "***REMOVED***"

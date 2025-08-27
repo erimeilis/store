@@ -1,0 +1,53 @@
+
+> store-crud-api@1.0.0 dev:fullstack
+> node dev-full-stack.js
+
+[36m[3:53:00 PM] [INFO] 🚀 Starting full-stack development environment...[0m
+[36m[3:53:00 PM] [INFO] Backend will run on: http://localhost:8787[0m
+[36m[3:53:00 PM] [INFO] Frontend will run on: http://localhost:5173[0m
+[36m[3:53:00 PM] [INFO] Press Ctrl+C to stop both servers[0m
+
+[36m[3:53:00 PM] [INFO] 🔍 Checking port availability...[0m
+[36m[3:53:00 PM] [INFO] Port 8787 is available for backend[0m
+[36m[3:53:00 PM] [INFO] Port 5173 is busy, attempting to free it for frontend...[0m
+[36m[3:53:00 PM] [INFO] Found 1 process(es) using port 5173: 31034[0m
+[36m[3:53:00 PM] [INFO] Killed process 31034 on port 5173[0m
+[36m[3:53:01 PM] [INFO] Port 5173 is now free[0m
+[34m[3:53:01 PM] [BACKEND] Starting backend server...[0m
+[34m[3:53:01 PM] [BACKEND] > store-crud-api@1.0.0 dev
+> wrangler dev --port 8787[0m
+[34m[3:53:02 PM] [BACKEND] ⛅️ wrangler 4.32.0 (update available 4.33.0)
+─────────────────────────────────────────────[0m
+[34m[3:53:02 PM] [BACKEND] Your Worker has access to the following bindings:[0m
+[34m[3:53:02 PM] [BACKEND] Binding                                                                     Resource                  Mode
+env.KV (faf63b06f0cf4d5c969166dda943cf36)                                   KV Namespace              local[0m
+[34m[3:53:02 PM] [BACKEND] env.DB (store-database)                                                     D1 Database               local[0m
+[34m[3:53:02 PM] [BACKEND] env.BUCKET (store-uploads)                                                  R2 Bucket                 local[0m
+[34m[3:53:02 PM] [BACKEND] env.NODE_ENV ("production")                                                 Environment Variable      local[0m
+[34m[3:53:02 PM] [BACKEND] env.FULL_ACCESS_TOKEN ("eeb77aa92c4763586c086b89876037dc74b32...")          Environment Variable      local[0m
+[34m[3:53:02 PM] [BACKEND] env.READ_ONLY_TOKEN ("605a8a7c3b85ae828cfd56c5fc2c653662dfd...")            Environment Variable      local[0m
+[34m[3:53:02 PM] [BACKEND] env.AUTH_BASE_URL ("https://store-crud-api.eri-42e.worker...")              Environment Variable      local[0m
+[34m[3:53:02 PM] [BACKEND] env.AUTH_SECRET ("zFP8G2j1b8rwzAThnnpYom/948DCjCite0mtM...")                Environment Variable      local[0m
+[34m[3:53:02 PM] [BACKEND] env.GOOGLE_CLIENT_ID ("377466090650-rb5emg40c454b9pkbl8qonva...")           Environment Variable      local
+env.GOOGLE_CLIENT_SECRET ("***REMOVED***")            Environment Variable      local[0m
+[34m[3:53:02 PM] [BACKEND] env.GOOGLE_API_KEY ("***REMOVED***")              Environment Variable      local
+env.GOOGLE_SHEETS_API_KEY ("***REMOVED***")       Environment Variable      local[0m
+[34m[3:53:02 PM] [BACKEND] ⎔ Starting local server...[0m
+[34m[3:53:02 PM] [BACKEND] [wrangler:info] Ready on http://localhost:8787[0m
+[32m[3:53:04 PM] [FRONTEND] Starting frontend server...[0m
+[32m[3:53:04 PM] [FRONTEND] > store-crud-frontend@1.0.0 dev
+> echo "export default false" > ./src/config/is_prod.ts && vite[0m
+[32m[3:53:05 PM] [FRONTEND] [dotenv@17.2.1] injecting env (6) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }[0m
+[32m[3:53:05 PM] [FRONTEND] VITE v7.1.3  ready in 90 ms[0m
+[32m[3:53:05 PM] [FRONTEND] ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose[0m
+[34m[3:53:06 PM] [BACKEND] Backend should be starting up...[0m
+[32m[3:53:10 PM] [FRONTEND] Login page - Client ID: Present[0m
+[32m[3:53:10 PM] [FRONTEND] Login page - Redirect URI: http://localhost:5173/auth/callback/google[0m
+[32m[3:53:10 PM] [FRONTEND] [DEBUG] Login component rendered[0m
+[34m[3:53:10 PM] [BACKEND] [wrangler:info] GET /health 200 OK (17ms)[0m
+[32m[3:53:14 PM] [FRONTEND] Frontend should be starting up...[0m
+[36m[3:53:14 PM] [INFO] ✅ Both services are running![0m
+[36m[3:53:14 PM] [INFO] 🔗 Frontend: http://localhost:5173[0m
+[36m[3:53:14 PM] [INFO] 🔗 Backend API: http://localhost:8787[0m
+[36m[3:53:14 PM] [INFO] 🔗 Backend Health: http://localhost:8787/health[0m
