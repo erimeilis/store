@@ -7,9 +7,10 @@
   "scripts": {
     "dev": "wrangler dev",
     "dev:fullstack": "node dev-full-stack.js",
-    "dev:backend": "wrangler dev --port 8787",
-    "dev:frontend": "cd frontend && npm run dev",
     "deploy": "wrangler deploy",
+    "deploy:backend": "wrangler deploy",
+    "deploy:frontend": "cd frontend && npm run deploy",
+    "deploy:fullstack": "npm run deploy:backend && npm run deploy:frontend",
     "test": "vitest",
     "test:run": "vitest run",
     "build": "tsc --noEmit"
@@ -24,8 +25,13 @@
   "author": "Eri <eri@redshoes.pro>",
   "license": "MIT",
   "dependencies": {
+    "@hono/react-renderer": "^1.0.1",
+    "@types/react": "^19.1.11",
+    "@types/react-dom": "^19.1.8",
     "better-auth": "^1.3.7",
-    "hono": "^4.9.4"
+    "hono": "^4.9.4",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250823.0",

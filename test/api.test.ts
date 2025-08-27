@@ -5,6 +5,10 @@ import { createTestBindings } from './test-bindings'
 // Create test bindings for each test
 let testEnv: any
 
+// Test tokens (matching the default tokens from the backend)
+const FULL_ACCESS_TOKEN = 'dev-full-access-token'
+const READ_ONLY_TOKEN = 'dev-read-only-token'
+
 describe('Store CRUD API', () => {
   beforeEach(() => {
     // Create fresh test bindings for each test
@@ -34,7 +38,10 @@ describe('Store CRUD API', () => {
     it('should return all items with count', async () => {
       const request = new Request('http://localhost/api/items', {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${READ_ONLY_TOKEN}`
+        }
       })
       
       const response = await app.request(request, {}, testEnv)
@@ -51,7 +58,10 @@ describe('Store CRUD API', () => {
     it('should return items with correct structure', async () => {
       const request = new Request('http://localhost/api/items', {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${READ_ONLY_TOKEN}`
+        }
       })
       
       const response = await app.request(request, {}, testEnv)
@@ -68,7 +78,10 @@ describe('Store CRUD API', () => {
     it('should return specific item when valid ID is provided', async () => {
       const request = new Request('http://localhost/api/items/1', {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${READ_ONLY_TOKEN}`
+        }
       })
       
       const response = await app.request(request, {}, testEnv)
@@ -83,7 +96,10 @@ describe('Store CRUD API', () => {
     it('should return 404 for non-existent item', async () => {
       const request = new Request('http://localhost/api/items/999', {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${READ_ONLY_TOKEN}`
+        }
       })
       
       const response = await app.request(request, {}, testEnv)
@@ -98,7 +114,10 @@ describe('Store CRUD API', () => {
     it('should return 400 for invalid item ID', async () => {
       const request = new Request('http://localhost/api/items/invalid', {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${READ_ONLY_TOKEN}`
+        }
       })
       
       const response = await app.request(request, {}, testEnv)
@@ -120,7 +139,10 @@ describe('Store CRUD API', () => {
 
       const request = new Request('http://localhost/api/items', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${FULL_ACCESS_TOKEN}`
+        },
         body: JSON.stringify(newItem)
       })
       

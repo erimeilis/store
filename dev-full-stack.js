@@ -2,19 +2,21 @@
 
 /**
  * Full-stack development server launcher
- * Runs both backend (Wrangler) and frontend (Next.js) concurrently
+ * Runs both backend (Wrangler) and frontend (Hono + React) concurrently
  */
 
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { promisify } from 'util';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const execAsync = promisify(exec);
 
 // Configuration
 const BACKEND_PORT = 8787;
-const FRONTEND_PORT = 3000;
+const FRONTEND_PORT = 5173;
 const BACKEND_PATH = __dirname;
 const FRONTEND_PATH = join(__dirname, 'frontend');
 
@@ -49,6 +51,65 @@ function logError(message) {
 
 function logInfo(message) {
   log(`[INFO] ${message}`, 'cyan');
+}
+
+// Port management functions
+async function isPortBusy(port) {
+  try {
+    const { stdout } = await execAsync(`lsof -ti:${port}`);
+    return stdout.trim() !== '';
+  } catch (error) {
+    // lsof returns non-zero exit code when no processes found
+    return false;
+  }
+}
+
+async function killProcessOnPort(port) {
+  try {
+    const { stdout } = await execAsync(`lsof -ti:${port}`);
+    const pids = stdout.trim().split('\n').filter(pid => pid);
+    
+    if (pids.length > 0) {
+      logInfo(`Found ${pids.length} process(es) using port ${port}: ${pids.join(', ')}`);
+      
+      for (const pid of pids) {
+        try {
+          await execAsync(`kill -9 ${pid}`);
+          logInfo(`Killed process ${pid} on port ${port}`);
+        } catch (killError) {
+          logError(`Failed to kill process ${pid}: ${killError.message}`);
+        }
+      }
+      
+      // Wait a moment for processes to be killed
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Verify port is now free
+      if (await isPortBusy(port)) {
+        logError(`Port ${port} is still busy after killing processes`);
+        return false;
+      } else {
+        logInfo(`Port ${port} is now free`);
+        return true;
+      }
+    }
+    return true;
+  } catch (error) {
+    logError(`Error checking/killing processes on port ${port}: ${error.message}`);
+    return false;
+  }
+}
+
+async function ensurePortFree(port, serviceName) {
+  if (await isPortBusy(port)) {
+    logInfo(`Port ${port} is busy, attempting to free it for ${serviceName}...`);
+    const freed = await killProcessOnPort(port);
+    if (!freed) {
+      throw new Error(`Failed to free port ${port} for ${serviceName}`);
+    }
+  } else {
+    logInfo(`Port ${port} is available for ${serviceName}`);
+  }
 }
 
 // Process management
@@ -178,6 +239,11 @@ async function main() {
     logInfo('Press Ctrl+C to stop both servers');
     
     console.log(''); // Empty line for better readability
+    
+    // Ensure ports are free before starting services
+    logInfo('🔍 Checking port availability...');
+    await ensurePortFree(BACKEND_PORT, 'backend');
+    await ensurePortFree(FRONTEND_PORT, 'frontend');
     
     // Start backend first
     await startBackend();
