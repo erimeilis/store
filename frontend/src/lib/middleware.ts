@@ -88,3 +88,6 @@ export const getCurrentUser = (sessionCookie: string | undefined): UserSession |
     return null
   }
 }
+
+// Alias for getCurrentUser
+export const parseSessionCookie = getCurrentUser

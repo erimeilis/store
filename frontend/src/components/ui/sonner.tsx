@@ -1,5 +1,3 @@
-import React from "react"
-
 // Simple stub Toaster component to replace sonner for Cloudflare Workers compatibility
 // This prevents MessageChannel errors while maintaining the same API
 type ToasterProps = {
@@ -8,7 +6,7 @@ type ToasterProps = {
   [key: string]: any
 }
 
-const Toaster = ({ ...props }: ToasterProps) => {
+const Toaster = ({ ..._props }: ToasterProps) => {
   // Return null to render nothing - this prevents the MessageChannel compatibility issue
   // In a production app, you could implement a simple toast system here if needed
   return null
