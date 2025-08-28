@@ -1,9 +1,26 @@
-import './styles/globals.css'
+import { hydrateRoot } from 'react-dom/client'
+import { LoginPage } from '@/pages/LoginPage'
+import { DashboardPage } from '@/pages/DashboardPage'
+import { initializeTheme } from '@/lib/theme'
+import '@/styles/globals.css'
 
-// Since we're using a simple anchor link approach, we don't need complex client-side JavaScript
-// Just load the styles and maybe add some basic functionality if needed in the future
+// Initialize theme system
+initializeTheme()
 
-if (typeof window !== 'undefined') {
-  console.log('[DEBUG] Client-side script loaded - Using anchor link approach')
-  console.log('[DEBUG] Google OAuth is handled by simple anchor links, no JavaScript needed')
+// Hydrate the client-side React components
+const appElement = document.getElementById('app')
+if (appElement) {
+  // Get the initial props from the server-rendered data
+  const initialProps = (window as any).__INITIAL_PROPS__
+  
+  // Determine which page to hydrate based on current path
+  const path = window.location.pathname
+  
+  if (path === '/') {
+    hydrateRoot(appElement, <LoginPage {...initialProps} />)
+  } else if (path === '/dashboard') {
+    hydrateRoot(appElement, <DashboardPage {...initialProps} />)
+  }
 }
+
+console.log('Client-side React hydration complete with theme system initialized');

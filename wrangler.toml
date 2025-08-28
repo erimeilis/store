@@ -7,14 +7,20 @@ compatibility_date = "2024-08-25"
 binding = "DB"
 database_name = "store-database"
 database_id = "a293b988-9b67-4430-ad66-6d63e3cebf20"
+preview_database_id = "6a7a4053-7868-45a6-839d-1bfa6c62f41c"
+experimental_remote = true
 
 [[r2_buckets]]
 binding = "BUCKET"
 bucket_name = "store-uploads"
+preview_bucket_name = "store-uploads-preview"
+experimental_remote = true
 
 [[kv_namespaces]]
 binding = "KV"
 id = "faf63b06f0cf4d5c969166dda943cf36"
+preview_id = "19954278d76c49cd9e431ba514b700b6"
+experimental_remote = true
 
 [vars]
 NODE_ENV = "production"

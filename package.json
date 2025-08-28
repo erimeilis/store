@@ -6,7 +6,9 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "wrangler dev",
+    "dev:remote": "wrangler dev --x-remote-bindings",
     "dev:fullstack": "node dev-full-stack.js",
+    "dev:fullstack:remote": "node dev-full-stack-remote.js",
     "deploy": "wrangler deploy",
     "deploy:backend": "wrangler deploy",
     "deploy:frontend": "cd frontend && npm run deploy",

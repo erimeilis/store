@@ -16,9 +16,22 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 // Enable CORS for all routes
 app.use('*', cors({
-  origin: '*',
+  origin: (origin) => {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:8787', 
+      'https://store-crud-front.pages.dev'
+    ]
+    if (!origin) return '*'
+    if (allowedOrigins.includes(origin)) return origin
+    if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.store-crud-front\.pages\.dev$/)) return origin
+    if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.workers\.dev$/)) return origin
+    if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.pages\.dev$/)) return origin
+    return false
+  },
   allowHeaders: ['Content-Type', 'Authorization'],
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
 }))
 
 // Bearer token authentication middleware

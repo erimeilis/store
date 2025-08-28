@@ -5,17 +5,20 @@ module.exports = {
     './src/view/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  theme: {
-    extend: {
-      colors: {
-        primary: {
-          50: '#eff6ff',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-        },
-      },
-    },
+  plugins: [
+    require('daisyui'),
+  ],
+  daisyui: {
+    themes: [
+      'dim',    // Dark theme (default)
+      'nord'    // Light theme
+    ],
+    darkTheme: 'dim',  // Use 'dim' as default dark theme
+    base: true,
+    styled: true,
+    utils: true,
+    prefix: '',
+    logs: true,
+    themeRoot: ':root',
   },
-  plugins: [],
 }

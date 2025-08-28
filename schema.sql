@@ -14,8 +14,9 @@ CREATE INDEX idx_items_created_at ON items(created_at);
 
 -- Insert sample data for testing
 INSERT INTO items (name, description, data) VALUES 
-  ('Sample Item 1', 'This is a test item', '{"category": "test", "priority": "high"}'),
-  ('Sample Item 2', 'Another test item', '{"category": "demo", "priority": "medium"}');
+  ('Premium Coffee Beans', 'High-quality arabica coffee beans from Colombia', '{"price": 24.99, "quantity": 50, "category": "Beverages"}'),
+  ('Wireless Headphones', 'Bluetooth noise-canceling headphones', '{"price": 199.99, "quantity": 8, "category": "Electronics"}'),
+  ('Organic Green Tea', 'Premium organic green tea leaves', '{"price": 15.50, "quantity": 0, "category": "Beverages"}');
 
 -- Auth.js required tables for D1 adapter
 CREATE TABLE users (
