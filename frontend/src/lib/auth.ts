@@ -1,16 +1,40 @@
 // Simple authentication using Google OAuth without database dependency
-export const createAuthConfig = (env: any = {}) => ({
-  google: {
-    clientId: env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '',
-    clientSecret: env.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || '',
-    redirectURI: env.GOOGLE_REDIRECT_URI || process.env.GOOGLE_REDIRECT_URI || 'http://localhost:5173/auth/callback/google'
-  },
-  session: {
-    maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
-    cookieName: 'auth_session'
-  },
-  baseURL: env.AUTH_BASE_URL || process.env.AUTH_BASE_URL || 'http://localhost:5173'
-})
+export const createAuthConfig = (env: any = {}) => {
+  // Handle Cloudflare Workers environment variables that can be objects from secrets store
+  const getEnvVar = (envVar: any, fallback: string = '') => {
+    // First try direct string access
+    if (typeof envVar === 'string' && envVar) return envVar
+    
+    // Handle potential object cases from Cloudflare bindings
+    if (envVar && typeof envVar === 'object') {
+      // Try different property names that CF might use
+      if (typeof envVar.value === 'string') return envVar.value
+      if (typeof envVar.text === 'string') return envVar.text
+      if (typeof envVar.secret === 'string') return envVar.secret
+      
+      // Last resort - try toString but avoid [object Object]
+      const stringified = String(envVar)
+      if (stringified && stringified !== '[object Object]') {
+        return stringified
+      }
+    }
+    
+    return fallback
+  }
+  
+  return {
+    google: {
+      clientId: getEnvVar(env.GOOGLE_CLIENT_ID, ''),
+      clientSecret: getEnvVar(env.GOOGLE_CLIENT_SECRET, ''),
+      redirectURI: getEnvVar(env.GOOGLE_REDIRECT_URI, '')
+    },
+    session: {
+      maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
+      cookieName: 'auth_session'
+    },
+    baseURL: env.AUTH_BASE_URL || ''
+  }
+}
 
 // Default auth config for backwards compatibility
 export const authConfig = createAuthConfig()
@@ -20,10 +44,10 @@ export const getClientAuthConfig = () => ({
   google: {
     clientId: typeof window !== 'undefined' 
       ? (window as any).__GOOGLE_CLIENT_ID__ 
-      : process.env.GOOGLE_CLIENT_ID || '',
+      : '',
     redirectURI: typeof window !== 'undefined'
       ? (window as any).__GOOGLE_REDIRECT_URI__
-      : process.env.GOOGLE_REDIRECT_URI || 'http://localhost:5173/auth/callback/google'
+      : ''
   }
 })
 

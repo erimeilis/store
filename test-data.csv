@@ -1,5 +1,0 @@
-name,description,category,priority,status
-"Product A","First test product","electronics","high","active"
-"Product B","Second test product","books","medium","pending"
-"Product C","Third test product","clothing","low","active"
-"Service X","Test service item","services","high","inactive"

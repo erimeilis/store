@@ -1,166 +1,338 @@
-# Store CRUD API
+# Store CRUD Application
 
-A modern TypeScript-based CRUD application built with Hono framework and designed for Cloudflare infrastructure deployment.
+A full-stack store management application built with **Hono**, **React**, and **Cloudflare infrastructure**.
 
-## 🚀 Overview
+## 🏗️ Architecture
 
-This project provides a complete REST API for managing store items with file upload capabilities, built specifically for the Cloudflare ecosystem. It features a robust backend API with comprehensive testing, file processing, and integration with Cloudflare's edge services.
+### Backend (API Server)
+- **Framework**: Hono (TypeScript web framework)
+- **Database**: Cloudflare D1 (SQLite)
+- **Storage**: Cloudflare R2 (Object Storage)
+- **Cache**: Cloudflare KV (Key-Value Store)  
+- **Deployment**: Cloudflare Workers
 
-## 🛠 Tech Stack
+### Frontend (React SSR)
+- **Framework**: Hono + React (Server-Side Rendering)
+- **Styling**: TailwindCSS + DaisyUI
+- **Build**: Wrangler (Cloudflare Workers)
+- **Deployment**: Cloudflare Workers
 
-- **Backend**: [Hono](https://hono.dev/) - Ultra-fast web framework for Cloudflare Workers
-- **Runtime**: Cloudflare Workers (V8 JavaScript engine)
-- **Database**: Cloudflare D1 (SQLite-compatible)
-- **Storage**: Cloudflare R2 for file uploads
-- **Cache**: Cloudflare KV for sessions and caching
-- **Language**: TypeScript with strict type checking
-- **Testing**: Vitest with comprehensive test suite
-- **Deployment**: Wrangler CLI
+## 📁 Project Structure
 
-## ✨ Features
+```
+Store/
+├── src/                          # Backend API source
+│   ├── index.ts                  # Main API server
+│   └── types/                    # TypeScript definitions
+├── frontend/                     # Frontend application
+│   ├── src/
+│   │   ├── index.tsx            # Frontend SSR server
+│   │   ├── client.tsx           # Client-side entry
+│   │   ├── pages/               # React pages
+│   │   ├── components/          # React components
+│   │   ├── lib/                 # Utilities & API client
+│   │   └── styles/              # CSS styles
+│   ├── wrangler.toml            # Frontend deployment config
+│   └── package.json             # Frontend dependencies
+├── wrangler.toml                # Backend deployment config
+├── .dev.vars                    # Development secrets (not in git)
+└── package.json                 # Backend dependencies
+```
 
-- **Complete REST API**: Full CRUD operations for store items
-- **File Upload & Processing**: CSV/Excel file parsing with bulk data operations
-- **Type Safety**: Full TypeScript implementation with strict typing
-- **Comprehensive Testing**: 20+ test cases covering all endpoints and edge cases
-- **Edge Deployment**: Optimized for Cloudflare Workers edge runtime
-- **CORS Support**: Ready for frontend integration
-- **Error Handling**: Structured error responses with proper HTTP status codes
-- **Database Integration**: SQLite-compatible schema with D1 bindings
-
-## 🚦 Quick Start
+## 🚀 Getting Started
 
 ### Prerequisites
-
-- Node.js 18+ with npm
-- Cloudflare account (for deployment)
-- Wrangler CLI: `npm install -g wrangler`
+- Node.js 18+
+- npm or yarn
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
 
 ### Installation
 
-1. **Clone and install dependencies**:
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/erimeilis/store.git
-   cd store
+   git clone <repository-url>
+   cd Store
+   ```
+
+2. **Install backend dependencies**
+   ```bash
    npm install
    ```
 
-2. **Start development server**:
+3. **Install frontend dependencies**
    ```bash
-   npm run dev
+   cd frontend
+   npm install
+   cd ..
    ```
 
-3. **Run tests**:
-   ```bash
-   # Run tests once
-   npm run test:run
+4. **Set up environment variables**
    
-   # Run tests in watch mode
-   npm test
+   Create `frontend/.dev.vars`:
+   ```env
+   # Google OAuth configuration
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   # Frontend access token (from D1 tokens table)
+   FRONTEND_ACCESS_TOKEN=your-frontend-access-token
    ```
 
-### API Endpoints
+5. **Initialize database and create tokens table**
+   ```bash
+   # Create tokens table in development database
+   wrangler d1 execute store-database-preview --env dev --command="CREATE TABLE IF NOT EXISTS tokens (id INTEGER PRIMARY KEY, token TEXT UNIQUE, name TEXT, type TEXT DEFAULT 'read', expires_at TEXT);"
+   
+   # Create tokens table in production database
+   wrangler d1 execute store-database --env production --command="CREATE TABLE IF NOT EXISTS tokens (id INTEGER PRIMARY KEY, token TEXT UNIQUE, name TEXT, type TEXT DEFAULT 'read', expires_at TEXT);"
+   
+   # Generate and insert a frontend access token
+   wrangler d1 execute store-database-preview --env dev --command="INSERT OR IGNORE INTO tokens (token, name, type) VALUES ('35890e45a5122de41a406cdaa290e711404c1292205b6ad4a10514228df378ce', 'Frontend Access Token', 'full');"
+   
+   wrangler d1 execute store-database --env production --command="INSERT OR IGNORE INTO tokens (token, name, type) VALUES ('35890e45a5122de41a406cdaa290e711404c1292205b6ad4a10514228df378ce', 'Frontend Access Token', 'full');"
+   ```
 
-- `GET /health` - Health check with version info
-- `GET /api/items` - List all items
-- `GET /api/items/:id` - Get specific item
-- `POST /api/items` - Create new item
-- `PUT /api/items/:id` - Update existing item
-- `DELETE /api/items/:id` - Delete item
-- `POST /api/upload` - Upload and process files
+## 🧑‍💻 Development
 
-## 📚 Documentation
+### Start Development Servers
 
-For detailed information, please refer to our comprehensive documentation:
+**Option 1: Full-stack development (Recommended)**
+```bash
+npm run dev:fullstack
+```
+This starts both backend and frontend servers concurrently.
 
-- **[Project Structure & Architecture](docs/project-structure.md)** - Complete tech stack overview, implementation roadmap, and architectural decisions
-- **[Deployment Instructions](docs/deploy-instructions.md)** - Step-by-step guide for Cloudflare deployment and resource setup
-- **[Authentication Guide](docs/authentication.md)** - Authentication implementation and security considerations
+**Option 2: Separate servers**
+```bash
+# Terminal 1: Backend
+npm run dev
+
+# Terminal 2: Frontend  
+cd frontend
+npm run dev
+```
+
+**Option 3: Development with remote database**
+```bash
+npm run dev:fullstack:remote
+```
+Uses preview database with remote bindings.
+
+### Development URLs
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8787  
+- **API Health**: http://localhost:8787/health
 
 ## 🧪 Testing
 
-The project includes a comprehensive test suite with:
-
-- Health check endpoint validation
-- All CRUD operations testing
-- Error handling and edge cases
-- File upload and processing scenarios
-- Mock Cloudflare bindings for isolated testing
-
+### Backend Tests
 ```bash
-# Run all tests
-npm run test:run
-
-# Run specific test file
-npx vitest run test/api.test.ts
-
-# Build validation
-npm run build
+npm run test        # Run tests in watch mode
+npm run test:run    # Run tests once
 ```
 
-## 🚀 Deployment
-
-Deploy to Cloudflare Workers:
-
+### Type Checking
 ```bash
-# Deploy to production
+npm run build       # Backend TypeScript check
+cd frontend
+npm run type-check  # Frontend TypeScript check
+```
+
+### Linting
+```bash
+cd frontend
+npm run lint        # Check linting
+npm run lint:fix    # Fix linting issues
+```
+
+## 📦 Deployment
+
+### Environment Configuration
+
+The application uses **two environments**:
+
+- **`dev`**: Development/preview resources
+- **`production`**: Production resources
+
+### Backend Deployment
+
+**Deploy to production:**
+```bash
 npm run deploy
-
-# View deployment logs
-wrangler tail
 ```
 
-For detailed deployment instructions including D1, R2, and KV setup, see [docs/deploy-instructions.md](docs/deploy-instructions.md).
-
-## 📊 Project Status
-
-**Phase 1: Backend API Development** ✅ **COMPLETED**
-- Complete REST API implementation
-- Comprehensive test suite (355 lines)
-- File upload and processing capabilities
-- Production-ready TypeScript codebase (422 lines)
-- Advanced mock bindings for testing
-
-**Phase 2: Frontend Development** ✅ **COMPLETED**
-- Separate Hono + React application deployed to Cloudflare Workers
-- React components for CRUD interface
-- Authentication integration
-- File upload UI
-
-## 🤝 Development
-
-### Project Structure
-
-```
-├── src/
-│   └── index.ts          # Main Hono application (422 lines)
-├── test/
-│   ├── api.test.ts       # API endpoint tests (355 lines)
-│   └── test-bindings.ts  # Mock Cloudflare bindings (188 lines)
-├── docs/                 # Comprehensive documentation
-├── frontend/             # Hono + React frontend (deployed)
-└── schema.sql           # Database schema
+**Deploy backend only:**
+```bash
+npm run deploy:backend
 ```
 
-### Development Commands
+### Frontend Deployment
+
+**Deploy frontend only:**
+```bash
+npm run deploy:frontend
+```
+
+**Full-stack deployment:**
+```bash
+npm run deploy:fullstack
+```
+
+### Production Secrets Setup
+
+Set production secrets using Wrangler:
 
 ```bash
-npm run dev      # Start development server
-npm run build    # TypeScript validation
-npm run test     # Run tests in watch mode
-npm run deploy   # Deploy to Cloudflare
+# Frontend secrets (OAuth for Google authentication)
+cd frontend
+wrangler secret put GOOGLE_CLIENT_ID --env production
+wrangler secret put GOOGLE_CLIENT_SECRET --env production
+wrangler secret put FRONTEND_ACCESS_TOKEN --env production
+
+# Backend secrets (if separate tokens needed)
+cd ..
+wrangler secret put FRONTEND_ACCESS_TOKEN --env production
 ```
+
+**Important**: Secrets are entered interactively when you run these commands. The system will prompt you to paste the secret values securely.
+
+## 🗄️ Database
+
+### Schema Management
+
+The application uses D1 SQLite database with the following key tables:
+
+- **Items table**: Store inventory items (if implemented)
+- **Tokens table**: API bearer token authentication with type-based permissions (read/full)
+
+### Database Operations
+
+**Execute SQL against development database:**
+```bash
+wrangler d1 execute store-database-preview --env dev --file=schema.sql
+```
+
+**Execute SQL against production database:**
+```bash
+wrangler d1 execute store-database --env production --file=schema.sql
+```
+
+**Query development database:**
+```bash
+wrangler d1 execute store-database-preview --env dev --command="SELECT * FROM items;"
+```
+
+## 🔐 Authentication
+
+The application uses **Google OAuth** with custom session management:
+
+1. **Google OAuth flow** handles user login
+2. **Session cookies** store user state
+3. **Bearer tokens** authenticate API requests
+
+### API Authentication
+
+API endpoints require bearer token authentication stored in the D1 tokens table:
+
+```bash
+curl -H "Authorization: Bearer your-token" \
+     http://localhost:8787/api/items
+```
+
+**Token types (stored in D1 database):**
+- **Full Access Token**: Read/write permissions (`type = 'full'`)
+- **Read Only Token**: Read-only permissions (`type = 'read'`)
+
+The frontend uses a full-access token to communicate with the backend API.
+
+## 🌐 API Endpoints
+
+### Items CRUD
+- `GET /api/items` - List all items
+- `GET /api/items/:id` - Get item by ID  
+- `POST /api/items` - Create new item
+- `PUT /api/items/:id` - Update item
+- `DELETE /api/items/:id` - Delete item
+
+### System
+- `GET /health` - Health check
+- `GET /` - API status
+
+### Authentication  
+- `GET /auth/google` - Start Google OAuth
+- `GET /auth/callback/google` - OAuth callback
+- `POST /auth/logout` - User logout
+
+## 🛠️ Scripts Reference
+
+### Root Scripts (Backend)
+- `npm run dev` - Start backend development server
+- `npm run dev:remote` - Start with remote database bindings
+- `npm run dev:fullstack` - Start both backend and frontend
+- `npm run dev:fullstack:remote` - Full-stack with remote database
+- `npm run build` - TypeScript compilation check
+- `npm run deploy` - Deploy to production
+- `npm run test` - Run tests
+
+### Frontend Scripts
+- `npm run dev` - Start frontend development server (Wrangler)
+- `npm run build` - Build and deploy to production (Wrangler)
+- `npm run deploy` - Deploy to production (same as build)
+- `npm run version` - Update build timestamp and production flag
+
+## 🔧 Configuration
+
+### Environments
+
+**Development (`dev` environment):**
+- Uses preview D1, R2, and KV resources
+- Local development URLs
+- Development secrets from `.dev.vars`
+
+**Production (`production` environment):**  
+- Uses production D1, R2, and KV resources
+- Production URLs and domains
+- Production secrets from Wrangler secrets
+
+### CORS Configuration
+
+- **Backend API**: Environment-configurable origins
+- **Frontend**: Open CORS for static file serving
+
+## 📋 Troubleshooting
+
+### Common Issues
+
+**Port conflicts:**
+```bash
+# Kill processes on ports
+lsof -ti:8787 | xargs kill -9
+lsof -ti:5173 | xargs kill -9
+```
+
+**Database connection issues:**
+```bash
+# Verify database exists
+wrangler d1 list
+
+# Check schema
+wrangler d1 execute store-database-preview --env dev --command="SELECT name FROM sqlite_master WHERE type='table';"
+```
+
+**Build issues:**
+```bash
+# Clean and rebuild
+rm -rf node_modules frontend/node_modules
+npm install && cd frontend && npm install
+```
+
+## 🤝 Contributing
+
+1. Create feature branch from `main`
+2. Make changes following existing code style
+3. Run tests and linting
+4. Commit with descriptive messages
+5. Create pull request
 
 ## 📄 License
 
-MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
-
-**Eri**
-- 📧 Email: eri@redshoes.pro
-- 💬 Telegram: [@admice](https://t.me/admice)
-
-## 📞 Support
-
-For questions about implementation details, deployment, or architecture decisions, please refer to the documentation in the `docs/` directory or create an issue.
+MIT License - see LICENSE file for details

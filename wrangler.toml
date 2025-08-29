@@ -2,41 +2,69 @@ name = "store-crud-api"
 main = "src/index.ts"
 compatibility_date = "2024-08-25"
 
-# D1 Database Configuration
+# Production bindings (default environment)
 [[d1_databases]]
 binding = "DB"
 database_name = "store-database"
 database_id = "a293b988-9b67-4430-ad66-6d63e3cebf20"
-preview_database_id = "6a7a4053-7868-45a6-839d-1bfa6c62f41c"
-experimental_remote = true
 
 [[r2_buckets]]
 binding = "BUCKET"
 bucket_name = "store-uploads"
-preview_bucket_name = "store-uploads-preview"
-experimental_remote = true
 
 [[kv_namespaces]]
 binding = "KV"
 id = "faf63b06f0cf4d5c969166dda943cf36"
-preview_id = "19954278d76c49cd9e431ba514b700b6"
-experimental_remote = true
 
 [vars]
 NODE_ENV = "production"
-
-# Bearer Token Authentication
-FULL_ACCESS_TOKEN = "eeb77aa92c4763586c086b89876037dc74b3252e19fe5dbd2ea0a80100e3855f"
-READ_ONLY_TOKEN = "605a8a7c3b85ae828cfd56c5fc2c653662dfdc392a924174757b7d716dd357d9"
-
-# Better Auth Configuration
+API_URL = "https://store-crud-api.eri-42e.workers.dev"
 AUTH_BASE_URL = "https://store-crud-api.eri-42e.workers.dev"
-AUTH_SECRET = "zFP8G2j1b8rwzAThnnpYom/948DCjCite0mtMouDgHI="
+ALLOWED_ORIGINS = "https://store-crud-front.eri-42e.workers.dev"
 
-# Google OAuth Configuration (Better Auth)
-GOOGLE_CLIENT_ID = "377466090650-rb5emg40c454b9pkbl8qonvadqcm6jd4.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = "***REMOVED***"
+# Development Environment (uses preview/dev resources only)
+[env.dev]
 
-# Google Sheets API key for data import functionality
-GOOGLE_API_KEY = "***REMOVED***"
-GOOGLE_SHEETS_API_KEY = "***REMOVED***"
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "store-database-preview"
+database_id = "6a7a4053-7868-45a6-839d-1bfa6c62f41c"
+experimental_remote = true
+
+[[env.dev.r2_buckets]]
+binding = "BUCKET"
+bucket_name = "store-uploads-preview"
+experimental_remote = true
+
+[[env.dev.kv_namespaces]]
+binding = "KV"
+id = "19954278d76c49cd9e431ba514b700b6"
+experimental_remote = true
+
+[env.dev.vars]
+NODE_ENV = "development"
+API_URL = "http://localhost:8787"
+AUTH_BASE_URL = "http://localhost:8787"
+ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:8787"
+
+# Production Environment (uses production resources only)
+[env.production]
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "store-database"
+database_id = "a293b988-9b67-4430-ad66-6d63e3cebf20"
+
+[[env.production.r2_buckets]]
+binding = "BUCKET"
+bucket_name = "store-uploads"
+
+[[env.production.kv_namespaces]]
+binding = "KV"
+id = "faf63b06f0cf4d5c969166dda943cf36"
+
+[env.production.vars]
+NODE_ENV = "production"
+API_URL = "https://store-crud-api.eri-42e.workers.dev"
+AUTH_BASE_URL = "https://store-crud-api.eri-42e.workers.dev"
+ALLOWED_ORIGINS = "https://store-crud-front.eri-42e.workers.dev"

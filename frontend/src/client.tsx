@@ -2,7 +2,7 @@ import { hydrateRoot } from 'react-dom/client'
 import { LoginPage } from '@/pages/LoginPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { initializeTheme } from '@/lib/theme'
-import '@/styles/globals.css'
+// CSS is now served as a static asset instead of being imported
 
 // Initialize theme system
 initializeTheme()

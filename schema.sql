@@ -59,8 +59,27 @@ CREATE TABLE verification_tokens (
   PRIMARY KEY (identifier, token)
 );
 
+-- Create tokens table for Bearer token authentication
+CREATE TABLE tokens (
+  id TEXT PRIMARY KEY DEFAULT (hex(randomblob(16))),
+  token TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  permissions TEXT DEFAULT 'read', -- comma-separated permissions: read,write,delete,admin
+  expires_at DATETIME, -- NULL means never expires
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert default tokens for development
+INSERT INTO tokens (token, name, permissions) VALUES 
+  ('35890e45a5122de41a406cdaa290e711404c1292205b6ad4a10514228df378ce', 'Frontend Access Token', 'read,write'),
+  ('eeb77aa92c4763586c086b89876037dc74b3252e19fe5dbd2ea0a80100e3855f', 'Full Access Token', 'read,write,delete,admin'),
+  ('dev-read-only-token', 'Read Only Token', 'read');
+
 -- Create indexes for faster queries on auth tables
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_accounts_userId ON accounts(userId);
 CREATE INDEX idx_sessions_userId ON sessions(userId);
 CREATE INDEX idx_sessions_sessionToken ON sessions(sessionToken);
+CREATE INDEX idx_tokens_token ON tokens(token);
+CREATE INDEX idx_tokens_expires_at ON tokens(expires_at);

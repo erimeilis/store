@@ -16,18 +16,22 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 // Enable CORS for all routes
 app.use('*', cors({
-  origin: (origin) => {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:8787', 
-      'https://store-crud-front.pages.dev'
-    ]
+  origin: (origin, c) => {
+    // Get allowed origins from environment variables
+    const allowedOriginsEnv = c.env?.ALLOWED_ORIGINS || ''
+    const allowedOrigins = allowedOriginsEnv.split(',').filter(Boolean)
+    
     if (!origin) return '*'
     if (allowedOrigins.includes(origin)) return origin
+    
+    // Allow Cloudflare Pages preview deployments
     if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.store-crud-front\.pages\.dev$/)) return origin
+    // Allow Workers dev deployments  
     if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.workers\.dev$/)) return origin
+    // Allow other Pages deployments
     if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.pages\.dev$/)) return origin
-    return false
+    
+    return null
   },
   allowHeaders: ['Content-Type', 'Authorization'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -45,32 +49,73 @@ const createBearerAuthMiddleware = (requiredPermission: 'read' | 'write') => {
     
     const token = authHeader.replace('Bearer ', '')
     
-    // Get tokens from environment variables
-    const fullAccessToken = c.env?.FULL_ACCESS_TOKEN || 'dev-full-access-token'
-    const readOnlyToken = c.env?.READ_ONLY_TOKEN || 'dev-read-only-token'
-    
-    let hasPermission = false
-    let userContext = { id: 'anonymous', permissions: [] as string[] }
-    
-    if (token === fullAccessToken) {
-      hasPermission = true
-      userContext = { id: 'full-access-user', permissions: ['read', 'write'] }
-    } else if (token === readOnlyToken) {
-      hasPermission = requiredPermission === 'read'
-      userContext = { id: 'read-only-user', permissions: ['read'] }
-    }
-    
-    if (!hasPermission) {
+    try {
+      // Query D1 database for token
+      const tokenResult = await c.env.DB.prepare(
+        'SELECT * FROM tokens WHERE token = ? AND (expires_at IS NULL OR expires_at > datetime("now"))'
+      ).bind(token).first()
+      
+      if (!tokenResult) {
+        // Fallback to environment variables for backward compatibility
+        const fullAccessToken = c.env?.FULL_ACCESS_TOKEN || 'dev-full-access-token'
+        const readOnlyToken = c.env?.READ_ONLY_TOKEN || 'dev-read-only-token'
+        
+        let hasPermission = false
+        let userContext = { id: 'anonymous', permissions: [] as string[] }
+        
+        if (token === fullAccessToken) {
+          hasPermission = true
+          userContext = { id: 'full-access-user', permissions: ['read', 'write'] }
+        } else if (token === readOnlyToken) {
+          hasPermission = requiredPermission === 'read'
+          userContext = { id: 'read-only-user', permissions: ['read'] }
+        }
+        
+        if (!hasPermission) {
+          return c.json({ 
+            error: 'Unauthorized', 
+            message: 'Invalid or expired token' 
+          }, 401)
+        }
+        
+        c.set('user', userContext)
+        return next()
+      }
+      
+      // Check permissions from D1 token
+      let hasPermission = false
+      let userContext = { 
+        id: tokenResult.owner || 'unknown', 
+        permissions: [] as string[],
+        tokenId: tokenResult.id
+      }
+      
+      if (tokenResult.type === 'full') {
+        hasPermission = true
+        userContext.permissions = ['read', 'write']
+      } else if (tokenResult.type === 'read') {
+        hasPermission = requiredPermission === 'read'
+        userContext.permissions = ['read']
+      }
+      
+      if (!hasPermission) {
+        return c.json({ 
+          error: 'Forbidden', 
+          message: `Insufficient permissions. Required: ${requiredPermission}` 
+        }, 403)
+      }
+      
+      // Set user context for downstream handlers
+      c.set('user', userContext)
+      
+      return next()
+    } catch (error) {
+      console.error('Token validation error:', error)
       return c.json({ 
-        error: 'Forbidden', 
-        message: `Insufficient permissions. Required: ${requiredPermission}` 
-      }, 403)
+        error: 'Internal Server Error', 
+        message: 'Token validation failed' 
+      }, 500)
     }
-    
-    // Set user context for downstream handlers
-    c.set('user', userContext)
-    
-    return next()
   }
 }
 

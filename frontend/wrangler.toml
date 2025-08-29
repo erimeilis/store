@@ -1,25 +1,22 @@
 name = "store-crud-front"
 compatibility_date = "2024-09-23"
-compatibility_flags = ["nodejs_compat_v2"]
-pages_build_output_dir = "dist"
+main = "src/index.tsx"
 
-# Environment Variables
+# Static assets
+assets.directory = "./dist"
+assets.binding = "ASSETS"
+
+# Production environment variables (default)
 [vars]
-ENVIRONMENT = "production"
 API_URL = "https://store-crud-api.eri-42e.workers.dev"
-VITE_API_URL = "https://store-crud-api.eri-42e.workers.dev"
-GOOGLE_CLIENT_ID = "377466090650-rb5emg40c454b9pkbl8qonvadqcm6jd4.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = "***REMOVED***"
-GOOGLE_REDIRECT_URI = "https://store-crud-front.pages.dev/auth/callback/google"
-FULL_ACCESS_TOKEN = "eeb77aa92c4763586c086b89876037dc74b3252e19fe5dbd2ea0a80100e3855f"
+GOOGLE_REDIRECT_URI = "https://store-crud-front.eri-42e.workers.dev/auth/callback/google"
 
-# Preview environment configuration
-[env.preview]
-[env.preview.vars]
-ENVIRONMENT = "preview"
-API_URL = "http://localhost:8787"
-VITE_API_URL = "http://localhost:8787"
-GOOGLE_CLIENT_ID = "377466090650-rb5emg40c454b9pkbl8qonvadqcm6jd4.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = "***REMOVED***"
-GOOGLE_REDIRECT_URI = "http://localhost:5173/auth/callback/google"
-FULL_ACCESS_TOKEN = "eeb77aa92c4763586c086b89876037dc74b3252e19fe5dbd2ea0a80100e3855f"
+# Development Environment
+[env.dev]
+vars.API_URL = "http://localhost:8787"
+vars.GOOGLE_REDIRECT_URI = "http://localhost:5173/auth/callback/google"
+
+# Production Environment
+[env.production]
+vars.API_URL = "https://store-crud-api.eri-42e.workers.dev"
+vars.GOOGLE_REDIRECT_URI = "https://store-crud-front.eri-42e.workers.dev/auth/callback/google"
