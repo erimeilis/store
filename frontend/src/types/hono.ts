@@ -12,7 +12,10 @@ export interface Env {
   GOOGLE_CLIENT_SECRET?: string;
   GOOGLE_REDIRECT_URI?: string;
   API_URL?: string;
+  VITE_API_URL?: string;
   ENVIRONMENT?: string;
+  FULL_ACCESS_TOKEN?: string;
+  FRONTEND_ACCESS_TOKEN?: string;
 }
 
 // Variables type for Hono context

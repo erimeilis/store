@@ -66,19 +66,27 @@ const getApiUrl = () => {
   if (typeof window !== 'undefined' && (window as any).__INITIAL_PROPS__?.apiUrl) {
     return (window as any).__INITIAL_PROPS__.apiUrl
   }
-  return import.meta.env.VITE_API_URL || import.meta.env.API_URL || 'http://localhost:8787'
+  // Fallback - this won't work in production but needed for build
+  return 'http://localhost:8787'
 }
 
-const API_BASE_URL = getApiUrl()
+// Cache for the bearer token
+const _cachedToken: string | null = null
 
 /**
  * Get bearer token for API authentication
  */
-function getBearerToken(): string | null {
+async function getBearerToken(): Promise<string | null> {
   if (typeof window === 'undefined') return null
   
-  // Use token from environment variables for deployment
-  return import.meta.env.VITE_FULL_ACCESS_TOKEN || 'eeb77aa92c4763586c086b89876037dc74b3252e19fe5dbd2ea0a80100e3855f'
+  // Get token from server-side props (passed from environment)
+  const initialProps = (window as any).__INITIAL_PROPS__
+  if (initialProps?.apiToken) {
+    return initialProps.apiToken
+  }
+  
+  // Development fallback
+  return '35890e45a5122de41a406cdaa290e711404c1292205b6ad4a10514228df378ce'
 }
 
 /**
@@ -88,9 +96,18 @@ async function apiRequest<T>(
   endpoint: string, 
   options: RequestInit = {}
 ): Promise<T> {
-  const token = getBearerToken()
+  const token = await getBearerToken()
+  const apiBaseUrl = getApiUrl()
   
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  console.log('DEBUG: API request', {
+    url: `${apiBaseUrl}${endpoint}`,
+    token: token ? `${token.substring(0, 10)}...` : 'null',
+    hasToken: !!token,
+    apiBaseUrl,
+    initialProps: (window as any).__INITIAL_PROPS__
+  })
+  
+  const response = await fetch(`${apiBaseUrl}${endpoint}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -102,6 +119,7 @@ async function apiRequest<T>(
   
   if (!response.ok) {
     const errorText = await response.text()
+    console.error('API Error:', response.status, errorText)
     throw new Error(`API Error ${response.status}: ${errorText}`)
   }
   

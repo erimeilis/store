@@ -9,10 +9,28 @@ import { spawn, exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { promisify } from 'util';
+import { readFileSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const execAsync = promisify(exec);
+
+// Parse wrangler.toml file for local development (use localhost URLs even with remote DB)
+function parseWranglerTomlForLocalDev() {
+  try {
+    // For remote development, we still want to use localhost URLs for the development server
+    // but connect to the remote database. The backend will run locally on localhost:8787
+    return {
+      vars: {
+        API_URL: `http://localhost:${BACKEND_PORT}`,
+        AUTH_BASE_URL: `http://localhost:${BACKEND_PORT}`
+      }
+    };
+  } catch (error) {
+    logError(`Failed to create local dev config: ${error.message}`);
+    return { vars: {} };
+  }
+}
 
 // Configuration
 const BACKEND_PORT = 8787;
@@ -178,13 +196,11 @@ async function startFrontend() {
   return new Promise((resolve, reject) => {
     logFrontend('Starting frontend server...');
     
+    // Frontend uses its own .dev.vars file and wrangler configuration
+    
     const frontendProcess = spawn('npm', ['run', 'dev'], {
       cwd: FRONTEND_PATH,
-      stdio: 'pipe',
-      env: {
-        ...process.env,
-        PORT: FRONTEND_PORT
-      }
+      stdio: 'pipe'
     });
 
     processes.push(frontendProcess);

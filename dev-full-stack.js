@@ -9,10 +9,52 @@ import { spawn, exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { promisify } from 'util';
+import { readFileSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const execAsync = promisify(exec);
+
+// Parse wrangler.toml file
+function parseWranglerToml() {
+  try {
+    const wranglerPath = join(__dirname, 'wrangler.toml');
+    const wranglerContent = readFileSync(wranglerPath, 'utf8');
+    
+    // Simple TOML parser for our specific needs
+    const config = { vars: {} };
+    let currentSection = '';
+    let inDevEnv = false;
+    let inDevVars = false;
+    
+    wranglerContent.split('\n').forEach(line => {
+      const trimmed = line.trim();
+      
+      if (trimmed.startsWith('[env.dev.vars]')) {
+        inDevVars = true;
+        inDevEnv = true;
+        return;
+      }
+      
+      if (trimmed.startsWith('[') && inDevVars) {
+        inDevVars = false;
+      }
+      
+      if (inDevVars && trimmed && !trimmed.startsWith('#')) {
+        const match = trimmed.match(/^([^=]+)\s*=\s*"([^"]*)"$/);
+        if (match) {
+          const [, key, value] = match;
+          config.vars[key.trim()] = value.trim();
+        }
+      }
+    });
+    
+    return config;
+  } catch (error) {
+    logError(`Failed to parse wrangler.toml: ${error.message}`);
+    return { vars: {} };
+  }
+}
 
 // Configuration
 const BACKEND_PORT = 8787;
@@ -182,12 +224,32 @@ async function startFrontend() {
   return new Promise((resolve, reject) => {
     logFrontend('Starting frontend server...');
     
+    const wranglerConfig = parseWranglerToml();
+    
+    // Try to read .dev.vars if it exists, otherwise use defaults
+    let devVarsToken = 'dev-full-access-token';
+    try {
+      const devVarsPath = join(__dirname, '.dev.vars');
+      const devVarsContent = readFileSync(devVarsPath, 'utf8');
+      const tokenMatch = devVarsContent.match(/^FULL_ACCESS_TOKEN=(.+)$/m);
+      if (tokenMatch) {
+        devVarsToken = tokenMatch[1].trim();
+      }
+    } catch (error) {
+      logInfo('Using default development token (no .dev.vars file)');
+    }
+    
     const frontendProcess = spawn('npm', ['run', 'dev'], {
       cwd: FRONTEND_PATH,
       stdio: 'pipe',
       env: {
         ...process.env,
-        NEXT_PUBLIC_API_BASE_URL: `http://localhost:${BACKEND_PORT}`,
+        // Use wrangler.toml configuration
+        API_URL: wranglerConfig.vars.API_URL || `http://localhost:${BACKEND_PORT}`,
+        VITE_API_URL: wranglerConfig.vars.API_URL || `http://localhost:${BACKEND_PORT}`,
+        // Use the same token as backend
+        VITE_FULL_ACCESS_TOKEN: devVarsToken,
+        GOOGLE_REDIRECT_URI: `http://localhost:${FRONTEND_PORT}/auth/callback/google`,
         PORT: FRONTEND_PORT
       }
     });
