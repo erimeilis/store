@@ -5,15 +5,48 @@ import { setCookie, deleteCookie, getCookie } from 'hono/cookie'
 import { exchangeCodeForTokens, getGoogleUserInfo, createAuthConfig } from '@/lib/auth'
 import { createSessionCookie, parseSessionCookie } from '@/lib/middleware'
 import { Env, Variables } from '@/types/hono'
-import { LoginPage } from '@/pages/LoginPage'
-import { DashboardPage } from '@/pages/DashboardPage'
+// Layout system imports
+import { LayoutProvider } from '@/components/LayoutProvider'
+import { LayoutRenderer } from '@/components/LayoutRenderer'
+import { layoutSystem } from '@/lib/layout-system'
+import RootLayout from '@/app/layout'
+import DashboardLayout from '@/app/dashboard/layout'
+import DashboardPage from '@/app/dashboard/page'
+import LoginPage from '@/app/login/page'
 import IS_PROD from '@/config/is_prod'
 import manifest from '@/lib/manifest.json'
 // CSS is now served as a static asset instead of being imported
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
-// React renderer setup
+// Register layouts and pages with the layout system
+layoutSystem.register({
+  name: 'root',
+  path: '/dashboard',
+  segment: 'dashboard',
+  component: RootLayout
+})
+
+layoutSystem.register({
+  name: 'dashboard',
+  path: '/dashboard',
+  segment: 'dashboard', 
+  component: DashboardLayout
+})
+
+layoutSystem.register({
+  path: '/',
+  segment: 'root',
+  component: LoginPage
+})
+
+layoutSystem.register({
+  path: '/dashboard',
+  segment: 'dashboard',
+  component: DashboardPage
+})
+
+// React renderer setup using layout system
 app.use(
   reactRenderer(({ children, initialProps }: { children: any; initialProps?: any }) => {
     const isProduction = IS_PROD
@@ -31,40 +64,40 @@ app.use(
       jsFile = '/client.js'
     }
     
-    // Debug logging (comment out for production)
-    // console.log('Environment detection:', { isProduction, jsFile, cssFiles })
-    
     // Box icon SVG for favicon
     const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>`
     const faviconDataUri = `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`
     
+    // Enhanced renderer that includes layout system setup
     return (
-      <html data-theme="dim">
-        <head>
-          <meta charSet="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="icon" href={faviconDataUri} type="image/svg+xml" />
-          {/* Include CSS files for production */}
-          {cssFiles.map((cssFile: string) => (
-            <link key={cssFile} rel="stylesheet" href={`/${cssFile}`} />
-          ))}
-          {/* Include built CSS for development */}
-          {!isProduction && (
-            <link rel="stylesheet" href="/styles.css" />
-          )}
-          {initialProps && (
-            <script dangerouslySetInnerHTML={{
-              __html: `window.__INITIAL_PROPS__ = ${JSON.stringify(initialProps)};`
-            }} />
-          )}
-        </head>
-        <body className="min-h-screen bg-base-200">
-          <div id="app">
-            {children}
-          </div>
-          <script type="module" src={jsFile}></script>
-        </body>
-      </html>
+      <>
+        <html data-theme="dim">
+          <head>
+            <meta charSet="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <link rel="icon" href={faviconDataUri} type="image/svg+xml" />
+            {/* Include CSS files for production */}
+            {cssFiles.map((cssFile: string) => (
+              <link key={cssFile} rel="stylesheet" href={`/${cssFile}`} />
+            ))}
+            {/* Include built CSS for development */}
+            {!isProduction && (
+              <link rel="stylesheet" href="/styles.css" />
+            )}
+            {initialProps && (
+              <script dangerouslySetInnerHTML={{
+                __html: `window.__INITIAL_PROPS__ = ${JSON.stringify(initialProps)};`
+              }} />
+            )}
+          </head>
+          <body className="min-h-screen bg-base-200" data-theme="dim">
+            <div id="app">
+              {children}
+            </div>
+            <script type="module" src={jsFile}></script>
+          </body>
+        </html>
+      </>
     )
   })
 )
@@ -80,8 +113,8 @@ app.use('*', cors({
 // Static asset routes - handle all static files from dist directory
 app.get('/client.js', async (c) => {
   try {
-    const asset = await c.env.ASSETS.fetch(c.req.raw)
-    return asset
+    const asset = await c.env.ASSETS?.fetch(c.req.raw)
+    return asset || c.notFound()
   } catch {
     return c.notFound()
   }
@@ -89,8 +122,8 @@ app.get('/client.js', async (c) => {
 
 app.get('/styles.css', async (c) => {
   try {
-    const asset = await c.env.ASSETS.fetch(c.req.raw)
-    return asset
+    const asset = await c.env.ASSETS?.fetch(c.req.raw)
+    return asset || c.notFound()
   } catch {
     return c.notFound()
   }
@@ -99,8 +132,8 @@ app.get('/styles.css', async (c) => {
 // Generic static assets handler for any other static files
 app.get('/assets/*', async (c) => {
   try {
-    const asset = await c.env.ASSETS.fetch(c.req.raw)
-    return asset
+    const asset = await c.env.ASSETS?.fetch(c.req.raw)
+    return asset || c.notFound()
   } catch {
     return c.notFound()
   }
@@ -108,8 +141,8 @@ app.get('/assets/*', async (c) => {
 
 app.get('/static/*', async (c) => {
   try {
-    const asset = await c.env.ASSETS.fetch(c.req.raw)
-    return asset
+    const asset = await c.env.ASSETS?.fetch(c.req.raw)
+    return asset || c.notFound()
   } catch {
     return c.notFound()
   }
@@ -167,7 +200,7 @@ app.get('/api-test', (c) => {
 })
 
 
-// Login Route (/)
+// Login Route (/) - using layout system
 app.get('/', (c) => {
   const authConfig = createAuthConfig(c.env)
   const sessionCookie = getCookie(c, authConfig.session.cookieName)
@@ -192,36 +225,46 @@ app.get('/', (c) => {
     access_type: 'offline'
   }).toString()}`
 
-  const loginProps = { 
-    googleAuthUrl,
-    apiUrl: c.env?.API_URL,
-    apiToken: c.env?.FRONTEND_ACCESS_TOKEN
-  }
+  // Resolve layout hierarchy for root route
+  const { layouts, route } = layoutSystem.resolveLayoutHierarchy('/')
+  const params = {}
+  const searchParams = Object.fromEntries(
+    Object.entries(c.req.queries()).map(([key, values]) => [key, values[0] || ''])
+  )
+
+  const content = (
+    <LayoutProvider
+      layoutSystem={layoutSystem}
+      currentRoute="/"
+      params={params}
+      searchParams={searchParams}
+    >
+      <LayoutRenderer
+        route={route!}
+        layouts={layouts}
+        params={params}
+        searchParams={searchParams}
+        pageProps={{ googleAuthUrl }}
+      />
+    </LayoutProvider>
+  )
   
-  return c.render(<LoginPage {...loginProps} />, { initialProps: loginProps })
+  return c.render(content, { initialProps: { googleAuthUrl } })
 })
 
-// Dashboard Route (/dashboard)
+// Dashboard Route (/dashboard) - using layout system
 app.get('/dashboard', (c) => {
   const dashboardAuthConfig = createAuthConfig(c.env)
   const _sessionCookie = getCookie(c, dashboardAuthConfig.session.cookieName)
   
-  // Temporarily bypass auth for testing
-  const user = {
-    id: 'test-user',
-    name: 'Test User', 
-    email: 'test@example.com',
-    image: null
-  }
-  
-  // TODO: Re-enable auth later
-  /*
-  if (!sessionCookie) {
+  // Re-enabled authentication
+  if (!_sessionCookie) {
     return c.redirect('/')
   }
 
+  let user
   try {
-    user = parseSessionCookie(sessionCookie)
+    user = parseSessionCookie(_sessionCookie)
   } catch {
     return c.redirect('/')
   }
@@ -229,15 +272,38 @@ app.get('/dashboard', (c) => {
   if (!user) {
     return c.redirect('/')
   }
-  */
+
+  // Resolve layout hierarchy for dashboard route
+  const { layouts, route } = layoutSystem.resolveLayoutHierarchy('/dashboard')
+  const params = {}
+  const searchParams = Object.fromEntries(
+    Object.entries(c.req.queries()).map(([key, values]) => [key, values[0] || ''])
+  )
 
   const dashboardProps = { 
     user,
     apiUrl: c.env?.API_URL,
     apiToken: c.env?.FRONTEND_ACCESS_TOKEN
   }
+
+  const content = (
+    <LayoutProvider
+      layoutSystem={layoutSystem}
+      currentRoute="/dashboard"
+      params={params}
+      searchParams={searchParams}
+    >
+      <LayoutRenderer
+        route={route!}
+        layouts={layouts}
+        params={params}
+        searchParams={searchParams}
+        pageProps={dashboardProps}
+      />
+    </LayoutProvider>
+  )
   
-  return c.render(<DashboardPage {...dashboardProps} />, { initialProps: dashboardProps })
+  return c.render(content, { initialProps: dashboardProps })
 })
 
 // Auth Routes Group
@@ -261,8 +327,8 @@ auth.get('/callback/google', async (c) => {
     }
 
     const callbackAuthConfig = createAuthConfig(c.env)
-    const tokens = await exchangeCodeForTokens(code, callbackAuthConfig)
-    const userInfo = await getGoogleUserInfo(tokens.access_token)
+    const tokens = await exchangeCodeForTokens(code, callbackAuthConfig) as any
+    const userInfo = await getGoogleUserInfo(tokens.access_token) as any
     
     const user = {
       id: userInfo.id,

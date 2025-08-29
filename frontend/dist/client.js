@@ -790,7 +790,7 @@ var require_react_development = __commonJS({
           }
           return children;
         }
-        function createContext(defaultValue) {
+        function createContext2(defaultValue) {
           var context = {
             $$typeof: REACT_CONTEXT_TYPE,
             // As a workaround to support multiple concurrent renderers, we categorize
@@ -1076,7 +1076,7 @@ var require_react_development = __commonJS({
           }
           return dispatcher;
         }
-        function useContext(Context) {
+        function useContext2(Context) {
           var dispatcher = resolveDispatcher();
           {
             if (Context._context !== void 0) {
@@ -1114,11 +1114,11 @@ var require_react_development = __commonJS({
           var dispatcher = resolveDispatcher();
           return dispatcher.useLayoutEffect(create, deps);
         }
-        function useCallback2(callback, deps) {
+        function useCallback3(callback, deps) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useCallback(callback, deps);
         }
-        function useMemo(create, deps) {
+        function useMemo3(create, deps) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useMemo(create, deps);
         }
@@ -1871,7 +1871,7 @@ var require_react_development = __commonJS({
         exports.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = ReactSharedInternals;
         exports.act = act;
         exports.cloneElement = cloneElement$1;
-        exports.createContext = createContext;
+        exports.createContext = createContext2;
         exports.createElement = createElement$1;
         exports.createFactory = createFactory;
         exports.createRef = createRef;
@@ -1881,8 +1881,8 @@ var require_react_development = __commonJS({
         exports.memo = memo;
         exports.startTransition = startTransition;
         exports.unstable_act = act;
-        exports.useCallback = useCallback2;
-        exports.useContext = useContext;
+        exports.useCallback = useCallback3;
+        exports.useContext = useContext2;
         exports.useDebugValue = useDebugValue;
         exports.useDeferredValue = useDeferredValue;
         exports.useEffect = useEffect3;
@@ -1890,7 +1890,7 @@ var require_react_development = __commonJS({
         exports.useImperativeHandle = useImperativeHandle;
         exports.useInsertionEffect = useInsertionEffect;
         exports.useLayoutEffect = useLayoutEffect;
-        exports.useMemo = useMemo;
+        exports.useMemo = useMemo3;
         exports.useReducer = useReducer;
         exports.useRef = useRef;
         exports.useState = useState3;
@@ -2389,9 +2389,9 @@ var require_react_dom_development = __commonJS({
         if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
           __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
         }
-        var React6 = require_react();
+        var React9 = require_react();
         var Scheduler = require_scheduler();
-        var ReactSharedInternals = React6.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+        var ReactSharedInternals = React9.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
         var suppressWarning = false;
         function setSuppressWarning(newSuppressWarning) {
           {
@@ -2440,7 +2440,7 @@ var require_react_dom_development = __commonJS({
         var HostPortal = 4;
         var HostComponent = 5;
         var HostText = 6;
-        var Fragment4 = 7;
+        var Fragment5 = 7;
         var Mode = 8;
         var ContextConsumer = 9;
         var ContextProvider = 10;
@@ -3597,7 +3597,7 @@ var require_react_dom_development = __commonJS({
               return "DehydratedFragment";
             case ForwardRef:
               return getWrappedName$1(type, type.render, "ForwardRef");
-            case Fragment4:
+            case Fragment5:
               return "Fragment";
             case HostComponent:
               return type;
@@ -3998,7 +3998,7 @@ var require_react_dom_development = __commonJS({
           {
             if (props.value == null) {
               if (typeof props.children === "object" && props.children !== null) {
-                React6.Children.forEach(props.children, function(child) {
+                React9.Children.forEach(props.children, function(child) {
                   if (child == null) {
                     return;
                   }
@@ -12026,7 +12026,7 @@ var require_react_dom_development = __commonJS({
             }
           }
           function updateFragment2(returnFiber, current2, fragment, lanes, key) {
-            if (current2 === null || current2.tag !== Fragment4) {
+            if (current2 === null || current2.tag !== Fragment5) {
               var created = createFiberFromFragment(fragment, returnFiber.mode, lanes, key);
               created.return = returnFiber;
               return created;
@@ -12429,7 +12429,7 @@ var require_react_dom_development = __commonJS({
               if (child.key === key) {
                 var elementType = element.type;
                 if (elementType === REACT_FRAGMENT_TYPE) {
-                  if (child.tag === Fragment4) {
+                  if (child.tag === Fragment5) {
                     deleteRemainingChildren(returnFiber, child.sibling);
                     var existing = useFiber(child, element.props.children);
                     existing.return = returnFiber;
@@ -17905,7 +17905,7 @@ var require_react_dom_development = __commonJS({
               var _resolvedProps2 = workInProgress2.elementType === type ? _unresolvedProps2 : resolveDefaultProps(type, _unresolvedProps2);
               return updateForwardRef(current2, workInProgress2, type, _resolvedProps2, renderLanes2);
             }
-            case Fragment4:
+            case Fragment5:
               return updateFragment(current2, workInProgress2, renderLanes2);
             case Mode:
               return updateMode(current2, workInProgress2, renderLanes2);
@@ -18177,7 +18177,7 @@ var require_react_dom_development = __commonJS({
             case SimpleMemoComponent:
             case FunctionComponent:
             case ForwardRef:
-            case Fragment4:
+            case Fragment5:
             case Mode:
             case Profiler:
             case ContextConsumer:
@@ -22438,7 +22438,7 @@ var require_react_dom_development = __commonJS({
           return fiber;
         }
         function createFiberFromFragment(elements, mode, lanes, key) {
-          var fiber = createFiber(Fragment4, elements, key, mode);
+          var fiber = createFiber(Fragment5, elements, key, mode);
           fiber.lanes = lanes;
           return fiber;
         }
@@ -23594,7 +23594,7 @@ var require_react_jsx_runtime_development = __commonJS({
     if (true) {
       (function() {
         "use strict";
-        var React6 = require_react();
+        var React9 = require_react();
         var REACT_ELEMENT_TYPE = Symbol.for("react.element");
         var REACT_PORTAL_TYPE = Symbol.for("react.portal");
         var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
@@ -23620,7 +23620,7 @@ var require_react_jsx_runtime_development = __commonJS({
           }
           return null;
         }
-        var ReactSharedInternals = React6.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+        var ReactSharedInternals = React9.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
         function error(format) {
           {
             {
@@ -24470,11 +24470,11 @@ var require_react_jsx_runtime_development = __commonJS({
             return jsxWithValidation(type, props, key, false);
           }
         }
-        var jsx10 = jsxWithValidationDynamic;
-        var jsxs6 = jsxWithValidationStatic;
+        var jsx14 = jsxWithValidationDynamic;
+        var jsxs7 = jsxWithValidationStatic;
         exports.Fragment = REACT_FRAGMENT_TYPE;
-        exports.jsx = jsx10;
-        exports.jsxs = jsxs6;
+        exports.jsx = jsx14;
+        exports.jsxs = jsxs7;
       })();
     }
   }
@@ -24596,14 +24596,284 @@ var init_api = __esm({
 // src/client.tsx
 var import_client = __toESM(require_client(), 1);
 
-// src/components/ui/button.tsx
-var React3 = __toESM(require_react(), 1);
+// src/components/LayoutProvider.tsx
+var import_react = __toESM(require_react(), 1);
+
+// src/lib/layout-system.ts
+var LayoutSystemCore = class {
+  layouts = /* @__PURE__ */ new Map();
+  routes = /* @__PURE__ */ new Map();
+  options;
+  constructor(options = {}) {
+    this.options = {
+      basePath: "",
+      enableMetadata: true,
+      enableParallelRoutes: false,
+      enableRouteGroups: false,
+      ...options
+    };
+  }
+  /**
+   * Register a layout or route configuration
+   */
+  register(config) {
+    if (this.isLayoutConfig(config)) {
+      this.layouts.set(config.path, config);
+    } else {
+      this.routes.set(config.path, config);
+      if (config.layout) {
+        this.layouts.set(config.layout.path, config.layout);
+      }
+    }
+  }
+  /**
+   * Unregister a layout or route by path
+   */
+  unregister(path) {
+    this.layouts.delete(path);
+    this.routes.delete(path);
+  }
+  /**
+   * Get all layouts that apply to a given route path
+   * Returns layouts in hierarchical order (root to specific)
+   */
+  getLayoutsForRoute(routePath) {
+    const segments = this.parseRoutePath(routePath);
+    const layouts = [];
+    let currentPath = "";
+    for (const segment of segments) {
+      currentPath = this.joinPaths(currentPath, segment);
+      const layout = this.layouts.get(currentPath);
+      if (layout) {
+        layouts.push(layout);
+      }
+    }
+    const rootLayout = this.layouts.get("/");
+    if (rootLayout && !layouts.some((l4) => l4.path === "/")) {
+      layouts.unshift(rootLayout);
+    }
+    return layouts;
+  }
+  /**
+   * Get route configuration for a specific path
+   */
+  getRoute(path) {
+    let route = this.routes.get(path);
+    if (route) return route;
+    const normalizedPath = this.normalizePath(path);
+    route = this.routes.get(normalizedPath);
+    if (route) return route;
+    const segments = this.parseRoutePath(path);
+    for (const [routePath, routeConfig] of this.routes) {
+      if (this.matchesDynamicRoute(segments, this.parseRoutePath(routePath))) {
+        return routeConfig;
+      }
+    }
+    return void 0;
+  }
+  /**
+   * Auto-discover layouts and pages from a module registry
+   * This would typically be called with dynamic imports in a build step
+   */
+  async autoDiscoverLayouts(moduleRegistry) {
+    for (const [modulePath, moduleLoader] of Object.entries(moduleRegistry)) {
+      const routePath = this.modulePathToRoutePath(modulePath);
+      try {
+        const module = await moduleLoader();
+        if (this.isLayoutModule(modulePath)) {
+          const layoutConfig = {
+            name: this.pathToName(routePath),
+            path: routePath,
+            segment: this.getSegment(routePath),
+            component: module.default,
+            metadata: module.metadata
+          };
+          this.register(layoutConfig);
+        } else if (this.isPageModule(modulePath)) {
+          const routeConfig = {
+            path: routePath,
+            segment: this.getSegment(routePath),
+            component: module.default,
+            metadata: module.metadata
+          };
+          this.register(routeConfig);
+        }
+      } catch (error) {
+        console.warn(`Failed to load module ${modulePath}:`, error);
+      }
+    }
+  }
+  /**
+   * Resolve layout hierarchy for rendering
+   */
+  resolveLayoutHierarchy(routePath) {
+    const route = this.getRoute(routePath);
+    const layouts = this.getLayoutsForRoute(routePath);
+    const params = this.extractParams(routePath, route);
+    return { layouts, route, params };
+  }
+  // Private helper methods
+  isLayoutConfig(config) {
+    return "name" in config;
+  }
+  isLayoutModule(modulePath) {
+    return modulePath.includes("layout.tsx") || modulePath.includes("layout.jsx");
+  }
+  isPageModule(modulePath) {
+    return modulePath.includes("page.tsx") || modulePath.includes("page.jsx");
+  }
+  modulePathToRoutePath(modulePath) {
+    let routePath = modulePath.replace(/^frontend\/src\//, "").replace(/\/(layout|page)\.(tsx|jsx)$/, "").replace(/^$/, "/");
+    if (!routePath.startsWith("/")) {
+      routePath = "/" + routePath;
+    }
+    return this.normalizePath(routePath);
+  }
+  parseRoutePath(path) {
+    return path.split("/").filter((segment) => segment.length > 0);
+  }
+  joinPaths(base, segment) {
+    const normalizedBase = base === "/" ? "" : base;
+    return this.normalizePath(`${normalizedBase}/${segment}`);
+  }
+  normalizePath(path) {
+    if (!path || path === "") return "/";
+    if (!path.startsWith("/")) path = "/" + path;
+    if (path.length > 1 && path.endsWith("/")) {
+      path = path.slice(0, -1);
+    }
+    return path;
+  }
+  pathToName(path) {
+    return path === "/" ? "root" : path.replace(/^\//, "").replace(/\//g, "-");
+  }
+  getSegment(path) {
+    const segments = this.parseRoutePath(path);
+    return segments[segments.length - 1] || "root";
+  }
+  matchesDynamicRoute(pathSegments, routeSegments) {
+    if (pathSegments.length !== routeSegments.length) return false;
+    for (let i4 = 0; i4 < pathSegments.length; i4++) {
+      const pathSegment = pathSegments[i4];
+      const routeSegment = routeSegments[i4];
+      if (routeSegment.startsWith("[") && routeSegment.endsWith("]")) {
+        continue;
+      }
+      if (routeSegment.startsWith("[...") && routeSegment.endsWith("]")) {
+        return true;
+      }
+      if (pathSegment !== routeSegment) {
+        return false;
+      }
+    }
+    return true;
+  }
+  extractParams(routePath, route) {
+    if (!route) return {};
+    const pathSegments = this.parseRoutePath(routePath);
+    const routeSegments = this.parseRoutePath(route.path);
+    const params = {};
+    for (let i4 = 0; i4 < Math.min(pathSegments.length, routeSegments.length); i4++) {
+      const routeSegment = routeSegments[i4];
+      if (routeSegment.startsWith("[") && routeSegment.endsWith("]")) {
+        const paramName = routeSegment.slice(1, -1);
+        if (paramName.startsWith("...")) {
+          const catchAllParam = paramName.slice(3);
+          params[catchAllParam] = pathSegments.slice(i4).join("/");
+          break;
+        } else {
+          params[paramName] = pathSegments[i4];
+        }
+      }
+    }
+    return params;
+  }
+};
+var layoutSystem = new LayoutSystemCore();
+
+// src/components/LayoutProvider.tsx
+var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
+var LayoutContextProvider = (0, import_react.createContext)(null);
+function LayoutProvider({
+  children,
+  layoutSystem: layoutSystem2 = layoutSystem,
+  currentRoute,
+  params = {},
+  searchParams = {},
+  options: _options = {}
+}) {
+  const layoutStack = (0, import_react.useMemo)(() => {
+    return layoutSystem2.getLayoutsForRoute(currentRoute);
+  }, [layoutSystem2, currentRoute]);
+  const registerLayout = (0, import_react.useCallback)((config) => {
+    layoutSystem2.register(config);
+  }, [layoutSystem2]);
+  const unregisterLayout = (0, import_react.useCallback)((path) => {
+    layoutSystem2.unregister(path);
+  }, [layoutSystem2]);
+  const contextValue = (0, import_react.useMemo)(() => ({
+    currentRoute,
+    params,
+    searchParams,
+    layoutStack,
+    registerLayout,
+    unregisterLayout
+  }), [currentRoute, params, searchParams, layoutStack, registerLayout, unregisterLayout]);
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LayoutContextProvider.Provider, { value: contextValue, children });
+}
+
+// src/components/LayoutRenderer.tsx
+var import_react2 = __toESM(require_react(), 1);
+var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
+function LayoutRenderer({
+  route,
+  layouts,
+  params,
+  searchParams,
+  children,
+  pageProps = {}
+}) {
+  const asyncParams = (0, import_react2.useMemo)(() => Promise.resolve(params), [params]);
+  const asyncSearchParams = (0, import_react2.useMemo)(() => Promise.resolve(searchParams), [searchParams]);
+  const renderLayoutHierarchy = (0, import_react2.useMemo)(() => {
+    let content = children;
+    if (route && !children) {
+      const PageComponent = route.component;
+      const combinedPageProps = {
+        params: asyncParams,
+        searchParams: asyncSearchParams,
+        ...pageProps
+      };
+      content = /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(PageComponent, { ...combinedPageProps });
+    }
+    const reversedLayouts = [...layouts].reverse();
+    for (const layout of reversedLayouts) {
+      const LayoutComponent = layout.component;
+      const layoutProps = {
+        children: content,
+        params: asyncParams,
+        searchParams: asyncSearchParams,
+        ...pageProps
+        // Pass pageProps to layouts so they can access user data
+      };
+      content = /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(LayoutComponent, { ...layoutProps });
+    }
+    return content;
+  }, [route, layouts, asyncParams, asyncSearchParams, children]);
+  return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_jsx_runtime2.Fragment, { children: renderLayoutHierarchy });
+}
+
+// src/app/layout.tsx
+var import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
+function RootLayout({ children }) {
+  return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_jsx_runtime3.Fragment, { children });
+}
 
 // node_modules/@radix-ui/react-slot/dist/index.mjs
-var React2 = __toESM(require_react(), 1);
+var React4 = __toESM(require_react(), 1);
 
 // node_modules/@radix-ui/react-compose-refs/dist/index.mjs
-var React = __toESM(require_react(), 1);
+var React3 = __toESM(require_react(), 1);
 function setRef(ref, value) {
   if (typeof ref === "function") {
     return ref(value);
@@ -24637,27 +24907,27 @@ function composeRefs(...refs) {
 }
 
 // node_modules/@radix-ui/react-slot/dist/index.mjs
-var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
 // @__NO_SIDE_EFFECTS__
 function createSlot(ownerName) {
   const SlotClone = /* @__PURE__ */ createSlotClone(ownerName);
-  const Slot2 = React2.forwardRef((props, forwardedRef) => {
+  const Slot2 = React4.forwardRef((props, forwardedRef) => {
     const { children, ...slotProps } = props;
-    const childrenArray = React2.Children.toArray(children);
+    const childrenArray = React4.Children.toArray(children);
     const slottable = childrenArray.find(isSlottable);
     if (slottable) {
       const newElement = slottable.props.children;
       const newChildren = childrenArray.map((child) => {
         if (child === slottable) {
-          if (React2.Children.count(newElement) > 1) return React2.Children.only(null);
-          return React2.isValidElement(newElement) ? newElement.props.children : null;
+          if (React4.Children.count(newElement) > 1) return React4.Children.only(null);
+          return React4.isValidElement(newElement) ? newElement.props.children : null;
         } else {
           return child;
         }
       });
-      return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlotClone, { ...slotProps, ref: forwardedRef, children: React2.isValidElement(newElement) ? React2.cloneElement(newElement, void 0, newChildren) : null });
+      return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(SlotClone, { ...slotProps, ref: forwardedRef, children: React4.isValidElement(newElement) ? React4.cloneElement(newElement, void 0, newChildren) : null });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlotClone, { ...slotProps, ref: forwardedRef, children });
+    return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(SlotClone, { ...slotProps, ref: forwardedRef, children });
   });
   Slot2.displayName = `${ownerName}.Slot`;
   return Slot2;
@@ -24665,24 +24935,24 @@ function createSlot(ownerName) {
 var Slot = /* @__PURE__ */ createSlot("Slot");
 // @__NO_SIDE_EFFECTS__
 function createSlotClone(ownerName) {
-  const SlotClone = React2.forwardRef((props, forwardedRef) => {
+  const SlotClone = React4.forwardRef((props, forwardedRef) => {
     const { children, ...slotProps } = props;
-    if (React2.isValidElement(children)) {
+    if (React4.isValidElement(children)) {
       const childrenRef = getElementRef(children);
       const props2 = mergeProps(slotProps, children.props);
-      if (children.type !== React2.Fragment) {
+      if (children.type !== React4.Fragment) {
         props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
       }
-      return React2.cloneElement(children, props2);
+      return React4.cloneElement(children, props2);
     }
-    return React2.Children.count(children) > 1 ? React2.Children.only(null) : null;
+    return React4.Children.count(children) > 1 ? React4.Children.only(null) : null;
   });
   SlotClone.displayName = `${ownerName}.SlotClone`;
   return SlotClone;
 }
 var SLOTTABLE_IDENTIFIER = Symbol("radix.slottable");
 function isSlottable(child) {
-  return React2.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER;
+  return React4.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER;
 }
 function mergeProps(slotProps, childProps) {
   const overrideProps = { ...childProps };
@@ -27737,842 +28007,6 @@ function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-// node_modules/@tabler/icons-react/dist/esm/createReactComponent.mjs
-var import_react = __toESM(require_react(), 1);
-
-// node_modules/@tabler/icons-react/dist/esm/defaultAttributes.mjs
-var defaultAttributes = {
-  outline: {
-    xmlns: "http://www.w3.org/2000/svg",
-    width: 24,
-    height: 24,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 2,
-    strokeLinecap: "round",
-    strokeLinejoin: "round"
-  },
-  filled: {
-    xmlns: "http://www.w3.org/2000/svg",
-    width: 24,
-    height: 24,
-    viewBox: "0 0 24 24",
-    fill: "currentColor",
-    stroke: "none"
-  }
-};
-
-// node_modules/@tabler/icons-react/dist/esm/createReactComponent.mjs
-var createReactComponent = (type, iconName, iconNamePascal, iconNode) => {
-  const Component = (0, import_react.forwardRef)(
-    ({ color = "currentColor", size = 24, stroke = 2, title, className, children, ...rest }, ref) => (0, import_react.createElement)(
-      "svg",
-      {
-        ref,
-        ...defaultAttributes[type],
-        width: size,
-        height: size,
-        className: [`tabler-icon`, `tabler-icon-${iconName}`, className].join(" "),
-        ...type === "filled" ? {
-          fill: color
-        } : {
-          strokeWidth: stroke,
-          stroke: color
-        },
-        ...rest
-      },
-      [
-        title && (0, import_react.createElement)("title", { key: "svg-title" }, title),
-        ...iconNode.map(([tag, attrs]) => (0, import_react.createElement)(tag, attrs)),
-        ...Array.isArray(children) ? children : [children]
-      ]
-    )
-  );
-  Component.displayName = `${iconNamePascal}`;
-  return Component;
-};
-
-// node_modules/@tabler/icons-react/dist/esm/icons/IconCheck.mjs
-var __iconNode = [["path", { "d": "M5 12l5 5l10 -10", "key": "svg-0" }]];
-var IconCheck = createReactComponent("outline", "check", "Check", __iconNode);
-
-// node_modules/@tabler/icons-react/dist/esm/icons/IconEdit.mjs
-var __iconNode2 = [["path", { "d": "M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1", "key": "svg-0" }], ["path", { "d": "M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z", "key": "svg-1" }], ["path", { "d": "M16 5l3 3", "key": "svg-2" }]];
-var IconEdit = createReactComponent("outline", "edit", "Edit", __iconNode2);
-
-// node_modules/@tabler/icons-react/dist/esm/icons/IconLogout.mjs
-var __iconNode3 = [["path", { "d": "M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2", "key": "svg-0" }], ["path", { "d": "M9 12h12l-3 -3", "key": "svg-1" }], ["path", { "d": "M18 15l3 -3", "key": "svg-2" }]];
-var IconLogout = createReactComponent("outline", "logout", "Logout", __iconNode3);
-
-// node_modules/@tabler/icons-react/dist/esm/icons/IconPlus.mjs
-var __iconNode4 = [["path", { "d": "M12 5l0 14", "key": "svg-0" }], ["path", { "d": "M5 12l14 0", "key": "svg-1" }]];
-var IconPlus = createReactComponent("outline", "plus", "Plus", __iconNode4);
-
-// node_modules/@tabler/icons-react/dist/esm/icons/IconTrash.mjs
-var __iconNode5 = [["path", { "d": "M4 7l16 0", "key": "svg-0" }], ["path", { "d": "M10 11l0 6", "key": "svg-1" }], ["path", { "d": "M14 11l0 6", "key": "svg-2" }], ["path", { "d": "M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12", "key": "svg-3" }], ["path", { "d": "M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3", "key": "svg-4" }]];
-var IconTrash = createReactComponent("outline", "trash", "Trash", __iconNode5);
-
-// node_modules/@tabler/icons-react/dist/esm/icons/IconX.mjs
-var __iconNode6 = [["path", { "d": "M18 6l-12 12", "key": "svg-0" }], ["path", { "d": "M6 6l12 12", "key": "svg-1" }]];
-var IconX = createReactComponent("outline", "x", "X", __iconNode6);
-
-// node_modules/@tabler/icons-react/dist/esm/icons/IconBrandGoogleFilled.mjs
-var __iconNode7 = [["path", { "d": "M12 2a9.96 9.96 0 0 1 6.29 2.226a1 1 0 0 1 .04 1.52l-1.51 1.362a1 1 0 0 1 -1.265 .06a6 6 0 1 0 2.103 6.836l.001 -.004h-3.66a1 1 0 0 1 -.992 -.883l-.007 -.117v-2a1 1 0 0 1 1 -1h6.945a1 1 0 0 1 .994 .89c.04 .367 .061 .737 .061 1.11c0 5.523 -4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10z", "key": "svg-0" }]];
-var IconBrandGoogleFilled = createReactComponent("filled", "brand-google-filled", "BrandGoogleFilled", __iconNode7);
-
-// node_modules/@headlessui/react/dist/utils/env.js
-var i = Object.defineProperty;
-var d = (t5, e, n3) => e in t5 ? i(t5, e, { enumerable: true, configurable: true, writable: true, value: n3 }) : t5[e] = n3;
-var r2 = (t5, e, n3) => (d(t5, typeof e != "symbol" ? e + "" : e, n3), n3);
-var o = class {
-  constructor() {
-    r2(this, "current", this.detect());
-    r2(this, "handoffState", "pending");
-    r2(this, "currentId", 0);
-  }
-  set(e) {
-    this.current !== e && (this.handoffState = "pending", this.currentId = 0, this.current = e);
-  }
-  reset() {
-    this.set(this.detect());
-  }
-  nextId() {
-    return ++this.currentId;
-  }
-  get isServer() {
-    return this.current === "server";
-  }
-  get isClient() {
-    return this.current === "client";
-  }
-  detect() {
-    return typeof window == "undefined" || typeof document == "undefined" ? "server" : "client";
-  }
-  handoff() {
-    this.handoffState === "pending" && (this.handoffState = "complete");
-  }
-  get isHandoffComplete() {
-    return this.handoffState === "complete";
-  }
-};
-var s = new o();
-
-// node_modules/@headlessui/react/dist/hooks/use-disposables.js
-var import_react2 = __toESM(require_react(), 1);
-
-// node_modules/@headlessui/react/dist/utils/micro-task.js
-function t(e) {
-  typeof queueMicrotask == "function" ? queueMicrotask(e) : Promise.resolve().then(e).catch((o5) => setTimeout(() => {
-    throw o5;
-  }));
-}
-
-// node_modules/@headlessui/react/dist/utils/disposables.js
-function o2() {
-  let s5 = [], r6 = { addEventListener(e, t5, n3, i4) {
-    return e.addEventListener(t5, n3, i4), r6.add(() => e.removeEventListener(t5, n3, i4));
-  }, requestAnimationFrame(...e) {
-    let t5 = requestAnimationFrame(...e);
-    return r6.add(() => cancelAnimationFrame(t5));
-  }, nextFrame(...e) {
-    return r6.requestAnimationFrame(() => r6.requestAnimationFrame(...e));
-  }, setTimeout(...e) {
-    let t5 = setTimeout(...e);
-    return r6.add(() => clearTimeout(t5));
-  }, microTask(...e) {
-    let t5 = { current: true };
-    return t(() => {
-      t5.current && e[0]();
-    }), r6.add(() => {
-      t5.current = false;
-    });
-  }, style(e, t5, n3) {
-    let i4 = e.style.getPropertyValue(t5);
-    return Object.assign(e.style, { [t5]: n3 }), this.add(() => {
-      Object.assign(e.style, { [t5]: i4 });
-    });
-  }, group(e) {
-    let t5 = o2();
-    return e(t5), this.add(() => t5.dispose());
-  }, add(e) {
-    return s5.includes(e) || s5.push(e), () => {
-      let t5 = s5.indexOf(e);
-      if (t5 >= 0) for (let n3 of s5.splice(t5, 1)) n3();
-    };
-  }, dispose() {
-    for (let e of s5.splice(0)) e();
-  } };
-  return r6;
-}
-
-// node_modules/@headlessui/react/dist/hooks/use-disposables.js
-function p() {
-  let [e] = (0, import_react2.useState)(o2);
-  return (0, import_react2.useEffect)(() => () => e.dispose(), [e]), e;
-}
-
-// node_modules/@headlessui/react/dist/hooks/use-event.js
-var import_react5 = __toESM(require_react(), 1);
-
-// node_modules/@headlessui/react/dist/hooks/use-latest-value.js
-var import_react4 = __toESM(require_react(), 1);
-
-// node_modules/@headlessui/react/dist/hooks/use-iso-morphic-effect.js
-var import_react3 = __toESM(require_react(), 1);
-var n = (e, t5) => {
-  s.isServer ? (0, import_react3.useEffect)(e, t5) : (0, import_react3.useLayoutEffect)(e, t5);
-};
-
-// node_modules/@headlessui/react/dist/hooks/use-latest-value.js
-function s3(e) {
-  let r6 = (0, import_react4.useRef)(e);
-  return n(() => {
-    r6.current = e;
-  }, [e]), r6;
-}
-
-// node_modules/@headlessui/react/dist/hooks/use-event.js
-var o4 = function(t5) {
-  let e = s3(t5);
-  return import_react5.default.useCallback((...r6) => e.current(...r6), [e]);
-};
-
-// node_modules/@headlessui/react/dist/utils/render.js
-var import_react6 = __toESM(require_react(), 1);
-
-// node_modules/@headlessui/react/dist/utils/class-names.js
-function t3(...r6) {
-  return Array.from(new Set(r6.flatMap((n3) => typeof n3 == "string" ? n3.split(" ") : []))).filter(Boolean).join(" ");
-}
-
-// node_modules/@headlessui/react/dist/utils/match.js
-function u(r6, n3, ...a2) {
-  if (r6 in n3) {
-    let e = n3[r6];
-    return typeof e == "function" ? e(...a2) : e;
-  }
-  let t5 = new Error(`Tried to handle "${r6}" but there is no handler defined. Only defined handlers are: ${Object.keys(n3).map((e) => `"${e}"`).join(", ")}.`);
-  throw Error.captureStackTrace && Error.captureStackTrace(t5, u), t5;
-}
-
-// node_modules/@headlessui/react/dist/utils/render.js
-var O = ((a2) => (a2[a2.None = 0] = "None", a2[a2.RenderStrategy = 1] = "RenderStrategy", a2[a2.Static = 2] = "Static", a2))(O || {});
-var A = ((e) => (e[e.Unmount = 0] = "Unmount", e[e.Hidden = 1] = "Hidden", e))(A || {});
-function L() {
-  let n3 = U();
-  return (0, import_react6.useCallback)((r6) => C({ mergeRefs: n3, ...r6 }), [n3]);
-}
-function C({ ourProps: n3, theirProps: r6, slot: e, defaultTag: a2, features: s5, visible: t5 = true, name: l4, mergeRefs: i4 }) {
-  i4 = i4 != null ? i4 : $;
-  let o5 = P(r6, n3);
-  if (t5) return F(o5, e, a2, l4, i4);
-  let y2 = s5 != null ? s5 : 0;
-  if (y2 & 2) {
-    let { static: f3 = false, ...u4 } = o5;
-    if (f3) return F(u4, e, a2, l4, i4);
-  }
-  if (y2 & 1) {
-    let { unmount: f3 = true, ...u4 } = o5;
-    return u(f3 ? 0 : 1, { [0]() {
-      return null;
-    }, [1]() {
-      return F({ ...u4, hidden: true, style: { display: "none" } }, e, a2, l4, i4);
-    } });
-  }
-  return F(o5, e, a2, l4, i4);
-}
-function F(n3, r6 = {}, e, a2, s5) {
-  let { as: t5 = e, children: l4, refName: i4 = "ref", ...o5 } = h(n3, ["unmount", "static"]), y2 = n3.ref !== void 0 ? { [i4]: n3.ref } : {}, f3 = typeof l4 == "function" ? l4(r6) : l4;
-  "className" in o5 && o5.className && typeof o5.className == "function" && (o5.className = o5.className(r6)), o5["aria-labelledby"] && o5["aria-labelledby"] === o5.id && (o5["aria-labelledby"] = void 0);
-  let u4 = {};
-  if (r6) {
-    let d3 = false, p2 = [];
-    for (let [c6, T2] of Object.entries(r6)) typeof T2 == "boolean" && (d3 = true), T2 === true && p2.push(c6.replace(/([A-Z])/g, (g) => `-${g.toLowerCase()}`));
-    if (d3) {
-      u4["data-headlessui-state"] = p2.join(" ");
-      for (let c6 of p2) u4[`data-${c6}`] = "";
-    }
-  }
-  if (t5 === import_react6.Fragment && (Object.keys(m(o5)).length > 0 || Object.keys(m(u4)).length > 0)) if (!(0, import_react6.isValidElement)(f3) || Array.isArray(f3) && f3.length > 1) {
-    if (Object.keys(m(o5)).length > 0) throw new Error(['Passing props on "Fragment"!', "", `The current component <${a2} /> is rendering a "Fragment".`, "However we need to passthrough the following props:", Object.keys(m(o5)).concat(Object.keys(m(u4))).map((d3) => `  - ${d3}`).join(`
-`), "", "You can apply a few solutions:", ['Add an `as="..."` prop, to ensure that we render an actual element instead of a "Fragment".', "Render a single element as the child so that we can forward the props onto that element."].map((d3) => `  - ${d3}`).join(`
-`)].join(`
-`));
-  } else {
-    let d3 = f3.props, p2 = d3 == null ? void 0 : d3.className, c6 = typeof p2 == "function" ? (...R2) => t3(p2(...R2), o5.className) : t3(p2, o5.className), T2 = c6 ? { className: c6 } : {}, g = P(f3.props, m(h(o5, ["ref"])));
-    for (let R2 in u4) R2 in g && delete u4[R2];
-    return (0, import_react6.cloneElement)(f3, Object.assign({}, g, u4, y2, { ref: s5(H(f3), y2.ref) }, T2));
-  }
-  return (0, import_react6.createElement)(t5, Object.assign({}, h(o5, ["ref"]), t5 !== import_react6.Fragment && y2, t5 !== import_react6.Fragment && u4), f3);
-}
-function U() {
-  let n3 = (0, import_react6.useRef)([]), r6 = (0, import_react6.useCallback)((e) => {
-    for (let a2 of n3.current) a2 != null && (typeof a2 == "function" ? a2(e) : a2.current = e);
-  }, []);
-  return (...e) => {
-    if (!e.every((a2) => a2 == null)) return n3.current = e, r6;
-  };
-}
-function $(...n3) {
-  return n3.every((r6) => r6 == null) ? void 0 : (r6) => {
-    for (let e of n3) e != null && (typeof e == "function" ? e(r6) : e.current = r6);
-  };
-}
-function P(...n3) {
-  var a2;
-  if (n3.length === 0) return {};
-  if (n3.length === 1) return n3[0];
-  let r6 = {}, e = {};
-  for (let s5 of n3) for (let t5 in s5) t5.startsWith("on") && typeof s5[t5] == "function" ? ((a2 = e[t5]) != null || (e[t5] = []), e[t5].push(s5[t5])) : r6[t5] = s5[t5];
-  if (r6.disabled || r6["aria-disabled"]) for (let s5 in e) /^(on(?:Click|Pointer|Mouse|Key)(?:Down|Up|Press)?)$/.test(s5) && (e[s5] = [(t5) => {
-    var l4;
-    return (l4 = t5 == null ? void 0 : t5.preventDefault) == null ? void 0 : l4.call(t5);
-  }]);
-  for (let s5 in e) Object.assign(r6, { [s5](t5, ...l4) {
-    let i4 = e[s5];
-    for (let o5 of i4) {
-      if ((t5 instanceof Event || (t5 == null ? void 0 : t5.nativeEvent) instanceof Event) && t5.defaultPrevented) return;
-      o5(t5, ...l4);
-    }
-  } });
-  return r6;
-}
-function K(n3) {
-  var r6;
-  return Object.assign((0, import_react6.forwardRef)(n3), { displayName: (r6 = n3.displayName) != null ? r6 : n3.name });
-}
-function m(n3) {
-  let r6 = Object.assign({}, n3);
-  for (let e in r6) r6[e] === void 0 && delete r6[e];
-  return r6;
-}
-function h(n3, r6 = []) {
-  let e = Object.assign({}, n3);
-  for (let a2 of r6) a2 in e && delete e[a2];
-  return e;
-}
-function H(n3) {
-  return import_react6.default.version.split(".")[0] >= "19" ? n3.props.ref : n3.ref;
-}
-
-// node_modules/@headlessui/react/dist/hooks/use-sync-refs.js
-var import_react7 = __toESM(require_react(), 1);
-var u2 = Symbol();
-function y(...t5) {
-  let n3 = (0, import_react7.useRef)(t5);
-  (0, import_react7.useEffect)(() => {
-    n3.current = t5;
-  }, [t5]);
-  let c6 = o4((e) => {
-    for (let o5 of n3.current) o5 != null && (typeof o5 == "function" ? o5(e) : o5.current = e);
-  });
-  return t5.every((e) => e == null || (e == null ? void 0 : e[u2])) ? void 0 : c6;
-}
-
-// node_modules/@headlessui/react/dist/hooks/use-transition.js
-var import_react9 = __toESM(require_react(), 1);
-
-// node_modules/@headlessui/react/dist/hooks/use-flags.js
-var import_react8 = __toESM(require_react(), 1);
-function c2(u4 = 0) {
-  let [t5, l4] = (0, import_react8.useState)(u4), g = (0, import_react8.useCallback)((e) => l4(e), [t5]), s5 = (0, import_react8.useCallback)((e) => l4((a2) => a2 | e), [t5]), m2 = (0, import_react8.useCallback)((e) => (t5 & e) === e, [t5]), n3 = (0, import_react8.useCallback)((e) => l4((a2) => a2 & ~e), [l4]), F2 = (0, import_react8.useCallback)((e) => l4((a2) => a2 ^ e), [l4]);
-  return { flags: t5, setFlag: g, addFlag: s5, hasFlag: m2, removeFlag: n3, toggleFlag: F2 };
-}
-
-// node_modules/@headlessui/react/dist/hooks/use-transition.js
-var T;
-var b3;
-typeof process != "undefined" && typeof globalThis != "undefined" && typeof Element != "undefined" && ((T = process == null ? void 0 : process.env) == null ? void 0 : T["NODE_ENV"]) === "test" && typeof ((b3 = Element == null ? void 0 : Element.prototype) == null ? void 0 : b3.getAnimations) == "undefined" && (Element.prototype.getAnimations = function() {
-  return console.warn(["Headless UI has polyfilled `Element.prototype.getAnimations` for your tests.", "Please install a proper polyfill e.g. `jsdom-testing-mocks`, to silence these warnings.", "", "Example usage:", "```js", "import { mockAnimationsApi } from 'jsdom-testing-mocks'", "mockAnimationsApi()", "```"].join(`
-`)), [];
-});
-var L2 = ((r6) => (r6[r6.None = 0] = "None", r6[r6.Closed = 1] = "Closed", r6[r6.Enter = 2] = "Enter", r6[r6.Leave = 4] = "Leave", r6))(L2 || {});
-function R(t5) {
-  let n3 = {};
-  for (let e in t5) t5[e] === true && (n3[`data-${e}`] = "");
-  return n3;
-}
-function x2(t5, n3, e, i4) {
-  let [r6, o5] = (0, import_react9.useState)(e), { hasFlag: s5, addFlag: a2, removeFlag: l4 } = c2(t5 && r6 ? 3 : 0), u4 = (0, import_react9.useRef)(false), f3 = (0, import_react9.useRef)(false), E2 = p();
-  return n(() => {
-    var d3;
-    if (t5) {
-      if (e && o5(true), !n3) {
-        e && a2(3);
-        return;
-      }
-      return (d3 = i4 == null ? void 0 : i4.start) == null || d3.call(i4, e), C2(n3, { inFlight: u4, prepare() {
-        f3.current ? f3.current = false : f3.current = u4.current, u4.current = true, !f3.current && (e ? (a2(3), l4(4)) : (a2(4), l4(2)));
-      }, run() {
-        f3.current ? e ? (l4(3), a2(4)) : (l4(4), a2(3)) : e ? l4(1) : a2(1);
-      }, done() {
-        var p2;
-        f3.current && typeof n3.getAnimations == "function" && n3.getAnimations().length > 0 || (u4.current = false, l4(7), e || o5(false), (p2 = i4 == null ? void 0 : i4.end) == null || p2.call(i4, e));
-      } });
-    }
-  }, [t5, e, n3, E2]), t5 ? [r6, { closed: s5(1), enter: s5(2), leave: s5(4), transition: s5(2) || s5(4) }] : [e, { closed: void 0, enter: void 0, leave: void 0, transition: void 0 }];
-}
-function C2(t5, { prepare: n3, run: e, done: i4, inFlight: r6 }) {
-  let o5 = o2();
-  return j2(t5, { prepare: n3, inFlight: r6 }), o5.nextFrame(() => {
-    e(), o5.requestAnimationFrame(() => {
-      o5.add(M(t5, i4));
-    });
-  }), o5.dispose;
-}
-function M(t5, n3) {
-  var o5, s5;
-  let e = o2();
-  if (!t5) return e.dispose;
-  let i4 = false;
-  e.add(() => {
-    i4 = true;
-  });
-  let r6 = (s5 = (o5 = t5.getAnimations) == null ? void 0 : o5.call(t5).filter((a2) => a2 instanceof CSSTransition)) != null ? s5 : [];
-  return r6.length === 0 ? (n3(), e.dispose) : (Promise.allSettled(r6.map((a2) => a2.finished)).then(() => {
-    i4 || n3();
-  }), e.dispose);
-}
-function j2(t5, { inFlight: n3, prepare: e }) {
-  if (n3 != null && n3.current) {
-    e();
-    return;
-  }
-  let i4 = t5.style.transition;
-  t5.style.transition = "none", e(), t5.offsetHeight, t5.style.transition = i4;
-}
-
-// node_modules/@headlessui/react/dist/internal/open-closed.js
-var import_react10 = __toESM(require_react(), 1);
-var n2 = (0, import_react10.createContext)(null);
-n2.displayName = "OpenClosedContext";
-var i3 = ((e) => (e[e.Open = 1] = "Open", e[e.Closed = 2] = "Closed", e[e.Closing = 4] = "Closing", e[e.Opening = 8] = "Opening", e))(i3 || {});
-function u3() {
-  return (0, import_react10.useContext)(n2);
-}
-function c4({ value: o5, children: t5 }) {
-  return import_react10.default.createElement(n2.Provider, { value: o5 }, t5);
-}
-
-// node_modules/@headlessui/react/dist/hooks/use-server-handoff-complete.js
-var t4 = __toESM(require_react(), 1);
-function s4() {
-  let r6 = typeof document == "undefined";
-  return "useSyncExternalStore" in t4 ? ((o5) => o5.useSyncExternalStore)(t4)(() => () => {
-  }, () => false, () => !r6) : false;
-}
-function l3() {
-  let r6 = s4(), [e, n3] = t4.useState(s.isHandoffComplete);
-  return e && s.isHandoffComplete === false && n3(false), t4.useEffect(() => {
-    e !== true && n3(true);
-  }, [e]), t4.useEffect(() => s.handoff(), []), r6 ? false : e;
-}
-
-// node_modules/@headlessui/react/dist/hooks/use-is-mounted.js
-var import_react11 = __toESM(require_react(), 1);
-function f2() {
-  let e = (0, import_react11.useRef)(false);
-  return n(() => (e.current = true, () => {
-    e.current = false;
-  }), []), e;
-}
-
-// node_modules/@headlessui/react/dist/components/transition/transition.js
-var import_react12 = __toESM(require_react(), 1);
-function ue(e) {
-  var t5;
-  return !!(e.enter || e.enterFrom || e.enterTo || e.leave || e.leaveFrom || e.leaveTo) || ((t5 = e.as) != null ? t5 : de) !== import_react12.Fragment || import_react12.default.Children.count(e.children) === 1;
-}
-var w2 = (0, import_react12.createContext)(null);
-w2.displayName = "TransitionContext";
-var _e = ((n3) => (n3.Visible = "visible", n3.Hidden = "hidden", n3))(_e || {});
-function De() {
-  let e = (0, import_react12.useContext)(w2);
-  if (e === null) throw new Error("A <Transition.Child /> is used but it is missing a parent <Transition /> or <Transition.Root />.");
-  return e;
-}
-function He() {
-  let e = (0, import_react12.useContext)(M2);
-  if (e === null) throw new Error("A <Transition.Child /> is used but it is missing a parent <Transition /> or <Transition.Root />.");
-  return e;
-}
-var M2 = (0, import_react12.createContext)(null);
-M2.displayName = "NestingContext";
-function U2(e) {
-  return "children" in e ? U2(e.children) : e.current.filter(({ el: t5 }) => t5.current !== null).filter(({ state: t5 }) => t5 === "visible").length > 0;
-}
-function Te(e, t5) {
-  let n3 = s3(e), l4 = (0, import_react12.useRef)([]), S3 = f2(), R2 = p(), d3 = o4((o5, i4 = A.Hidden) => {
-    let a2 = l4.current.findIndex(({ el: s5 }) => s5 === o5);
-    a2 !== -1 && (u(i4, { [A.Unmount]() {
-      l4.current.splice(a2, 1);
-    }, [A.Hidden]() {
-      l4.current[a2].state = "hidden";
-    } }), R2.microTask(() => {
-      var s5;
-      !U2(l4) && S3.current && ((s5 = n3.current) == null || s5.call(n3));
-    }));
-  }), y2 = o4((o5) => {
-    let i4 = l4.current.find(({ el: a2 }) => a2 === o5);
-    return i4 ? i4.state !== "visible" && (i4.state = "visible") : l4.current.push({ el: o5, state: "visible" }), () => d3(o5, A.Unmount);
-  }), C3 = (0, import_react12.useRef)([]), p2 = (0, import_react12.useRef)(Promise.resolve()), h2 = (0, import_react12.useRef)({ enter: [], leave: [] }), g = o4((o5, i4, a2) => {
-    C3.current.splice(0), t5 && (t5.chains.current[i4] = t5.chains.current[i4].filter(([s5]) => s5 !== o5)), t5 == null || t5.chains.current[i4].push([o5, new Promise((s5) => {
-      C3.current.push(s5);
-    })]), t5 == null || t5.chains.current[i4].push([o5, new Promise((s5) => {
-      Promise.all(h2.current[i4].map(([r6, f3]) => f3)).then(() => s5());
-    })]), i4 === "enter" ? p2.current = p2.current.then(() => t5 == null ? void 0 : t5.wait.current).then(() => a2(i4)) : a2(i4);
-  }), v2 = o4((o5, i4, a2) => {
-    Promise.all(h2.current[i4].splice(0).map(([s5, r6]) => r6)).then(() => {
-      var s5;
-      (s5 = C3.current.shift()) == null || s5();
-    }).then(() => a2(i4));
-  });
-  return (0, import_react12.useMemo)(() => ({ children: l4, register: y2, unregister: d3, onStart: g, onStop: v2, wait: p2, chains: h2 }), [y2, d3, l4, g, v2, h2, p2]);
-}
-var de = import_react12.Fragment;
-var fe = O.RenderStrategy;
-function Ae(e, t5) {
-  var ee, te;
-  let { transition: n3 = true, beforeEnter: l4, afterEnter: S3, beforeLeave: R2, afterLeave: d3, enter: y2, enterFrom: C3, enterTo: p2, entered: h2, leave: g, leaveFrom: v2, leaveTo: o5, ...i4 } = e, [a2, s5] = (0, import_react12.useState)(null), r6 = (0, import_react12.useRef)(null), f3 = ue(e), j3 = y(...f3 ? [r6, t5, s5] : t5 === null ? [] : [t5]), H2 = (ee = i4.unmount) == null || ee ? A.Unmount : A.Hidden, { show: u4, appear: z, initial: K2 } = De(), [m2, G] = (0, import_react12.useState)(u4 ? "visible" : "hidden"), Q = He(), { register: A2, unregister: I } = Q;
-  n(() => A2(r6), [A2, r6]), n(() => {
-    if (H2 === A.Hidden && r6.current) {
-      if (u4 && m2 !== "visible") {
-        G("visible");
-        return;
-      }
-      return u(m2, { ["hidden"]: () => I(r6), ["visible"]: () => A2(r6) });
-    }
-  }, [m2, r6, A2, I, u4, H2]);
-  let B = l3();
-  n(() => {
-    if (f3 && B && m2 === "visible" && r6.current === null) throw new Error("Did you forget to passthrough the `ref` to the actual DOM node?");
-  }, [r6, m2, B, f3]);
-  let ce = K2 && !z, Y = z && u4 && K2, W = (0, import_react12.useRef)(false), L3 = Te(() => {
-    W.current || (G("hidden"), I(r6));
-  }, Q), Z = o4((k2) => {
-    W.current = true;
-    let F2 = k2 ? "enter" : "leave";
-    L3.onStart(r6, F2, (_) => {
-      _ === "enter" ? l4 == null || l4() : _ === "leave" && (R2 == null || R2());
-    });
-  }), $2 = o4((k2) => {
-    let F2 = k2 ? "enter" : "leave";
-    W.current = false, L3.onStop(r6, F2, (_) => {
-      _ === "enter" ? S3 == null || S3() : _ === "leave" && (d3 == null || d3());
-    }), F2 === "leave" && !U2(L3) && (G("hidden"), I(r6));
-  });
-  (0, import_react12.useEffect)(() => {
-    f3 && n3 || (Z(u4), $2(u4));
-  }, [u4, f3, n3]);
-  let pe = /* @__PURE__ */ (() => !(!n3 || !f3 || !B || ce))(), [, T2] = x2(pe, a2, u4, { start: Z, end: $2 }), Ce = m({ ref: j3, className: ((te = t3(i4.className, Y && y2, Y && C3, T2.enter && y2, T2.enter && T2.closed && C3, T2.enter && !T2.closed && p2, T2.leave && g, T2.leave && !T2.closed && v2, T2.leave && T2.closed && o5, !T2.transition && u4 && h2)) == null ? void 0 : te.trim()) || void 0, ...R(T2) }), N = 0;
-  m2 === "visible" && (N |= i3.Open), m2 === "hidden" && (N |= i3.Closed), u4 && m2 === "hidden" && (N |= i3.Opening), !u4 && m2 === "visible" && (N |= i3.Closing);
-  let he = L();
-  return import_react12.default.createElement(M2.Provider, { value: L3 }, import_react12.default.createElement(c4, { value: N }, he({ ourProps: Ce, theirProps: i4, defaultTag: de, features: fe, visible: m2 === "visible", name: "Transition.Child" })));
-}
-function Ie(e, t5) {
-  let { show: n3, appear: l4 = false, unmount: S3 = true, ...R2 } = e, d3 = (0, import_react12.useRef)(null), y2 = ue(e), C3 = y(...y2 ? [d3, t5] : t5 === null ? [] : [t5]);
-  l3();
-  let p2 = u3();
-  if (n3 === void 0 && p2 !== null && (n3 = (p2 & i3.Open) === i3.Open), n3 === void 0) throw new Error("A <Transition /> is used but it is missing a `show={true | false}` prop.");
-  let [h2, g] = (0, import_react12.useState)(n3 ? "visible" : "hidden"), v2 = Te(() => {
-    n3 || g("hidden");
-  }), [o5, i4] = (0, import_react12.useState)(true), a2 = (0, import_react12.useRef)([n3]);
-  n(() => {
-    o5 !== false && a2.current[a2.current.length - 1] !== n3 && (a2.current.push(n3), i4(false));
-  }, [a2, n3]);
-  let s5 = (0, import_react12.useMemo)(() => ({ show: n3, appear: l4, initial: o5 }), [n3, l4, o5]);
-  n(() => {
-    n3 ? g("visible") : !U2(v2) && d3.current !== null && g("hidden");
-  }, [n3, v2]);
-  let r6 = { unmount: S3 }, f3 = o4(() => {
-    var u4;
-    o5 && i4(false), (u4 = e.beforeEnter) == null || u4.call(e);
-  }), j3 = o4(() => {
-    var u4;
-    o5 && i4(false), (u4 = e.beforeLeave) == null || u4.call(e);
-  }), H2 = L();
-  return import_react12.default.createElement(M2.Provider, { value: v2 }, import_react12.default.createElement(w2.Provider, { value: s5 }, H2({ ourProps: { ...r6, as: import_react12.Fragment, children: import_react12.default.createElement(me, { ref: C3, ...r6, ...R2, beforeEnter: f3, beforeLeave: j3 }) }, theirProps: {}, defaultTag: import_react12.Fragment, features: fe, visible: h2 === "visible", name: "Transition" })));
-}
-function Le(e, t5) {
-  let n3 = (0, import_react12.useContext)(w2) !== null, l4 = u3() !== null;
-  return import_react12.default.createElement(import_react12.default.Fragment, null, !n3 && l4 ? import_react12.default.createElement(X, { ref: t5, ...e }) : import_react12.default.createElement(me, { ref: t5, ...e }));
-}
-var X = K(Ie);
-var me = K(Ae);
-var Fe = K(Le);
-var ze = Object.assign(X, { Child: Fe, Root: X });
-
-// src/components/ui/button.tsx
-var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
-var buttonVariants = cva(
-  "btn",
-  {
-    variants: {
-      // Color variants
-      color: {
-        default: "",
-        neutral: "btn-neutral",
-        primary: "btn-primary",
-        secondary: "btn-secondary",
-        accent: "btn-accent",
-        info: "btn-info",
-        success: "btn-success",
-        warning: "btn-warning",
-        error: "btn-error"
-      },
-      // Style variants
-      style: {
-        default: "",
-        outline: "btn-outline",
-        dash: "btn-dash",
-        soft: "btn-soft",
-        ghost: "btn-ghost",
-        link: "btn-link"
-      },
-      // Behavior variants
-      behaviour: {
-        default: "",
-        active: "btn-active",
-        disabled: "btn-disabled"
-      },
-      // Size variants
-      size: {
-        xs: "btn-xs",
-        sm: "btn-sm",
-        md: "btn-md",
-        lg: "btn-lg",
-        xl: "btn-xl",
-        icon: "btn-circle btn-xs p-0"
-      },
-      // Modifier variants
-      modifier: {
-        default: "",
-        circle: "btn-circle",
-        square: "btn-square",
-        wide: "btn-wide",
-        block: "btn-block"
-      }
-    },
-    defaultVariants: {
-      color: "default",
-      style: "default",
-      behaviour: "default",
-      size: "md",
-      modifier: "default"
-    }
-  }
-);
-function Button({
-  className,
-  color,
-  style,
-  behaviour,
-  size,
-  modifier,
-  asChild = false,
-  processing = false,
-  success = false,
-  fail = false,
-  icon,
-  disabled,
-  children,
-  ...props
-}) {
-  const Comp = asChild ? Slot : "button";
-  const isDisabled = disabled || processing;
-  const effectiveColor = success ? "success" : fail ? "error" : color;
-  const effectiveStyle = success ? "soft" : fail ? "soft" : style;
-  const effectiveBehaviour = isDisabled ? "disabled" : behaviour;
-  const isIconOnly = size === "icon";
-  const renderContent = () => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
-      ze,
-      {
-        show: success,
-        enter: "transition ease-in-out duration-300",
-        enterFrom: "opacity-0 scale-95",
-        enterTo: "opacity-100 scale-100",
-        leave: "transition ease-in-out duration-200",
-        leaveFrom: "opacity-100 scale-100",
-        leaveTo: "opacity-0 scale-95",
-        children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(IconCheck, { size: isIconOnly ? "16" : "12", className: `text-success-foreground ${isIconOnly ? "" : "mr-2"}` })
-      }
-    ),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
-      ze,
-      {
-        show: fail,
-        enter: "transition ease-in-out duration-300",
-        enterFrom: "opacity-0 scale-95",
-        enterTo: "opacity-100 scale-100",
-        leave: "transition ease-in-out duration-200",
-        leaveFrom: "opacity-100 scale-100",
-        leaveTo: "opacity-0 scale-95",
-        children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(IconX, { size: isIconOnly ? "16" : "12", className: `text-error-foreground ${isIconOnly ? "" : "mr-2"}` })
-      }
-    ),
-    !success && !fail && processing && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: `loading loading-spinner ${isIconOnly ? "" : "mr-2"}` }),
-    !processing && !success && !fail && icon && React3.createElement(icon, { size: isIconOnly ? 16 : 12, className: isIconOnly ? "" : "mr-2" }),
-    !isIconOnly && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children })
-  ] });
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
-    Comp,
-    {
-      className: cn(buttonVariants({ color: effectiveColor, style: effectiveStyle, behaviour: effectiveBehaviour, size, modifier }), className),
-      disabled: isDisabled,
-      ...props,
-      children: renderContent()
-    }
-  );
-}
-
-// src/components/ui/card.tsx
-var React4 = __toESM(require_react(), 1);
-var import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
-var cardVariants = cva(
-  "card bg-base-100",
-  {
-    variants: {
-      // DaisyUI card size variants
-      size: {
-        xs: "card-xs",
-        sm: "card-sm",
-        md: "card-md",
-        lg: "card-lg",
-        xl: "card-xl"
-      },
-      // DaisyUI card style variants
-      style: {
-        default: "",
-        border: "card-border",
-        dash: "card-dash"
-      },
-      // DaisyUI card modifier variants
-      modifier: {
-        default: "",
-        side: "card-side",
-        image: "image-full"
-      },
-      // Shadow variants
-      shadow: {
-        sm: "shadow-sm",
-        md: "shadow-md",
-        lg: "shadow-lg",
-        xl: "shadow-xl",
-        none: "shadow-none"
-      }
-    },
-    defaultVariants: {
-      size: "md",
-      style: "default",
-      modifier: "default",
-      shadow: "md"
-    }
-  }
-);
-var cardBodyVariants = cva("card-body");
-var cardTitleVariants = cva("card-title");
-var cardActionsVariants = cva(
-  "card-actions",
-  {
-    variants: {
-      justify: {
-        default: "",
-        start: "justify-start",
-        center: "justify-center",
-        end: "justify-end",
-        between: "justify-between",
-        around: "justify-around"
-      }
-    },
-    defaultVariants: {
-      justify: "default"
-    }
-  }
-);
-var Card = React4.forwardRef(
-  ({ className, size, style, modifier, shadow, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-    "div",
-    {
-      ref,
-      className: cn(cardVariants({ size, style, modifier, shadow }), className),
-      ...props
-    }
-  )
-);
-Card.displayName = "Card";
-var CardBody = React4.forwardRef(
-  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-    "div",
-    {
-      ref,
-      className: cn(cardBodyVariants(), className),
-      ...props
-    }
-  )
-);
-CardBody.displayName = "CardBody";
-var CardTitle = React4.forwardRef(
-  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-    "h2",
-    {
-      ref,
-      className: cn(cardTitleVariants(), className),
-      ...props
-    }
-  )
-);
-CardTitle.displayName = "CardTitle";
-var CardActions = React4.forwardRef(
-  ({ className, justify, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-    "div",
-    {
-      ref,
-      className: cn(cardActionsVariants({ justify }), className),
-      ...props
-    }
-  )
-);
-CardActions.displayName = "CardActions";
-var CardFigure = React4.forwardRef(
-  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-    "figure",
-    {
-      ref,
-      className: cn(className),
-      ...props
-    }
-  )
-);
-CardFigure.displayName = "CardFigure";
-var CardWithCompoundComponents = Card;
-CardWithCompoundComponents.Body = CardBody;
-CardWithCompoundComponents.Title = CardTitle;
-CardWithCompoundComponents.Actions = CardActions;
-CardWithCompoundComponents.Figure = CardFigure;
-
-// src/pages/LoginPage.tsx
-var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
-var LoginPage = ({ googleAuthUrl }) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "min-h-screen flex items-center justify-center bg-base-200", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "w-full max-w-md p-8", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(CardWithCompoundComponents, { shadow: "xl", size: "xl", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(CardWithCompoundComponents.Body, { className: "items-center text-center", children: [
-  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(CardWithCompoundComponents.Title, { className: "text-3xl mb-2", children: "Store CRUD" }),
-  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { className: "text-base-content/70 mb-8", children: "A modern store management application built with Hono" }),
-  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(CardWithCompoundComponents.Actions, { className: "w-full flex justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-    Button,
-    {
-      color: "primary",
-      style: "soft",
-      modifier: "wide",
-      icon: IconBrandGoogleFilled,
-      onClick: () => window.location.href = googleAuthUrl,
-      children: "Sign in with Google"
-    }
-  ) })
-] }) }) }) });
-
-// src/pages/DashboardPage.tsx
-var import_react14 = __toESM(require_react(), 1);
-
 // src/components/ui/navbar.tsx
 var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
 var navbarVariants = cva(
@@ -28756,9 +28190,740 @@ NavbarWithCompoundComponents.End = NavbarEnd;
 NavbarWithCompoundComponents.Brand = NavbarBrand;
 NavbarWithCompoundComponents.Menu = NavbarMenu;
 
-// src/components/ui/table.tsx
+// src/components/ui/button.tsx
 var React5 = __toESM(require_react(), 1);
+
+// node_modules/@tabler/icons-react/dist/esm/createReactComponent.mjs
+var import_react3 = __toESM(require_react(), 1);
+
+// node_modules/@tabler/icons-react/dist/esm/defaultAttributes.mjs
+var defaultAttributes = {
+  outline: {
+    xmlns: "http://www.w3.org/2000/svg",
+    width: 24,
+    height: 24,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  },
+  filled: {
+    xmlns: "http://www.w3.org/2000/svg",
+    width: 24,
+    height: 24,
+    viewBox: "0 0 24 24",
+    fill: "currentColor",
+    stroke: "none"
+  }
+};
+
+// node_modules/@tabler/icons-react/dist/esm/createReactComponent.mjs
+var createReactComponent = (type, iconName, iconNamePascal, iconNode) => {
+  const Component = (0, import_react3.forwardRef)(
+    ({ color = "currentColor", size = 24, stroke = 2, title, className, children, ...rest }, ref) => (0, import_react3.createElement)(
+      "svg",
+      {
+        ref,
+        ...defaultAttributes[type],
+        width: size,
+        height: size,
+        className: [`tabler-icon`, `tabler-icon-${iconName}`, className].join(" "),
+        ...type === "filled" ? {
+          fill: color
+        } : {
+          strokeWidth: stroke,
+          stroke: color
+        },
+        ...rest
+      },
+      [
+        title && (0, import_react3.createElement)("title", { key: "svg-title" }, title),
+        ...iconNode.map(([tag, attrs]) => (0, import_react3.createElement)(tag, attrs)),
+        ...Array.isArray(children) ? children : [children]
+      ]
+    )
+  );
+  Component.displayName = `${iconNamePascal}`;
+  return Component;
+};
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconCheck.mjs
+var __iconNode = [["path", { "d": "M5 12l5 5l10 -10", "key": "svg-0" }]];
+var IconCheck = createReactComponent("outline", "check", "Check", __iconNode);
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconEdit.mjs
+var __iconNode2 = [["path", { "d": "M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1", "key": "svg-0" }], ["path", { "d": "M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z", "key": "svg-1" }], ["path", { "d": "M16 5l3 3", "key": "svg-2" }]];
+var IconEdit = createReactComponent("outline", "edit", "Edit", __iconNode2);
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconLogout.mjs
+var __iconNode3 = [["path", { "d": "M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2", "key": "svg-0" }], ["path", { "d": "M9 12h12l-3 -3", "key": "svg-1" }], ["path", { "d": "M18 15l3 -3", "key": "svg-2" }]];
+var IconLogout = createReactComponent("outline", "logout", "Logout", __iconNode3);
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconPlus.mjs
+var __iconNode4 = [["path", { "d": "M12 5l0 14", "key": "svg-0" }], ["path", { "d": "M5 12l14 0", "key": "svg-1" }]];
+var IconPlus = createReactComponent("outline", "plus", "Plus", __iconNode4);
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconTrash.mjs
+var __iconNode5 = [["path", { "d": "M4 7l16 0", "key": "svg-0" }], ["path", { "d": "M10 11l0 6", "key": "svg-1" }], ["path", { "d": "M14 11l0 6", "key": "svg-2" }], ["path", { "d": "M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12", "key": "svg-3" }], ["path", { "d": "M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3", "key": "svg-4" }]];
+var IconTrash = createReactComponent("outline", "trash", "Trash", __iconNode5);
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconX.mjs
+var __iconNode6 = [["path", { "d": "M18 6l-12 12", "key": "svg-0" }], ["path", { "d": "M6 6l12 12", "key": "svg-1" }]];
+var IconX = createReactComponent("outline", "x", "X", __iconNode6);
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconBrandGoogleFilled.mjs
+var __iconNode7 = [["path", { "d": "M12 2a9.96 9.96 0 0 1 6.29 2.226a1 1 0 0 1 .04 1.52l-1.51 1.362a1 1 0 0 1 -1.265 .06a6 6 0 1 0 2.103 6.836l.001 -.004h-3.66a1 1 0 0 1 -.992 -.883l-.007 -.117v-2a1 1 0 0 1 1 -1h6.945a1 1 0 0 1 .994 .89c.04 .367 .061 .737 .061 1.11c0 5.523 -4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10z", "key": "svg-0" }]];
+var IconBrandGoogleFilled = createReactComponent("filled", "brand-google-filled", "BrandGoogleFilled", __iconNode7);
+
+// node_modules/@headlessui/react/dist/utils/env.js
+var i = Object.defineProperty;
+var d = (t5, e, n3) => e in t5 ? i(t5, e, { enumerable: true, configurable: true, writable: true, value: n3 }) : t5[e] = n3;
+var r2 = (t5, e, n3) => (d(t5, typeof e != "symbol" ? e + "" : e, n3), n3);
+var o = class {
+  constructor() {
+    r2(this, "current", this.detect());
+    r2(this, "handoffState", "pending");
+    r2(this, "currentId", 0);
+  }
+  set(e) {
+    this.current !== e && (this.handoffState = "pending", this.currentId = 0, this.current = e);
+  }
+  reset() {
+    this.set(this.detect());
+  }
+  nextId() {
+    return ++this.currentId;
+  }
+  get isServer() {
+    return this.current === "server";
+  }
+  get isClient() {
+    return this.current === "client";
+  }
+  detect() {
+    return typeof window == "undefined" || typeof document == "undefined" ? "server" : "client";
+  }
+  handoff() {
+    this.handoffState === "pending" && (this.handoffState = "complete");
+  }
+  get isHandoffComplete() {
+    return this.handoffState === "complete";
+  }
+};
+var s = new o();
+
+// node_modules/@headlessui/react/dist/hooks/use-disposables.js
+var import_react4 = __toESM(require_react(), 1);
+
+// node_modules/@headlessui/react/dist/utils/micro-task.js
+function t(e) {
+  typeof queueMicrotask == "function" ? queueMicrotask(e) : Promise.resolve().then(e).catch((o5) => setTimeout(() => {
+    throw o5;
+  }));
+}
+
+// node_modules/@headlessui/react/dist/utils/disposables.js
+function o2() {
+  let s5 = [], r6 = { addEventListener(e, t5, n3, i4) {
+    return e.addEventListener(t5, n3, i4), r6.add(() => e.removeEventListener(t5, n3, i4));
+  }, requestAnimationFrame(...e) {
+    let t5 = requestAnimationFrame(...e);
+    return r6.add(() => cancelAnimationFrame(t5));
+  }, nextFrame(...e) {
+    return r6.requestAnimationFrame(() => r6.requestAnimationFrame(...e));
+  }, setTimeout(...e) {
+    let t5 = setTimeout(...e);
+    return r6.add(() => clearTimeout(t5));
+  }, microTask(...e) {
+    let t5 = { current: true };
+    return t(() => {
+      t5.current && e[0]();
+    }), r6.add(() => {
+      t5.current = false;
+    });
+  }, style(e, t5, n3) {
+    let i4 = e.style.getPropertyValue(t5);
+    return Object.assign(e.style, { [t5]: n3 }), this.add(() => {
+      Object.assign(e.style, { [t5]: i4 });
+    });
+  }, group(e) {
+    let t5 = o2();
+    return e(t5), this.add(() => t5.dispose());
+  }, add(e) {
+    return s5.includes(e) || s5.push(e), () => {
+      let t5 = s5.indexOf(e);
+      if (t5 >= 0) for (let n3 of s5.splice(t5, 1)) n3();
+    };
+  }, dispose() {
+    for (let e of s5.splice(0)) e();
+  } };
+  return r6;
+}
+
+// node_modules/@headlessui/react/dist/hooks/use-disposables.js
+function p() {
+  let [e] = (0, import_react4.useState)(o2);
+  return (0, import_react4.useEffect)(() => () => e.dispose(), [e]), e;
+}
+
+// node_modules/@headlessui/react/dist/hooks/use-event.js
+var import_react7 = __toESM(require_react(), 1);
+
+// node_modules/@headlessui/react/dist/hooks/use-latest-value.js
+var import_react6 = __toESM(require_react(), 1);
+
+// node_modules/@headlessui/react/dist/hooks/use-iso-morphic-effect.js
+var import_react5 = __toESM(require_react(), 1);
+var n = (e, t5) => {
+  s.isServer ? (0, import_react5.useEffect)(e, t5) : (0, import_react5.useLayoutEffect)(e, t5);
+};
+
+// node_modules/@headlessui/react/dist/hooks/use-latest-value.js
+function s3(e) {
+  let r6 = (0, import_react6.useRef)(e);
+  return n(() => {
+    r6.current = e;
+  }, [e]), r6;
+}
+
+// node_modules/@headlessui/react/dist/hooks/use-event.js
+var o4 = function(t5) {
+  let e = s3(t5);
+  return import_react7.default.useCallback((...r6) => e.current(...r6), [e]);
+};
+
+// node_modules/@headlessui/react/dist/utils/render.js
+var import_react8 = __toESM(require_react(), 1);
+
+// node_modules/@headlessui/react/dist/utils/class-names.js
+function t3(...r6) {
+  return Array.from(new Set(r6.flatMap((n3) => typeof n3 == "string" ? n3.split(" ") : []))).filter(Boolean).join(" ");
+}
+
+// node_modules/@headlessui/react/dist/utils/match.js
+function u(r6, n3, ...a2) {
+  if (r6 in n3) {
+    let e = n3[r6];
+    return typeof e == "function" ? e(...a2) : e;
+  }
+  let t5 = new Error(`Tried to handle "${r6}" but there is no handler defined. Only defined handlers are: ${Object.keys(n3).map((e) => `"${e}"`).join(", ")}.`);
+  throw Error.captureStackTrace && Error.captureStackTrace(t5, u), t5;
+}
+
+// node_modules/@headlessui/react/dist/utils/render.js
+var O = ((a2) => (a2[a2.None = 0] = "None", a2[a2.RenderStrategy = 1] = "RenderStrategy", a2[a2.Static = 2] = "Static", a2))(O || {});
+var A = ((e) => (e[e.Unmount = 0] = "Unmount", e[e.Hidden = 1] = "Hidden", e))(A || {});
+function L() {
+  let n3 = U();
+  return (0, import_react8.useCallback)((r6) => C({ mergeRefs: n3, ...r6 }), [n3]);
+}
+function C({ ourProps: n3, theirProps: r6, slot: e, defaultTag: a2, features: s5, visible: t5 = true, name: l4, mergeRefs: i4 }) {
+  i4 = i4 != null ? i4 : $;
+  let o5 = P(r6, n3);
+  if (t5) return F(o5, e, a2, l4, i4);
+  let y2 = s5 != null ? s5 : 0;
+  if (y2 & 2) {
+    let { static: f3 = false, ...u4 } = o5;
+    if (f3) return F(u4, e, a2, l4, i4);
+  }
+  if (y2 & 1) {
+    let { unmount: f3 = true, ...u4 } = o5;
+    return u(f3 ? 0 : 1, { [0]() {
+      return null;
+    }, [1]() {
+      return F({ ...u4, hidden: true, style: { display: "none" } }, e, a2, l4, i4);
+    } });
+  }
+  return F(o5, e, a2, l4, i4);
+}
+function F(n3, r6 = {}, e, a2, s5) {
+  let { as: t5 = e, children: l4, refName: i4 = "ref", ...o5 } = h(n3, ["unmount", "static"]), y2 = n3.ref !== void 0 ? { [i4]: n3.ref } : {}, f3 = typeof l4 == "function" ? l4(r6) : l4;
+  "className" in o5 && o5.className && typeof o5.className == "function" && (o5.className = o5.className(r6)), o5["aria-labelledby"] && o5["aria-labelledby"] === o5.id && (o5["aria-labelledby"] = void 0);
+  let u4 = {};
+  if (r6) {
+    let d3 = false, p2 = [];
+    for (let [c6, T2] of Object.entries(r6)) typeof T2 == "boolean" && (d3 = true), T2 === true && p2.push(c6.replace(/([A-Z])/g, (g) => `-${g.toLowerCase()}`));
+    if (d3) {
+      u4["data-headlessui-state"] = p2.join(" ");
+      for (let c6 of p2) u4[`data-${c6}`] = "";
+    }
+  }
+  if (t5 === import_react8.Fragment && (Object.keys(m(o5)).length > 0 || Object.keys(m(u4)).length > 0)) if (!(0, import_react8.isValidElement)(f3) || Array.isArray(f3) && f3.length > 1) {
+    if (Object.keys(m(o5)).length > 0) throw new Error(['Passing props on "Fragment"!', "", `The current component <${a2} /> is rendering a "Fragment".`, "However we need to passthrough the following props:", Object.keys(m(o5)).concat(Object.keys(m(u4))).map((d3) => `  - ${d3}`).join(`
+`), "", "You can apply a few solutions:", ['Add an `as="..."` prop, to ensure that we render an actual element instead of a "Fragment".', "Render a single element as the child so that we can forward the props onto that element."].map((d3) => `  - ${d3}`).join(`
+`)].join(`
+`));
+  } else {
+    let d3 = f3.props, p2 = d3 == null ? void 0 : d3.className, c6 = typeof p2 == "function" ? (...R2) => t3(p2(...R2), o5.className) : t3(p2, o5.className), T2 = c6 ? { className: c6 } : {}, g = P(f3.props, m(h(o5, ["ref"])));
+    for (let R2 in u4) R2 in g && delete u4[R2];
+    return (0, import_react8.cloneElement)(f3, Object.assign({}, g, u4, y2, { ref: s5(H(f3), y2.ref) }, T2));
+  }
+  return (0, import_react8.createElement)(t5, Object.assign({}, h(o5, ["ref"]), t5 !== import_react8.Fragment && y2, t5 !== import_react8.Fragment && u4), f3);
+}
+function U() {
+  let n3 = (0, import_react8.useRef)([]), r6 = (0, import_react8.useCallback)((e) => {
+    for (let a2 of n3.current) a2 != null && (typeof a2 == "function" ? a2(e) : a2.current = e);
+  }, []);
+  return (...e) => {
+    if (!e.every((a2) => a2 == null)) return n3.current = e, r6;
+  };
+}
+function $(...n3) {
+  return n3.every((r6) => r6 == null) ? void 0 : (r6) => {
+    for (let e of n3) e != null && (typeof e == "function" ? e(r6) : e.current = r6);
+  };
+}
+function P(...n3) {
+  var a2;
+  if (n3.length === 0) return {};
+  if (n3.length === 1) return n3[0];
+  let r6 = {}, e = {};
+  for (let s5 of n3) for (let t5 in s5) t5.startsWith("on") && typeof s5[t5] == "function" ? ((a2 = e[t5]) != null || (e[t5] = []), e[t5].push(s5[t5])) : r6[t5] = s5[t5];
+  if (r6.disabled || r6["aria-disabled"]) for (let s5 in e) /^(on(?:Click|Pointer|Mouse|Key)(?:Down|Up|Press)?)$/.test(s5) && (e[s5] = [(t5) => {
+    var l4;
+    return (l4 = t5 == null ? void 0 : t5.preventDefault) == null ? void 0 : l4.call(t5);
+  }]);
+  for (let s5 in e) Object.assign(r6, { [s5](t5, ...l4) {
+    let i4 = e[s5];
+    for (let o5 of i4) {
+      if ((t5 instanceof Event || (t5 == null ? void 0 : t5.nativeEvent) instanceof Event) && t5.defaultPrevented) return;
+      o5(t5, ...l4);
+    }
+  } });
+  return r6;
+}
+function K(n3) {
+  var r6;
+  return Object.assign((0, import_react8.forwardRef)(n3), { displayName: (r6 = n3.displayName) != null ? r6 : n3.name });
+}
+function m(n3) {
+  let r6 = Object.assign({}, n3);
+  for (let e in r6) r6[e] === void 0 && delete r6[e];
+  return r6;
+}
+function h(n3, r6 = []) {
+  let e = Object.assign({}, n3);
+  for (let a2 of r6) a2 in e && delete e[a2];
+  return e;
+}
+function H(n3) {
+  return import_react8.default.version.split(".")[0] >= "19" ? n3.props.ref : n3.ref;
+}
+
+// node_modules/@headlessui/react/dist/hooks/use-sync-refs.js
+var import_react9 = __toESM(require_react(), 1);
+var u2 = Symbol();
+function y(...t5) {
+  let n3 = (0, import_react9.useRef)(t5);
+  (0, import_react9.useEffect)(() => {
+    n3.current = t5;
+  }, [t5]);
+  let c6 = o4((e) => {
+    for (let o5 of n3.current) o5 != null && (typeof o5 == "function" ? o5(e) : o5.current = e);
+  });
+  return t5.every((e) => e == null || (e == null ? void 0 : e[u2])) ? void 0 : c6;
+}
+
+// node_modules/@headlessui/react/dist/hooks/use-transition.js
+var import_react11 = __toESM(require_react(), 1);
+
+// node_modules/@headlessui/react/dist/hooks/use-flags.js
+var import_react10 = __toESM(require_react(), 1);
+function c2(u4 = 0) {
+  let [t5, l4] = (0, import_react10.useState)(u4), g = (0, import_react10.useCallback)((e) => l4(e), [t5]), s5 = (0, import_react10.useCallback)((e) => l4((a2) => a2 | e), [t5]), m2 = (0, import_react10.useCallback)((e) => (t5 & e) === e, [t5]), n3 = (0, import_react10.useCallback)((e) => l4((a2) => a2 & ~e), [l4]), F2 = (0, import_react10.useCallback)((e) => l4((a2) => a2 ^ e), [l4]);
+  return { flags: t5, setFlag: g, addFlag: s5, hasFlag: m2, removeFlag: n3, toggleFlag: F2 };
+}
+
+// node_modules/@headlessui/react/dist/hooks/use-transition.js
+var T;
+var b3;
+typeof process != "undefined" && typeof globalThis != "undefined" && typeof Element != "undefined" && ((T = process == null ? void 0 : process.env) == null ? void 0 : T["NODE_ENV"]) === "test" && typeof ((b3 = Element == null ? void 0 : Element.prototype) == null ? void 0 : b3.getAnimations) == "undefined" && (Element.prototype.getAnimations = function() {
+  return console.warn(["Headless UI has polyfilled `Element.prototype.getAnimations` for your tests.", "Please install a proper polyfill e.g. `jsdom-testing-mocks`, to silence these warnings.", "", "Example usage:", "```js", "import { mockAnimationsApi } from 'jsdom-testing-mocks'", "mockAnimationsApi()", "```"].join(`
+`)), [];
+});
+var L2 = ((r6) => (r6[r6.None = 0] = "None", r6[r6.Closed = 1] = "Closed", r6[r6.Enter = 2] = "Enter", r6[r6.Leave = 4] = "Leave", r6))(L2 || {});
+function R(t5) {
+  let n3 = {};
+  for (let e in t5) t5[e] === true && (n3[`data-${e}`] = "");
+  return n3;
+}
+function x2(t5, n3, e, i4) {
+  let [r6, o5] = (0, import_react11.useState)(e), { hasFlag: s5, addFlag: a2, removeFlag: l4 } = c2(t5 && r6 ? 3 : 0), u4 = (0, import_react11.useRef)(false), f3 = (0, import_react11.useRef)(false), E2 = p();
+  return n(() => {
+    var d3;
+    if (t5) {
+      if (e && o5(true), !n3) {
+        e && a2(3);
+        return;
+      }
+      return (d3 = i4 == null ? void 0 : i4.start) == null || d3.call(i4, e), C2(n3, { inFlight: u4, prepare() {
+        f3.current ? f3.current = false : f3.current = u4.current, u4.current = true, !f3.current && (e ? (a2(3), l4(4)) : (a2(4), l4(2)));
+      }, run() {
+        f3.current ? e ? (l4(3), a2(4)) : (l4(4), a2(3)) : e ? l4(1) : a2(1);
+      }, done() {
+        var p2;
+        f3.current && typeof n3.getAnimations == "function" && n3.getAnimations().length > 0 || (u4.current = false, l4(7), e || o5(false), (p2 = i4 == null ? void 0 : i4.end) == null || p2.call(i4, e));
+      } });
+    }
+  }, [t5, e, n3, E2]), t5 ? [r6, { closed: s5(1), enter: s5(2), leave: s5(4), transition: s5(2) || s5(4) }] : [e, { closed: void 0, enter: void 0, leave: void 0, transition: void 0 }];
+}
+function C2(t5, { prepare: n3, run: e, done: i4, inFlight: r6 }) {
+  let o5 = o2();
+  return j2(t5, { prepare: n3, inFlight: r6 }), o5.nextFrame(() => {
+    e(), o5.requestAnimationFrame(() => {
+      o5.add(M(t5, i4));
+    });
+  }), o5.dispose;
+}
+function M(t5, n3) {
+  var o5, s5;
+  let e = o2();
+  if (!t5) return e.dispose;
+  let i4 = false;
+  e.add(() => {
+    i4 = true;
+  });
+  let r6 = (s5 = (o5 = t5.getAnimations) == null ? void 0 : o5.call(t5).filter((a2) => a2 instanceof CSSTransition)) != null ? s5 : [];
+  return r6.length === 0 ? (n3(), e.dispose) : (Promise.allSettled(r6.map((a2) => a2.finished)).then(() => {
+    i4 || n3();
+  }), e.dispose);
+}
+function j2(t5, { inFlight: n3, prepare: e }) {
+  if (n3 != null && n3.current) {
+    e();
+    return;
+  }
+  let i4 = t5.style.transition;
+  t5.style.transition = "none", e(), t5.offsetHeight, t5.style.transition = i4;
+}
+
+// node_modules/@headlessui/react/dist/internal/open-closed.js
+var import_react12 = __toESM(require_react(), 1);
+var n2 = (0, import_react12.createContext)(null);
+n2.displayName = "OpenClosedContext";
+var i3 = ((e) => (e[e.Open = 1] = "Open", e[e.Closed = 2] = "Closed", e[e.Closing = 4] = "Closing", e[e.Opening = 8] = "Opening", e))(i3 || {});
+function u3() {
+  return (0, import_react12.useContext)(n2);
+}
+function c4({ value: o5, children: t5 }) {
+  return import_react12.default.createElement(n2.Provider, { value: o5 }, t5);
+}
+
+// node_modules/@headlessui/react/dist/hooks/use-server-handoff-complete.js
+var t4 = __toESM(require_react(), 1);
+function s4() {
+  let r6 = typeof document == "undefined";
+  return "useSyncExternalStore" in t4 ? ((o5) => o5.useSyncExternalStore)(t4)(() => () => {
+  }, () => false, () => !r6) : false;
+}
+function l3() {
+  let r6 = s4(), [e, n3] = t4.useState(s.isHandoffComplete);
+  return e && s.isHandoffComplete === false && n3(false), t4.useEffect(() => {
+    e !== true && n3(true);
+  }, [e]), t4.useEffect(() => s.handoff(), []), r6 ? false : e;
+}
+
+// node_modules/@headlessui/react/dist/hooks/use-is-mounted.js
+var import_react13 = __toESM(require_react(), 1);
+function f2() {
+  let e = (0, import_react13.useRef)(false);
+  return n(() => (e.current = true, () => {
+    e.current = false;
+  }), []), e;
+}
+
+// node_modules/@headlessui/react/dist/components/transition/transition.js
+var import_react14 = __toESM(require_react(), 1);
+function ue(e) {
+  var t5;
+  return !!(e.enter || e.enterFrom || e.enterTo || e.leave || e.leaveFrom || e.leaveTo) || ((t5 = e.as) != null ? t5 : de) !== import_react14.Fragment || import_react14.default.Children.count(e.children) === 1;
+}
+var w2 = (0, import_react14.createContext)(null);
+w2.displayName = "TransitionContext";
+var _e = ((n3) => (n3.Visible = "visible", n3.Hidden = "hidden", n3))(_e || {});
+function De() {
+  let e = (0, import_react14.useContext)(w2);
+  if (e === null) throw new Error("A <Transition.Child /> is used but it is missing a parent <Transition /> or <Transition.Root />.");
+  return e;
+}
+function He() {
+  let e = (0, import_react14.useContext)(M2);
+  if (e === null) throw new Error("A <Transition.Child /> is used but it is missing a parent <Transition /> or <Transition.Root />.");
+  return e;
+}
+var M2 = (0, import_react14.createContext)(null);
+M2.displayName = "NestingContext";
+function U2(e) {
+  return "children" in e ? U2(e.children) : e.current.filter(({ el: t5 }) => t5.current !== null).filter(({ state: t5 }) => t5 === "visible").length > 0;
+}
+function Te(e, t5) {
+  let n3 = s3(e), l4 = (0, import_react14.useRef)([]), S3 = f2(), R2 = p(), d3 = o4((o5, i4 = A.Hidden) => {
+    let a2 = l4.current.findIndex(({ el: s5 }) => s5 === o5);
+    a2 !== -1 && (u(i4, { [A.Unmount]() {
+      l4.current.splice(a2, 1);
+    }, [A.Hidden]() {
+      l4.current[a2].state = "hidden";
+    } }), R2.microTask(() => {
+      var s5;
+      !U2(l4) && S3.current && ((s5 = n3.current) == null || s5.call(n3));
+    }));
+  }), y2 = o4((o5) => {
+    let i4 = l4.current.find(({ el: a2 }) => a2 === o5);
+    return i4 ? i4.state !== "visible" && (i4.state = "visible") : l4.current.push({ el: o5, state: "visible" }), () => d3(o5, A.Unmount);
+  }), C3 = (0, import_react14.useRef)([]), p2 = (0, import_react14.useRef)(Promise.resolve()), h2 = (0, import_react14.useRef)({ enter: [], leave: [] }), g = o4((o5, i4, a2) => {
+    C3.current.splice(0), t5 && (t5.chains.current[i4] = t5.chains.current[i4].filter(([s5]) => s5 !== o5)), t5 == null || t5.chains.current[i4].push([o5, new Promise((s5) => {
+      C3.current.push(s5);
+    })]), t5 == null || t5.chains.current[i4].push([o5, new Promise((s5) => {
+      Promise.all(h2.current[i4].map(([r6, f3]) => f3)).then(() => s5());
+    })]), i4 === "enter" ? p2.current = p2.current.then(() => t5 == null ? void 0 : t5.wait.current).then(() => a2(i4)) : a2(i4);
+  }), v2 = o4((o5, i4, a2) => {
+    Promise.all(h2.current[i4].splice(0).map(([s5, r6]) => r6)).then(() => {
+      var s5;
+      (s5 = C3.current.shift()) == null || s5();
+    }).then(() => a2(i4));
+  });
+  return (0, import_react14.useMemo)(() => ({ children: l4, register: y2, unregister: d3, onStart: g, onStop: v2, wait: p2, chains: h2 }), [y2, d3, l4, g, v2, h2, p2]);
+}
+var de = import_react14.Fragment;
+var fe = O.RenderStrategy;
+function Ae(e, t5) {
+  var ee, te;
+  let { transition: n3 = true, beforeEnter: l4, afterEnter: S3, beforeLeave: R2, afterLeave: d3, enter: y2, enterFrom: C3, enterTo: p2, entered: h2, leave: g, leaveFrom: v2, leaveTo: o5, ...i4 } = e, [a2, s5] = (0, import_react14.useState)(null), r6 = (0, import_react14.useRef)(null), f3 = ue(e), j3 = y(...f3 ? [r6, t5, s5] : t5 === null ? [] : [t5]), H2 = (ee = i4.unmount) == null || ee ? A.Unmount : A.Hidden, { show: u4, appear: z, initial: K2 } = De(), [m2, G] = (0, import_react14.useState)(u4 ? "visible" : "hidden"), Q = He(), { register: A2, unregister: I } = Q;
+  n(() => A2(r6), [A2, r6]), n(() => {
+    if (H2 === A.Hidden && r6.current) {
+      if (u4 && m2 !== "visible") {
+        G("visible");
+        return;
+      }
+      return u(m2, { ["hidden"]: () => I(r6), ["visible"]: () => A2(r6) });
+    }
+  }, [m2, r6, A2, I, u4, H2]);
+  let B = l3();
+  n(() => {
+    if (f3 && B && m2 === "visible" && r6.current === null) throw new Error("Did you forget to passthrough the `ref` to the actual DOM node?");
+  }, [r6, m2, B, f3]);
+  let ce = K2 && !z, Y = z && u4 && K2, W = (0, import_react14.useRef)(false), L3 = Te(() => {
+    W.current || (G("hidden"), I(r6));
+  }, Q), Z = o4((k2) => {
+    W.current = true;
+    let F2 = k2 ? "enter" : "leave";
+    L3.onStart(r6, F2, (_) => {
+      _ === "enter" ? l4 == null || l4() : _ === "leave" && (R2 == null || R2());
+    });
+  }), $2 = o4((k2) => {
+    let F2 = k2 ? "enter" : "leave";
+    W.current = false, L3.onStop(r6, F2, (_) => {
+      _ === "enter" ? S3 == null || S3() : _ === "leave" && (d3 == null || d3());
+    }), F2 === "leave" && !U2(L3) && (G("hidden"), I(r6));
+  });
+  (0, import_react14.useEffect)(() => {
+    f3 && n3 || (Z(u4), $2(u4));
+  }, [u4, f3, n3]);
+  let pe = /* @__PURE__ */ (() => !(!n3 || !f3 || !B || ce))(), [, T2] = x2(pe, a2, u4, { start: Z, end: $2 }), Ce = m({ ref: j3, className: ((te = t3(i4.className, Y && y2, Y && C3, T2.enter && y2, T2.enter && T2.closed && C3, T2.enter && !T2.closed && p2, T2.leave && g, T2.leave && !T2.closed && v2, T2.leave && T2.closed && o5, !T2.transition && u4 && h2)) == null ? void 0 : te.trim()) || void 0, ...R(T2) }), N = 0;
+  m2 === "visible" && (N |= i3.Open), m2 === "hidden" && (N |= i3.Closed), u4 && m2 === "hidden" && (N |= i3.Opening), !u4 && m2 === "visible" && (N |= i3.Closing);
+  let he = L();
+  return import_react14.default.createElement(M2.Provider, { value: L3 }, import_react14.default.createElement(c4, { value: N }, he({ ourProps: Ce, theirProps: i4, defaultTag: de, features: fe, visible: m2 === "visible", name: "Transition.Child" })));
+}
+function Ie(e, t5) {
+  let { show: n3, appear: l4 = false, unmount: S3 = true, ...R2 } = e, d3 = (0, import_react14.useRef)(null), y2 = ue(e), C3 = y(...y2 ? [d3, t5] : t5 === null ? [] : [t5]);
+  l3();
+  let p2 = u3();
+  if (n3 === void 0 && p2 !== null && (n3 = (p2 & i3.Open) === i3.Open), n3 === void 0) throw new Error("A <Transition /> is used but it is missing a `show={true | false}` prop.");
+  let [h2, g] = (0, import_react14.useState)(n3 ? "visible" : "hidden"), v2 = Te(() => {
+    n3 || g("hidden");
+  }), [o5, i4] = (0, import_react14.useState)(true), a2 = (0, import_react14.useRef)([n3]);
+  n(() => {
+    o5 !== false && a2.current[a2.current.length - 1] !== n3 && (a2.current.push(n3), i4(false));
+  }, [a2, n3]);
+  let s5 = (0, import_react14.useMemo)(() => ({ show: n3, appear: l4, initial: o5 }), [n3, l4, o5]);
+  n(() => {
+    n3 ? g("visible") : !U2(v2) && d3.current !== null && g("hidden");
+  }, [n3, v2]);
+  let r6 = { unmount: S3 }, f3 = o4(() => {
+    var u4;
+    o5 && i4(false), (u4 = e.beforeEnter) == null || u4.call(e);
+  }), j3 = o4(() => {
+    var u4;
+    o5 && i4(false), (u4 = e.beforeLeave) == null || u4.call(e);
+  }), H2 = L();
+  return import_react14.default.createElement(M2.Provider, { value: v2 }, import_react14.default.createElement(w2.Provider, { value: s5 }, H2({ ourProps: { ...r6, as: import_react14.Fragment, children: import_react14.default.createElement(me, { ref: C3, ...r6, ...R2, beforeEnter: f3, beforeLeave: j3 }) }, theirProps: {}, defaultTag: import_react14.Fragment, features: fe, visible: h2 === "visible", name: "Transition" })));
+}
+function Le(e, t5) {
+  let n3 = (0, import_react14.useContext)(w2) !== null, l4 = u3() !== null;
+  return import_react14.default.createElement(import_react14.default.Fragment, null, !n3 && l4 ? import_react14.default.createElement(X, { ref: t5, ...e }) : import_react14.default.createElement(me, { ref: t5, ...e }));
+}
+var X = K(Ie);
+var me = K(Ae);
+var Fe = K(Le);
+var ze = Object.assign(X, { Child: Fe, Root: X });
+
+// src/components/ui/button.tsx
 var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
+var buttonVariants = cva(
+  "btn",
+  {
+    variants: {
+      // Color variants
+      color: {
+        default: "",
+        neutral: "btn-neutral",
+        primary: "btn-primary",
+        secondary: "btn-secondary",
+        accent: "btn-accent",
+        info: "btn-info",
+        success: "btn-success",
+        warning: "btn-warning",
+        error: "btn-error"
+      },
+      // Style variants
+      style: {
+        default: "",
+        outline: "btn-outline",
+        dash: "btn-dash",
+        soft: "btn-soft",
+        ghost: "btn-ghost",
+        link: "btn-link"
+      },
+      // Behavior variants
+      behaviour: {
+        default: "",
+        active: "btn-active",
+        disabled: "btn-disabled"
+      },
+      // Size variants
+      size: {
+        xs: "btn-xs",
+        sm: "btn-sm",
+        md: "btn-md",
+        lg: "btn-lg",
+        xl: "btn-xl",
+        icon: "btn-circle btn-xs p-0"
+      },
+      // Modifier variants
+      modifier: {
+        default: "",
+        circle: "btn-circle",
+        square: "btn-square",
+        wide: "btn-wide",
+        block: "btn-block"
+      }
+    },
+    defaultVariants: {
+      color: "default",
+      style: "default",
+      behaviour: "default",
+      size: "md",
+      modifier: "default"
+    }
+  }
+);
+function Button({
+  className,
+  color,
+  style,
+  behaviour,
+  size,
+  modifier,
+  asChild = false,
+  processing = false,
+  success = false,
+  fail = false,
+  icon,
+  disabled,
+  children,
+  ...props
+}) {
+  const Comp = asChild ? Slot : "button";
+  const isDisabled = disabled || processing;
+  const effectiveColor = success ? "success" : fail ? "error" : color;
+  const effectiveStyle = success ? "soft" : fail ? "soft" : style;
+  const effectiveBehaviour = isDisabled ? "disabled" : behaviour;
+  const isIconOnly = size === "icon";
+  const renderContent = () => /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(import_jsx_runtime6.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+      ze,
+      {
+        show: success,
+        enter: "transition ease-in-out duration-300",
+        enterFrom: "opacity-0 scale-95",
+        enterTo: "opacity-100 scale-100",
+        leave: "transition ease-in-out duration-200",
+        leaveFrom: "opacity-100 scale-100",
+        leaveTo: "opacity-0 scale-95",
+        children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(IconCheck, { size: isIconOnly ? "16" : "12", className: `text-success-foreground ${isIconOnly ? "" : "mr-2"}` })
+      }
+    ),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+      ze,
+      {
+        show: fail,
+        enter: "transition ease-in-out duration-300",
+        enterFrom: "opacity-0 scale-95",
+        enterTo: "opacity-100 scale-100",
+        leave: "transition ease-in-out duration-200",
+        leaveFrom: "opacity-100 scale-100",
+        leaveTo: "opacity-0 scale-95",
+        children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(IconX, { size: isIconOnly ? "16" : "12", className: `text-error-foreground ${isIconOnly ? "" : "mr-2"}` })
+      }
+    ),
+    !success && !fail && processing && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: `loading loading-spinner ${isIconOnly ? "" : "mr-2"}` }),
+    !processing && !success && !fail && icon && React5.createElement(icon, { size: isIconOnly ? 16 : 12, className: isIconOnly ? "" : "mr-2" }),
+    !isIconOnly && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { children })
+  ] });
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+    Comp,
+    {
+      className: cn(buttonVariants({ color: effectiveColor, style: effectiveStyle, behaviour: effectiveBehaviour, size, modifier }), className),
+      disabled: isDisabled,
+      ...props,
+      children: renderContent()
+    }
+  );
+}
+
+// src/app/dashboard/layout.tsx
+var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
+function DashboardLayout({ children, user }) {
+  const handleLogout = () => {
+    window.location.href = "/auth/logout";
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "min-h-screen bg-base-200", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+      NavbarWithCompoundComponents,
+      {
+        color: "base100",
+        shadow: "md",
+        position: "sticky",
+        start: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(NavbarWithCompoundComponents.Brand, { children: "Store CRUD" }),
+        end: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "flex flex-row gap-4", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "p-2 my-auto text-sm", children: [
+            "Logged in as: ",
+            user?.email || "Unknown"
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            Button,
+            {
+              style: "ghost",
+              icon: IconLogout,
+              onClick: handleLogout,
+              children: "Logout"
+            }
+          )
+        ] })
+      }
+    ),
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "container mx-auto px-4 py-8", children })
+  ] });
+}
+
+// src/app/dashboard/page.tsx
+var import_react16 = __toESM(require_react(), 1);
+
+// src/components/ui/table.tsx
+var React6 = __toESM(require_react(), 1);
+var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
 var getModifierClasses = (modifiers) => {
   if (!modifiers || modifiers === "default") return "";
   const modifierMap = {
@@ -28845,8 +29010,8 @@ var tableRowVariants = cva(
 );
 var tableCellVariants = cva("");
 var tableHeaderCellVariants = cva("");
-var Table = React5.forwardRef(
-  ({ className, size, modifier, responsive, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+var Table = React6.forwardRef(
+  ({ className, size, modifier, responsive, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
     "table",
     {
       ref,
@@ -28860,8 +29025,8 @@ var Table = React5.forwardRef(
   )
 );
 Table.displayName = "Table";
-var TableWrapper = React5.forwardRef(
-  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+var TableWrapper = React6.forwardRef(
+  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
     "div",
     {
       ref,
@@ -28871,8 +29036,8 @@ var TableWrapper = React5.forwardRef(
   )
 );
 TableWrapper.displayName = "TableWrapper";
-var TableHead = React5.forwardRef(
-  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+var TableHead = React6.forwardRef(
+  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
     "thead",
     {
       ref,
@@ -28882,8 +29047,8 @@ var TableHead = React5.forwardRef(
   )
 );
 TableHead.displayName = "TableHead";
-var TableBody = React5.forwardRef(
-  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+var TableBody = React6.forwardRef(
+  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
     "tbody",
     {
       ref,
@@ -28893,8 +29058,8 @@ var TableBody = React5.forwardRef(
   )
 );
 TableBody.displayName = "TableBody";
-var TableRow = React5.forwardRef(
-  ({ className, hover, active, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+var TableRow = React6.forwardRef(
+  ({ className, hover, active, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
     "tr",
     {
       ref,
@@ -28904,8 +29069,8 @@ var TableRow = React5.forwardRef(
   )
 );
 TableRow.displayName = "TableRow";
-var TableCell = React5.forwardRef(
-  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+var TableCell = React6.forwardRef(
+  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
     "td",
     {
       ref,
@@ -28915,8 +29080,8 @@ var TableCell = React5.forwardRef(
   )
 );
 TableCell.displayName = "TableCell";
-var TableHeaderCell = React5.forwardRef(
-  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+var TableHeaderCell = React6.forwardRef(
+  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
     "th",
     {
       ref,
@@ -28928,7 +29093,7 @@ var TableHeaderCell = React5.forwardRef(
 TableHeaderCell.displayName = "TableHeaderCell";
 
 // src/components/ItemsTable.tsx
-var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
 var formatCurrency = (amount) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -28950,23 +29115,23 @@ var ItemsTable = ({
   onAdd
 }) => {
   if (loading) {
-    return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "card bg-base-100 shadow-xl", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "card-body", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "flex items-center justify-center p-8", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "loading loading-spinner loading-lg" }),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "ml-4 text-base-content/70", children: "Loading items..." })
+    return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "card bg-base-100 shadow-xl", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "card-body", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex items-center justify-center p-8", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "loading loading-spinner loading-lg" }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "ml-4 text-base-content/70", children: "Loading items..." })
     ] }) }) });
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "card bg-base-100 shadow-xl", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "card-body", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "flex justify-between items-center mb-6", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h2", { className: "card-title text-2xl", children: "Store Items" }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("p", { className: "text-base-content/70", children: [
+  return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "card bg-base-100 shadow-xl", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "card-body", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex justify-between items-center mb-6", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h2", { className: "card-title text-2xl", children: "Store Items" }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("p", { className: "text-base-content/70", children: [
           items.length,
           " item",
           items.length !== 1 ? "s" : "",
           " in inventory"
         ] })
       ] }),
-      onAdd && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+      onAdd && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
         Button,
         {
           color: "primary",
@@ -28976,10 +29141,10 @@ var ItemsTable = ({
         }
       )
     ] }),
-    items.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "text-center py-12", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "text-base-content/50 text-lg mb-4", children: "No items found" }),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { className: "text-base-content/70 mb-6", children: "Get started by adding your first item to the inventory." }),
-      onAdd && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+    items.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "text-center py-12", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "text-base-content/50 text-lg mb-4", children: "No items found" }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-base-content/70 mb-6", children: "Get started by adding your first item to the inventory." }),
+      onAdd && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
         Button,
         {
           color: "primary",
@@ -28989,25 +29154,25 @@ var ItemsTable = ({
           children: "Add Your First Item"
         }
       )
-    ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableWrapper, { children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(Table, { size: "md", modifier: "zebra", className: "w-full", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableHead, { children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(TableRow, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableHeaderCell, { children: "Name" }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableHeaderCell, { children: "Description" }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableHeaderCell, { children: "Price" }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableHeaderCell, { children: "Quantity" }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableHeaderCell, { children: "Category" }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableHeaderCell, { children: "Updated" }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableHeaderCell, { children: "Actions" })
+    ] }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableWrapper, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(Table, { size: "md", modifier: "zebra", className: "w-full", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableHead, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(TableRow, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableHeaderCell, { children: "Name" }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableHeaderCell, { children: "Description" }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableHeaderCell, { children: "Price" }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableHeaderCell, { children: "Quantity" }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableHeaderCell, { children: "Category" }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableHeaderCell, { children: "Updated" }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableHeaderCell, { children: "Actions" })
       ] }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableBody, { children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(TableRow, { hover: true, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "font-semibold", children: item.name }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "max-w-xs truncate text-base-content/70", children: item.description || "\u2014" }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "font-mono", children: formatCurrency(item.price) }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: `badge ${item.quantity === 0 ? "badge-error" : item.quantity < 10 ? "badge-warning" : "badge-success"}`, children: item.quantity }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "text-base-content/70", children: item.category || "\u2014" }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "text-base-content/70 text-sm", children: formatDate(item.updatedAt) }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "flex gap-2", children: [
-          onEdit && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableBody, { children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(TableRow, { hover: true, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "font-semibold", children: item.name }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "max-w-xs truncate text-base-content/70", children: item.description || "\u2014" }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "font-mono", children: formatCurrency(item.price) }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: `badge ${item.quantity === 0 ? "badge-error" : item.quantity < 10 ? "badge-warning" : "badge-success"}`, children: item.quantity }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "text-base-content/70", children: item.category || "\u2014" }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "text-base-content/70 text-sm", children: formatDate(item.updatedAt) }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex gap-2", children: [
+          onEdit && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
             Button,
             {
               size: "sm",
@@ -29017,7 +29182,7 @@ var ItemsTable = ({
               onClick: () => onEdit(item)
             }
           ),
-          onDelete && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+          onDelete && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
             Button,
             {
               size: "sm",
@@ -29033,14 +29198,14 @@ var ItemsTable = ({
   ] }) });
 };
 
-// src/pages/DashboardPage.tsx
+// src/app/dashboard/page.tsx
 init_api();
-var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
-var DashboardPage = ({ user }) => {
-  const [items, setItems] = (0, import_react14.useState)([]);
-  const [loading, setLoading] = (0, import_react14.useState)(true);
-  const [error, setError] = (0, import_react14.useState)(null);
-  (0, import_react14.useEffect)(() => {
+var import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
+function DashboardPage({ params: _params, searchParams: _searchParams, user }) {
+  const [items, setItems] = (0, import_react16.useState)([]);
+  const [loading, setLoading] = (0, import_react16.useState)(true);
+  const [error, setError] = (0, import_react16.useState)(null);
+  (0, import_react16.useEffect)(() => {
     const fetchItems = async () => {
       try {
         setLoading(true);
@@ -29056,9 +29221,6 @@ var DashboardPage = ({ user }) => {
     };
     fetchItems().then();
   }, []);
-  const handleLogout = () => {
-    window.location.href = "/auth/logout";
-  };
   const handleEditItem = (item) => {
     console.log("Edit item:", item);
   };
@@ -29077,49 +29239,168 @@ var DashboardPage = ({ user }) => {
   const handleAddItem = () => {
     console.log("Add new item");
   };
-  return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "min-h-screen bg-base-200", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
-      NavbarWithCompoundComponents,
+  return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "space-y-6", children: [
+    error ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "alert alert-error mb-6", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { children: [
+      "Error: ",
+      error
+    ] }) }) : null,
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+      ItemsTable,
       {
-        color: "base100",
-        shadow: "md",
-        position: "sticky",
-        start: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(NavbarWithCompoundComponents.Brand, { children: "Store CRUD" }),
-        end: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex flex-row gap-4", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "p-2 my-auto text-sm", children: [
-            "Logged in as: ",
-            user.email
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
-            Button,
-            {
-              style: "ghost",
-              icon: IconLogout,
-              onClick: handleLogout,
-              children: "Logout"
-            }
-          )
-        ] })
+        items,
+        loading,
+        onEdit: handleEditItem,
+        onDelete: handleDeleteItem,
+        onAdd: handleAddItem
       }
-    ),
-    /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "container mx-auto px-4 py-8", children: [
-      error ? /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "alert alert-error mb-6", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("span", { children: [
-        "Error: ",
-        error
-      ] }) }) : null,
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
-        ItemsTable,
-        {
-          items,
-          loading,
-          onEdit: handleEditItem,
-          onDelete: handleDeleteItem,
-          onAdd: handleAddItem
-        }
-      )
-    ] })
+    )
   ] });
-};
+}
+
+// src/components/ui/card.tsx
+var React8 = __toESM(require_react(), 1);
+var import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
+var cardVariants = cva(
+  "card bg-base-100",
+  {
+    variants: {
+      // DaisyUI card size variants
+      size: {
+        xs: "card-xs",
+        sm: "card-sm",
+        md: "card-md",
+        lg: "card-lg",
+        xl: "card-xl"
+      },
+      // DaisyUI card style variants
+      style: {
+        default: "",
+        border: "card-border",
+        dash: "card-dash"
+      },
+      // DaisyUI card modifier variants
+      modifier: {
+        default: "",
+        side: "card-side",
+        image: "image-full"
+      },
+      // Shadow variants
+      shadow: {
+        sm: "shadow-sm",
+        md: "shadow-md",
+        lg: "shadow-lg",
+        xl: "shadow-xl",
+        none: "shadow-none"
+      }
+    },
+    defaultVariants: {
+      size: "md",
+      style: "default",
+      modifier: "default",
+      shadow: "md"
+    }
+  }
+);
+var cardBodyVariants = cva("card-body");
+var cardTitleVariants = cva("card-title");
+var cardActionsVariants = cva(
+  "card-actions",
+  {
+    variants: {
+      justify: {
+        default: "",
+        start: "justify-start",
+        center: "justify-center",
+        end: "justify-end",
+        between: "justify-between",
+        around: "justify-around"
+      }
+    },
+    defaultVariants: {
+      justify: "default"
+    }
+  }
+);
+var Card = React8.forwardRef(
+  ({ className, size, style, modifier, shadow, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+    "div",
+    {
+      ref,
+      className: cn(cardVariants({ size, style, modifier, shadow }), className),
+      ...props
+    }
+  )
+);
+Card.displayName = "Card";
+var CardBody = React8.forwardRef(
+  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+    "div",
+    {
+      ref,
+      className: cn(cardBodyVariants(), className),
+      ...props
+    }
+  )
+);
+CardBody.displayName = "CardBody";
+var CardTitle = React8.forwardRef(
+  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+    "h2",
+    {
+      ref,
+      className: cn(cardTitleVariants(), className),
+      ...props
+    }
+  )
+);
+CardTitle.displayName = "CardTitle";
+var CardActions = React8.forwardRef(
+  ({ className, justify, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+    "div",
+    {
+      ref,
+      className: cn(cardActionsVariants({ justify }), className),
+      ...props
+    }
+  )
+);
+CardActions.displayName = "CardActions";
+var CardFigure = React8.forwardRef(
+  ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+    "figure",
+    {
+      ref,
+      className: cn(className),
+      ...props
+    }
+  )
+);
+CardFigure.displayName = "CardFigure";
+var CardWithCompoundComponents = Card;
+CardWithCompoundComponents.Body = CardBody;
+CardWithCompoundComponents.Title = CardTitle;
+CardWithCompoundComponents.Actions = CardActions;
+CardWithCompoundComponents.Figure = CardFigure;
+
+// src/app/login/page.tsx
+var import_jsx_runtime12 = __toESM(require_jsx_runtime(), 1);
+function LoginPage({ params: _params, searchParams: _searchParams, googleAuthUrl = "/auth/google" }) {
+  return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "min-h-screen flex items-center justify-center bg-base-200", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "w-full max-w-md p-8", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(CardWithCompoundComponents, { shadow: "xl", size: "xl", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(CardWithCompoundComponents.Body, { className: "items-center text-center", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(CardWithCompoundComponents.Title, { className: "text-3xl mb-2", children: "Store CRUD" }),
+    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-base-content/70 mb-8", children: "A modern store management application built with Hono" }),
+    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(CardWithCompoundComponents.Actions, { className: "w-full flex justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+      Button,
+      {
+        color: "primary",
+        style: "soft",
+        modifier: "wide",
+        icon: IconBrandGoogleFilled,
+        onClick: () => window.location.href = googleAuthUrl,
+        children: "Sign in with Google"
+      }
+    ) })
+  ] }) }) }) });
+}
 
 // src/lib/theme.ts
 function initializeTheme() {
@@ -29127,17 +29408,59 @@ function initializeTheme() {
 }
 
 // src/client.tsx
-var import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime13 = __toESM(require_jsx_runtime(), 1);
+layoutSystem.register({
+  name: "root",
+  path: "/dashboard",
+  segment: "dashboard",
+  component: RootLayout
+});
+layoutSystem.register({
+  name: "dashboard",
+  path: "/dashboard",
+  segment: "dashboard",
+  component: DashboardLayout
+});
+layoutSystem.register({
+  path: "/",
+  segment: "root",
+  component: LoginPage
+});
+layoutSystem.register({
+  path: "/dashboard",
+  segment: "dashboard",
+  component: DashboardPage
+});
 initializeTheme();
 var appElement = document.getElementById("app");
 if (appElement) {
   const initialProps = window.__INITIAL_PROPS__;
   const path = window.location.pathname;
-  if (path === "/") {
-    (0, import_client.hydrateRoot)(appElement, /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(LoginPage, { ...initialProps }));
-  } else if (path === "/dashboard") {
-    (0, import_client.hydrateRoot)(appElement, /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(DashboardPage, { ...initialProps }));
-  }
+  const { layouts, route } = layoutSystem.resolveLayoutHierarchy(path);
+  const params = {};
+  const searchParams = Object.fromEntries(
+    new URLSearchParams(window.location.search).entries()
+  );
+  const content = /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+    LayoutProvider,
+    {
+      layoutSystem,
+      currentRoute: path,
+      params,
+      searchParams,
+      children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+        LayoutRenderer,
+        {
+          route,
+          layouts,
+          params,
+          searchParams,
+          pageProps: initialProps
+        }
+      )
+    }
+  );
+  (0, import_client.hydrateRoot)(appElement, content);
 }
 console.log("Client-side React hydration complete with theme system initialized");
 /*! Bundled license information:
