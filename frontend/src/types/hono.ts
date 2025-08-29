@@ -1,3 +1,6 @@
+// Import Cloudflare Workers types
+/// <reference types="@cloudflare/workers-types" />
+
 // User type for authenticated contexts
 export interface User {
   id: string;
@@ -16,6 +19,8 @@ export interface Env {
   ENVIRONMENT?: string;
   FULL_ACCESS_TOKEN?: string;
   FRONTEND_ACCESS_TOKEN?: string;
+  // eslint-disable-next-line no-undef
+  ASSETS?: Fetcher; // Cloudflare Workers static assets
 }
 
 // Variables type for Hono context

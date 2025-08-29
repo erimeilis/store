@@ -11,7 +11,7 @@
     "version": "echo \"export default `date +'%s'`\" > ./src/config/build_time.ts && echo \"export default true\" > ./src/config/is_prod.ts",
     "build:css": "postcss src/styles/globals.css -o dist/styles.css",
     "build:css:watch": "postcss src/styles/globals.css -o dist/styles.css --watch",
-    "build:client": "esbuild src/client.tsx --bundle --outfile=dist/client.js --format=esm --jsx=automatic --tsconfig=tsconfig.json",
+    "build:client": "esbuild src/client.tsx --bundle --outfile=dist/client.js --format=esm --jsx=automatic --tsconfig=tsconfig.json --conditions=style --external:*.css",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint src --ext .ts,.tsx,.js,.jsx --fix"
