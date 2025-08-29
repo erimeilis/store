@@ -10,7 +10,7 @@
     "dev:fullstack": "node dev-full-stack.js",
     "dev:fullstack:remote": "node dev-full-stack-remote.js",
     "deploy": "wrangler deploy",
-    "deploy:backend": "wrangler deploy --env production",
+    "deploy:backend": "wrangler deploy",
     "deploy:frontend": "cd frontend && npm run deploy",
     "deploy:fullstack": "npm run deploy:backend && npm run deploy:frontend",
     "test": "vitest",

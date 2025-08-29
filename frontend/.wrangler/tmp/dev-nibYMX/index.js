@@ -20890,7 +20890,7 @@ var DashboardPage = /* @__PURE__ */ __name(({ user }) => {
 
 // src/config/is_prod.ts
 init_modules_watch_stub();
-var is_prod_default = false;
+var is_prod_default = true;
 
 // src/lib/manifest.json
 var manifest_default = {
