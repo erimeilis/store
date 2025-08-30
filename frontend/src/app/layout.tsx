@@ -6,7 +6,7 @@
 
 import React from 'react'
 import { LayoutProps } from '../types/layout.js'
-import { Navbar } from '../components/ui/navbar.js'
+// import { Navbar } from '../components/ui/navbar.js' // Unused import
 // CSS is handled by the build process and served as static assets
 
 export default function RootLayout({ children }: LayoutProps) {

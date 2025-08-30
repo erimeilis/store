@@ -1,13 +1,19 @@
 import { Hono } from 'hono'
 import { readAuthMiddleware, writeAuthMiddleware } from '../middleware/auth.js'
+import { getPrismaClient } from '../lib/database.js'
 import type { Bindings } from '../../types/bindings.js'
+import type { UserContext } from '../types/database.js'
 
 /**
  * Items CRUD Routes
  * Handles all operations for store items: Create, Read, Update, Delete
  * All routes are protected with appropriate authentication middleware
+ * Now using Prisma ORM with type-safe database operations
  */
-const itemsRoutes = new Hono<{ Bindings: Bindings }>()
+const itemsRoutes = new Hono<{ 
+  Bindings: Bindings
+  Variables: { user: UserContext }
+}>()
 
 /**
  * List all items
@@ -15,13 +21,17 @@ const itemsRoutes = new Hono<{ Bindings: Bindings }>()
  */
 itemsRoutes.get('/api/items', readAuthMiddleware, async (c) => {
   try {
-    const { results } = await c.env.DB.prepare(
-      'SELECT * FROM items ORDER BY created_at DESC'
-    ).all()
+    const prisma = getPrismaClient(c.env)
+    
+    const items = await prisma.item.findMany({
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
     
     return c.json({ 
-      items: results,
-      count: results.length
+      items,
+      count: items.length
     })
   } catch (error) {
     return c.json({ 
@@ -37,18 +47,20 @@ itemsRoutes.get('/api/items', readAuthMiddleware, async (c) => {
  */
 itemsRoutes.get('/api/items/:id', readAuthMiddleware, async (c) => {
   try {
-    const id = parseInt(c.req.param('id'))
+    const id = c.req.param('id')
     
-    if (isNaN(id)) {
+    if (!id) {
       return c.json({
         error: 'Invalid item ID',
-        message: 'Item ID must be a valid number'
+        message: 'Item ID is required'
       }, 400)
     }
 
-    const item = await c.env.DB.prepare(
-      'SELECT * FROM items WHERE id = ?'
-    ).bind(id).first()
+    const prisma = getPrismaClient(c.env)
+    
+    const item = await prisma.item.findUnique({
+      where: { id }
+    })
     
     if (!item) {
       return c.json({
@@ -82,22 +94,19 @@ itemsRoutes.post('/api/items', writeAuthMiddleware, async (c) => {
       }, 400)
     }
 
-    // Insert into D1 database
-    const result = await c.env.DB.prepare(
-      'INSERT INTO items (name, description, data) VALUES (?, ?, ?)'
-    ).bind(
-      body.name.trim(),
-      body.description || null,
-      body.data ? JSON.stringify(body.data) : null
-    ).run()
-
-    // Fetch the created item
-    const createdItem = await c.env.DB.prepare(
-      'SELECT * FROM items WHERE id = ?'
-    ).bind(result.meta.last_row_id).first()
+    const prisma = getPrismaClient(c.env)
+    
+    // Create item using Prisma
+    const item = await prisma.item.create({
+      data: {
+        name: body.name.trim(),
+        description: body.description || null,
+        data: body.data ? JSON.stringify(body.data) : '{}'
+      }
+    })
 
     return c.json({ 
-      item: createdItem,
+      item,
       message: 'Item created successfully'
     }, 201)
   } catch (error) {
@@ -121,12 +130,12 @@ itemsRoutes.post('/api/items', writeAuthMiddleware, async (c) => {
  */
 itemsRoutes.put('/api/items/:id', writeAuthMiddleware, async (c) => {
   try {
-    const id = parseInt(c.req.param('id'))
+    const id = c.req.param('id')
     
-    if (isNaN(id)) {
+    if (!id) {
       return c.json({
         error: 'Invalid item ID',
-        message: 'Item ID must be a valid number'
+        message: 'Item ID is required'
       }, 400)
     }
 
@@ -140,37 +149,32 @@ itemsRoutes.put('/api/items/:id', writeAuthMiddleware, async (c) => {
       }, 400)
     }
 
-    // Check if item exists
-    const existingItem = await c.env.DB.prepare(
-      'SELECT * FROM items WHERE id = ?'
-    ).bind(id).first()
-    
-    if (!existingItem) {
+    const prisma = getPrismaClient(c.env)
+
+    try {
+      // Update item using Prisma (will throw if item doesn't exist)
+      const item = await prisma.item.update({
+        where: { id },
+        data: {
+          name: body.name.trim(),
+          description: body.description || null,
+          data: body.data ? JSON.stringify(body.data) : '{}'
+        }
+      })
+
       return c.json({
-        error: 'Item not found',
-        message: `Item with ID ${id} does not exist`
-      }, 404)
+        item,
+        message: 'Item updated successfully'
+      })
+    } catch (prismaError: any) {
+      if (prismaError.code === 'P2025') {
+        return c.json({
+          error: 'Item not found',
+          message: `Item with ID ${id} does not exist`
+        }, 404)
+      }
+      throw prismaError
     }
-
-    // Update item in database
-    await c.env.DB.prepare(
-      'UPDATE items SET name = ?, description = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-    ).bind(
-      body.name.trim(),
-      body.description || null,
-      body.data ? JSON.stringify(body.data) : null,
-      id
-    ).run()
-
-    // Fetch updated item
-    const updatedItem = await c.env.DB.prepare(
-      'SELECT * FROM items WHERE id = ?'
-    ).bind(id).first()
-
-    return c.json({
-      item: updatedItem,
-      message: 'Item updated successfully'
-    })
   } catch (error) {
     if (error instanceof SyntaxError) {
       return c.json({
@@ -192,36 +196,36 @@ itemsRoutes.put('/api/items/:id', writeAuthMiddleware, async (c) => {
  */
 itemsRoutes.delete('/api/items/:id', writeAuthMiddleware, async (c) => {
   try {
-    const id = parseInt(c.req.param('id'))
+    const id = c.req.param('id')
     
-    if (isNaN(id)) {
+    if (!id) {
       return c.json({
         error: 'Invalid item ID',
-        message: 'Item ID must be a valid number'
+        message: 'Item ID is required'
       }, 400)
     }
 
-    // Check if item exists and get it before deletion
-    const existingItem = await c.env.DB.prepare(
-      'SELECT * FROM items WHERE id = ?'
-    ).bind(id).first()
-    
-    if (!existingItem) {
+    const prisma = getPrismaClient(c.env)
+
+    try {
+      // Delete item using Prisma (will throw if item doesn't exist)
+      const item = await prisma.item.delete({
+        where: { id }
+      })
+
       return c.json({
-        error: 'Item not found',
-        message: `Item with ID ${id} does not exist`
-      }, 404)
+        item,
+        message: 'Item deleted successfully'
+      })
+    } catch (prismaError: any) {
+      if (prismaError.code === 'P2025') {
+        return c.json({
+          error: 'Item not found',
+          message: `Item with ID ${id} does not exist`
+        }, 404)
+      }
+      throw prismaError
     }
-
-    // Delete the item
-    await c.env.DB.prepare(
-      'DELETE FROM items WHERE id = ?'
-    ).bind(id).run()
-
-    return c.json({
-      item: existingItem,
-      message: 'Item deleted successfully'
-    })
   } catch (error) {
     return c.json({
       error: 'Failed to delete item',

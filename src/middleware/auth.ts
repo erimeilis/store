@@ -1,5 +1,8 @@
 import type { Context, Next } from 'hono'
 import type { Bindings } from '../../types/bindings.js'
+import { getPrismaClient } from '../lib/database.js'
+import { validateToken, hasPermission } from '../lib/token-service.js'
+import type { UserContext, TokenPermissions } from '../types/database.js'
 
 // Define context variables type
 type Variables = {
@@ -7,24 +10,13 @@ type Variables = {
 }
 
 /**
- * User Context Interface
- * Represents the authenticated user information
- */
-export interface UserContext {
-  id: string
-  permissions: string[]
-  tokenId?: string | number
-}
-
-/**
  * Bearer Token Authentication Middleware Factory
- * Creates middleware that validates bearer tokens against D1 database
- * with fallback to environment variables for backward compatibility
+ * Creates middleware that validates bearer tokens using Prisma with IP/domain whitelist support
  * 
- * @param requiredPermission - The permission level required ('read' | 'write')
+ * @param requiredPermission - The permission level required
  * @returns Hono middleware function
  */
-export const createBearerAuthMiddleware = (requiredPermission: 'read' | 'write') => {
+export const createBearerAuthMiddleware = (requiredPermission: TokenPermissions) => {
   return async (c: Context<{ Bindings: Bindings; Variables: Variables }>, next: Next) => {
     const authHeader = c.req.header('Authorization')
     
@@ -32,58 +24,24 @@ export const createBearerAuthMiddleware = (requiredPermission: 'read' | 'write')
       return c.json({ error: 'Unauthorized', message: 'Bearer token required' }, 401)
     }
     
-    const token = authHeader.replace('Bearer ', '')
+    const tokenString = authHeader.replace('Bearer ', '')
     
     try {
-      // Query D1 database for token
-      const tokenResult = await c.env.DB.prepare(
-        'SELECT * FROM tokens WHERE token = ? AND (expires_at IS NULL OR expires_at > datetime("now"))'
-      ).bind(token).first()
+      // Get Prisma client
+      const prisma = getPrismaClient(c.env)
       
-      if (!tokenResult) {
-        // Fallback to environment variables for backward compatibility
-        const fullAccessToken = c.env?.FULL_ACCESS_TOKEN || 'dev-full-access-token'
-        const readOnlyToken = c.env?.READ_ONLY_TOKEN || 'dev-read-only-token'
-        
-        let hasPermission = false
-        let userContext: UserContext = { id: 'anonymous', permissions: [] }
-        
-        if (token === fullAccessToken) {
-          hasPermission = true
-          userContext = { id: 'full-access-user', permissions: ['read', 'write'] }
-        } else if (token === readOnlyToken) {
-          hasPermission = requiredPermission === 'read'
-          userContext = { id: 'read-only-user', permissions: ['read'] }
-        }
-        
-        if (!hasPermission) {
-          return c.json({ 
-            error: 'Unauthorized', 
-            message: 'Invalid or expired token' 
-          }, 401)
-        }
-        
-        c.set('user', userContext)
-        return next()
+      // Validate token with IP/domain whitelist checks
+      const validation = await validateToken(prisma, tokenString, c.req.raw)
+      
+      if (!validation.valid || !validation.user) {
+        return c.json({ 
+          error: 'Unauthorized', 
+          message: validation.error || 'Invalid token' 
+        }, 401)
       }
       
-      // Check permissions from D1 token
-      let hasPermission = false
-      let userContext: UserContext = { 
-        id: String(tokenResult.owner || 'unknown'), 
-        permissions: [],
-        tokenId: tokenResult.id as string | number
-      }
-      
-      if (String(tokenResult.type) === 'full') {
-        hasPermission = true
-        userContext.permissions = ['read', 'write']
-      } else if (String(tokenResult.type) === 'read') {
-        hasPermission = requiredPermission === 'read'
-        userContext.permissions = ['read']
-      }
-      
-      if (!hasPermission) {
+      // Check if user has required permission
+      if (!hasPermission(validation.user.permissions, requiredPermission)) {
         return c.json({ 
           error: 'Forbidden', 
           message: `Insufficient permissions. Required: ${requiredPermission}` 
@@ -91,7 +49,7 @@ export const createBearerAuthMiddleware = (requiredPermission: 'read' | 'write')
       }
       
       // Set user context for downstream handlers
-      c.set('user', userContext)
+      c.set('user', validation.user)
       
       return next()
     } catch (error) {

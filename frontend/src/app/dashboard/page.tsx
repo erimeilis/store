@@ -16,7 +16,7 @@ interface DashboardPageProps extends PageProps {
   }
 }
 
-export default function DashboardPage({ params: _params, searchParams: _searchParams, user }: DashboardPageProps) {
+export default function DashboardPage({ params: _params, searchParams: _searchParams, user: _user }: DashboardPageProps) {
   const [items, setItems] = useState<StoreItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

@@ -1,0 +1,101 @@
+// Store Database Schema with Prisma ORM
+// Multi-environment support: SQLite (local), Cloudflare D1 (preview/production)
+// Features: Dynamic table management, IP/domain whitelist, Google OAuth
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Users - Google OAuth + table ownership management
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  picture   String?  // Profile picture from Google
+  role      String   @default("user") // admin, user
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  sessions Session[]
+  tables   Table[]
+
+  @@map("users")
+}
+
+// Sessions - Simple post-OAuth session management
+model Session {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  sessionToken String   @unique @map("session_token")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// Tokens - API authentication with IP/domain whitelist
+model Token {
+  id             String    @id @default(cuid())
+  token          String    @unique
+  name           String
+  permissions    String    @default("read") // comma-separated: read,write,delete,admin
+  allowedIps     String?   @map("allowed_ips")     // JSON array of IPs/CIDR ranges
+  allowedDomains String?   @map("allowed_domains") // JSON array of domain patterns
+  expiresAt      DateTime? @map("expires_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@map("tokens")
+}
+
+// Tables - Metadata for user-created custom tables
+model Table {
+  id          String   @id @default(cuid())
+  name        String
+  ownerId     String   @map("owner_id")
+  schema      String   // JSON - column definitions, types, constraints
+  permissions String?  // JSON - user permissions per table
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // Unique table names per user
+  @@unique([name, ownerId])
+  @@map("tables")
+}
+
+// AllowedEmails - Access control whitelist
+model AllowedEmail {
+  id        String   @id @default(cuid())
+  email     String?  // Specific email address
+  domain    String?  // Domain pattern (e.g., @company.com)
+  type      String   // "email" or "domain"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("allowed_emails")
+}
+
+// Items - Test table for root user (example with 100 fake records)
+model Item {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  data        String   // JSON - price, category, stock, etc.
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("items")
+}
