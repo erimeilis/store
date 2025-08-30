@@ -29201,7 +29201,7 @@ var ItemsTable = ({
 // src/app/dashboard/page.tsx
 init_api();
 var import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
-function DashboardPage({ params: _params, searchParams: _searchParams, user }) {
+function DashboardPage({ params: _params, searchParams: _searchParams, user: _user }) {
   const [items, setItems] = (0, import_react16.useState)([]);
   const [loading, setLoading] = (0, import_react16.useState)(true);
   const [error, setError] = (0, import_react16.useState)(null);
