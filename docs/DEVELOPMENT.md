@@ -19,8 +19,8 @@ npm run db:studio     # View data (optional)
 
 ### Start Development
 ```bash
-npm run dev:fullstack          # Local SQLite + frontend
-npm run dev:fullstack:remote   # Remote D1 + frontend
+npm run dev:fullstack          # Local D1 + frontend
+npm run dev:fullstack:remote   # Remote preview D1 + frontend
 ```
 
 **URLs:**

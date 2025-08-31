@@ -126,21 +126,8 @@ const CardFigure = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElemen
 )
 CardFigure.displayName = 'CardFigure'
 
-// Add compound component properties
-const CardWithCompoundComponents = Card as typeof Card & {
-  Body: typeof CardBody
-  Title: typeof CardTitle
-  Actions: typeof CardActions
-  Figure: typeof CardFigure
-}
-
-CardWithCompoundComponents.Body = CardBody
-CardWithCompoundComponents.Title = CardTitle
-CardWithCompoundComponents.Actions = CardActions
-CardWithCompoundComponents.Figure = CardFigure
-
 export {
-    CardWithCompoundComponents as Card,
+    Card,
     CardBody,
     CardTitle,
     CardActions,

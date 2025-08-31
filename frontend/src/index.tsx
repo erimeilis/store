@@ -12,6 +12,9 @@ import { layoutSystem } from '@/lib/layout-system'
 import RootLayout from '@/app/layout'
 import DashboardLayout from '@/app/dashboard/layout'
 import DashboardPage from '@/app/dashboard/page'
+import UsersPage from '@/app/dashboard/users/page'
+import CreateUserPage from '@/app/dashboard/users/create/page'
+import EditUserPage from '@/app/dashboard/users/edit/[id]/page'
 import LoginPage from '@/app/login/page'
 import IS_PROD from '@/config/is_prod'
 import manifest from '@/lib/manifest.json'
@@ -44,6 +47,24 @@ layoutSystem.register({
   path: '/dashboard',
   segment: 'dashboard',
   component: DashboardPage
+})
+
+layoutSystem.register({
+  path: '/dashboard/users',
+  segment: 'users',
+  component: UsersPage
+})
+
+layoutSystem.register({
+  path: '/dashboard/users/create',
+  segment: 'create',
+  component: CreateUserPage
+})
+
+layoutSystem.register({
+  path: '/dashboard/users/edit/[id]',
+  segment: 'edit',
+  component: EditUserPage
 })
 
 // React renderer setup using layout system
@@ -283,7 +304,7 @@ app.get('/dashboard', (c) => {
   const dashboardProps = { 
     user,
     apiUrl: c.env?.API_URL,
-    apiToken: c.env?.FRONTEND_ACCESS_TOKEN
+    apiToken: c.env?.ADMIN_ACCESS_TOKEN
   }
 
   const content = (
@@ -306,13 +327,197 @@ app.get('/dashboard', (c) => {
   return c.render(content, { initialProps: dashboardProps })
 })
 
+// Users Routes - using layout system
+app.get('/dashboard/users', async (c) => {
+  const usersAuthConfig = createAuthConfig(c.env)
+  const sessionCookie = getCookie(c, usersAuthConfig.session.cookieName)
+  
+  if (!sessionCookie) {
+    return c.redirect('/')
+  }
+
+  let user
+  try {
+    user = parseSessionCookie(sessionCookie)
+  } catch {
+    return c.redirect('/')
+  }
+
+  if (!user) {
+    return c.redirect('/')
+  }
+
+  // Fetch users data from API
+  let users = null
+  try {
+    const apiUrl = c.env?.API_URL || 'http://localhost:8787'
+    const token = c.env?.ADMIN_ACCESS_TOKEN
+    
+    if (token) {
+      const response = await fetch(`${apiUrl}/api/users?${new URLSearchParams(c.req.queries()).toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      if (response.ok) {
+        users = await response.json()
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch users:', error)
+  }
+
+  const { layouts, route } = layoutSystem.resolveLayoutHierarchy('/dashboard/users')
+  const params = {}
+  const searchParams = Object.fromEntries(
+    Object.entries(c.req.queries()).map(([key, values]) => [key, values[0] || ''])
+  )
+
+  const usersProps = { 
+    user,
+    apiUrl: c.env?.API_URL,
+    apiToken: c.env?.ADMIN_ACCESS_TOKEN,
+    users,
+    filters: {
+      sort: c.req.query('sort'),
+      direction: c.req.query('direction') as 'asc' | 'desc'
+    }
+  }
+
+  const content = (
+    <LayoutProvider
+      layoutSystem={layoutSystem}
+      currentRoute="/dashboard/users"
+      params={params}
+      searchParams={searchParams}
+    >
+      <LayoutRenderer
+        route={route!}
+        layouts={layouts}
+        params={params}
+        searchParams={searchParams}
+        pageProps={usersProps}
+      />
+    </LayoutProvider>
+  )
+  
+  return c.render(content, { initialProps: usersProps })
+})
+
+// Create User Route
+app.get('/dashboard/users/create', (c) => {
+  const authConfig = createAuthConfig(c.env)
+  const sessionCookie = getCookie(c, authConfig.session.cookieName)
+  
+  if (!sessionCookie) {
+    return c.redirect('/')
+  }
+
+  let user
+  try {
+    user = parseSessionCookie(sessionCookie)
+  } catch {
+    return c.redirect('/')
+  }
+
+  if (!user) {
+    return c.redirect('/')
+  }
+
+  const { layouts, route } = layoutSystem.resolveLayoutHierarchy('/dashboard/users/create')
+  const params = {}
+  const searchParams = Object.fromEntries(
+    Object.entries(c.req.queries()).map(([key, values]) => [key, values[0] || ''])
+  )
+
+  const createProps = { 
+    user,
+    apiUrl: c.env?.API_URL,
+    apiToken: c.env?.ADMIN_ACCESS_TOKEN
+  }
+
+  const content = (
+    <LayoutProvider
+      layoutSystem={layoutSystem}
+      currentRoute="/dashboard/users/create"
+      params={params}
+      searchParams={searchParams}
+    >
+      <LayoutRenderer
+        route={route!}
+        layouts={layouts}
+        params={params}
+        searchParams={searchParams}
+        pageProps={createProps}
+      />
+    </LayoutProvider>
+  )
+  
+  return c.render(content, { initialProps: createProps })
+})
+
+// Edit User Route
+app.get('/dashboard/users/edit/:id', (c) => {
+  const editAuthConfig = createAuthConfig(c.env)
+  const sessionCookie = getCookie(c, editAuthConfig.session.cookieName)
+  
+  if (!sessionCookie) {
+    return c.redirect('/')
+  }
+
+  let user
+  try {
+    user = parseSessionCookie(sessionCookie)
+  } catch {
+    return c.redirect('/')
+  }
+
+  if (!user) {
+    return c.redirect('/')
+  }
+
+  const { layouts, route } = layoutSystem.resolveLayoutHierarchy('/dashboard/users/edit/[id]')
+  const params = { id: c.req.param('id') }
+  const searchParams = Object.fromEntries(
+    Object.entries(c.req.queries()).map(([key, values]) => [key, values[0] || ''])
+  )
+
+  const editProps = { 
+    user,
+    apiUrl: c.env?.API_URL,
+    apiToken: c.env?.ADMIN_ACCESS_TOKEN,
+    id: params.id
+  }
+
+  const content = (
+    <LayoutProvider
+      layoutSystem={layoutSystem}
+      currentRoute="/dashboard/users/edit/[id]"
+      params={params}
+      searchParams={searchParams}
+    >
+      <LayoutRenderer
+        route={route!}
+        layouts={layouts}
+        params={params}
+        searchParams={searchParams}
+        pageProps={editProps}
+      />
+    </LayoutProvider>
+  )
+  
+  return c.render(content, { initialProps: editProps })
+})
+
 // Auth Routes Group
 const auth = new Hono<{ Bindings: Env; Variables: Variables }>()
 
 // API token endpoint - for testing
 auth.get('/token', (c) => {
   return c.json({ 
-    token: c.env?.FULL_ACCESS_TOKEN || '',
+    token: c.env?.ADMIN_ACCESS_TOKEN || '',
     test: 'endpoint working'
   })
 })
@@ -330,11 +535,53 @@ auth.get('/callback/google', async (c) => {
     const tokens = await exchangeCodeForTokens(code, callbackAuthConfig) as any
     const userInfo = await getGoogleUserInfo(tokens.access_token) as any
     
+    // Call backend API to register/update user in database
+    try {
+      const apiUrl = c.env?.API_URL || 'http://localhost:8787'
+      const userRegistrationToken = c.env?.USER_REGISTRATION_TOKEN
+      
+      console.log('=== USER REGISTRATION DEBUG ===')
+      console.log('API URL:', apiUrl)
+      console.log('User Registration Token:', userRegistrationToken ? `${userRegistrationToken.substring(0, 8)}...` : 'MISSING')
+      console.log('User Info:', { name: userInfo.name, email: userInfo.email })
+      
+      const registerResponse = await fetch(`${apiUrl}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(userRegistrationToken && { 'Authorization': `Bearer ${userRegistrationToken}` })
+        },
+        body: JSON.stringify({
+          name: userInfo.name,
+          email: userInfo.email,
+          picture: userInfo.picture
+        })
+      })
+      
+      console.log('Register Response Status:', registerResponse.status)
+      console.log('Register Response Headers:', Object.fromEntries(registerResponse.headers.entries()))
+      
+      if (!registerResponse.ok) {
+        const errorText = await registerResponse.text()
+        console.error('FAILED TO REGISTER USER:', errorText)
+        console.error('Response Status:', registerResponse.status)
+        // Continue with login even if backend registration fails
+      } else {
+        const registerData = await registerResponse.json()
+        console.log('SUCCESS: User registered/updated in backend:', registerData)
+      }
+    } catch (error) {
+      console.error('CRITICAL ERROR calling backend user registration:', error)
+      console.error('Error details:', error.message, error.stack)
+      // Continue with login even if backend call fails
+    }
+    
+    // Create frontend session - frontend only handles Google OAuth
+    // Backend API will handle user management through bearer tokens
     const user = {
-      id: userInfo.id,
       name: userInfo.name,
       email: userInfo.email,
-      image: userInfo.picture
+      picture: userInfo.picture
     }
     
     const sessionCookie = createSessionCookie(user)

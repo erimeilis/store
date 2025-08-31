@@ -6,7 +6,7 @@
 import React from 'react'
 import { PageProps } from '../../types/layout.js'
 import { Button } from '../../components/ui/button.js'
-import { Card } from '../../components/ui/card.js'
+import { Card, CardBody, CardTitle, CardActions } from '../../components/ui/card.js'
 import { IconBrandGoogleFilled } from '@tabler/icons-react'
 
 interface LoginPageProps extends PageProps {
@@ -19,9 +19,9 @@ export default function LoginPage({ params: _params, searchParams: _searchParams
     <div className="min-h-screen flex items-center justify-center bg-base-200">
       <div className="w-full max-w-md p-8">
         <Card shadow="xl" size="xl">
-          <Card.Body className="items-center text-center">
+          <CardBody className="items-center text-center">
             {/* Title */}
-            <Card.Title className="text-3xl mb-2">Store CRUD</Card.Title>
+            <CardTitle className="text-3xl mb-2">Store CRUD</CardTitle>
             
             {/* Description */}
             <p className="text-base-content/70 mb-8">
@@ -29,7 +29,7 @@ export default function LoginPage({ params: _params, searchParams: _searchParams
             </p>
             
             {/* Sign in Button */}
-            <Card.Actions className="w-full flex justify-center">
+            <CardActions className="w-full flex justify-center">
               <Button
                 color="primary"
                 style="soft"
@@ -39,8 +39,8 @@ export default function LoginPage({ params: _params, searchParams: _searchParams
               >
                 Sign in with Google
               </Button>
-            </Card.Actions>
-          </Card.Body>
+            </CardActions>
+          </CardBody>
         </Card>
       </div>
     </div>

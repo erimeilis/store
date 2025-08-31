@@ -199,7 +199,7 @@ function NavbarBrand({
 
     return (
         <Comp
-            className={cn('navbar-brand text-xl font-bold p-2', className)}
+            className={cn('navbar-brand text-xl font-bold', className)}
             {...props}
         >
             {children}
@@ -254,74 +254,4 @@ function NavbarMenu({
     )
 }
 
-/**
- * NavbarStart component for the start (left) section of the navbar.
- */
-export interface NavbarStartProps extends React.HTMLAttributes<HTMLDivElement> {
-    /**
-     * Whether to use as a child component (renders as Slot)
-     */
-    asChild?: boolean
-}
-
-function NavbarStart({
-    className,
-    asChild = false,
-    ...props
-}: NavbarStartProps) {
-    const Comp = asChild ? Slot : 'div'
-
-    return (
-        <Comp
-            className={cn('navbar-start', className)}
-            {...props}
-        />
-    )
-}
-
-/**
- * NavbarEnd component for the end (right) section of the navbar.
- */
-export interface NavbarEndProps extends React.HTMLAttributes<HTMLDivElement> {
-    /**
-     * Whether to use as a child component (renders as Slot)
-     */
-    asChild?: boolean
-}
-
-function NavbarEnd({
-    className,
-    asChild = false,
-    ...props
-}: NavbarEndProps) {
-    const Comp = asChild ? Slot : 'div'
-
-    return (
-        <Comp
-            className={cn('navbar-end', className)}
-            {...props}
-        />
-    )
-}
-
-// Add compound component properties
-const NavbarWithCompoundComponents = Navbar as typeof Navbar & {
-  Start: typeof NavbarStart
-  End: typeof NavbarEnd
-  Brand: typeof NavbarBrand
-  Menu: typeof NavbarMenu
-}
-
-NavbarWithCompoundComponents.Start = NavbarStart
-NavbarWithCompoundComponents.End = NavbarEnd
-NavbarWithCompoundComponents.Brand = NavbarBrand
-NavbarWithCompoundComponents.Menu = NavbarMenu
-
-export {
-    NavbarWithCompoundComponents as Navbar,
-    NavbarStart,
-    NavbarEnd,
-    NavbarBrand,
-    NavbarMenu,
-    navbarVariants
-}
+export { Navbar, NavbarBrand, NavbarMenu, navbarVariants }

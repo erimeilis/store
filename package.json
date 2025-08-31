@@ -5,28 +5,21 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "wrangler dev --env dev",
-    "dev:remote": "wrangler dev --env dev --x-remote-bindings",
-    "dev:fullstack": "node dev-full-stack.js",
-    "dev:fullstack:remote": "node dev-full-stack-remote.js",
+    "dev:local": "wrangler dev --env local",
+    "dev:preview": "wrangler dev --env preview --x-remote-bindings",
+    "dev:fullstack:local": "node scripts/dev-fullstack.js local",
+    "dev:fullstack:preview": "node scripts/dev-fullstack.js preview",
     "deploy": "wrangler deploy",
-    "deploy:backend": "wrangler deploy",
     "deploy:frontend": "cd frontend && npm run deploy",
-    "deploy:fullstack": "npm run deploy:backend && npm run deploy:frontend",
+    "deploy:fullstack": "npm run deploy && npm run deploy:frontend",
     "test": "vitest",
     "test:run": "vitest run",
     "build": "tsc --noEmit",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:seed": "prisma db seed",
-    "db:seed:dev": "wrangler d1 execute store-database-preview --env dev --file=scripts/seed-d1.sql",
-    "db:seed:prod": "wrangler d1 execute store-database --env production --remote --file=scripts/seed-d1.sql",
-    "db:seed:all": "npm run db:seed && npm run db:seed:dev && npm run db:seed:prod",
-    "db:migrate:dev": "wrangler d1 execute store-database-preview --env dev --file=prisma/migrations/20250829165615_init/migration.sql",
-    "db:migrate:prod": "wrangler d1 execute store-database --env production --remote --file=prisma/migrations/20250829165615_init/migration.sql",
-    "db:studio": "prisma studio",
-    "db:push": "prisma db push",
-    "db:reset": "prisma migrate reset"
+    "db:reset:local": "npx tsx scripts/db-reset.ts local",
+    "db:reset:preview": "npx tsx scripts/db-reset.ts preview",
+    "db:reset:production": "npx tsx scripts/db-reset.ts production",
+    "db:seed:generate": "npx tsx seeds/faker-items-generator.ts"
   },
   "keywords": [
     "hono",
@@ -37,11 +30,9 @@
   ],
   "author": "Eri <eri@redshoes.pro>",
   "license": "MIT",
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "dependencies": {
     "@hono/react-renderer": "^1.0.1",
+    "@hono/zod-validator": "^0.7.2",
     "@prisma/adapter-d1": "^6.15.0",
     "@prisma/client": "^6.15.0",
     "@types/react": "^19.1.11",
@@ -50,14 +41,16 @@
     "hono": "^4.9.4",
     "prisma": "^6.15.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250823.0",
+    "@faker-js/faker": "^10.0.0",
     "@types/node": "^24.3.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4",
-    "wrangler": "^4.32.0"
+    "wrangler": "^4.33.1"
   }
 }

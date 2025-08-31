@@ -5,6 +5,9 @@ import { layoutSystem } from '@/lib/layout-system'
 import RootLayout from '@/app/layout'
 import DashboardLayout from '@/app/dashboard/layout'
 import DashboardPage from '@/app/dashboard/page'
+import UsersPage from '@/app/dashboard/users/page'
+import CreateUserPage from '@/app/dashboard/users/create/page'
+import EditUserPage from '@/app/dashboard/users/edit/[id]/page'
 import LoginPage from '@/app/login/page'
 import { initializeTheme } from '@/lib/theme'
 // CSS is now served as a static asset instead of being imported
@@ -34,6 +37,24 @@ layoutSystem.register({
   path: '/dashboard',
   segment: 'dashboard',
   component: DashboardPage
+})
+
+layoutSystem.register({
+  path: '/dashboard/users',
+  segment: 'users',
+  component: UsersPage
+})
+
+layoutSystem.register({
+  path: '/dashboard/users/create',
+  segment: 'create',
+  component: CreateUserPage
+})
+
+layoutSystem.register({
+  path: '/dashboard/users/edit/[id]',
+  segment: 'edit',
+  component: EditUserPage
 })
 
 // Initialize theme system

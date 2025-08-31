@@ -159,7 +159,7 @@ const Calendar = React.forwardRef<HTMLDivElement, CalendarProps>(
                     today={today}
                     hideNavigation={true}
                     components={{
-                        MonthCaption: (props: any) => <CustomCaption {...props} fromYear={fromYear} toYear={toYear}/>,
+                        MonthCaption: (props) => <CustomCaption {...props} fromYear={fromYear} toYear={toYear}/>,
                     }}
                     classNames={{
                         months: `${defaultClassNames.months}`,

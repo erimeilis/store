@@ -10,6 +10,8 @@ import { healthRoutes } from './routes/health.js'
 import { itemsRoutes } from './routes/items.js'
 import { uploadRoutes } from './routes/upload.js'
 import { importRoutes } from './routes/import.js'
+import usersRoutes from './routes/users.js'
+import { auth } from './routes/auth.js'
 
 /**
  * Store CRUD API - Backend Server
@@ -20,7 +22,7 @@ import { importRoutes } from './routes/import.js'
  * 
  * Architecture:
  * - Middleware: CORS, Authentication, Error handling
- * - Routes: Health, Items CRUD, Upload, Import
+ * - Routes: Health, Items CRUD, Upload, Import, Users Management
  * - Storage: Cloudflare D1 (SQLite), R2 (File storage)
  * - Authentication: Bearer token with D1 database + env fallback
  */
@@ -50,6 +52,11 @@ app.route('/', uploadRoutes)
 
 // Data import from external sources (protected with auth middleware)
 app.route('/', importRoutes)
+
+// Users management operations (protected with auth middleware)
+app.route('/api/users', usersRoutes)
+// Authentication operations (user registration after OAuth)
+app.route('/api/auth', auth)
 
 // =============================================================================
 // ERROR HANDLING
