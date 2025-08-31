@@ -6,17 +6,18 @@ main = "src/index.tsx"
 assets.directory = "./dist"
 assets.binding = "ASSETS"
 
-# Production environment variables (default)
+# Production Environment (default)
 [vars]
 API_URL = "https://store-crud-api.eri-42e.workers.dev"
 GOOGLE_REDIRECT_URI = "https://store-crud-front.eri-42e.workers.dev/auth/callback/google"
 
-# Development Environment
-[env.dev]
-vars.API_URL = "http://localhost:8787"
-vars.GOOGLE_REDIRECT_URI = "http://localhost:5173/auth/callback/google"
+[observability]
+enabled = true
+head_sampling_rate = 1 # optional. default = 1.
 
-# Production Environment
-[env.production]
-vars.API_URL = "https://store-crud-api.eri-42e.workers.dev"
-vars.GOOGLE_REDIRECT_URI = "https://store-crud-front.eri-42e.workers.dev/auth/callback/google"
+# Local Development Environment
+[env.dev]
+
+[env.dev.vars]
+API_URL = "http://localhost:8787"
+GOOGLE_REDIRECT_URI = "http://localhost:5173/auth/callback/google"

@@ -12,7 +12,8 @@ export type Bindings = {
   ALLOWED_ORIGINS?: string
   
   // Authentication tokens
-  FULL_ACCESS_TOKEN?: string
+  ADMIN_ACCESS_TOKEN?: string
+  USER_REGISTRATION_TOKEN?: string
   READ_ONLY_TOKEN?: string
   AUTH_SECRET?: string
   

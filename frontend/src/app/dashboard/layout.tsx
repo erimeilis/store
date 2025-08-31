@@ -5,7 +5,7 @@
 
 import React from 'react'
 import { LayoutProps } from '../../types/layout.js'
-import { Navbar } from '../../components/ui/navbar.js'
+import { Navbar, NavbarBrand } from '../../components/ui/navbar.js'
 import { Button } from '../../components/ui/button.js'
 import { IconLogout } from '@tabler/icons-react'
 
@@ -28,9 +28,9 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
           shadow="md"
           position="sticky"
           start={
-              <Navbar.Brand>
+              <NavbarBrand>
                   Store CRUD
-              </Navbar.Brand>
+              </NavbarBrand>
           }
           end={
               <div className="flex flex-row gap-4">

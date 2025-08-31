@@ -1,17 +1,3 @@
-// Stub router for non-Inertia usage
-const router = {
-  visit: (url: string) => {
-    if (typeof window !== 'undefined') {
-      window.location.href = url
-    }
-  },
-  get: (url: string, params?: Record<string, any>, _options?: Record<string, any>) => {
-    if (typeof window !== 'undefined') {
-      const searchParams = params ? '?' + new URLSearchParams(params).toString() : ''
-      window.location.href = url + searchParams
-    }
-  }
-}
 import {Input} from '@/components/ui/input'
 import {Button} from '@/components/ui/button'
 import React, {useCallback, useEffect, useRef, useState} from 'react'
@@ -59,7 +45,7 @@ export function Pagination<T extends IModel>({
         if (page && page >= 1 && page <= last_page && page !== current_page) {
             const url = new URL(window.location.href)
             url.searchParams.set('page', page.toString())
-            router.get(url.toString(), {}, {preserveState: true})
+            window.location.href = url.toString()
         }
         setShowInput(false)
     }, [current_page, last_page])
@@ -103,10 +89,8 @@ export function Pagination<T extends IModel>({
         }
     }
 
-    const handlePageClick = (url: string | null) => {
-        if (url) {
-            router.get(url, {}, {preserveState: true})
-        }
+    const handlePageClick = (url: string) => {
+        window.location.href = url
     }
 
     // Generate visible page numbers with ellipsis logic

@@ -39,8 +39,8 @@ Store/
 
 **Start development servers:**
 ```bash
-npm run dev:fullstack          # Local SQLite + frontend
-npm run dev:fullstack:remote   # Remote D1 + frontend
+npm run dev:fullstack          # Local D1 + frontend
+npm run dev:fullstack:remote   # Remote preview D1 + frontend
 ```
 
 **Database commands:**
@@ -72,17 +72,56 @@ wrangler secret put GOOGLE_CLIENT_SECRET --env production
 wrangler secret put FRONTEND_ACCESS_TOKEN --env production
 ```
 
-## 🗄️ Database
+## 🗄️ Database Management
 
 **Models:** Users, Sessions, Tokens, Items, Tables, AllowedEmails  
-**Environments:** Local SQLite, D1 Preview, D1 Production  
-**Data:** 205 realistic e-commerce items with categories, pricing, inventory
+**Environments:** Local D1 (10 items), Preview D1 (100 items), Production D1 (200 items)
+
+### Environment-Specific Reset & Seeding
+
+**⚠️ IMPORTANT:** After any database schema or migration changes, you MUST reset all databases using these scripts:
 
 ```bash
-# View seeded data
-sqlite3 prisma/local.db "SELECT COUNT(*) FROM items;"
-sqlite3 prisma/local.db "SELECT DISTINCT JSON_EXTRACT(data, '$.category') FROM items;"
+# Reset individual environments  
+node scripts/db-reset-local.js      # Reset local D1 + seed 10 items
+node scripts/db-reset-preview.js    # Reset preview D1 + seed 100 items
+node scripts/db-reset-production.js # Reset production D1 + seed 200 items (DANGEROUS!)
 ```
+
+### Individual Seeding (without reset)
+```bash
+# Note: Local D1 starts empty and doesn't need seeding
+# Items and tokens are created as needed during development
+npx tsx scripts/seed-preview.sql   # Seed preview D1 with 100 items  
+npx tsx scripts/seed-production.sql # Seed production D1 with 200 items
+```
+
+### Schema Management
+```bash
+npm run db:migrate           # Apply new migrations to local
+npm run db:studio           # Visual database browser
+npm run db:generate         # Generate Prisma client
+```
+
+### View Database Content
+```bash
+# Local D1 database (wrangler manages local state)
+wrangler d1 execute store-database-preview --env dev --command="SELECT COUNT(*) FROM items;"
+wrangler d1 execute store-database-preview --env dev --command="SELECT COUNT(*) FROM users;"
+
+# Remote databases (D1)  
+wrangler d1 execute store-database-preview --env dev --remote --command="SELECT COUNT(*) FROM items;"
+wrangler d1 execute store-database --env production --remote --command="SELECT COUNT(*) FROM items;"
+```
+
+### Database Reset Safety
+- **Local D1:** Safe to reset anytime (seeded with 10 test items)
+- **Preview D1:** Safe to reset (test data, used for staging)  
+- **Production D1:** ⚠️ REQUIRES EXPLICIT CONFIRMATION - will delete all real data!
+
+The production reset script requires typing "DELETE PRODUCTION DATA" exactly to proceed.
+
+**Note:** Local D1 database is managed by Wrangler and gets seeded with 10 items for development.
 
 ## 🔐 Authentication
 

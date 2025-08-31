@@ -5,8 +5,8 @@ import { createTestBindings } from './test-bindings'
 // Create test bindings for each test
 let testEnv: any
 
-// Test tokens (matching the default tokens from the backend)
-const FULL_ACCESS_TOKEN = 'dev-full-access-token'
+// Test tokens (matching the default tokens from the backend)  
+const ADMIN_ACCESS_TOKEN = 'dev-full-access-token'
 const READ_ONLY_TOKEN = 'dev-read-only-token'
 
 describe('Store CRUD API', () => {
@@ -141,7 +141,7 @@ describe('Store CRUD API', () => {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${FULL_ACCESS_TOKEN}`
+          'Authorization': `Bearer ${ADMIN_ACCESS_TOKEN}`
         },
         body: JSON.stringify(newItem)
       })

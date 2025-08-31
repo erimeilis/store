@@ -8,7 +8,7 @@ This is a full-stack store CRUD application built with:
 
 ### Backend (API Server)
 - **Framework**: Hono (TypeScript web framework)
-- **Database**: Cloudflare D1 (SQLite)
+- **Database**: Cloudflare D1 (SQLite-compatible)
 - **Storage**: Cloudflare R2 (Object Storage)  
 - **Cache**: Cloudflare KV (Key-Value Store)
 - **Deployment**: Cloudflare Workers
@@ -72,8 +72,8 @@ npm run deploy:fullstack           # Deploy both backend and frontend
 
 The application uses three environments:
 
-1. **Local Dev (`dev`)**: Uses preview D1/R2/KV resources, localhost URLs
-2. **Remote Dev**: Uses production D1/R2/KV resources, localhost URLs  
+1. **Local Dev (`dev`)**: Uses local D1/R2/KV (managed by Wrangler, seeded with 10 items), localhost URLs
+2. **Remote Dev (`dev-remote`)**: Uses remote preview D1/R2/KV resources (via --x-remote-bindings), localhost URLs  
 3. **Production**: Uses production D1/R2/KV resources, production URLs
 
 ### Environment Files
@@ -94,6 +94,19 @@ FRONTEND_ACCESS_TOKEN
 
 ## Database Management
 
+### Environment-Specific Database Reset (CRITICAL)
+
+**⚠️ MANDATORY:** After ANY database schema or migration changes, you MUST reset ALL databases:
+
+```bash
+# Individual environment resets
+node scripts/db-reset-local.js      # Local D1 + 10 items (if needed)
+node scripts/db-reset-preview.js    # D1 preview + 100 items  
+node scripts/db-reset-production.js # D1 production + 200 items (requires confirmation)
+
+# Note: Local D1 starts empty and creates schema/data as needed during development
+```
+
 ### Execute SQL Commands
 ```bash
 # Development database
@@ -101,13 +114,17 @@ wrangler d1 execute store-database-preview --env dev --command="SELECT * FROM it
 wrangler d1 execute store-database-preview --env dev --file=schema.sql
 
 # Production database
-wrangler d1 execute store-database --env production --command="SELECT * FROM items;"
-wrangler d1 execute store-database --env production --file=schema.sql
+wrangler d1 execute store-database --env production --remote --command="SELECT * FROM items;"
+wrangler d1 execute store-database --env production --remote --file=schema.sql
 ```
 
 ### Key Tables
+- `users`: Google OAuth users with roles
+- `sessions`: User session management
+- `tokens`: API authentication with permissions and IP/domain whitelist
 - `items`: Store inventory (main CRUD operations)
-- `tokens`: API authentication with types ('read', 'full')
+- `tables`: Metadata for user-created custom tables
+- `allowed_emails`: Access control whitelist
 
 ## Port Management
 
