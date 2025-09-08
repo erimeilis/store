@@ -121,10 +121,24 @@ export function getClientIp(request: Request): string {
  * Extract domain from request headers
  */
 export function getRequestDomain(request: Request): string | null {
-  return request.headers.get('Origin') || 
-         request.headers.get('Referer')?.match(/https?:\/\/([^\/]+)/)?.[1] ||
-         request.headers.get('Host') ||
-         null
+  const origin = request.headers.get('Origin')
+  const referer = request.headers.get('Referer')
+  const host = request.headers.get('Host')
+  
+  // Extract domain from Origin header (strips protocol)
+  if (origin) {
+    const match = origin.match(/https?:\/\/([^\/]+)/)
+    if (match) return match[1]
+  }
+  
+  // Extract domain from Referer header (strips protocol)  
+  if (referer) {
+    const match = referer.match(/https?:\/\/([^\/]+)/)
+    if (match) return match[1]
+  }
+  
+  // Host header is already domain-only
+  return host || null
 }
 
 /**

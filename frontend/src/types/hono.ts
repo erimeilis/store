@@ -19,11 +19,15 @@ export interface Env {
   ENVIRONMENT?: string;
   ADMIN_ACCESS_TOKEN?: string;
   USER_REGISTRATION_TOKEN?: string;
+  PAGE_SIZE?: string;
   // eslint-disable-next-line no-undef
   ASSETS?: Fetcher; // Cloudflare Workers static assets
+  // eslint-disable-next-line no-undef
+  KV?: KVNamespace; // Cloudflare KV for user settings
 }
 
 // Variables type for Hono context
 export interface Variables {
   user: User;
+  theme: 'dim' | 'nord';
 }

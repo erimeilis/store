@@ -16,22 +16,57 @@ const itemsRoutes = new Hono<{
 }>()
 
 /**
- * List all items
+ * List all items with pagination
  * GET /api/items
  */
 itemsRoutes.get('/api/items', readAuthMiddleware, async (c) => {
   try {
     const prisma = getPrismaClient(c.env)
     
+    // Extract pagination parameters
+    const page = parseInt(c.req.query('page') || '1', 10)
+    const limit = parseInt(c.req.query('limit') || '10', 10)
+    const sort = c.req.query('sort') || 'updated_at'
+    const direction = c.req.query('direction') || 'desc'
+    
+    // Calculate offset
+    const offset = (page - 1) * limit
+    
+    // Determine sort field and direction
+    const orderBy: any = {}
+    if (sort === 'updated_at' || sort === 'updatedAt') {
+      orderBy.updatedAt = direction === 'asc' ? 'asc' : 'desc'
+    } else if (sort === 'created_at' || sort === 'createdAt') {
+      orderBy.createdAt = direction === 'asc' ? 'asc' : 'desc'
+    } else if (sort === 'name') {
+      orderBy.name = direction === 'asc' ? 'asc' : 'desc'
+    } else {
+      orderBy.updatedAt = 'desc'
+    }
+    
+    // Get total count for pagination metadata
+    const totalCount = await prisma.item.count()
+    
+    // Get paginated items
     const items = await prisma.item.findMany({
-      orderBy: {
-        createdAt: 'desc'
-      }
+      skip: offset,
+      take: limit,
+      orderBy
     })
+    
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalCount / limit)
     
     return c.json({ 
       items,
-      count: items.length
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
     })
   } catch (error) {
     return c.json({ 

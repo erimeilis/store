@@ -17,6 +17,10 @@ preview_bucket_name = "store-uploads-preview"
 binding = "KV"
 id = "faf63b06f0cf4d5c969166dda943cf36"
 
+[observability]
+enabled = true
+head_sampling_rate = 1
+
 [vars]
 NODE_ENV = "production"
 API_URL = "https://store-crud-api.eri-42e.workers.dev"
@@ -37,7 +41,7 @@ bucket_name = "store-uploads-preview"
 
 [[env.local.kv_namespaces]]
 binding = "KV"
-id = "19954278d76c49cd9e431ba514b700b6"
+id = "1ddafd825d9a49828b814d0ac7ebe0d0"
 
 [env.local.vars]
 NODE_ENV = "development"
@@ -61,7 +65,7 @@ experimental_remote = true
 
 [[env.preview.kv_namespaces]]
 binding = "KV"
-id = "19954278d76c49cd9e431ba514b700b6"
+id = "1ddafd825d9a49828b814d0ac7ebe0d0"
 experimental_remote = true
 
 [env.preview.vars]

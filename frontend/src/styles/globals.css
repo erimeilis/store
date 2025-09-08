@@ -1,5 +1,16 @@
+/* 
+ * TailwindCSS 4 Configuration
+ * IDE may not recognize this new syntax - this is valid TailwindCSS 4 code
+ * @import and @plugin are new TailwindCSS 4 directives
+ */
+/*noinspection CssUnresolvedCustomProperty,CssUnknownProperty,CssUnknownTarget,CssInvalidFunction,CssInvalidPseudoSelector,CssUnexpectedTokens,ALL*/
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: nord --default, dim --prefersdark;
+  base: true;
+  styled: true;
+  utils: true;
+}
 
 @layer base {
   html,
@@ -29,8 +40,8 @@
     animation: fadeIn 0.5s ease-out;
   }
   
-  /* Theme transition for smooth theme switching */
-  * {
+  /* Theme transition for smooth theme switching - only after page load */
+  .theme-transitions-enabled * {
     transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
   }
 }

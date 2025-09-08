@@ -55,10 +55,10 @@ export function ModelEdit<T extends IModel>({
             if (response.ok) {
                 window.location.href = backRoute;
             } else {
-                const errorData = await response.json();
+                const errorData = await response.json() as { errors?: Partial<Record<string, string>> };
                 setErrors(errorData.errors || { general: 'An error occurred' });
             }
-        } catch (error) {
+        } catch {
             setErrors({ general: 'Network error occurred' });
         } finally {
             setProcessing(false);

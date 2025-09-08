@@ -92,7 +92,7 @@ export function ModelList<T extends IModel>({
 
     // Close date filter dropdowns when clicking outside
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
+        const handleClickOutside = (event: globalThis.MouseEvent) => {
             if (openDateFilters.size > 0) {
                 const target = event.target as Element;
                 const isCalendarTriggerClick = target.closest('[data-calendar-dropdown]');
@@ -109,8 +109,8 @@ export function ModelList<T extends IModel>({
 
     // Handle sorting
     const handleSort = (columnKey: string) => {
-        const currentSort = filters.sort;
-        const currentDirection = filters.direction || 'asc';
+        const currentSort = filters?.sort;
+        const currentDirection = filters?.direction || 'asc';
 
         let newDirection: 'asc' | 'desc' = 'asc';
         if (currentSort === columnKey && currentDirection === 'asc') {
@@ -554,9 +554,9 @@ export function ModelList<T extends IModel>({
                             <Table modifier="zebra pinCols" className="w-full text-left text-sm">
                                 <TableHeader
                                     columns={columns}
-                                    filters={filters}
+                                    filters={filters || {}}
                                     selectedItems={selectedItems}
-                                    items={items}
+                                    items={items ? { data: items.data, last_page: items.last_page } : null}
                                     onSort={handleSort}
                                     onSelectAll={handleSelectAll}
                                     useLegacyRendering={useLegacyRendering}
@@ -570,7 +570,7 @@ export function ModelList<T extends IModel>({
                                     onToggleDateFilter={toggleDateFilter}
                                 />
                                 <ModelTableBody
-                                    items={items}
+                                    items={items ? { data: items.data, last_page: items.last_page } : null}
                                     columns={columns}
                                     selectedItems={selectedItems}
                                     editingCell={editingCell}
@@ -594,7 +594,13 @@ export function ModelList<T extends IModel>({
                         </TableWrapper>
 
                         {items && items.last_page > 1 && (
-                            <Pagination items={items} showPrevNext={true} showPageInput={true} maxVisiblePages={7} size="sm" />
+                            <Pagination 
+                                items={items} 
+                                showPrevNext={true} 
+                                showPageInput={true} 
+                                maxVisiblePages={7} 
+                                size="sm" 
+                            />
                         )}
                     </CardBody>
                 </Card>

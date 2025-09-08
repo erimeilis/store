@@ -45,11 +45,11 @@ export default function DeleteUser() {
                 closeModal();
                 window.location.href = '/';
             } else {
-                const errorData = await response.json();
+                const errorData = await response.json() as { errors?: { password?: string } };
                 setErrors(errorData.errors || { password: 'Invalid password' });
                 passwordInput.current?.focus();
             }
-        } catch (error) {
+        } catch {
             setErrors({ password: 'Network error occurred' });
         } finally {
             setProcessing(false);

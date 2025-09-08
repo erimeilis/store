@@ -71,9 +71,10 @@ function TableCellContent<T extends IModel>({
                 return '-';
             }
 
-            // Handle date formatting
+            // Handle date formatting - use consistent format to prevent hydration mismatch
             if (column.filterType === 'date' && typeof value === 'string') {
-                return new Date(value).toLocaleDateString();
+                const date = new Date(value);
+                return date.toISOString().split('T')[0]; // Always YYYY-MM-DD format
             }
 
             return String(value);
@@ -106,9 +107,10 @@ function TableCellContent<T extends IModel>({
         return '-';
     }
 
-    // Handle date formatting
+    // Handle date formatting - use consistent format to prevent hydration mismatch
     if (column.filterType === 'date' && typeof value === 'string') {
-        return new Date(value).toLocaleDateString();
+        const date = new Date(value);
+        return date.toISOString().split('T')[0]; // Always YYYY-MM-DD format
     }
 
     return String(value);
@@ -162,8 +164,8 @@ function ModelTableRow<T extends IModel>({
                 <div className="flex items-center">
                     <Checkbox
                         id={`select-item-${item.id}`}
-                        checked={selectedItems.has(item.id)}
-                        onChange={(e) => onItemSelect(item.id, e.target.checked)}
+                        checked={(selectedItems as any).has(item.id)}
+                        onChange={(e) => (onItemSelect as any)(item.id, e.target.checked)}
                     />
                 </div>
             </TableHeaderCell>
@@ -190,7 +192,7 @@ function ModelTableRow<T extends IModel>({
                   ))}
             <TableHeaderCell className="w-fit text-right">
                 <div className="flex items-center justify-end gap-2">
-                    <Button size="icon" color="primary" style="soft" icon={IconEdit} title="Edit" onClick={() => window.location.href = editRoute(item.id)} />
+                    <Button size="icon" color="primary" style="soft" icon={IconEdit} title="Edit" onClick={() => window.location.href = (editRoute as any)(item.id)} />
                     <Button size="icon" color="error" style="soft" icon={IconTrash} title="Delete" onClick={() => onDeleteItem(item)} />
                 </div>
             </TableHeaderCell>
@@ -234,7 +236,7 @@ export function ModelTableBody<T extends IModel>({
                         key={item.id}
                         item={item}
                         columns={columns}
-                        selectedItems={selectedItems}
+                        selectedItems={selectedItems as any}
                         editingCell={editingCell}
                         editValue={editValue}
                         editingError={editingError}

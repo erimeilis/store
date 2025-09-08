@@ -268,7 +268,7 @@ export function Pagination<T extends IModel>({
                             <Button
                                 size={size}
                                 className="join-item"
-                                onClick={() => handlePageClick(items.last_page_url)}
+                                onClick={() => handlePageClick(items.last_page_url || '')}
                             >
                                 {last_page}
                             </Button>

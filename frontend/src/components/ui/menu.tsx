@@ -2,6 +2,35 @@ import * as React from 'react'
 import {cva, type VariantProps} from 'class-variance-authority'
 import {cn} from '@/lib/utils'
 
+// Hook for prefetching pages
+function usePrefetch() {
+    const prefetchedUrls = React.useRef(new Set<string>())
+
+    const prefetch = React.useCallback((url: string) => {
+        if (prefetchedUrls.current.has(url)) return
+
+        // Create prefetch link element
+        const link = document.createElement('link')
+        link.rel = 'prefetch'
+        link.href = url
+        link.as = 'document'
+        
+        // Add to document head
+        document.head.appendChild(link)
+        prefetchedUrls.current.add(url)
+        
+        // Clean up after some time to prevent memory leaks
+        setTimeout(() => {
+            if (document.head.contains(link)) {
+                document.head.removeChild(link)
+            }
+            prefetchedUrls.current.delete(url)
+        }, 60000) // Remove after 1 minute
+    }, [])
+
+    return { prefetch }
+}
+
 const menuVariants = cva(
     'menu',
     {
@@ -66,6 +95,7 @@ export interface MenuItemProps extends React.LiHTMLAttributes<HTMLLIElement>,
     icon?: React.ComponentType<{ className?: string }>
     href?: string
     onClick?: () => void
+    prefetch?: boolean
 }
 
 export interface MenuTitleProps extends React.HTMLAttributes<HTMLLIElement> {
@@ -134,9 +164,11 @@ function MenuItem({
     icon: Icon,
     href,
     onClick,
+    prefetch = true, // Enable prefetch by default
     ...props
 }: MenuItemProps) {
     const itemClasses = cn(menuItemVariants({active, disabled, focus}), className)
+    const { prefetch: prefetchUrl } = usePrefetch()
 
     const handleClick = (event: React.MouseEvent) => {
         if (disabled) {
@@ -145,6 +177,12 @@ function MenuItem({
         }
         onClick?.()
     }
+
+    const handleMouseEnter = React.useCallback(() => {
+        if (href && prefetch && !disabled) {
+            prefetchUrl(href)
+        }
+    }, [href, prefetch, disabled, prefetchUrl])
 
     const content = (
         <>
@@ -156,11 +194,16 @@ function MenuItem({
     return (
         <li className={itemClasses} {...props}>
             {href ? (
-                <a href={href} onClick={handleClick} className={disabled ? 'pointer-events-none opacity-50' : ''}>
+                <a 
+                    href={href} 
+                    onClick={handleClick} 
+                    onMouseEnter={handleMouseEnter}
+                    className={cn('whitespace-nowrap', disabled ? 'pointer-events-none opacity-50' : '')}
+                >
                     {content}
                 </a>
             ) : (
-                <button onClick={handleClick} disabled={disabled ?? undefined} className="w-full text-left">
+                <button onClick={handleClick} disabled={disabled ?? undefined} className="w-full text-left whitespace-nowrap">
                     {content}
                 </button>
             )}
