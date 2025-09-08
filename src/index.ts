@@ -12,6 +12,8 @@ import { uploadRoutes } from './routes/upload.js'
 import { importRoutes } from './routes/import.js'
 import usersRoutes from './routes/users.js'
 import { auth } from './routes/auth.js'
+import tokensRoutes from './routes/tokens.js'
+import allowedEmailsRoutes from './routes/allowed-emails.js'
 
 /**
  * Store CRUD API - Backend Server
@@ -22,7 +24,7 @@ import { auth } from './routes/auth.js'
  * 
  * Architecture:
  * - Middleware: CORS, Authentication, Error handling
- * - Routes: Health, Items CRUD, Upload, Import, Users Management
+ * - Routes: Health, Items CRUD, Upload, Import, Users Management, Tokens, Allowed Emails
  * - Storage: Cloudflare D1 (SQLite), R2 (File storage)
  * - Authentication: Bearer token with D1 database + env fallback
  */
@@ -57,6 +59,11 @@ app.route('/', importRoutes)
 app.route('/api/users', usersRoutes)
 // Authentication operations (user registration after OAuth)
 app.route('/api/auth', auth)
+
+// Tokens management operations (protected with auth middleware)
+app.route('/api/tokens', tokensRoutes)
+// Allowed emails management operations (protected with auth middleware)
+app.route('/api/allowed-emails', allowedEmailsRoutes)
 
 // =============================================================================
 // ERROR HANDLING

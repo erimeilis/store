@@ -1,4 +1,5 @@
 import { Context, Next } from 'hono'
+import { createMiddleware } from 'hono/factory'
 import { Env, Variables } from '../types/hono'
 import { getCookie } from 'hono/cookie'
 import { authConfig } from './auth'
@@ -91,3 +92,28 @@ export const getCurrentUser = (sessionCookie: string | undefined): UserSession |
 
 // Alias for getCurrentUser
 export const parseSessionCookie = getCurrentUser
+
+// Theme detection middleware - handles theme for ALL pages
+export const themeMiddleware = createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
+  // Cookie parser utility
+  const getCookieValue = (cookieString: string, name: string): string | null => {
+    if (!cookieString) return null
+    const cookies = cookieString.split(';').map(cookie => cookie.trim())
+    const cookie = cookies.find(cookie => cookie.startsWith(`${name}=`))
+    return cookie ? decodeURIComponent(cookie.split('=')[1]) : null
+  }
+
+  // Read theme from cookies with better error handling
+  const cookieString = c.req.header('cookie') || ''
+  const themeFromCookie = getCookieValue(cookieString, 'theme')
+  let theme: 'dim' | 'nord' = 'dim' // Default fallback
+  
+  if (themeFromCookie && (themeFromCookie === 'dim' || themeFromCookie === 'nord')) {
+    theme = themeFromCookie
+  }
+
+  // Set theme in context for all handlers to use
+  c.set('theme', theme)
+  
+  await next()
+})

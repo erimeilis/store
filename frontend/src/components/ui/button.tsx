@@ -103,6 +103,34 @@ function Button({
     // Check if this is an icon-only button
     const isIconOnly = size === 'icon'
 
+    // Determine icon size based on button size
+    const getIconSize = (isIconOnly: boolean) => {
+        if (isIconOnly) {
+            // Icon-only buttons use fixed size based on button size
+            switch (size) {
+                case 'xs': return 12
+                case 'sm': return 14
+                case 'md': return 16
+                case 'lg': return 18
+                case 'xl': return 20
+                case 'icon': return 16
+                default: return 16
+            }
+        } else {
+            // Regular buttons with text use smaller icons
+            switch (size) {
+                case 'xs': return 10
+                case 'sm': return 11
+                case 'md': return 12
+                case 'lg': return 14
+                case 'xl': return 16
+                default: return 12
+            }
+        }
+    }
+
+    const iconSize = getIconSize(isIconOnly)
+
     // Render content with state-based icons and transitions
     const renderContent = () => (
         <>
@@ -116,7 +144,7 @@ function Button({
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
             >
-                <IconCheck size={isIconOnly ? '16' : '12'} className={`text-success-foreground ${isIconOnly ? '' : 'mr-2'}`}/>
+                <IconCheck size={iconSize} className={`text-success-foreground ${isIconOnly ? '' : 'mr-2'}`}/>
             </Transition>
 
             {/* Fail transition */}
@@ -129,17 +157,17 @@ function Button({
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
             >
-                <IconX size={isIconOnly ? '16' : '12'} className={`text-error-foreground ${isIconOnly ? '' : 'mr-2'}`}/>
+                <IconX size={iconSize} className={`text-error-foreground ${isIconOnly ? '' : 'mr-2'}`}/>
             </Transition>
 
             {/* Processing state (only show when not in a success or fail state) */}
             {!success && !fail && processing && (
-                <span className={`loading loading-spinner ${isIconOnly ? '' : 'mr-2'}`}></span>
+                <span className={`loading loading-spinner ${isIconOnly ? '' : 'mr-2'}`} style={{width: iconSize, height: iconSize}}></span>
             )}
 
             {/* Optional icon (only show when not in processing, success, or fail state) */}
             {!processing && !success && !fail && icon && (
-                React.createElement(icon, {size: isIconOnly ? 16 : 12, className: isIconOnly ? '' : 'mr-2'})
+                React.createElement(icon, {size: iconSize, className: isIconOnly ? '' : 'mr-2'})
             )}
 
             {/* Only show children text if not an icon-only button */}

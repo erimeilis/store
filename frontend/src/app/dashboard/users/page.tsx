@@ -1,5 +1,6 @@
 import React from 'react';
 import { ModelList, IColumnDefinition } from '../../../components/model/model-list';
+import { IPaginatedResponse } from '../../../types/models';
 
 // User interface matching our Prisma schema
 interface User {
@@ -101,13 +102,7 @@ export default function UsersPage({
   users, 
   filters 
 }: { 
-  users?: { 
-    data: User[], 
-    current_page: number, 
-    last_page: number, 
-    per_page: number, 
-    total: number 
-  }, 
+  users?: IPaginatedResponse<User> | null, 
   filters?: { sort?: string, direction?: 'asc' | 'desc' } 
 }) {
   return (

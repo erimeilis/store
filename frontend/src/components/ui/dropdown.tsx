@@ -213,14 +213,14 @@ function DropdownPopover({
         <>
             <button
                 className={cn(dropdownVariants({position, align, behavior}), 'btn', className)}
-                popoverTarget={id}
+                {...{popoverTarget: id} as any}
                 style={{ anchorName: anchor } as React.CSSProperties}
                 {...props}
             >
                 {trigger}
             </button>
             <div
-                popover="auto"
+                {...{popover: 'auto'} as any}
                 id={id}
                 className={cn('dropdown menu w-52 rounded-box bg-base-100 shadow', contentClassName)}
                 style={{ positionAnchor: anchor } as React.CSSProperties}

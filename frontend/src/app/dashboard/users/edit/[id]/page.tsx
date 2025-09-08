@@ -16,7 +16,7 @@ interface User {
 const renderUserForm = (
   data: User,
   setData: (key: string, value: any) => void,
-  errors: Record<string, string>,
+  errors: Partial<Record<string, string>>,
   processing: boolean,
   readonly?: boolean
 ) => {
@@ -29,16 +29,16 @@ const renderUserForm = (
         </label>
         <input
           type="email"
-          className={`input input-bordered w-full ${errors.email ? 'input-error' : ''}`}
+          className={`input input-bordered w-full ${errors?.email ? 'input-error' : ''}`}
           value={data.email || ''}
           onChange={(e) => setData('email', e.target.value)}
           disabled={processing || readonly}
           placeholder="Enter email address"
           required
         />
-        {errors.email && (
+        {errors?.email && (
           <label className="label">
-            <span className="label-text-alt text-error">{errors.email}</span>
+            <span className="label-text-alt text-error">{errors?.email}</span>
           </label>
         )}
       </div>
@@ -50,15 +50,15 @@ const renderUserForm = (
         </label>
         <input
           type="text"
-          className={`input input-bordered w-full ${errors.name ? 'input-error' : ''}`}
+          className={`input input-bordered w-full ${errors?.name ? 'input-error' : ''}`}
           value={data.name || ''}
           onChange={(e) => setData('name', e.target.value)}
           disabled={processing || readonly}
           placeholder="Enter full name (optional)"
         />
-        {errors.name && (
+        {errors?.name && (
           <label className="label">
-            <span className="label-text-alt text-error">{errors.name}</span>
+            <span className="label-text-alt text-error">{errors?.name}</span>
           </label>
         )}
       </div>
@@ -69,7 +69,7 @@ const renderUserForm = (
           <span className="label-text">Role *</span>
         </label>
         <select
-          className={`select select-bordered w-full ${errors.role ? 'select-error' : ''}`}
+          className={`select select-bordered w-full ${errors?.role ? 'select-error' : ''}`}
           value={data.role || 'user'}
           onChange={(e) => setData('role', e.target.value)}
           disabled={processing || readonly}
@@ -78,9 +78,9 @@ const renderUserForm = (
           <option value="user">User</option>
           <option value="admin">Admin</option>
         </select>
-        {errors.role && (
+        {errors?.role && (
           <label className="label">
-            <span className="label-text-alt text-error">{errors.role}</span>
+            <span className="label-text-alt text-error">{errors?.role}</span>
           </label>
         )}
         <label className="label">
@@ -95,15 +95,15 @@ const renderUserForm = (
         </label>
         <input
           type="url"
-          className={`input input-bordered w-full ${errors.picture ? 'input-error' : ''}`}
+          className={`input input-bordered w-full ${errors?.picture ? 'input-error' : ''}`}
           value={data.picture || ''}
           onChange={(e) => setData('picture', e.target.value)}
           disabled={processing || readonly}
           placeholder="https://example.com/avatar.jpg (optional)"
         />
-        {errors.picture && (
+        {errors?.picture && (
           <label className="label">
-            <span className="label-text-alt text-error">{errors.picture}</span>
+            <span className="label-text-alt text-error">{errors?.picture}</span>
           </label>
         )}
         <label className="label">

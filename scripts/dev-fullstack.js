@@ -20,8 +20,8 @@ const ENVIRONMENTS = {
   },
   preview: {
     backendCmd: 'npm run dev:preview', 
-    frontendCmd: 'cd frontend && npm run dev',
-    description: 'Preview Development (remote preview D1 + local frontend)'
+    frontendCmd: 'cd frontend && npm run dev:preview',
+    description: 'Preview Development (remote preview D1 + remote KV frontend)'
   }
 };
 

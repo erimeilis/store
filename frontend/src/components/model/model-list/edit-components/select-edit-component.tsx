@@ -33,7 +33,7 @@ export function SelectEditComponent<T extends IModel>({
                 style="ghost"
                 value={editValue}
                 onChange={handleSelectChange}
-                onKeyDown={onEditKeyPress}
+                onKeyDown={onEditKeyPress as any}
                 onBlur={onInputBlur}
                 className={`${editingError ? 'select-error' : ''}`}
                 disabled={isEditingSaving}

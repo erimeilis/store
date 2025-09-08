@@ -1,66 +1,35 @@
+/**
+ * Client-side hydration entry point
+ * Clean, modular setup using the new layout system
+ */
+
 import { hydrateRoot } from 'react-dom/client'
 import { LayoutProvider } from '@/components/LayoutProvider'
 import { LayoutRenderer } from '@/components/LayoutRenderer'
 import { layoutSystem } from '@/lib/layout-system'
-import RootLayout from '@/app/layout'
-import DashboardLayout from '@/app/dashboard/layout'
-import DashboardPage from '@/app/dashboard/page'
-import UsersPage from '@/app/dashboard/users/page'
-import CreateUserPage from '@/app/dashboard/users/create/page'
-import EditUserPage from '@/app/dashboard/users/edit/[id]/page'
-import LoginPage from '@/app/login/page'
-import { initializeTheme } from '@/lib/theme'
-// CSS is now served as a static asset instead of being imported
+import { useThemeStore } from '@/stores/useThemeStore'
+import { initializeLayoutSystem } from '@/lib/layout-setup'
 
-// Register layouts and pages with the layout system (same as server)
-layoutSystem.register({
-  name: 'root',
-  path: '/dashboard',
-  segment: 'dashboard',
-  component: RootLayout
-})
+// Initialize layout system for client-side
+await initializeLayoutSystem()
 
-layoutSystem.register({
-  name: 'dashboard',
-  path: '/dashboard',
-  segment: 'dashboard', 
-  component: DashboardLayout
-})
+// Use the server-provided theme to prevent flashing
+const initTheme = () => {
+  if (typeof window !== 'undefined') {
+    // Get theme from server-provided initial theme
+    const initialTheme = (window as any).__INITIAL_THEME__ || 'dim'
+    
+    // Initialize the theme store with the server theme (without triggering cookies again)
+    useThemeStore.setState({ theme: initialTheme })
+    
+    // Theme is already applied by the server-side script, so we don't need to reapply
+    console.log('✅ Theme initialized from server:', initialTheme)
+  }
+}
 
-layoutSystem.register({
-  path: '/',
-  segment: 'root',
-  component: LoginPage
-})
+initTheme()
 
-layoutSystem.register({
-  path: '/dashboard',
-  segment: 'dashboard',
-  component: DashboardPage
-})
-
-layoutSystem.register({
-  path: '/dashboard/users',
-  segment: 'users',
-  component: UsersPage
-})
-
-layoutSystem.register({
-  path: '/dashboard/users/create',
-  segment: 'create',
-  component: CreateUserPage
-})
-
-layoutSystem.register({
-  path: '/dashboard/users/edit/[id]',
-  segment: 'edit',
-  component: EditUserPage
-})
-
-// Initialize theme system
-initializeTheme()
-
-// Hydrate the client-side React components with layout system
+// Hydrate the client-side React components
 const appElement = document.getElementById('app')
 if (appElement) {
   // Get the initial props from the server-rendered data
@@ -69,7 +38,7 @@ if (appElement) {
   // Determine which page to hydrate based on current path
   const path = window.location.pathname
   
-  // Resolve layout hierarchy for current route (same as server)
+  // Resolve layout hierarchy for current route
   const { layouts, route } = layoutSystem.resolveLayoutHierarchy(path)
   const params = {}
   const searchParams = Object.fromEntries(
@@ -94,6 +63,8 @@ if (appElement) {
   )
   
   hydrateRoot(appElement, content)
+  
+  console.log('✅ Client-side React hydration complete')
+} else {
+  console.error('❌ App element not found for hydration')
 }
-
-console.log('Client-side React hydration complete with theme system initialized');
