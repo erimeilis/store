@@ -1,6 +1,7 @@
 import React from 'react';
 import { ModelList, IColumnDefinition } from '../../../components/model/model-list';
 import { IPaginatedResponse } from '../../../types/models';
+import { formatApiDate } from '../../../lib/date-utils';
 
 // User interface matching our Prisma schema
 interface User {
@@ -75,7 +76,7 @@ const userColumns: IColumnDefinition<User>[] = [
     sortable: true,
     filterable: true,
     filterType: 'date',
-    render: (user) => new Date(user.created_at).toLocaleDateString()
+    render: (user) => formatApiDate(user.created_at)
   }
 ];
 
@@ -100,22 +101,52 @@ const userMassActions = [
 
 export default function UsersPage({ 
   users, 
-  filters 
+  filters,
+  currentUser
 }: { 
   users?: IPaginatedResponse<User> | null, 
-  filters?: { sort?: string, direction?: 'asc' | 'desc' } 
+  filters?: { sort?: string, direction?: 'asc' | 'desc' },
+  currentUser?: { id: string; name: string; email: string; role: string; image?: string }
 }) {
-  return (
-    <ModelList<User>
-      title="Users Management"
-      items={users || null}
-      filters={filters || {}}
-      columns={userColumns}
-      createRoute="/dashboard/users/create"
-      editRoute={(id) => `/dashboard/users/edit/${id}`}
-      deleteRoute={(id) => `/api/users/${id}`}
-      massActionRoute="/api/users/mass-action"
-      massActions={userMassActions}
-    />
-  );
+  const isAdmin = currentUser?.role === 'admin';
+  
+  // Debug logging
+  console.log('🔍 UsersPage Debug:', {
+    currentUser,
+    isAdmin,
+    hasCurrentUser: !!currentUser,
+    userRole: currentUser?.role,
+    userEmail: currentUser?.email,
+    massActionRoute: isAdmin ? "/api/users/mass-action" : "",
+    hasMassActions: isAdmin && userMassActions ? userMassActions.length : 0,
+    massActions: isAdmin ? userMassActions : null
+  });
+  
+  // Filter columns based on user role
+  const visibleColumns = userColumns.map(column => {
+    // Only admins can edit roles inline
+    if (column.key === 'role' && !isAdmin) {
+      return {
+        ...column,
+        editableInline: false
+      };
+    }
+    return column;
+  });
+
+  // Build props conditionally based on admin status
+  const modelListProps = {
+    title: "Users Management",
+    items: users || null,
+    filters: filters || {},
+    columns: visibleColumns,
+    createRoute: isAdmin ? "/dashboard/users/create" : "",
+    editRoute: isAdmin ? (id: string | number) => `/dashboard/users/edit/${id}` : () => "",
+    deleteRoute: isAdmin ? (id: string | number) => `/api/users/${id}` : () => "",
+    inlineEditRoute: isAdmin ? (id: string | number) => `/api/users/${id}` : () => "",
+    massActionRoute: isAdmin ? "/api/users/mass-action" : "",
+    ...(isAdmin && { massActions: userMassActions })
+  };
+
+  return <ModelList<User> {...modelListProps} />;
 }

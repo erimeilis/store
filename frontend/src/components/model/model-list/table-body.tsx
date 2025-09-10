@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TableBody, TableCell, TableHeaderCell, TableRow } from '@/components/ui/table';
 import { IModel } from '@/types/models';
+import { formatApiDate } from '@/lib/date-utils';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
 import React from 'react';
 import { InlineEditComponent } from './inline-edit';
@@ -71,10 +72,9 @@ function TableCellContent<T extends IModel>({
                 return '-';
             }
 
-            // Handle date formatting - use consistent format to prevent hydration mismatch
+            // Handle date formatting - use dd.mm.yyyy format for display
             if (column.filterType === 'date' && typeof value === 'string') {
-                const date = new Date(value);
-                return date.toISOString().split('T')[0]; // Always YYYY-MM-DD format
+                return formatApiDate(value); // Always dd.mm.yyyy format for display
             }
 
             return String(value);
@@ -107,10 +107,9 @@ function TableCellContent<T extends IModel>({
         return '-';
     }
 
-    // Handle date formatting - use consistent format to prevent hydration mismatch
+    // Handle date formatting - use dd.mm.yyyy format for display
     if (column.filterType === 'date' && typeof value === 'string') {
-        const date = new Date(value);
-        return date.toISOString().split('T')[0]; // Always YYYY-MM-DD format
+        return formatApiDate(value); // Always dd.mm.yyyy format for display
     }
 
     return String(value);

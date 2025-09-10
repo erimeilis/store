@@ -1306,7 +1306,7 @@ var require_react_dom_development = __commonJS({
         return dispatcher;
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React48 = require_react(), Internals = {
+      var React51 = require_react(), Internals = {
         d: {
           f: noop3,
           r: function() {
@@ -1324,7 +1324,7 @@ var require_react_dom_development = __commonJS({
         },
         p: 0,
         findDOMNode: null
-      }, REACT_PORTAL_TYPE = Symbol.for("react.portal"), ReactSharedInternals = React48.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+      }, REACT_PORTAL_TYPE = Symbol.for("react.portal"), ReactSharedInternals = React51.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
       "function" === typeof Map && null != Map.prototype && "function" === typeof Map.prototype.forEach && "function" === typeof Set && null != Set.prototype && "function" === typeof Set.prototype.clear && "function" === typeof Set.prototype.forEach || console.error(
         "React depends on Map and Set built-in types. Make sure that you load a polyfill in older browsers. https://reactjs.org/link/react-polyfills"
       );
@@ -2866,7 +2866,7 @@ var require_react_dom_client_development = __commonJS({
         "number" === type && getActiveElement(node.ownerDocument) === node || node.defaultValue === "" + value || (node.defaultValue = "" + value);
       }
       function validateOptionProps(element, props) {
-        null == props.value && ("object" === typeof props.children && null !== props.children ? React48.Children.forEach(props.children, function(child) {
+        null == props.value && ("object" === typeof props.children && null !== props.children ? React51.Children.forEach(props.children, function(child) {
           null == child || "string" === typeof child || "number" === typeof child || "bigint" === typeof child || didWarnInvalidChild || (didWarnInvalidChild = true, console.error(
             "Cannot infer the option value of complex children. Pass a `value` prop or use a plain string as children to <option>."
           ));
@@ -16448,14 +16448,14 @@ var require_react_dom_client_development = __commonJS({
         ));
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var Scheduler = require_scheduler(), React48 = require_react(), ReactDOM3 = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"), REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = Symbol.for("react.profiler"), REACT_PROVIDER_TYPE = Symbol.for("react.provider"), REACT_CONSUMER_TYPE = Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = Symbol.for("react.memo"), REACT_LAZY_TYPE = Symbol.for("react.lazy");
+      var Scheduler = require_scheduler(), React51 = require_react(), ReactDOM3 = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"), REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = Symbol.for("react.profiler"), REACT_PROVIDER_TYPE = Symbol.for("react.provider"), REACT_CONSUMER_TYPE = Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = Symbol.for("react.memo"), REACT_LAZY_TYPE = Symbol.for("react.lazy");
       Symbol.for("react.scope");
       var REACT_ACTIVITY_TYPE = Symbol.for("react.activity");
       Symbol.for("react.legacy_hidden");
       Symbol.for("react.tracing_marker");
       var REACT_MEMO_CACHE_SENTINEL = Symbol.for("react.memo_cache_sentinel");
       Symbol.for("react.view_transition");
-      var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React48.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM3.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
+      var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React51.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM3.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
         pending: false,
         data: null,
         method: null,
@@ -19177,7 +19177,7 @@ var require_react_dom_client_development = __commonJS({
         }
       };
       (function() {
-        var isomorphicReactPackageVersion = React48.version;
+        var isomorphicReactPackageVersion = React51.version;
         if ("19.1.1" !== isomorphicReactPackageVersion)
           throw Error(
             'Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:\n  - react:      ' + (isomorphicReactPackageVersion + "\n  - react-dom:  19.1.1\nLearn more: https://react.dev/warnings/version-mismatch")
@@ -19728,20 +19728,20 @@ var require_react_jsx_runtime_development = __commonJS({
       function validateChildKeys(node) {
         "object" === typeof node && null !== node && node.$$typeof === REACT_ELEMENT_TYPE && node._store && (node._store.validated = 1);
       }
-      var React48 = require_react(), REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = Symbol.for("react.profiler");
+      var React51 = require_react(), REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = Symbol.for("react.profiler");
       Symbol.for("react.provider");
-      var REACT_CONSUMER_TYPE = Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = Symbol.for("react.memo"), REACT_LAZY_TYPE = Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"), ReactSharedInternals = React48.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
+      var REACT_CONSUMER_TYPE = Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = Symbol.for("react.memo"), REACT_LAZY_TYPE = Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"), ReactSharedInternals = React51.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
         return null;
       };
-      React48 = {
+      React51 = {
         react_stack_bottom_frame: function(callStackForError) {
           return callStackForError();
         }
       };
       var specialPropKeyWarningShown;
       var didWarnAboutElementRef = {};
-      var unknownOwnerDebugStack = React48.react_stack_bottom_frame.bind(
-        React48,
+      var unknownOwnerDebugStack = React51.react_stack_bottom_frame.bind(
+        React51,
         UnknownOwner
       )();
       var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
@@ -19837,8 +19837,8 @@ function LayoutRenderer({
   children,
   pageProps = {}
 }) {
-  const asyncParams = (0, import_react2.useMemo)(() => Promise.resolve(params), [params]);
-  const asyncSearchParams = (0, import_react2.useMemo)(() => Promise.resolve(searchParams), [searchParams]);
+  const asyncParams = (0, import_react2.useMemo)(() => params, [params]);
+  const asyncSearchParams = (0, import_react2.useMemo)(() => searchParams, [searchParams]);
   const renderLayoutHierarchy = (0, import_react2.useMemo)(() => {
     let content = children;
     if (route && !children) {
@@ -23898,47 +23898,69 @@ var init_IconTrash = __esm({
   }
 });
 
+// node_modules/@tabler/icons-react/dist/esm/icons/IconUserCheck.mjs
+var __iconNode21, IconUserCheck;
+var init_IconUserCheck = __esm({
+  "node_modules/@tabler/icons-react/dist/esm/icons/IconUserCheck.mjs"() {
+    "use strict";
+    init_createReactComponent();
+    __iconNode21 = [["path", { "d": "M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0", "key": "svg-0" }], ["path", { "d": "M6 21v-2a4 4 0 0 1 4 -4h4", "key": "svg-1" }], ["path", { "d": "M15 19l2 2l4 -4", "key": "svg-2" }]];
+    IconUserCheck = createReactComponent("outline", "user-check", "UserCheck", __iconNode21);
+  }
+});
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconUserX.mjs
+var __iconNode22, IconUserX;
+var init_IconUserX = __esm({
+  "node_modules/@tabler/icons-react/dist/esm/icons/IconUserX.mjs"() {
+    "use strict";
+    init_createReactComponent();
+    __iconNode22 = [["path", { "d": "M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0", "key": "svg-0" }], ["path", { "d": "M6 21v-2a4 4 0 0 1 4 -4h3.5", "key": "svg-1" }], ["path", { "d": "M22 22l-5 -5", "key": "svg-2" }], ["path", { "d": "M17 22l5 -5", "key": "svg-3" }]];
+    IconUserX = createReactComponent("outline", "user-x", "UserX", __iconNode22);
+  }
+});
+
 // node_modules/@tabler/icons-react/dist/esm/icons/IconUser.mjs
-var __iconNode21, IconUser;
+var __iconNode23, IconUser;
 var init_IconUser = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconUser.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode21 = [["path", { "d": "M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0", "key": "svg-0" }], ["path", { "d": "M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2", "key": "svg-1" }]];
-    IconUser = createReactComponent("outline", "user", "User", __iconNode21);
+    __iconNode23 = [["path", { "d": "M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0", "key": "svg-0" }], ["path", { "d": "M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2", "key": "svg-1" }]];
+    IconUser = createReactComponent("outline", "user", "User", __iconNode23);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconUsers.mjs
-var __iconNode22, IconUsers;
+var __iconNode24, IconUsers;
 var init_IconUsers = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconUsers.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode22 = [["path", { "d": "M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0", "key": "svg-0" }], ["path", { "d": "M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2", "key": "svg-1" }], ["path", { "d": "M16 3.13a4 4 0 0 1 0 7.75", "key": "svg-2" }], ["path", { "d": "M21 21v-2a4 4 0 0 0 -3 -3.85", "key": "svg-3" }]];
-    IconUsers = createReactComponent("outline", "users", "Users", __iconNode22);
+    __iconNode24 = [["path", { "d": "M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0", "key": "svg-0" }], ["path", { "d": "M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2", "key": "svg-1" }], ["path", { "d": "M16 3.13a4 4 0 0 1 0 7.75", "key": "svg-2" }], ["path", { "d": "M21 21v-2a4 4 0 0 0 -3 -3.85", "key": "svg-3" }]];
+    IconUsers = createReactComponent("outline", "users", "Users", __iconNode24);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconX.mjs
-var __iconNode23, IconX;
+var __iconNode25, IconX;
 var init_IconX = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconX.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode23 = [["path", { "d": "M18 6l-12 12", "key": "svg-0" }], ["path", { "d": "M6 6l12 12", "key": "svg-1" }]];
-    IconX = createReactComponent("outline", "x", "X", __iconNode23);
+    __iconNode25 = [["path", { "d": "M18 6l-12 12", "key": "svg-0" }], ["path", { "d": "M6 6l12 12", "key": "svg-1" }]];
+    IconX = createReactComponent("outline", "x", "X", __iconNode25);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconBrandGoogleFilled.mjs
-var __iconNode24, IconBrandGoogleFilled;
+var __iconNode26, IconBrandGoogleFilled;
 var init_IconBrandGoogleFilled = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconBrandGoogleFilled.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode24 = [["path", { "d": "M12 2a9.96 9.96 0 0 1 6.29 2.226a1 1 0 0 1 .04 1.52l-1.51 1.362a1 1 0 0 1 -1.265 .06a6 6 0 1 0 2.103 6.836l.001 -.004h-3.66a1 1 0 0 1 -.992 -.883l-.007 -.117v-2a1 1 0 0 1 1 -1h6.945a1 1 0 0 1 .994 .89c.04 .367 .061 .737 .061 1.11c0 5.523 -4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10z", "key": "svg-0" }]];
-    IconBrandGoogleFilled = createReactComponent("filled", "brand-google-filled", "BrandGoogleFilled", __iconNode24);
+    __iconNode26 = [["path", { "d": "M12 2a9.96 9.96 0 0 1 6.29 2.226a1 1 0 0 1 .04 1.52l-1.51 1.362a1 1 0 0 1 -1.265 .06a6 6 0 1 0 2.103 6.836l.001 -.004h-3.66a1 1 0 0 1 -.992 -.883l-.007 -.117v-2a1 1 0 0 1 1 -1h6.945a1 1 0 0 1 .994 .89c.04 .367 .061 .737 .061 1.11c0 5.523 -4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10z", "key": "svg-0" }]];
+    IconBrandGoogleFilled = createReactComponent("filled", "brand-google-filled", "BrandGoogleFilled", __iconNode26);
   }
 });
 
@@ -23966,6 +23988,8 @@ var init_tabler_icons_react = __esm({
     init_IconMail();
     init_IconPlus();
     init_IconTrash();
+    init_IconUserCheck();
+    init_IconUserX();
     init_IconUser();
     init_IconUsers();
     init_IconX();
@@ -26651,7 +26675,7 @@ var require_use_sync_external_store_with_selector_development = __commonJS({
         return x12 === y11 && (0 !== x12 || 1 / x12 === 1 / y11) || x12 !== x12 && y11 !== y11;
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React48 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore = React48.useSyncExternalStore, useRef12 = React48.useRef, useEffect12 = React48.useEffect, useMemo6 = React48.useMemo, useDebugValue = React48.useDebugValue;
+      var React51 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore = React51.useSyncExternalStore, useRef12 = React51.useRef, useEffect12 = React51.useEffect, useMemo6 = React51.useMemo, useDebugValue = React51.useDebugValue;
       exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
         var instRef = useRef12(null);
         if (null === instRef.current) {
@@ -33667,10 +33691,45 @@ __export(page_exports, {
   default: () => LoginPage,
   metadata: () => metadata3
 });
-function LoginPage({ params: _params, searchParams: _searchParams, googleAuthUrl = "/auth/google" }) {
+function LoginPage({ params: _params, searchParams: _searchParams, googleAuthUrl = "/auth/google", error: error2, message: message2 }) {
+  const [errorMessage, setErrorMessage] = import_react93.default.useState(null);
+  const [mounted, setMounted] = import_react93.default.useState(false);
+  import_react93.default.useEffect(() => {
+    setMounted(true);
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlError = urlParams.get("error");
+    const urlMessage = urlParams.get("message");
+    const finalError = error2 || urlError;
+    const finalMessage = message2 || urlMessage;
+    if (finalError) {
+      let errorText = "";
+      switch (finalError) {
+        case "access_denied":
+          errorText = finalMessage ? decodeURIComponent(finalMessage) : "Access denied. Your email is not authorized.";
+          break;
+        case "no_access":
+          errorText = "Access denied. Your email is not in the allowed list.";
+          break;
+        case "auth_failed":
+          errorText = "Authentication failed. Please try again.";
+          break;
+        case "no_code":
+          errorText = "Authentication was cancelled or failed.";
+          break;
+        default:
+          errorText = finalMessage ? decodeURIComponent(finalMessage) : "An error occurred during authentication.";
+      }
+      setErrorMessage(errorText);
+    }
+  }, [error2, message2]);
+  const showError = mounted && errorMessage;
   return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "min-h-screen flex items-center justify-center bg-base-200", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "w-full max-w-md p-8", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Card, { shadow: "xl", size: "xl", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(CardBody, { className: "items-center text-center", children: [
     /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(CardTitle, { className: "text-3xl mb-2", children: "Store CRUD" }),
-    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-base-content/70 mb-8", children: "A modern store management application built with Hono" }),
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-base-content/70 mb-6", children: "A modern store management application built with Hono" }),
+    showError && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "mb-6 p-4 rounded-lg bg-error/10 border border-error/20 text-error text-sm", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex flex-col", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "font-medium", children: errorMessage }),
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "mt-2 text-xs opacity-80", children: "Contact your administrator to add your email to the allowed list." })
+    ] }) }),
     /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(CardActions, { className: "w-full flex justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       Button,
       {
@@ -33684,10 +33743,11 @@ function LoginPage({ params: _params, searchParams: _searchParams, googleAuthUrl
     ) })
   ] }) }) }) });
 }
-var import_jsx_runtime10, metadata3;
+var import_react93, import_jsx_runtime10, metadata3;
 var init_page = __esm({
   "src/app/login/page.tsx"() {
     "use strict";
+    import_react93 = __toESM(require_react(), 1);
     init_button2();
     init_card();
     init_tabler_icons_react();
@@ -33883,11 +33943,11 @@ var init_heading = __esm({
 });
 
 // src/components/ui/input.tsx
-var React13, import_jsx_runtime15, inputVariants, Input;
+var React14, import_jsx_runtime15, inputVariants, Input;
 var init_input2 = __esm({
   "src/components/ui/input.tsx"() {
     "use strict";
-    React13 = __toESM(require_react(), 1);
+    React14 = __toESM(require_react(), 1);
     init_utils();
     init_dist4();
     import_jsx_runtime15 = __toESM(require_jsx_runtime(), 1);
@@ -33925,7 +33985,7 @@ var init_input2 = __esm({
         }
       }
     );
-    Input = React13.forwardRef(
+    Input = React14.forwardRef(
       ({ className, type, style, color, size: size4, prefix, suffix, containerClassName, ...props }, ref) => {
         if (!prefix && !suffix) {
           return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
@@ -33966,21 +34026,21 @@ function Pagination({
   size: size4 = "sm",
   className
 }) {
-  const [pageInput, setPageInput] = (0, import_react93.useState)("");
-  const [showInput, setShowInput] = (0, import_react93.useState)(false);
-  const debounceRef = (0, import_react93.useRef)(null);
+  const [pageInput, setPageInput] = (0, import_react94.useState)("");
+  const [showInput, setShowInput] = (0, import_react94.useState)(false);
+  const debounceRef = (0, import_react94.useRef)(null);
   const { current_page, last_page, links, prev_page_url, next_page_url } = items;
-  (0, import_react93.useEffect)(() => {
+  (0, import_react94.useEffect)(() => {
     setPageInput(current_page.toString());
   }, [current_page]);
-  (0, import_react93.useEffect)(() => {
+  (0, import_react94.useEffect)(() => {
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
     };
   }, []);
-  const submitPageInput = (0, import_react93.useCallback)((inputValue) => {
+  const submitPageInput = (0, import_react94.useCallback)((inputValue) => {
     const page = parseInt(inputValue);
     if (page && page >= 1 && page <= last_page && page !== current_page) {
       const url = new URL(window.location.href);
@@ -34202,24 +34262,24 @@ function Pagination({
     ] }) })
   ] });
 }
-var import_react93, import_jsx_runtime16;
+var import_react94, import_jsx_runtime16;
 var init_pagination = __esm({
   "src/components/ui/pagination.tsx"() {
     "use strict";
     init_input2();
     init_button2();
-    import_react93 = __toESM(require_react(), 1);
+    import_react94 = __toESM(require_react(), 1);
     init_tabler_icons_react();
     import_jsx_runtime16 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
 // src/components/ui/table.tsx
-var React15, import_jsx_runtime17, getModifierClasses, tableVariants, tableWrapperVariants, tableHeadVariants, tableBodyVariants, tableRowVariants, tableCellVariants, tableHeaderCellVariants, Table, TableWrapper, TableHead, TableBody, TableRow, TableCell, TableHeaderCell;
+var React16, import_jsx_runtime17, getModifierClasses, tableVariants, tableWrapperVariants, tableHeadVariants, tableBodyVariants, tableRowVariants, tableCellVariants, tableHeaderCellVariants, Table, TableWrapper, TableHead, TableBody, TableRow, TableCell, TableHeaderCell;
 var init_table = __esm({
   "src/components/ui/table.tsx"() {
     "use strict";
-    React15 = __toESM(require_react(), 1);
+    React16 = __toESM(require_react(), 1);
     init_dist4();
     init_utils();
     import_jsx_runtime17 = __toESM(require_jsx_runtime(), 1);
@@ -34309,7 +34369,7 @@ var init_table = __esm({
     );
     tableCellVariants = cva("");
     tableHeaderCellVariants = cva("");
-    Table = React15.forwardRef(
+    Table = React16.forwardRef(
       ({ className, size: size4, modifier, responsive, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
         "table",
         {
@@ -34324,7 +34384,7 @@ var init_table = __esm({
       )
     );
     Table.displayName = "Table";
-    TableWrapper = React15.forwardRef(
+    TableWrapper = React16.forwardRef(
       ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
         "div",
         {
@@ -34335,7 +34395,7 @@ var init_table = __esm({
       )
     );
     TableWrapper.displayName = "TableWrapper";
-    TableHead = React15.forwardRef(
+    TableHead = React16.forwardRef(
       ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
         "thead",
         {
@@ -34346,7 +34406,7 @@ var init_table = __esm({
       )
     );
     TableHead.displayName = "TableHead";
-    TableBody = React15.forwardRef(
+    TableBody = React16.forwardRef(
       ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
         "tbody",
         {
@@ -34357,7 +34417,7 @@ var init_table = __esm({
       )
     );
     TableBody.displayName = "TableBody";
-    TableRow = React15.forwardRef(
+    TableRow = React16.forwardRef(
       ({ className, hover, active, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
         "tr",
         {
@@ -34368,7 +34428,7 @@ var init_table = __esm({
       )
     );
     TableRow.displayName = "TableRow";
-    TableCell = React15.forwardRef(
+    TableCell = React16.forwardRef(
       ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
         "td",
         {
@@ -34379,7 +34439,7 @@ var init_table = __esm({
       )
     );
     TableCell.displayName = "TableCell";
-    TableHeaderCell = React15.forwardRef(
+    TableHeaderCell = React16.forwardRef(
       ({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
         "th",
         {
@@ -34390,6 +34450,81 @@ var init_table = __esm({
       )
     );
     TableHeaderCell.displayName = "TableHeaderCell";
+  }
+});
+
+// src/lib/date-utils.ts
+function formatDateDDMMYYYY(date) {
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear().toString();
+  return `${day}.${month}.${year}`;
+}
+function formatDateTimeDDMMYYYY(date) {
+  const dateStr = formatDateDDMMYYYY(date);
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  return `${dateStr} ${hours}:${minutes}`;
+}
+function formatApiDate(dateString, includeTime = false) {
+  if (!dateString) return "";
+  if (/^\d{2}\.\d{2}\.\d{4}$/.test(dateString)) {
+    return dateString;
+  }
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return dateString;
+  }
+  return includeTime ? formatDateTimeDDMMYYYY(date) : formatDateDDMMYYYY(date);
+}
+function formatDateForInput(date) {
+  if (!date) return "";
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(dateObj.getTime())) return "";
+  const year = dateObj.getFullYear();
+  const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
+  const day = dateObj.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+var init_date_utils = __esm({
+  "src/lib/date-utils.ts"() {
+    "use strict";
+  }
+});
+
+// src/lib/client-api.ts
+function getApiUrl() {
+  if (typeof window !== "undefined" && window.__API_URL__) {
+    return window.__API_URL__;
+  }
+  return "http://localhost:8787";
+}
+function getAccessToken() {
+  if (typeof window !== "undefined" && window.__ACCESS_TOKEN__) {
+    return window.__ACCESS_TOKEN__;
+  }
+  return "eeb77aa92c4763586c086b89876037dc74b3252e19fe5dbd2ea0a80100e3855f";
+}
+async function clientApiRequest(path, options = {}) {
+  const apiUrl = getApiUrl();
+  const token = getAccessToken();
+  const url = `${apiUrl}${path}`;
+  const headers = {
+    "Content-Type": "application/json",
+    ...options.headers
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  const response = await fetch(url, {
+    ...options,
+    headers
+  });
+  return response;
+}
+var init_client_api = __esm({
+  "src/lib/client-api.ts"() {
+    "use strict";
   }
 });
 
@@ -38896,25 +39031,25 @@ var init_classes = __esm({
 
 // node_modules/react-day-picker/dist/esm/components/Button.js
 function Button2(props) {
-  return import_react94.default.createElement("button", { ...props });
+  return import_react95.default.createElement("button", { ...props });
 }
-var import_react94;
+var import_react95;
 var init_Button = __esm({
   "node_modules/react-day-picker/dist/esm/components/Button.js"() {
     "use strict";
-    import_react94 = __toESM(require_react(), 1);
+    import_react95 = __toESM(require_react(), 1);
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/CaptionLabel.js
 function CaptionLabel(props) {
-  return import_react95.default.createElement("span", { ...props });
+  return import_react96.default.createElement("span", { ...props });
 }
-var import_react95;
+var import_react96;
 var init_CaptionLabel = __esm({
   "node_modules/react-day-picker/dist/esm/components/CaptionLabel.js"() {
     "use strict";
-    import_react95 = __toESM(require_react(), 1);
+    import_react96 = __toESM(require_react(), 1);
   }
 });
 
@@ -38923,52 +39058,52 @@ function Chevron(props) {
   const { size: size4 = 24, orientation = "left", className } = props;
   return (
     // biome-ignore lint/a11y/noSvgWithoutTitle: handled by the parent component
-    import_react96.default.createElement(
+    import_react97.default.createElement(
       "svg",
       { className, width: size4, height: size4, viewBox: "0 0 24 24" },
-      orientation === "up" && import_react96.default.createElement("polygon", { points: "6.77 17 12.5 11.43 18.24 17 20 15.28 12.5 8 5 15.28" }),
-      orientation === "down" && import_react96.default.createElement("polygon", { points: "6.77 8 12.5 13.57 18.24 8 20 9.72 12.5 17 5 9.72" }),
-      orientation === "left" && import_react96.default.createElement("polygon", { points: "16 18.112 9.81111111 12 16 5.87733333 14.0888889 4 6 12 14.0888889 20" }),
-      orientation === "right" && import_react96.default.createElement("polygon", { points: "8 18.112 14.18888889 12 8 5.87733333 9.91111111 4 18 12 9.91111111 20" })
+      orientation === "up" && import_react97.default.createElement("polygon", { points: "6.77 17 12.5 11.43 18.24 17 20 15.28 12.5 8 5 15.28" }),
+      orientation === "down" && import_react97.default.createElement("polygon", { points: "6.77 8 12.5 13.57 18.24 8 20 9.72 12.5 17 5 9.72" }),
+      orientation === "left" && import_react97.default.createElement("polygon", { points: "16 18.112 9.81111111 12 16 5.87733333 14.0888889 4 6 12 14.0888889 20" }),
+      orientation === "right" && import_react97.default.createElement("polygon", { points: "8 18.112 14.18888889 12 8 5.87733333 9.91111111 4 18 12 9.91111111 20" })
     )
   );
 }
-var import_react96;
+var import_react97;
 var init_Chevron = __esm({
   "node_modules/react-day-picker/dist/esm/components/Chevron.js"() {
     "use strict";
-    import_react96 = __toESM(require_react(), 1);
+    import_react97 = __toESM(require_react(), 1);
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/Day.js
 function Day(props) {
   const { day, modifiers, ...tdProps } = props;
-  return import_react97.default.createElement("td", { ...tdProps });
+  return import_react98.default.createElement("td", { ...tdProps });
 }
-var import_react97;
+var import_react98;
 var init_Day = __esm({
   "node_modules/react-day-picker/dist/esm/components/Day.js"() {
     "use strict";
-    import_react97 = __toESM(require_react(), 1);
+    import_react98 = __toESM(require_react(), 1);
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/DayButton.js
 function DayButton(props) {
   const { day, modifiers, ...buttonProps } = props;
-  const ref = import_react98.default.useRef(null);
-  import_react98.default.useEffect(() => {
+  const ref = import_react99.default.useRef(null);
+  import_react99.default.useEffect(() => {
     if (modifiers.focused)
       ref.current?.focus();
   }, [modifiers.focused]);
-  return import_react98.default.createElement("button", { ref, ...buttonProps });
+  return import_react99.default.createElement("button", { ref, ...buttonProps });
 }
-var import_react98;
+var import_react99;
 var init_DayButton = __esm({
   "node_modules/react-day-picker/dist/esm/components/DayButton.js"() {
     "use strict";
-    import_react98 = __toESM(require_react(), 1);
+    import_react99 = __toESM(require_react(), 1);
   }
 });
 
@@ -39034,128 +39169,128 @@ function Dropdown(props) {
   const { options, className, components, classNames, ...selectProps } = props;
   const cssClassSelect = [classNames[UI.Dropdown], className].join(" ");
   const selectedOption = options?.find(({ value }) => value === selectProps.value);
-  return import_react99.default.createElement(
+  return import_react100.default.createElement(
     "span",
     { "data-disabled": selectProps.disabled, className: classNames[UI.DropdownRoot] },
-    import_react99.default.createElement(components.Select, { className: cssClassSelect, ...selectProps }, options?.map(({ value, label, disabled }) => import_react99.default.createElement(components.Option, { key: value, value, disabled }, label))),
-    import_react99.default.createElement(
+    import_react100.default.createElement(components.Select, { className: cssClassSelect, ...selectProps }, options?.map(({ value, label, disabled }) => import_react100.default.createElement(components.Option, { key: value, value, disabled }, label))),
+    import_react100.default.createElement(
       "span",
       { className: classNames[UI.CaptionLabel], "aria-hidden": true },
       selectedOption?.label,
-      import_react99.default.createElement(components.Chevron, { orientation: "down", size: 18, className: classNames[UI.Chevron] })
+      import_react100.default.createElement(components.Chevron, { orientation: "down", size: 18, className: classNames[UI.Chevron] })
     )
   );
 }
-var import_react99;
+var import_react100;
 var init_Dropdown = __esm({
   "node_modules/react-day-picker/dist/esm/components/Dropdown.js"() {
     "use strict";
-    import_react99 = __toESM(require_react(), 1);
+    import_react100 = __toESM(require_react(), 1);
     init_UI();
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/DropdownNav.js
 function DropdownNav(props) {
-  return import_react100.default.createElement("div", { ...props });
+  return import_react101.default.createElement("div", { ...props });
 }
-var import_react100;
+var import_react101;
 var init_DropdownNav = __esm({
   "node_modules/react-day-picker/dist/esm/components/DropdownNav.js"() {
     "use strict";
-    import_react100 = __toESM(require_react(), 1);
+    import_react101 = __toESM(require_react(), 1);
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/Footer.js
 function Footer(props) {
-  return import_react101.default.createElement("div", { ...props });
+  return import_react102.default.createElement("div", { ...props });
 }
-var import_react101;
+var import_react102;
 var init_Footer = __esm({
   "node_modules/react-day-picker/dist/esm/components/Footer.js"() {
     "use strict";
-    import_react101 = __toESM(require_react(), 1);
+    import_react102 = __toESM(require_react(), 1);
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/Month.js
 function Month(props) {
   const { calendarMonth, displayIndex, ...divProps } = props;
-  return import_react102.default.createElement("div", { ...divProps }, props.children);
+  return import_react103.default.createElement("div", { ...divProps }, props.children);
 }
-var import_react102;
+var import_react103;
 var init_Month = __esm({
   "node_modules/react-day-picker/dist/esm/components/Month.js"() {
     "use strict";
-    import_react102 = __toESM(require_react(), 1);
+    import_react103 = __toESM(require_react(), 1);
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/MonthCaption.js
 function MonthCaption(props) {
   const { calendarMonth, displayIndex, ...divProps } = props;
-  return import_react103.default.createElement("div", { ...divProps });
-}
-var import_react103;
-var init_MonthCaption = __esm({
-  "node_modules/react-day-picker/dist/esm/components/MonthCaption.js"() {
-    "use strict";
-    import_react103 = __toESM(require_react(), 1);
-  }
-});
-
-// node_modules/react-day-picker/dist/esm/components/MonthGrid.js
-function MonthGrid(props) {
-  return import_react104.default.createElement("table", { ...props });
+  return import_react104.default.createElement("div", { ...divProps });
 }
 var import_react104;
-var init_MonthGrid = __esm({
-  "node_modules/react-day-picker/dist/esm/components/MonthGrid.js"() {
+var init_MonthCaption = __esm({
+  "node_modules/react-day-picker/dist/esm/components/MonthCaption.js"() {
     "use strict";
     import_react104 = __toESM(require_react(), 1);
   }
 });
 
-// node_modules/react-day-picker/dist/esm/components/Months.js
-function Months(props) {
-  return import_react105.default.createElement("div", { ...props });
+// node_modules/react-day-picker/dist/esm/components/MonthGrid.js
+function MonthGrid(props) {
+  return import_react105.default.createElement("table", { ...props });
 }
 var import_react105;
-var init_Months = __esm({
-  "node_modules/react-day-picker/dist/esm/components/Months.js"() {
+var init_MonthGrid = __esm({
+  "node_modules/react-day-picker/dist/esm/components/MonthGrid.js"() {
     "use strict";
     import_react105 = __toESM(require_react(), 1);
   }
 });
 
+// node_modules/react-day-picker/dist/esm/components/Months.js
+function Months(props) {
+  return import_react106.default.createElement("div", { ...props });
+}
+var import_react106;
+var init_Months = __esm({
+  "node_modules/react-day-picker/dist/esm/components/Months.js"() {
+    "use strict";
+    import_react106 = __toESM(require_react(), 1);
+  }
+});
+
 // node_modules/react-day-picker/dist/esm/useDayPicker.js
 function useDayPicker() {
-  const context = (0, import_react106.useContext)(dayPickerContext);
+  const context = (0, import_react107.useContext)(dayPickerContext);
   if (context === void 0) {
     throw new Error("useDayPicker() must be used within a custom component.");
   }
   return context;
 }
-var import_react106, dayPickerContext;
+var import_react107, dayPickerContext;
 var init_useDayPicker = __esm({
   "node_modules/react-day-picker/dist/esm/useDayPicker.js"() {
     "use strict";
-    import_react106 = __toESM(require_react(), 1);
-    dayPickerContext = (0, import_react106.createContext)(void 0);
+    import_react107 = __toESM(require_react(), 1);
+    dayPickerContext = (0, import_react107.createContext)(void 0);
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/MonthsDropdown.js
 function MonthsDropdown(props) {
   const { components } = useDayPicker();
-  return import_react107.default.createElement(components.Dropdown, { ...props });
+  return import_react108.default.createElement(components.Dropdown, { ...props });
 }
-var import_react107;
+var import_react108;
 var init_MonthsDropdown = __esm({
   "node_modules/react-day-picker/dist/esm/components/MonthsDropdown.js"() {
     "use strict";
-    import_react107 = __toESM(require_react(), 1);
+    import_react108 = __toESM(require_react(), 1);
     init_useDayPicker();
   }
 });
@@ -39164,36 +39299,36 @@ var init_MonthsDropdown = __esm({
 function Nav(props) {
   const { onPreviousClick, onNextClick, previousMonth, nextMonth, ...navProps } = props;
   const { components, classNames, labels: { labelPrevious: labelPrevious2, labelNext: labelNext2 } } = useDayPicker();
-  const handleNextClick = (0, import_react108.useCallback)((e8) => {
+  const handleNextClick = (0, import_react109.useCallback)((e8) => {
     if (nextMonth) {
       onNextClick?.(e8);
     }
   }, [nextMonth, onNextClick]);
-  const handlePreviousClick = (0, import_react108.useCallback)((e8) => {
+  const handlePreviousClick = (0, import_react109.useCallback)((e8) => {
     if (previousMonth) {
       onPreviousClick?.(e8);
     }
   }, [previousMonth, onPreviousClick]);
-  return import_react108.default.createElement(
+  return import_react109.default.createElement(
     "nav",
     { ...navProps },
-    import_react108.default.createElement(
+    import_react109.default.createElement(
       components.PreviousMonthButton,
       { type: "button", className: classNames[UI.PreviousMonthButton], tabIndex: previousMonth ? void 0 : -1, "aria-disabled": previousMonth ? void 0 : true, "aria-label": labelPrevious2(previousMonth), onClick: handlePreviousClick },
-      import_react108.default.createElement(components.Chevron, { disabled: previousMonth ? void 0 : true, className: classNames[UI.Chevron], orientation: "left" })
+      import_react109.default.createElement(components.Chevron, { disabled: previousMonth ? void 0 : true, className: classNames[UI.Chevron], orientation: "left" })
     ),
-    import_react108.default.createElement(
+    import_react109.default.createElement(
       components.NextMonthButton,
       { type: "button", className: classNames[UI.NextMonthButton], tabIndex: nextMonth ? void 0 : -1, "aria-disabled": nextMonth ? void 0 : true, "aria-label": labelNext2(nextMonth), onClick: handleNextClick },
-      import_react108.default.createElement(components.Chevron, { disabled: nextMonth ? void 0 : true, orientation: "right", className: classNames[UI.Chevron] })
+      import_react109.default.createElement(components.Chevron, { disabled: nextMonth ? void 0 : true, orientation: "right", className: classNames[UI.Chevron] })
     )
   );
 }
-var import_react108;
+var import_react109;
 var init_Nav = __esm({
   "node_modules/react-day-picker/dist/esm/components/Nav.js"() {
     "use strict";
-    import_react108 = __toESM(require_react(), 1);
+    import_react109 = __toESM(require_react(), 1);
     init_UI();
     init_useDayPicker();
   }
@@ -39202,39 +39337,39 @@ var init_Nav = __esm({
 // node_modules/react-day-picker/dist/esm/components/NextMonthButton.js
 function NextMonthButton(props) {
   const { components } = useDayPicker();
-  return import_react109.default.createElement(components.Button, { ...props });
+  return import_react110.default.createElement(components.Button, { ...props });
 }
-var import_react109;
+var import_react110;
 var init_NextMonthButton = __esm({
   "node_modules/react-day-picker/dist/esm/components/NextMonthButton.js"() {
     "use strict";
-    import_react109 = __toESM(require_react(), 1);
+    import_react110 = __toESM(require_react(), 1);
     init_useDayPicker();
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/Option.js
 function Option(props) {
-  return import_react110.default.createElement("option", { ...props });
+  return import_react111.default.createElement("option", { ...props });
 }
-var import_react110;
+var import_react111;
 var init_Option = __esm({
   "node_modules/react-day-picker/dist/esm/components/Option.js"() {
     "use strict";
-    import_react110 = __toESM(require_react(), 1);
+    import_react111 = __toESM(require_react(), 1);
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/PreviousMonthButton.js
 function PreviousMonthButton(props) {
   const { components } = useDayPicker();
-  return import_react111.default.createElement(components.Button, { ...props });
+  return import_react112.default.createElement(components.Button, { ...props });
 }
-var import_react111;
+var import_react112;
 var init_PreviousMonthButton = __esm({
   "node_modules/react-day-picker/dist/esm/components/PreviousMonthButton.js"() {
     "use strict";
-    import_react111 = __toESM(require_react(), 1);
+    import_react112 = __toESM(require_react(), 1);
     init_useDayPicker();
   }
 });
@@ -39242,116 +39377,116 @@ var init_PreviousMonthButton = __esm({
 // node_modules/react-day-picker/dist/esm/components/Root.js
 function Root(props) {
   const { rootRef, ...rest } = props;
-  return import_react112.default.createElement("div", { ...rest, ref: rootRef });
+  return import_react113.default.createElement("div", { ...rest, ref: rootRef });
 }
-var import_react112;
+var import_react113;
 var init_Root = __esm({
   "node_modules/react-day-picker/dist/esm/components/Root.js"() {
     "use strict";
-    import_react112 = __toESM(require_react(), 1);
+    import_react113 = __toESM(require_react(), 1);
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/Select.js
 function Select(props) {
-  return import_react113.default.createElement("select", { ...props });
+  return import_react114.default.createElement("select", { ...props });
 }
-var import_react113;
+var import_react114;
 var init_Select = __esm({
   "node_modules/react-day-picker/dist/esm/components/Select.js"() {
     "use strict";
-    import_react113 = __toESM(require_react(), 1);
+    import_react114 = __toESM(require_react(), 1);
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/Week.js
 function Week(props) {
   const { week, ...trProps } = props;
-  return import_react114.default.createElement("tr", { ...trProps });
-}
-var import_react114;
-var init_Week = __esm({
-  "node_modules/react-day-picker/dist/esm/components/Week.js"() {
-    "use strict";
-    import_react114 = __toESM(require_react(), 1);
-  }
-});
-
-// node_modules/react-day-picker/dist/esm/components/Weekday.js
-function Weekday(props) {
-  return import_react115.default.createElement("th", { ...props });
+  return import_react115.default.createElement("tr", { ...trProps });
 }
 var import_react115;
-var init_Weekday = __esm({
-  "node_modules/react-day-picker/dist/esm/components/Weekday.js"() {
+var init_Week = __esm({
+  "node_modules/react-day-picker/dist/esm/components/Week.js"() {
     "use strict";
     import_react115 = __toESM(require_react(), 1);
   }
 });
 
-// node_modules/react-day-picker/dist/esm/components/Weekdays.js
-function Weekdays(props) {
-  return import_react116.default.createElement(
-    "thead",
-    { "aria-hidden": true },
-    import_react116.default.createElement("tr", { ...props })
-  );
+// node_modules/react-day-picker/dist/esm/components/Weekday.js
+function Weekday(props) {
+  return import_react116.default.createElement("th", { ...props });
 }
 var import_react116;
+var init_Weekday = __esm({
+  "node_modules/react-day-picker/dist/esm/components/Weekday.js"() {
+    "use strict";
+    import_react116 = __toESM(require_react(), 1);
+  }
+});
+
+// node_modules/react-day-picker/dist/esm/components/Weekdays.js
+function Weekdays(props) {
+  return import_react117.default.createElement(
+    "thead",
+    { "aria-hidden": true },
+    import_react117.default.createElement("tr", { ...props })
+  );
+}
+var import_react117;
 var init_Weekdays = __esm({
   "node_modules/react-day-picker/dist/esm/components/Weekdays.js"() {
     "use strict";
-    import_react116 = __toESM(require_react(), 1);
+    import_react117 = __toESM(require_react(), 1);
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/WeekNumber.js
 function WeekNumber(props) {
   const { week, ...thProps } = props;
-  return import_react117.default.createElement("th", { ...thProps });
-}
-var import_react117;
-var init_WeekNumber = __esm({
-  "node_modules/react-day-picker/dist/esm/components/WeekNumber.js"() {
-    "use strict";
-    import_react117 = __toESM(require_react(), 1);
-  }
-});
-
-// node_modules/react-day-picker/dist/esm/components/WeekNumberHeader.js
-function WeekNumberHeader(props) {
-  return import_react118.default.createElement("th", { ...props });
+  return import_react118.default.createElement("th", { ...thProps });
 }
 var import_react118;
-var init_WeekNumberHeader = __esm({
-  "node_modules/react-day-picker/dist/esm/components/WeekNumberHeader.js"() {
+var init_WeekNumber = __esm({
+  "node_modules/react-day-picker/dist/esm/components/WeekNumber.js"() {
     "use strict";
     import_react118 = __toESM(require_react(), 1);
   }
 });
 
-// node_modules/react-day-picker/dist/esm/components/Weeks.js
-function Weeks(props) {
-  return import_react119.default.createElement("tbody", { ...props });
+// node_modules/react-day-picker/dist/esm/components/WeekNumberHeader.js
+function WeekNumberHeader(props) {
+  return import_react119.default.createElement("th", { ...props });
 }
 var import_react119;
+var init_WeekNumberHeader = __esm({
+  "node_modules/react-day-picker/dist/esm/components/WeekNumberHeader.js"() {
+    "use strict";
+    import_react119 = __toESM(require_react(), 1);
+  }
+});
+
+// node_modules/react-day-picker/dist/esm/components/Weeks.js
+function Weeks(props) {
+  return import_react120.default.createElement("tbody", { ...props });
+}
+var import_react120;
 var init_Weeks = __esm({
   "node_modules/react-day-picker/dist/esm/components/Weeks.js"() {
     "use strict";
-    import_react119 = __toESM(require_react(), 1);
+    import_react120 = __toESM(require_react(), 1);
   }
 });
 
 // node_modules/react-day-picker/dist/esm/components/YearsDropdown.js
 function YearsDropdown(props) {
   const { components } = useDayPicker();
-  return import_react120.default.createElement(components.Dropdown, { ...props });
+  return import_react121.default.createElement(components.Dropdown, { ...props });
 }
-var import_react120;
+var import_react121;
 var init_YearsDropdown = __esm({
   "node_modules/react-day-picker/dist/esm/components/YearsDropdown.js"() {
     "use strict";
-    import_react120 = __toESM(require_react(), 1);
+    import_react121 = __toESM(require_react(), 1);
     init_useDayPicker();
   }
 });
@@ -40065,10 +40200,10 @@ var init_labels = __esm({
 
 // node_modules/react-day-picker/dist/esm/useAnimation.js
 function useAnimation(rootElRef, enabled, { classNames, months, focused, dateLib }) {
-  const previousRootElSnapshotRef = (0, import_react121.useRef)(null);
-  const previousMonthsRef = (0, import_react121.useRef)(months);
-  const animatingRef = (0, import_react121.useRef)(false);
-  (0, import_react121.useLayoutEffect)(() => {
+  const previousRootElSnapshotRef = (0, import_react122.useRef)(null);
+  const previousMonthsRef = (0, import_react122.useRef)(months);
+  const animatingRef = (0, import_react122.useRef)(false);
+  (0, import_react122.useLayoutEffect)(() => {
     const previousMonths = previousMonthsRef.current;
     previousMonthsRef.current = months;
     if (!enabled || !rootElRef.current || // safety check because the ref can be set to anything by consumers
@@ -40176,11 +40311,11 @@ function useAnimation(rootElRef, enabled, { classNames, months, focused, dateLib
     }
   });
 }
-var import_react121, asHtmlElement, queryMonthEls, queryMonthEl, queryCaptionEl, queryWeeksEl, queryNavEl, queryWeekdaysEl;
+var import_react122, asHtmlElement, queryMonthEls, queryMonthEl, queryCaptionEl, queryWeeksEl, queryNavEl, queryWeekdaysEl;
 var init_useAnimation = __esm({
   "node_modules/react-day-picker/dist/esm/useAnimation.js"() {
     "use strict";
-    import_react121 = __toESM(require_react(), 1);
+    import_react122 = __toESM(require_react(), 1);
     init_UI();
     asHtmlElement = (element) => {
       if (element instanceof HTMLElement)
@@ -40439,15 +40574,15 @@ var init_getWeeks = __esm({
 
 // node_modules/react-day-picker/dist/esm/helpers/useControlledValue.js
 function useControlledValue(defaultValue, controlledValue) {
-  const [uncontrolledValue, setValue] = (0, import_react122.useState)(defaultValue);
+  const [uncontrolledValue, setValue] = (0, import_react123.useState)(defaultValue);
   const value = controlledValue === void 0 ? uncontrolledValue : controlledValue;
   return [value, setValue];
 }
-var import_react122;
+var import_react123;
 var init_useControlledValue = __esm({
   "node_modules/react-day-picker/dist/esm/helpers/useControlledValue.js"() {
     "use strict";
-    import_react122 = __toESM(require_react(), 1);
+    import_react123 = __toESM(require_react(), 1);
   }
 });
 
@@ -40461,7 +40596,7 @@ function useCalendar(props, dateLib) {
     // initialMonth is always computed from props.month if provided
     props.month ? initialMonth : void 0
   );
-  (0, import_react123.useEffect)(() => {
+  (0, import_react124.useEffect)(() => {
     const newInitialMonth = getInitialMonth(props, navStart, navEnd, dateLib);
     setFirstMonth(newInitialMonth);
   }, [props.timeZone]);
@@ -40507,11 +40642,11 @@ function useCalendar(props, dateLib) {
   };
   return calendar;
 }
-var import_react123;
+var import_react124;
 var init_useCalendar = __esm({
   "node_modules/react-day-picker/dist/esm/useCalendar.js"() {
     "use strict";
-    import_react123 = __toESM(require_react(), 1);
+    import_react124 = __toESM(require_react(), 1);
     init_getDates();
     init_getDays();
     init_getDisplayMonths();
@@ -40622,9 +40757,9 @@ var init_getNextFocus = __esm({
 // node_modules/react-day-picker/dist/esm/useFocus.js
 function useFocus(props, calendar, getModifiers, isSelected, dateLib) {
   const { autoFocus } = props;
-  const [lastFocused, setLastFocused] = (0, import_react124.useState)();
+  const [lastFocused, setLastFocused] = (0, import_react125.useState)();
   const focusTarget = calculateFocusTarget(calendar.days, getModifiers, isSelected || (() => false), lastFocused);
-  const [focusedDay, setFocused] = (0, import_react124.useState)(autoFocus ? focusTarget : void 0);
+  const [focusedDay, setFocused] = (0, import_react125.useState)(autoFocus ? focusTarget : void 0);
   const blur = () => {
     setLastFocused(focusedDay);
     setFocused(void 0);
@@ -40650,11 +40785,11 @@ function useFocus(props, calendar, getModifiers, isSelected, dateLib) {
   };
   return useFocus2;
 }
-var import_react124;
+var import_react125;
 var init_useFocus2 = __esm({
   "node_modules/react-day-picker/dist/esm/useFocus.js"() {
     "use strict";
-    import_react124 = __toESM(require_react(), 1);
+    import_react125 = __toESM(require_react(), 1);
     init_calculateFocusTarget();
     init_getNextFocus();
   }
@@ -41008,7 +41143,7 @@ function DayPicker(initialProps) {
       };
     }
   }
-  const { components, formatters: formatters2, labels, dateLib, locale, classNames } = (0, import_react125.useMemo)(() => {
+  const { components, formatters: formatters2, labels, dateLib, locale, classNames } = (0, import_react126.useMemo)(() => {
     const locale2 = { ...enUS, ...props.locale };
     const dateLib2 = new DateLib({
       locale: locale2,
@@ -41050,36 +41185,36 @@ function DayPicker(initialProps) {
   const { isSelected, select, selected: selectedValue } = useSelection(props, dateLib) ?? {};
   const { blur, focused, isFocusTarget, moveFocus, setFocused } = useFocus(props, calendar, getModifiers, isSelected ?? (() => false), dateLib);
   const { labelDayButton: labelDayButton2, labelGridcell: labelGridcell2, labelGrid: labelGrid2, labelMonthDropdown: labelMonthDropdown2, labelNav: labelNav2, labelPrevious: labelPrevious2, labelNext: labelNext2, labelWeekday: labelWeekday2, labelWeekNumber: labelWeekNumber2, labelWeekNumberHeader: labelWeekNumberHeader2, labelYearDropdown: labelYearDropdown2 } = labels;
-  const weekdays = (0, import_react125.useMemo)(() => getWeekdays(dateLib, props.ISOWeek), [dateLib, props.ISOWeek]);
+  const weekdays = (0, import_react126.useMemo)(() => getWeekdays(dateLib, props.ISOWeek), [dateLib, props.ISOWeek]);
   const isInteractive = mode !== void 0 || onDayClick !== void 0;
-  const handlePreviousClick = (0, import_react125.useCallback)(() => {
+  const handlePreviousClick = (0, import_react126.useCallback)(() => {
     if (!previousMonth)
       return;
     goToMonth(previousMonth);
     onPrevClick?.(previousMonth);
   }, [previousMonth, goToMonth, onPrevClick]);
-  const handleNextClick = (0, import_react125.useCallback)(() => {
+  const handleNextClick = (0, import_react126.useCallback)(() => {
     if (!nextMonth)
       return;
     goToMonth(nextMonth);
     onNextClick?.(nextMonth);
   }, [goToMonth, nextMonth, onNextClick]);
-  const handleDayClick = (0, import_react125.useCallback)((day, m11) => (e8) => {
+  const handleDayClick = (0, import_react126.useCallback)((day, m11) => (e8) => {
     e8.preventDefault();
     e8.stopPropagation();
     setFocused(day);
     select?.(day.date, m11, e8);
     onDayClick?.(day.date, m11, e8);
   }, [select, onDayClick, setFocused]);
-  const handleDayFocus = (0, import_react125.useCallback)((day, m11) => (e8) => {
+  const handleDayFocus = (0, import_react126.useCallback)((day, m11) => (e8) => {
     setFocused(day);
     onDayFocus?.(day.date, m11, e8);
   }, [onDayFocus, setFocused]);
-  const handleDayBlur = (0, import_react125.useCallback)((day, m11) => (e8) => {
+  const handleDayBlur = (0, import_react126.useCallback)((day, m11) => (e8) => {
     blur();
     onDayBlur?.(day.date, m11, e8);
   }, [blur, onDayBlur]);
-  const handleDayKeyDown = (0, import_react125.useCallback)((day, modifiers) => (e8) => {
+  const handleDayKeyDown = (0, import_react126.useCallback)((day, modifiers) => (e8) => {
     const keyMap = {
       ArrowLeft: [
         e8.shiftKey ? "month" : "day",
@@ -41104,28 +41239,28 @@ function DayPicker(initialProps) {
     }
     onDayKeyDown?.(day.date, modifiers, e8);
   }, [moveFocus, onDayKeyDown, props.dir]);
-  const handleDayMouseEnter = (0, import_react125.useCallback)((day, modifiers) => (e8) => {
+  const handleDayMouseEnter = (0, import_react126.useCallback)((day, modifiers) => (e8) => {
     onDayMouseEnter?.(day.date, modifiers, e8);
   }, [onDayMouseEnter]);
-  const handleDayMouseLeave = (0, import_react125.useCallback)((day, modifiers) => (e8) => {
+  const handleDayMouseLeave = (0, import_react126.useCallback)((day, modifiers) => (e8) => {
     onDayMouseLeave?.(day.date, modifiers, e8);
   }, [onDayMouseLeave]);
-  const handleMonthChange = (0, import_react125.useCallback)((date) => (e8) => {
+  const handleMonthChange = (0, import_react126.useCallback)((date) => (e8) => {
     const selectedMonth = Number(e8.target.value);
     const month = dateLib.setMonth(dateLib.startOfMonth(date), selectedMonth);
     goToMonth(month);
   }, [dateLib, goToMonth]);
-  const handleYearChange = (0, import_react125.useCallback)((date) => (e8) => {
+  const handleYearChange = (0, import_react126.useCallback)((date) => (e8) => {
     const selectedYear = Number(e8.target.value);
     const month = dateLib.setYear(dateLib.startOfMonth(date), selectedYear);
     goToMonth(month);
   }, [dateLib, goToMonth]);
-  const { className, style } = (0, import_react125.useMemo)(() => ({
+  const { className, style } = (0, import_react126.useMemo)(() => ({
     className: [classNames[UI.Root], props.className].filter(Boolean).join(" "),
     style: { ...styles?.[UI.Root], ...props.style }
   }), [classNames, props.className, props.style, styles]);
   const dataAttributes = getDataAttributes(props);
-  const rootElRef = (0, import_react125.useRef)(null);
+  const rootElRef = (0, import_react126.useRef)(null);
   useAnimation(rootElRef, Boolean(props.animate), {
     classNames,
     months,
@@ -41148,18 +41283,18 @@ function DayPicker(initialProps) {
     labels,
     formatters: formatters2
   };
-  return import_react125.default.createElement(
+  return import_react126.default.createElement(
     dayPickerContext.Provider,
     { value: contextValue },
-    import_react125.default.createElement(
+    import_react126.default.createElement(
       components.Root,
       { rootRef: props.animate ? rootElRef : void 0, className, style, dir: props.dir, id: props.id, lang: props.lang, nonce: props.nonce, title: props.title, role: props.role, "aria-label": props["aria-label"], ...dataAttributes },
-      import_react125.default.createElement(
+      import_react126.default.createElement(
         components.Months,
         { className: classNames[UI.Months], style: styles?.[UI.Months] },
-        !props.hideNavigation && !navLayout && import_react125.default.createElement(components.Nav, { "data-animated-nav": props.animate ? "true" : void 0, className: classNames[UI.Nav], style: styles?.[UI.Nav], "aria-label": labelNav2(), onPreviousClick: handlePreviousClick, onNextClick: handleNextClick, previousMonth, nextMonth }),
+        !props.hideNavigation && !navLayout && import_react126.default.createElement(components.Nav, { "data-animated-nav": props.animate ? "true" : void 0, className: classNames[UI.Nav], style: styles?.[UI.Nav], "aria-label": labelNav2(), onPreviousClick: handlePreviousClick, onNextClick: handleNextClick, previousMonth, nextMonth }),
         months.map((calendarMonth, displayIndex) => {
-          return import_react125.default.createElement(
+          return import_react126.default.createElement(
             components.Month,
             {
               "data-animated-month": props.animate ? "true" : void 0,
@@ -41170,17 +41305,17 @@ function DayPicker(initialProps) {
               displayIndex,
               calendarMonth
             },
-            navLayout === "around" && !props.hideNavigation && displayIndex === 0 && import_react125.default.createElement(
+            navLayout === "around" && !props.hideNavigation && displayIndex === 0 && import_react126.default.createElement(
               components.PreviousMonthButton,
               { type: "button", className: classNames[UI.PreviousMonthButton], tabIndex: previousMonth ? void 0 : -1, "aria-disabled": previousMonth ? void 0 : true, "aria-label": labelPrevious2(previousMonth), onClick: handlePreviousClick, "data-animated-button": props.animate ? "true" : void 0 },
-              import_react125.default.createElement(components.Chevron, { disabled: previousMonth ? void 0 : true, className: classNames[UI.Chevron], orientation: props.dir === "rtl" ? "right" : "left" })
+              import_react126.default.createElement(components.Chevron, { disabled: previousMonth ? void 0 : true, className: classNames[UI.Chevron], orientation: props.dir === "rtl" ? "right" : "left" })
             ),
-            import_react125.default.createElement(components.MonthCaption, { "data-animated-caption": props.animate ? "true" : void 0, className: classNames[UI.MonthCaption], style: styles?.[UI.MonthCaption], calendarMonth, displayIndex }, captionLayout?.startsWith("dropdown") ? import_react125.default.createElement(
+            import_react126.default.createElement(components.MonthCaption, { "data-animated-caption": props.animate ? "true" : void 0, className: classNames[UI.MonthCaption], style: styles?.[UI.MonthCaption], calendarMonth, displayIndex }, captionLayout?.startsWith("dropdown") ? import_react126.default.createElement(
               components.DropdownNav,
               { className: classNames[UI.Dropdowns], style: styles?.[UI.Dropdowns] },
-              captionLayout === "dropdown" || captionLayout === "dropdown-months" ? import_react125.default.createElement(components.MonthsDropdown, { className: classNames[UI.MonthsDropdown], "aria-label": labelMonthDropdown2(), classNames, components, disabled: Boolean(props.disableNavigation), onChange: handleMonthChange(calendarMonth.date), options: getMonthOptions(calendarMonth.date, navStart, navEnd, formatters2, dateLib), style: styles?.[UI.Dropdown], value: dateLib.getMonth(calendarMonth.date) }) : import_react125.default.createElement("span", null, formatMonthDropdown2(calendarMonth.date, dateLib)),
-              captionLayout === "dropdown" || captionLayout === "dropdown-years" ? import_react125.default.createElement(components.YearsDropdown, { className: classNames[UI.YearsDropdown], "aria-label": labelYearDropdown2(dateLib.options), classNames, components, disabled: Boolean(props.disableNavigation), onChange: handleYearChange(calendarMonth.date), options: getYearOptions(navStart, navEnd, formatters2, dateLib, Boolean(props.reverseYears)), style: styles?.[UI.Dropdown], value: dateLib.getYear(calendarMonth.date) }) : import_react125.default.createElement("span", null, formatYearDropdown2(calendarMonth.date, dateLib)),
-              import_react125.default.createElement("span", { role: "status", "aria-live": "polite", style: {
+              captionLayout === "dropdown" || captionLayout === "dropdown-months" ? import_react126.default.createElement(components.MonthsDropdown, { className: classNames[UI.MonthsDropdown], "aria-label": labelMonthDropdown2(), classNames, components, disabled: Boolean(props.disableNavigation), onChange: handleMonthChange(calendarMonth.date), options: getMonthOptions(calendarMonth.date, navStart, navEnd, formatters2, dateLib), style: styles?.[UI.Dropdown], value: dateLib.getMonth(calendarMonth.date) }) : import_react126.default.createElement("span", null, formatMonthDropdown2(calendarMonth.date, dateLib)),
+              captionLayout === "dropdown" || captionLayout === "dropdown-years" ? import_react126.default.createElement(components.YearsDropdown, { className: classNames[UI.YearsDropdown], "aria-label": labelYearDropdown2(dateLib.options), classNames, components, disabled: Boolean(props.disableNavigation), onChange: handleYearChange(calendarMonth.date), options: getYearOptions(navStart, navEnd, formatters2, dateLib, Boolean(props.reverseYears)), style: styles?.[UI.Dropdown], value: dateLib.getYear(calendarMonth.date) }) : import_react126.default.createElement("span", null, formatYearDropdown2(calendarMonth.date, dateLib)),
+              import_react126.default.createElement("span", { role: "status", "aria-live": "polite", style: {
                 border: 0,
                 clip: "rect(0 0 0 0)",
                 height: "1px",
@@ -41194,29 +41329,29 @@ function DayPicker(initialProps) {
               } }, formatCaption2(calendarMonth.date, dateLib.options, dateLib))
             ) : (
               // biome-ignore lint/a11y/useSemanticElements: breaking change
-              import_react125.default.createElement(components.CaptionLabel, { className: classNames[UI.CaptionLabel], role: "status", "aria-live": "polite" }, formatCaption2(calendarMonth.date, dateLib.options, dateLib))
+              import_react126.default.createElement(components.CaptionLabel, { className: classNames[UI.CaptionLabel], role: "status", "aria-live": "polite" }, formatCaption2(calendarMonth.date, dateLib.options, dateLib))
             )),
-            navLayout === "around" && !props.hideNavigation && displayIndex === numberOfMonths - 1 && import_react125.default.createElement(
+            navLayout === "around" && !props.hideNavigation && displayIndex === numberOfMonths - 1 && import_react126.default.createElement(
               components.NextMonthButton,
               { type: "button", className: classNames[UI.NextMonthButton], tabIndex: nextMonth ? void 0 : -1, "aria-disabled": nextMonth ? void 0 : true, "aria-label": labelNext2(nextMonth), onClick: handleNextClick, "data-animated-button": props.animate ? "true" : void 0 },
-              import_react125.default.createElement(components.Chevron, { disabled: nextMonth ? void 0 : true, className: classNames[UI.Chevron], orientation: props.dir === "rtl" ? "left" : "right" })
+              import_react126.default.createElement(components.Chevron, { disabled: nextMonth ? void 0 : true, className: classNames[UI.Chevron], orientation: props.dir === "rtl" ? "left" : "right" })
             ),
-            displayIndex === numberOfMonths - 1 && navLayout === "after" && !props.hideNavigation && import_react125.default.createElement(components.Nav, { "data-animated-nav": props.animate ? "true" : void 0, className: classNames[UI.Nav], style: styles?.[UI.Nav], "aria-label": labelNav2(), onPreviousClick: handlePreviousClick, onNextClick: handleNextClick, previousMonth, nextMonth }),
-            import_react125.default.createElement(
+            displayIndex === numberOfMonths - 1 && navLayout === "after" && !props.hideNavigation && import_react126.default.createElement(components.Nav, { "data-animated-nav": props.animate ? "true" : void 0, className: classNames[UI.Nav], style: styles?.[UI.Nav], "aria-label": labelNav2(), onPreviousClick: handlePreviousClick, onNextClick: handleNextClick, previousMonth, nextMonth }),
+            import_react126.default.createElement(
               components.MonthGrid,
               { role: "grid", "aria-multiselectable": mode === "multiple" || mode === "range", "aria-label": labelGrid2(calendarMonth.date, dateLib.options, dateLib) || void 0, className: classNames[UI.MonthGrid], style: styles?.[UI.MonthGrid] },
-              !props.hideWeekdays && import_react125.default.createElement(
+              !props.hideWeekdays && import_react126.default.createElement(
                 components.Weekdays,
                 { "data-animated-weekdays": props.animate ? "true" : void 0, className: classNames[UI.Weekdays], style: styles?.[UI.Weekdays] },
-                showWeekNumber && import_react125.default.createElement(components.WeekNumberHeader, { "aria-label": labelWeekNumberHeader2(dateLib.options), className: classNames[UI.WeekNumberHeader], style: styles?.[UI.WeekNumberHeader], scope: "col" }, formatWeekNumberHeader2()),
-                weekdays.map((weekday) => import_react125.default.createElement(components.Weekday, { "aria-label": labelWeekday2(weekday, dateLib.options, dateLib), className: classNames[UI.Weekday], key: String(weekday), style: styles?.[UI.Weekday], scope: "col" }, formatWeekdayName2(weekday, dateLib.options, dateLib)))
+                showWeekNumber && import_react126.default.createElement(components.WeekNumberHeader, { "aria-label": labelWeekNumberHeader2(dateLib.options), className: classNames[UI.WeekNumberHeader], style: styles?.[UI.WeekNumberHeader], scope: "col" }, formatWeekNumberHeader2()),
+                weekdays.map((weekday) => import_react126.default.createElement(components.Weekday, { "aria-label": labelWeekday2(weekday, dateLib.options, dateLib), className: classNames[UI.Weekday], key: String(weekday), style: styles?.[UI.Weekday], scope: "col" }, formatWeekdayName2(weekday, dateLib.options, dateLib)))
               ),
-              import_react125.default.createElement(components.Weeks, { "data-animated-weeks": props.animate ? "true" : void 0, className: classNames[UI.Weeks], style: styles?.[UI.Weeks] }, calendarMonth.weeks.map((week) => {
-                return import_react125.default.createElement(
+              import_react126.default.createElement(components.Weeks, { "data-animated-weeks": props.animate ? "true" : void 0, className: classNames[UI.Weeks], style: styles?.[UI.Weeks] }, calendarMonth.weeks.map((week) => {
+                return import_react126.default.createElement(
                   components.Week,
                   { className: classNames[UI.Week], key: week.weekNumber, style: styles?.[UI.Week], week },
                   showWeekNumber && // biome-ignore lint/a11y/useSemanticElements: react component
-                  import_react125.default.createElement(components.WeekNumber, { week, style: styles?.[UI.WeekNumber], "aria-label": labelWeekNumber2(week.weekNumber, {
+                  import_react126.default.createElement(components.WeekNumber, { week, style: styles?.[UI.WeekNumber], "aria-label": labelWeekNumber2(week.weekNumber, {
                     locale
                   }), className: classNames[UI.WeekNumber], scope: "row", role: "rowheader" }, formatWeekNumber2(week.weekNumber, dateLib)),
                   week.days.map((day) => {
@@ -41235,7 +41370,7 @@ function DayPicker(initialProps) {
                     const ariaLabel = !isInteractive && !modifiers.hidden ? labelGridcell2(date, modifiers, dateLib.options, dateLib) : void 0;
                     return (
                       // biome-ignore lint/a11y/useSemanticElements: react component
-                      import_react125.default.createElement(components.Day, { key: `${dateLib.format(date, "yyyy-MM-dd")}_${dateLib.format(day.displayMonth, "yyyy-MM")}`, day, modifiers, className: className2.join(" "), style: style2, role: "gridcell", "aria-selected": modifiers.selected || void 0, "aria-label": ariaLabel, "data-day": dateLib.format(date, "yyyy-MM-dd"), "data-month": day.outside ? dateLib.format(date, "yyyy-MM") : void 0, "data-selected": modifiers.selected || void 0, "data-disabled": modifiers.disabled || void 0, "data-hidden": modifiers.hidden || void 0, "data-outside": day.outside || void 0, "data-focused": modifiers.focused || void 0, "data-today": modifiers.today || void 0 }, !modifiers.hidden && isInteractive ? import_react125.default.createElement(components.DayButton, { className: classNames[UI.DayButton], style: styles?.[UI.DayButton], type: "button", day, modifiers, disabled: modifiers.disabled || void 0, tabIndex: isFocusTarget(day) ? 0 : -1, "aria-label": labelDayButton2(date, modifiers, dateLib.options, dateLib), onClick: handleDayClick(day, modifiers), onBlur: handleDayBlur(day, modifiers), onFocus: handleDayFocus(day, modifiers), onKeyDown: handleDayKeyDown(day, modifiers), onMouseEnter: handleDayMouseEnter(day, modifiers), onMouseLeave: handleDayMouseLeave(day, modifiers) }, formatDay2(date, dateLib.options, dateLib)) : !modifiers.hidden && formatDay2(day.date, dateLib.options, dateLib))
+                      import_react126.default.createElement(components.Day, { key: `${dateLib.format(date, "yyyy-MM-dd")}_${dateLib.format(day.displayMonth, "yyyy-MM")}`, day, modifiers, className: className2.join(" "), style: style2, role: "gridcell", "aria-selected": modifiers.selected || void 0, "aria-label": ariaLabel, "data-day": dateLib.format(date, "yyyy-MM-dd"), "data-month": day.outside ? dateLib.format(date, "yyyy-MM") : void 0, "data-selected": modifiers.selected || void 0, "data-disabled": modifiers.disabled || void 0, "data-hidden": modifiers.hidden || void 0, "data-outside": day.outside || void 0, "data-focused": modifiers.focused || void 0, "data-today": modifiers.today || void 0 }, !modifiers.hidden && isInteractive ? import_react126.default.createElement(components.DayButton, { className: classNames[UI.DayButton], style: styles?.[UI.DayButton], type: "button", day, modifiers, disabled: modifiers.disabled || void 0, tabIndex: isFocusTarget(day) ? 0 : -1, "aria-label": labelDayButton2(date, modifiers, dateLib.options, dateLib), onClick: handleDayClick(day, modifiers), onBlur: handleDayBlur(day, modifiers), onFocus: handleDayFocus(day, modifiers), onKeyDown: handleDayKeyDown(day, modifiers), onMouseEnter: handleDayMouseEnter(day, modifiers), onMouseLeave: handleDayMouseLeave(day, modifiers) }, formatDay2(date, dateLib.options, dateLib)) : !modifiers.hidden && formatDay2(day.date, dateLib.options, dateLib))
                     );
                   })
                 );
@@ -41245,16 +41380,16 @@ function DayPicker(initialProps) {
         })
       ),
       props.footer && // biome-ignore lint/a11y/useSemanticElements: react component
-      import_react125.default.createElement(components.Footer, { className: classNames[UI.Footer], style: styles?.[UI.Footer], role: "status", "aria-live": "polite" }, props.footer)
+      import_react126.default.createElement(components.Footer, { className: classNames[UI.Footer], style: styles?.[UI.Footer], role: "status", "aria-live": "polite" }, props.footer)
     )
   );
 }
-var import_react125;
+var import_react126;
 var init_DayPicker = __esm({
   "node_modules/react-day-picker/dist/esm/DayPicker.js"() {
     "use strict";
     init_tz2();
-    import_react125 = __toESM(require_react(), 1);
+    import_react126 = __toESM(require_react(), 1);
     init_DateLib();
     init_createGetModifiers();
     init_getClassNamesForModifiers();
@@ -41527,11 +41662,11 @@ function CustomCaption({ calendarMonth, fromYear, toYear }) {
     )
   ] });
 }
-var React43, import_jsx_runtime19, calendarVariants, Calendar;
+var React44, import_jsx_runtime19, calendarVariants, Calendar;
 var init_calendar = __esm({
   "src/components/ui/calendar.tsx"() {
     "use strict";
-    React43 = __toESM(require_react(), 1);
+    React44 = __toESM(require_react(), 1);
     init_esm4();
     init_utils();
     init_dist4();
@@ -41554,9 +41689,9 @@ var init_calendar = __esm({
         }
       }
     );
-    Calendar = React43.forwardRef(
+    Calendar = React44.forwardRef(
       ({ className, size: size4, value, onSelect, weekStartsOn = 0, showTodayButton = true, fromYear, toYear }, ref) => {
-        const [month, setMonth2] = React43.useState(value || /* @__PURE__ */ new Date());
+        const [month, setMonth2] = React44.useState(value || /* @__PURE__ */ new Date());
         const today = /* @__PURE__ */ new Date();
         const defaultClassNames = getDefaultClassNames();
         const handleTodayClick = () => {
@@ -41776,6 +41911,7 @@ function DeleteConfirmation({
   onConfirm,
   title = "Confirm Delete",
   message: message2 = "Are you sure you want to delete this item? This action cannot be undone.",
+  errorMessage,
   confirmButtonText = "Delete",
   cancelButtonText = "Cancel",
   isLoading = false
@@ -41802,7 +41938,8 @@ function DeleteConfirmation({
         /* @__PURE__ */ (0, import_jsx_runtime22.jsxs)(ModalBox, { className: "max-w-sm", children: [
           /* @__PURE__ */ (0, import_jsx_runtime22.jsx)("div", { className: "mb-4 flex justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime22.jsx)("div", { className: "rounded-full bg-error/10 p-3", children: /* @__PURE__ */ (0, import_jsx_runtime22.jsx)(IconAlertTriangle, { className: "h-8 w-8 text-error" }) }) }),
           /* @__PURE__ */ (0, import_jsx_runtime22.jsx)("h3", { className: "mb-2 text-center text-lg font-bold", children: title }),
-          /* @__PURE__ */ (0, import_jsx_runtime22.jsx)("p", { className: "text-muted-foreground mb-6 text-center text-sm", children: message2 }),
+          /* @__PURE__ */ (0, import_jsx_runtime22.jsx)("p", { className: "text-muted-foreground mb-4 text-center text-sm", children: message2 }),
+          errorMessage && /* @__PURE__ */ (0, import_jsx_runtime22.jsx)("div", { className: "mb-6 rounded-lg bg-error/10 p-3 border border-error/20", children: /* @__PURE__ */ (0, import_jsx_runtime22.jsx)("p", { className: "text-sm text-error text-center font-medium", children: errorMessage }) }),
           /* @__PURE__ */ (0, import_jsx_runtime22.jsxs)(ModalAction, { className: "justify-center", children: [
             /* @__PURE__ */ (0, import_jsx_runtime22.jsx)(
               Button,
@@ -41837,7 +41974,7 @@ var init_delete_confirmation = __esm({
 });
 
 // src/components/model/model-list/modal-components/delete-modal.tsx
-function DeleteModal({ isOpen, isLoading, onClose, onConfirm }) {
+function DeleteModal({ isOpen, isLoading, error: error2, onClose, onConfirm }) {
   return /* @__PURE__ */ (0, import_jsx_runtime23.jsx)(
     DeleteConfirmation,
     {
@@ -41846,6 +41983,7 @@ function DeleteModal({ isOpen, isLoading, onClose, onConfirm }) {
       onConfirm,
       title: "Delete Item",
       message: "Are you sure you want to delete this item? This action cannot be undone.",
+      errorMessage: error2,
       isLoading
     }
   );
@@ -41859,27 +41997,178 @@ var init_delete_modal = __esm({
   }
 });
 
-// src/components/model/model-list/modal-components/mass-action-modal.tsx
-function MassActionModal({ isOpen, isLoading, selectedAction, selectedCount, onClose, onConfirm }) {
-  if (!selectedAction) return null;
-  return /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(
-    DeleteConfirmation,
+// src/components/shared/mass-action-confirmation.tsx
+function MassActionConfirmation({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message: message2,
+  errorMessage,
+  confirmButtonText = "Confirm",
+  cancelButtonText = "Cancel",
+  isLoading = false,
+  actionType = "warning",
+  actionName = ""
+}) {
+  const getActionStyling = () => {
+    switch (actionType) {
+      case "delete":
+        return {
+          bgClass: "bg-error/10",
+          textClass: "text-error",
+          buttonColor: "error"
+        };
+      case "info":
+        return {
+          bgClass: "bg-info/10",
+          textClass: "text-info",
+          buttonColor: "info"
+        };
+      default:
+        return {
+          bgClass: "bg-warning/10",
+          textClass: "text-warning",
+          buttonColor: "warning"
+        };
+    }
+  };
+  const getActionIcon = () => {
+    if (isLoading) return void 0;
+    switch (actionName.toLowerCase()) {
+      case "delete":
+        return IconTrash;
+      case "make_admin":
+        return IconUserCheck;
+      case "make_user":
+        return IconUserX;
+      default:
+        return IconCheck;
+    }
+  };
+  const styling = getActionStyling();
+  const ActionIcon = getActionIcon();
+  const handleModalClick = (e8) => {
+    if (e8.target === e8.currentTarget) {
+      onClose();
+    }
+  };
+  const handleKeyDown = (e8) => {
+    if (e8.key === "Escape") {
+      onClose();
+    }
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime24.jsxs)(
+    Modal,
     {
-      isOpen,
-      onClose,
-      onConfirm,
-      title: `${selectedAction.label} Items`,
-      message: selectedAction.confirmMessage || `Are you sure you want to ${selectedAction.label.toLowerCase()} ${selectedCount} selected item${selectedCount === 1 ? "" : "s"}? This action cannot be undone.`,
-      isLoading
+      id: "mass-action-confirmation-modal",
+      modifier: isOpen ? "open" : "default",
+      placement: "middle",
+      onClick: handleModalClick,
+      onKeyDown: handleKeyDown,
+      children: [
+        /* @__PURE__ */ (0, import_jsx_runtime24.jsxs)(ModalBox, { className: "max-w-sm", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("div", { className: "mb-4 flex justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("div", { className: `rounded-full ${styling.bgClass} p-3`, children: /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(IconAlertTriangle, { className: `h-8 w-8 ${styling.textClass}` }) }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("h3", { className: "mb-2 text-center text-lg font-bold", children: title }),
+          /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("p", { className: "text-muted-foreground mb-4 text-center text-sm", children: message2 }),
+          errorMessage && /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("div", { className: "mb-6 rounded-lg bg-error/10 p-3 border border-error/20", children: /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("p", { className: "text-sm text-error text-center font-medium", children: errorMessage }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime24.jsxs)(ModalAction, { className: "justify-center", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(
+              Button,
+              {
+                style: "soft",
+                color: styling.buttonColor,
+                onClick: onConfirm,
+                processing: isLoading,
+                disabled: isLoading,
+                icon: ActionIcon,
+                className: "min-w-24",
+                children: confirmButtonText
+              }
+            ),
+            /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(Button, { style: "ghost", onClick: onClose, disabled: isLoading, className: "min-w-24", children: cancelButtonText })
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(ModalBackdrop, {})
+      ]
     }
   );
 }
 var import_jsx_runtime24;
+var init_mass_action_confirmation = __esm({
+  "src/components/shared/mass-action-confirmation.tsx"() {
+    "use strict";
+    init_button2();
+    init_modal();
+    init_tabler_icons_react();
+    import_jsx_runtime24 = __toESM(require_jsx_runtime(), 1);
+  }
+});
+
+// src/components/model/model-list/modal-components/mass-action-modal.tsx
+function MassActionModal({ isOpen, isLoading, selectedAction, selectedCount, error: error2, onClose, onConfirm }) {
+  if (!selectedAction) return null;
+  const actionType = selectedAction.name === "delete" ? "delete" : "warning";
+  const getActionTitle = () => {
+    switch (selectedAction.name) {
+      case "make_admin":
+        return "Change Role to Admin";
+      case "make_user":
+        return "Change Role to User";
+      case "delete":
+        return "Delete Users";
+      default:
+        return selectedAction.label;
+    }
+  };
+  const getConfirmButtonText = () => {
+    switch (selectedAction.name) {
+      case "make_admin":
+      case "make_user":
+        return "Change Role";
+      case "delete":
+        return "Delete";
+      default:
+        return "Confirm";
+    }
+  };
+  const getMessage = () => {
+    if (selectedAction.confirmMessage) {
+      return selectedAction.confirmMessage;
+    }
+    switch (selectedAction.name) {
+      case "make_admin":
+        return `Are you sure you want to promote the selected ${selectedCount} user${selectedCount === 1 ? "" : "s"} to admin role?`;
+      case "make_user":
+        return `Are you sure you want to change the selected ${selectedCount} user${selectedCount === 1 ? "" : "s"} to regular user role?`;
+      case "delete":
+        return `Are you sure you want to delete ${selectedCount} selected user${selectedCount === 1 ? "" : "s"}? This action cannot be undone.`;
+      default:
+        return `Are you sure you want to ${selectedAction.label.toLowerCase()} ${selectedCount} selected user${selectedCount === 1 ? "" : "s"}?`;
+    }
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(
+    MassActionConfirmation,
+    {
+      isOpen,
+      onClose,
+      onConfirm,
+      title: getActionTitle(),
+      message: getMessage(),
+      errorMessage: error2,
+      confirmButtonText: getConfirmButtonText(),
+      isLoading,
+      actionType,
+      actionName: selectedAction.name
+    }
+  );
+}
+var import_jsx_runtime25;
 var init_mass_action_modal = __esm({
   "src/components/model/model-list/modal-components/mass-action-modal.tsx"() {
     "use strict";
-    init_delete_confirmation();
-    import_jsx_runtime24 = __toESM(require_jsx_runtime(), 1);
+    init_mass_action_confirmation();
+    import_jsx_runtime25 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -41887,37 +42176,49 @@ var init_mass_action_modal = __esm({
 function ModelListModals({
   deleteModalOpen,
   isDeleting,
+  deleteError,
   massActionModalOpen,
   selectedMassAction,
   isExecutingMassAction,
+  massActionError,
   selectedCount,
   onCloseDeleteModal,
   onConfirmDelete,
   onCloseMassActionModal,
   onConfirmMassAction
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime25.jsxs)(import_jsx_runtime25.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(DeleteModal, { isOpen: deleteModalOpen, isLoading: isDeleting, onClose: onCloseDeleteModal, onConfirm: onConfirmDelete }),
-    /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(import_jsx_runtime26.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
+      DeleteModal,
+      {
+        isOpen: deleteModalOpen,
+        isLoading: isDeleting,
+        error: deleteError,
+        onClose: onCloseDeleteModal,
+        onConfirm: onConfirmDelete
+      }
+    ),
+    /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
       MassActionModal,
       {
         isOpen: massActionModalOpen,
         isLoading: isExecutingMassAction,
         selectedAction: selectedMassAction,
         selectedCount,
+        error: massActionError,
         onClose: onCloseMassActionModal,
         onConfirm: onConfirmMassAction
       }
     )
   ] });
 }
-var import_jsx_runtime25;
+var import_jsx_runtime26;
 var init_modals = __esm({
   "src/components/model/model-list/modals.tsx"() {
     "use strict";
     init_delete_modal();
     init_mass_action_modal();
-    import_jsx_runtime25 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime26 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -41928,7 +42229,7 @@ function Icon({ iconNode, className, size: size4 = 16, ...props }) {
     return null;
   }
   const IconComponent = iconNode;
-  return /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime27.jsx)(
     IconComponent,
     {
       className: cn("h-4 w-4", "group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8", className),
@@ -41937,24 +42238,24 @@ function Icon({ iconNode, className, size: size4 = 16, ...props }) {
     }
   );
 }
-var import_jsx_runtime26;
+var import_jsx_runtime27;
 var init_icon = __esm({
   "src/components/icon.tsx"() {
     "use strict";
     init_utils();
-    import_jsx_runtime26 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime27 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
 // src/components/ui/checkbox.tsx
-var React44, import_jsx_runtime27, checkboxVariants, Checkbox;
+var React45, import_jsx_runtime28, checkboxVariants, Checkbox;
 var init_checkbox2 = __esm({
   "src/components/ui/checkbox.tsx"() {
     "use strict";
-    React44 = __toESM(require_react(), 1);
+    React45 = __toESM(require_react(), 1);
     init_utils();
     init_dist4();
-    import_jsx_runtime27 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime28 = __toESM(require_jsx_runtime(), 1);
     checkboxVariants = cva(
       "checkbox",
       {
@@ -41988,16 +42289,16 @@ var init_checkbox2 = __esm({
         }
       }
     );
-    Checkbox = React44.forwardRef(
+    Checkbox = React45.forwardRef(
       ({ className, variant, size: size4, color, label, labelClassName, indeterminate, ...props }, ref) => {
-        const inputRef = React44.useRef(null);
-        React44.useImperativeHandle(ref, () => inputRef.current);
-        React44.useEffect(() => {
+        const inputRef = React45.useRef(null);
+        React45.useImperativeHandle(ref, () => inputRef.current);
+        React45.useEffect(() => {
           if (inputRef.current) {
             inputRef.current.indeterminate = indeterminate ?? false;
           }
         }, [indeterminate]);
-        const checkboxElement = /* @__PURE__ */ (0, import_jsx_runtime27.jsx)(
+        const checkboxElement = /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(
           "input",
           {
             type: "checkbox",
@@ -42009,8 +42310,8 @@ var init_checkbox2 = __esm({
         if (!label) {
           return checkboxElement;
         }
-        return /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)("label", { className: cn("label cursor-pointer", labelClassName), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("span", { className: "label-text", children: label }),
+        return /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)("label", { className: cn("label cursor-pointer", labelClassName), children: [
+          /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("span", { className: "label-text", children: label }),
           checkboxElement
         ] });
       }
@@ -42028,7 +42329,7 @@ function Badge({
   shape,
   ...props
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime29.jsx)(
     "span",
     {
       className: cn(badgeVariants({ variant, styleVariant, size: size4, shape }), className),
@@ -42036,13 +42337,13 @@ function Badge({
     }
   );
 }
-var import_jsx_runtime28, badgeVariants;
+var import_jsx_runtime29, badgeVariants;
 var init_badge = __esm({
   "src/components/ui/badge.tsx"() {
     "use strict";
     init_dist4();
     init_utils();
-    import_jsx_runtime28 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime29 = __toESM(require_jsx_runtime(), 1);
     badgeVariants = cva(
       "badge",
       {
@@ -42091,19 +42392,19 @@ var init_badge = __esm({
 
 // src/components/input-error.tsx
 function InputError({ message: message2, className = "", ...props }) {
-  return message2 ? /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)(Badge, { ...props, variant: "error", styleVariant: "soft", size: "xs", className: cn("mt-1", className), children: [
-    /* @__PURE__ */ (0, import_jsx_runtime29.jsx)(IconCancel, { size: "12" }),
+  return message2 ? /* @__PURE__ */ (0, import_jsx_runtime30.jsxs)(Badge, { ...props, variant: "error", styleVariant: "soft", size: "xs", className: cn("mt-1", className), children: [
+    /* @__PURE__ */ (0, import_jsx_runtime30.jsx)(IconCancel, { size: "12" }),
     message2
   ] }) : null;
 }
-var import_jsx_runtime29;
+var import_jsx_runtime30;
 var init_input_error = __esm({
   "src/components/input-error.tsx"() {
     "use strict";
     init_badge();
     init_utils();
     init_tabler_icons_react();
-    import_jsx_runtime29 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime30 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -42119,8 +42420,8 @@ function DateEditComponent({
   onInputBlur,
   onSetIsClickingSaveButton
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime30.jsxs)("div", { className: "w-full gap-2", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime30.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: "w-full gap-2", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
       Input,
       {
         type: "date",
@@ -42132,7 +42433,7 @@ function DateEditComponent({
         className: `w-full ${editingError ? "input-error" : ""}`,
         disabled: isEditingSaving,
         autoFocus: true,
-        suffix: /* @__PURE__ */ (0, import_jsx_runtime30.jsx)(
+        suffix: /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
           Button,
           {
             onClick: () => onSaveEditing(),
@@ -42150,10 +42451,10 @@ function DateEditComponent({
         )
       }
     ),
-    editingError && /* @__PURE__ */ (0, import_jsx_runtime30.jsx)(InputError, { message: editingError })
+    editingError && /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(InputError, { message: editingError })
   ] });
 }
-var import_jsx_runtime30;
+var import_jsx_runtime31;
 var init_date_edit_component = __esm({
   "src/components/model/model-list/edit-components/date-edit-component.tsx"() {
     "use strict";
@@ -42161,7 +42462,7 @@ var init_date_edit_component = __esm({
     init_button2();
     init_input2();
     init_tabler_icons_react();
-    import_jsx_runtime30 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime31 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -42184,8 +42485,8 @@ function SelectEditComponent({
       await onSaveEditing(newValue);
     }
   };
-  return /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: "w-full gap-2", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)(
+  return /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("div", { className: "w-full gap-2", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)(
       Select2,
       {
         size: "sm",
@@ -42198,21 +42499,21 @@ function SelectEditComponent({
         disabled: isEditingSaving,
         autoFocus: true,
         children: [
-          /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("option", { value: "", children: "Select..." }),
-          column.editOptions.map((option) => /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("option", { value: option.value, children: option.label }, option.value))
+          /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("option", { value: "", children: "Select..." }),
+          column.editOptions.map((option) => /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("option", { value: option.value, children: option.label }, option.value))
         ]
       }
     ),
-    editingError && /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(InputError, { message: editingError })
+    editingError && /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(InputError, { message: editingError })
   ] });
 }
-var import_jsx_runtime31;
+var import_jsx_runtime32;
 var init_select_edit_component = __esm({
   "src/components/model/model-list/edit-components/select-edit-component.tsx"() {
     "use strict";
     init_input_error();
     init_select2();
-    import_jsx_runtime31 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime32 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -42230,8 +42531,8 @@ function TextEditComponent({
   onSetIsClickingSaveButton
 }) {
   const inputType = column.editType === "email" ? "email" : column.editType === "number" ? "number" : "text";
-  return /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("div", { className: "w-full gap-2", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("div", { className: "w-full gap-2", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(
       Input,
       {
         style: "ghost",
@@ -42244,7 +42545,7 @@ function TextEditComponent({
         className: `w-full ${editingError ? "input-error" : ""}`,
         disabled: isEditingSaving,
         autoFocus: true,
-        suffix: /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(
+        suffix: /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(
           Button,
           {
             onClick: () => onSaveEditing(),
@@ -42262,10 +42563,10 @@ function TextEditComponent({
         )
       }
     ),
-    editingError && /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(InputError, { message: editingError })
+    editingError && /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(InputError, { message: editingError })
   ] });
 }
-var import_jsx_runtime32;
+var import_jsx_runtime33;
 var init_text_edit_component = __esm({
   "src/components/model/model-list/edit-components/text-edit-component.tsx"() {
     "use strict";
@@ -42273,19 +42574,19 @@ var init_text_edit_component = __esm({
     init_button2();
     init_input2();
     init_tabler_icons_react();
-    import_jsx_runtime32 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime33 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
 // src/components/ui/toggle.tsx
-var React45, import_jsx_runtime33, toggleVariants, Toggle;
+var React46, import_jsx_runtime34, toggleVariants, Toggle;
 var init_toggle = __esm({
   "src/components/ui/toggle.tsx"() {
     "use strict";
-    React45 = __toESM(require_react(), 1);
+    React46 = __toESM(require_react(), 1);
     init_utils();
     init_dist4();
-    import_jsx_runtime33 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime34 = __toESM(require_jsx_runtime(), 1);
     toggleVariants = cva(
       "toggle",
       {
@@ -42315,16 +42616,16 @@ var init_toggle = __esm({
         }
       }
     );
-    Toggle = React45.forwardRef(
+    Toggle = React46.forwardRef(
       ({ className, color, size: size4, label, labelClassName, indeterminate, ...props }, ref) => {
-        const inputRef = React45.useRef(null);
-        React45.useImperativeHandle(ref, () => inputRef.current);
-        React45.useEffect(() => {
+        const inputRef = React46.useRef(null);
+        React46.useImperativeHandle(ref, () => inputRef.current);
+        React46.useEffect(() => {
           if (inputRef.current) {
             inputRef.current.indeterminate = indeterminate ?? false;
           }
         }, [indeterminate]);
-        const toggleElement = /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(
+        const toggleElement = /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(
           "input",
           {
             type: "checkbox",
@@ -42336,8 +42637,8 @@ var init_toggle = __esm({
         if (!label) {
           return toggleElement;
         }
-        return /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("label", { className: cn("label cursor-pointer", labelClassName), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: "label-text", children: label }),
+        return /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("label", { className: cn("label cursor-pointer", labelClassName), children: [
+          /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { className: "label-text", children: label }),
           toggleElement
         ] });
       }
@@ -42362,8 +42663,8 @@ function ToggleEditComponent({
     await onSaveEditing(newValue);
   };
   const isChecked = editValue === "1" || editValue === "true";
-  return /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: "w-full gap-2", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: "w-full gap-2", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
       Toggle,
       {
         color: editingError ? "error" : "success",
@@ -42376,16 +42677,16 @@ function ToggleEditComponent({
         autoFocus: true
       }
     ),
-    editingError && /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(InputError, { message: editingError })
+    editingError && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(InputError, { message: editingError })
   ] });
 }
-var import_jsx_runtime34;
+var import_jsx_runtime35;
 var init_toggle_edit_component = __esm({
   "src/components/model/model-list/edit-components/toggle-edit-component.tsx"() {
     "use strict";
     init_input_error();
     init_toggle();
-    import_jsx_runtime34 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime35 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -42393,17 +42694,17 @@ var init_toggle_edit_component = __esm({
 function InlineEditComponent(props) {
   const { column } = props;
   if (column.editType === "select" && column.editOptions) {
-    return /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(SelectEditComponent, { ...props });
+    return /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(SelectEditComponent, { ...props });
   }
   if (column.editType === "date") {
-    return /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(DateEditComponent, { ...props });
+    return /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(DateEditComponent, { ...props });
   }
   if (column.editType === "toggle") {
-    return /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(ToggleEditComponent, { ...props });
+    return /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(ToggleEditComponent, { ...props });
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(TextEditComponent, { ...props });
+  return /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(TextEditComponent, { ...props });
 }
-var import_jsx_runtime35;
+var import_jsx_runtime36;
 var init_inline_edit = __esm({
   "src/components/model/model-list/inline-edit.tsx"() {
     "use strict";
@@ -42411,7 +42712,7 @@ var init_inline_edit = __esm({
     init_select_edit_component();
     init_text_edit_component();
     init_toggle_edit_component();
-    import_jsx_runtime35 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime36 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -42434,7 +42735,7 @@ function TableCellContent({
   const columnKey = String(column.key);
   const isCurrentlyEditing = editingCell?.itemId === item.id && editingCell?.columnKey === columnKey;
   if (isCurrentlyEditing) {
-    return /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
       InlineEditComponent,
       {
         column,
@@ -42460,20 +42761,19 @@ function TableCellContent({
         return "-";
       }
       if (column.filterType === "date" && typeof value2 === "string") {
-        const date = new Date(value2);
-        return date.toISOString().split("T")[0];
+        return formatApiDate(value2);
       }
       return String(value2);
     })();
-    return /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
       "div",
       {
         onClick: () => onStartEditing(item, column),
         className: "group cursor-pointer rounded p-1 transition-colors duration-150 hover:bg-base-200",
         title: "Click to edit",
-        children: /* @__PURE__ */ (0, import_jsx_runtime36.jsxs)("div", { className: "flex items-center justify-between", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime36.jsx)("span", { children: cellContent }),
-          /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
+        children: /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)("div", { className: "flex items-center justify-between", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("span", { children: cellContent }),
+          /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
             Icon,
             {
               iconNode: IconEdit,
@@ -42492,8 +42792,7 @@ function TableCellContent({
     return "-";
   }
   if (column.filterType === "date" && typeof value === "string") {
-    const date = new Date(value);
-    return date.toISOString().split("T")[0];
+    return formatApiDate(value);
   }
   return String(value);
 }
@@ -42518,8 +42817,8 @@ function ModelTableRow({
   onDeleteItem,
   renderItem
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime36.jsxs)(TableRow, { className: "hover:bg-base-300", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(TableHeaderCell, { className: "w-4 cursor-pointer", children: /* @__PURE__ */ (0, import_jsx_runtime36.jsx)("div", { className: "flex items-center", children: /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)(TableRow, { className: "hover:bg-base-300", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableHeaderCell, { className: "w-4 cursor-pointer", children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("div", { className: "flex items-center", children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
       Checkbox,
       {
         id: `select-item-${item.id}`,
@@ -42527,7 +42826,7 @@ function ModelTableRow({
         onChange: (e8) => onItemSelect(item.id, e8.target.checked)
       }
     ) }) }),
-    useLegacyRendering ? renderItem && renderItem(item) : columns.map((column) => /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(TableCell, { className: `${column.className || ""}`, children: /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
+    useLegacyRendering ? renderItem && renderItem(item) : columns.map((column) => /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableCell, { className: `${column.className || ""}`, children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
       TableCellContent,
       {
         item,
@@ -42545,9 +42844,9 @@ function ModelTableRow({
         onSetIsClickingSaveButton
       }
     ) }, String(column.key))),
-    /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(TableHeaderCell, { className: "w-fit text-right", children: /* @__PURE__ */ (0, import_jsx_runtime36.jsxs)("div", { className: "flex items-center justify-end gap-2", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(Button, { size: "icon", color: "primary", style: "soft", icon: IconEdit, title: "Edit", onClick: () => window.location.href = editRoute(item.id) }),
-      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(Button, { size: "icon", color: "error", style: "soft", icon: IconTrash, title: "Delete", onClick: () => onDeleteItem(item) })
+    /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableHeaderCell, { className: "w-fit text-right", children: /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)("div", { className: "flex items-center justify-end gap-2", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(Button, { size: "icon", color: "primary", style: "soft", icon: IconEdit, title: "Edit", onClick: () => window.location.href = editRoute(item.id) }),
+      /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(Button, { size: "icon", color: "error", style: "soft", icon: IconTrash, title: "Delete", onClick: () => onDeleteItem(item) })
     ] }) })
   ] }, item.id);
 }
@@ -42572,7 +42871,7 @@ function ModelTableBody({
   onDeleteItem,
   renderItem
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(TableBody, { children: !items || !items.data || items.data.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(TableCell, { colSpan: 100, className: "p-2 text-center", children: "No items found" }) }) : items.data.map((item) => /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableBody, { children: !items || !items.data || items.data.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableCell, { colSpan: 100, className: "p-2 text-center", children: "No items found" }) }) : items.data.map((item) => /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
     ModelTableRow,
     {
       item,
@@ -42598,7 +42897,7 @@ function ModelTableBody({
     item.id
   )) });
 }
-var import_jsx_runtime36;
+var import_jsx_runtime37;
 var init_table_body = __esm({
   "src/components/model/model-list/table-body.tsx"() {
     "use strict";
@@ -42606,9 +42905,10 @@ var init_table_body = __esm({
     init_button2();
     init_checkbox2();
     init_table();
+    init_date_utils();
     init_tabler_icons_react();
     init_inline_edit();
-    import_jsx_runtime36 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime37 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -42621,7 +42921,7 @@ function DateFilterCell({
   onToggleDateFilter
 }) {
   const columnKey = String(column.key);
-  return /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime38.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime38.jsx)(
     "div",
     {
       className: "relative",
@@ -42633,16 +42933,16 @@ function DateFilterCell({
           delete calendarTriggersRef.current[columnKey];
         }
       },
-      children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+      children: /* @__PURE__ */ (0, import_jsx_runtime38.jsx)(
         Input,
         {
           size: "sm",
           type: "text",
           placeholder: `Filter ${column.label.toLowerCase()}...`,
-          value: filterValue ? new Date(filterValue).toLocaleDateString() : "",
+          value: filterValue ? formatApiDate(filterValue) : "",
           onClick: () => onToggleDateFilter(columnKey),
           readOnly: true,
-          suffix: filterValue ? /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+          suffix: filterValue ? /* @__PURE__ */ (0, import_jsx_runtime38.jsx)(
             "button",
             {
               onClick: (e8) => {
@@ -42650,48 +42950,49 @@ function DateFilterCell({
                 onColumnFilter(columnKey, "", "date");
               },
               className: "btn h-auto min-h-0 p-0 btn-ghost btn-xs",
-              children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(IconX, {})
+              children: /* @__PURE__ */ (0, import_jsx_runtime38.jsx)(IconX, {})
             }
-          ) : /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(IconCalendar, {})
+          ) : /* @__PURE__ */ (0, import_jsx_runtime38.jsx)(IconCalendar, {})
         }
       )
     }
   ) }, columnKey);
 }
-var import_jsx_runtime37;
+var import_jsx_runtime38;
 var init_date_filter_cell = __esm({
   "src/components/model/model-list/filter-components/date-filter-cell.tsx"() {
     "use strict";
     init_input2();
     init_table();
     init_tabler_icons_react();
-    import_jsx_runtime37 = __toESM(require_jsx_runtime(), 1);
+    init_date_utils();
+    import_jsx_runtime38 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
 // src/components/model/model-list/filter-components/select-filter-cell.tsx
 function SelectFilterCell({ column, filterValue, onColumnFilter }) {
-  if (!column.filterOptions) return /* @__PURE__ */ (0, import_jsx_runtime38.jsx)(TableCell, {}, String(column.key));
+  if (!column.filterOptions) return /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(TableCell, {}, String(column.key));
   const columnKey = String(column.key);
-  return /* @__PURE__ */ (0, import_jsx_runtime38.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime38.jsxs)(Select2, { size: "sm", value: filterValue, onChange: (e8) => onColumnFilter(columnKey, e8.target.value, "select"), children: [
-    /* @__PURE__ */ (0, import_jsx_runtime38.jsx)("option", { value: "", children: "All" }),
-    column.filterOptions.map((option) => /* @__PURE__ */ (0, import_jsx_runtime38.jsx)("option", { value: option.value, children: option.label }, option.value))
+  return /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime39.jsxs)(Select2, { size: "sm", value: filterValue, onChange: (e8) => onColumnFilter(columnKey, e8.target.value, "select"), children: [
+    /* @__PURE__ */ (0, import_jsx_runtime39.jsx)("option", { value: "", children: "All" }),
+    column.filterOptions.map((option) => /* @__PURE__ */ (0, import_jsx_runtime39.jsx)("option", { value: option.value, children: option.label }, option.value))
   ] }) }, columnKey);
 }
-var import_jsx_runtime38;
+var import_jsx_runtime39;
 var init_select_filter_cell = __esm({
   "src/components/model/model-list/filter-components/select-filter-cell.tsx"() {
     "use strict";
     init_select2();
     init_table();
-    import_jsx_runtime38 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime39 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
 // src/components/model/model-list/filter-components/text-filter-cell.tsx
 function TextFilterCell({ column, filterValue, onColumnFilter }) {
   const columnKey = String(column.key);
-  return /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime40.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime40.jsx)(
     Input,
     {
       size: "sm",
@@ -42702,13 +43003,13 @@ function TextFilterCell({ column, filterValue, onColumnFilter }) {
     }
   ) }, columnKey);
 }
-var import_jsx_runtime39;
+var import_jsx_runtime40;
 var init_text_filter_cell = __esm({
   "src/components/model/model-list/filter-components/text-filter-cell.tsx"() {
     "use strict";
     init_input2();
     init_table();
-    import_jsx_runtime39 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime40 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -42720,12 +43021,12 @@ function FilterCell({
   onColumnFilter,
   onToggleDateFilter
 }) {
-  if (!column.filterable) return /* @__PURE__ */ (0, import_jsx_runtime40.jsx)(TableCell, {}, String(column.key));
+  if (!column.filterable) return /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(TableCell, {}, String(column.key));
   if (column.filterType === "select" && column.filterOptions) {
-    return /* @__PURE__ */ (0, import_jsx_runtime40.jsx)(SelectFilterCell, { column, filterValue, onColumnFilter });
+    return /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(SelectFilterCell, { column, filterValue, onColumnFilter });
   }
   if (column.filterType === "date") {
-    return /* @__PURE__ */ (0, import_jsx_runtime40.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(
       DateFilterCell,
       {
         column,
@@ -42736,7 +43037,7 @@ function FilterCell({
       }
     );
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime40.jsx)(TextFilterCell, { column, filterValue, onColumnFilter });
+  return /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(TextFilterCell, { column, filterValue, onColumnFilter });
 }
 function FiltersRow({
   columns,
@@ -42745,11 +43046,11 @@ function FiltersRow({
   onColumnFilter,
   onToggleDateFilter
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime40.jsxs)(TableRow, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime40.jsx)(TableHeaderCell, {}),
+  return /* @__PURE__ */ (0, import_jsx_runtime41.jsxs)(TableRow, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(TableHeaderCell, {}),
     columns.map((column) => {
       const filterValue = columnFilters[String(column.key)] || "";
-      return /* @__PURE__ */ (0, import_jsx_runtime40.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(
         FilterCell,
         {
           column,
@@ -42761,10 +43062,10 @@ function FiltersRow({
         String(column.key)
       );
     }),
-    /* @__PURE__ */ (0, import_jsx_runtime40.jsx)(TableHeaderCell, {})
+    /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(TableHeaderCell, {})
   ] });
 }
-var import_jsx_runtime40;
+var import_jsx_runtime41;
 var init_filters_row = __esm({
   "src/components/model/model-list/filters-row.tsx"() {
     "use strict";
@@ -42772,7 +43073,7 @@ var init_filters_row = __esm({
     init_date_filter_cell();
     init_select_filter_cell();
     init_text_filter_cell();
-    import_jsx_runtime40 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime41 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -42784,10 +43085,10 @@ function ColumnHeaderCell({
 }) {
   const isSorted = filters.sort === String(column.key);
   const sortDirection = filters.direction || "asc";
-  return /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(TableCell, { scope: "col", className: `${column.headerClassName || ""}`, children: /* @__PURE__ */ (0, import_jsx_runtime41.jsx)("div", { className: "flex items-center space-x-2", children: column.sortable ? /* @__PURE__ */ (0, import_jsx_runtime41.jsxs)("button", { onClick: () => onSort(String(column.key)), className: "flex items-center space-x-1 font-medium hover:text-primary", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime41.jsx)("span", { children: column.label }),
-    isSorted && /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(Icon, { iconNode: sortDirection === "asc" ? IconChevronUp : IconChevronDown, className: "h-4 w-4" })
-  ] }) : /* @__PURE__ */ (0, import_jsx_runtime41.jsx)("span", { className: "font-medium", children: column.label }) }) }, String(column.key));
+  return /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(TableCell, { scope: "col", className: `${column.headerClassName || ""}`, children: /* @__PURE__ */ (0, import_jsx_runtime42.jsx)("div", { className: "flex items-center space-x-2", children: column.sortable ? /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)("button", { onClick: () => onSort(String(column.key)), className: "flex items-center space-x-1 font-medium hover:text-primary", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime42.jsx)("span", { children: column.label }),
+    isSorted && /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(Icon, { iconNode: sortDirection === "asc" ? IconChevronUp : IconChevronDown, className: "h-4 w-4" })
+  ] }) : /* @__PURE__ */ (0, import_jsx_runtime42.jsx)("span", { className: "font-medium", children: column.label }) }) }, String(column.key));
 }
 function TableHeader({
   columns,
@@ -42808,9 +43109,9 @@ function TableHeader({
 }) {
   const isAllSelected = items?.data ? selectedItems.size === items.data.length && items.data.length > 0 : false;
   const isIndeterminate = selectedItems.size > 0 && selectedItems.size < (items?.data?.length || 0);
-  return /* @__PURE__ */ (0, import_jsx_runtime41.jsxs)(TableHead, { className: "bg-muted text-xs uppercase", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime41.jsxs)(TableRow, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(TableHeaderCell, { scope: "col", children: /* @__PURE__ */ (0, import_jsx_runtime41.jsx)("div", { className: "flex items-center", children: /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)(TableHead, { className: "bg-muted text-xs uppercase", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)(TableRow, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(TableHeaderCell, { scope: "col", children: /* @__PURE__ */ (0, import_jsx_runtime42.jsx)("div", { className: "flex items-center", children: /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(
         Checkbox,
         {
           id: "select-all",
@@ -42823,10 +43124,10 @@ function TableHeader({
           onChange: (e8) => onSelectAll(e8.target.checked)
         }
       ) }) }),
-      useLegacyRendering ? renderHeader && renderHeader() : columns.map((column) => /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(ColumnHeaderCell, { column, filters, onSort }, String(column.key))),
-      /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(TableHeaderCell, { scope: "col", className: "w-24 text-right", children: /* @__PURE__ */ (0, import_jsx_runtime41.jsx)("div", { className: "flex justify-end", children: /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(IconDots, {}) }) })
+      useLegacyRendering ? renderHeader && renderHeader() : columns.map((column) => /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(ColumnHeaderCell, { column, filters, onSort }, String(column.key))),
+      /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(TableHeaderCell, { scope: "col", className: "w-24 text-right", children: /* @__PURE__ */ (0, import_jsx_runtime42.jsx)("div", { className: "flex justify-end", children: /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(IconDots, {}) }) })
     ] }),
-    showFilters && hasFilterableColumns && !useLegacyRendering && columnFilters && openDateFilters && calendarTriggersRef && onColumnFilter && onToggleDateFilter && /* @__PURE__ */ (0, import_jsx_runtime41.jsx)(
+    showFilters && hasFilterableColumns && !useLegacyRendering && columnFilters && openDateFilters && calendarTriggersRef && onColumnFilter && onToggleDateFilter && /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(
       FiltersRow,
       {
         columns,
@@ -42839,7 +43140,7 @@ function TableHeader({
     )
   ] });
 }
-var import_jsx_runtime41;
+var import_jsx_runtime42;
 var init_table_header = __esm({
   "src/components/model/model-list/table-header.tsx"() {
     "use strict";
@@ -42848,11 +43149,48 @@ var init_table_header = __esm({
     init_table();
     init_tabler_icons_react();
     init_filters_row();
-    import_jsx_runtime41 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime42 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
 // src/components/model/model-list.tsx
+async function extractErrorMessage(response) {
+  try {
+    const errorData = await response.json();
+    if (errorData.message) {
+      return errorData.message;
+    } else if (errorData.error) {
+      return errorData.error;
+    } else if (errorData.details) {
+      return `${errorData.error || "Operation failed"}: ${errorData.details}`;
+    }
+    switch (response.status) {
+      case 403:
+        return "You don't have permission to perform this action. This operation may compromise system security.";
+      case 401:
+        return "Authentication required. Please log in again.";
+      case 404:
+        return "The requested item was not found.";
+      case 400:
+        return "Invalid request. Please check your input and try again.";
+      default:
+        return `Operation failed with status ${response.status}`;
+    }
+  } catch {
+    switch (response.status) {
+      case 403:
+        return "Access denied. This operation may violate security policies.";
+      case 401:
+        return "Authentication required. Please log in again.";
+      case 404:
+        return "The requested item was not found.";
+      case 400:
+        return "Invalid request. Please check your input and try again.";
+      default:
+        return `Operation failed (${response.status})`;
+    }
+  }
+}
 function ModelList({
   title,
   items,
@@ -42860,35 +43198,45 @@ function ModelList({
   createRoute,
   editRoute,
   deleteRoute,
+  inlineEditRoute,
   massActionRoute,
   columns,
   massActions,
   renderItem,
   renderHeader
 }) {
-  const [selectedItems, setSelectedItems] = (0, import_react126.useState)(/* @__PURE__ */ new Set());
-  const [columnFilters, setColumnFilters] = (0, import_react126.useState)({});
-  const [showFilters, setShowFilters] = (0, import_react126.useState)(false);
-  const [openDateFilters, setOpenDateFilters] = (0, import_react126.useState)(/* @__PURE__ */ new Set());
-  const [calendarPositions, setCalendarPositions] = (0, import_react126.useState)({});
-  const calendarTriggersRef = (0, import_react126.useRef)({});
-  const [deleteModalOpen, setDeleteModalOpen] = (0, import_react126.useState)(false);
-  const [itemToDelete, setItemToDelete] = (0, import_react126.useState)(null);
-  const [isDeleting, setIsDeleting] = (0, import_react126.useState)(false);
-  const [massActionModalOpen, setMassActionModalOpen] = (0, import_react126.useState)(false);
-  const [selectedMassAction, setSelectedMassAction] = (0, import_react126.useState)(null);
-  const [isExecutingMassAction, setIsExecutingMassAction] = (0, import_react126.useState)(false);
-  const [editingCell, setEditingCell] = (0, import_react126.useState)(null);
-  const [editValue, setEditValue] = (0, import_react126.useState)("");
-  const [isEditingSaving, setIsEditingSaving] = (0, import_react126.useState)(false);
-  const [editingError, setEditingError] = (0, import_react126.useState)("");
-  const [isClickingSaveButton, setIsClickingSaveButton] = (0, import_react126.useState)(false);
-  const [editingSaveSuccess, setEditingSaveSuccess] = (0, import_react126.useState)(false);
-  const debounceTimeouts = (0, import_react126.useRef)({});
-  (0, import_react126.useEffect)(() => {
+  console.log("\u{1F50D} ModelList Debug:", {
+    title,
+    hasMassActions: !!massActions,
+    massActionsLength: massActions?.length || 0,
+    massActionRoute,
+    createRoute
+  });
+  const [selectedItems, setSelectedItems] = (0, import_react127.useState)(/* @__PURE__ */ new Set());
+  const [columnFilters, setColumnFilters] = (0, import_react127.useState)({});
+  const [showFilters, setShowFilters] = (0, import_react127.useState)(false);
+  const [openDateFilters, setOpenDateFilters] = (0, import_react127.useState)(/* @__PURE__ */ new Set());
+  const [calendarPositions, setCalendarPositions] = (0, import_react127.useState)({});
+  const calendarTriggersRef = (0, import_react127.useRef)({});
+  const [deleteModalOpen, setDeleteModalOpen] = (0, import_react127.useState)(false);
+  const [itemToDelete, setItemToDelete] = (0, import_react127.useState)(null);
+  const [isDeleting, setIsDeleting] = (0, import_react127.useState)(false);
+  const [deleteError, setDeleteError] = (0, import_react127.useState)("");
+  const [massActionModalOpen, setMassActionModalOpen] = (0, import_react127.useState)(false);
+  const [selectedMassAction, setSelectedMassAction] = (0, import_react127.useState)(null);
+  const [isExecutingMassAction, setIsExecutingMassAction] = (0, import_react127.useState)(false);
+  const [massActionError, setMassActionError] = (0, import_react127.useState)("");
+  const [editingCell, setEditingCell] = (0, import_react127.useState)(null);
+  const [editValue, setEditValue] = (0, import_react127.useState)("");
+  const [isEditingSaving, setIsEditingSaving] = (0, import_react127.useState)(false);
+  const [editingError, setEditingError] = (0, import_react127.useState)("");
+  const [isClickingSaveButton, setIsClickingSaveButton] = (0, import_react127.useState)(false);
+  const [editingSaveSuccess, setEditingSaveSuccess] = (0, import_react127.useState)(false);
+  const debounceTimeouts = (0, import_react127.useRef)({});
+  (0, import_react127.useEffect)(() => {
     setSelectedItems(/* @__PURE__ */ new Set());
   }, [items]);
-  (0, import_react126.useEffect)(() => {
+  (0, import_react127.useEffect)(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const initialFilters = {};
     columns.forEach((column) => {
@@ -42902,7 +43250,7 @@ function ModelList({
     setColumnFilters(initialFilters);
     setShowFilters(Object.keys(initialFilters).length > 0);
   }, [columns]);
-  (0, import_react126.useEffect)(() => {
+  (0, import_react127.useEffect)(() => {
     const timeouts = debounceTimeouts.current;
     return () => {
       Object.values(timeouts).forEach((timeout) => {
@@ -42910,7 +43258,7 @@ function ModelList({
       });
     };
   }, []);
-  (0, import_react126.useEffect)(() => {
+  (0, import_react127.useEffect)(() => {
     const handleClickOutside = (event) => {
       if (openDateFilters.size > 0) {
         const target = event.target;
@@ -42937,7 +43285,7 @@ function ModelList({
     params.set("page", "1");
     window.location.href = `${window.location.pathname}?${params.toString()}`;
   };
-  const updateUrlWithFilter = (0, import_react126.useCallback)((columnKey, value) => {
+  const updateUrlWithFilter = (0, import_react127.useCallback)((columnKey, value) => {
     const params = new URLSearchParams(window.location.search);
     if (value.trim() === "") {
       params.delete(`filter_${columnKey}`);
@@ -43000,53 +43348,54 @@ function ModelList({
   const openDeleteModal = (item) => {
     setItemToDelete(item);
     setDeleteModalOpen(true);
+    setDeleteError("");
   };
   const closeDeleteModal = () => {
     setDeleteModalOpen(false);
     setItemToDelete(null);
     setIsDeleting(false);
+    setDeleteError("");
   };
   const handleDeleteConfirm = async () => {
     if (!itemToDelete) return;
     setIsDeleting(true);
     try {
-      const response = await fetch(deleteRoute(itemToDelete.id), {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json"
-        }
+      const response = await clientApiRequest(deleteRoute(itemToDelete.id), {
+        method: "DELETE"
       });
       if (response.ok) {
         closeDeleteModal();
         window.location.reload();
       } else {
+        const errorMessage = await extractErrorMessage(response);
+        setDeleteError(errorMessage);
         console.error("Delete failed:", response.statusText);
         setIsDeleting(false);
       }
     } catch (error2) {
       console.error("Delete error:", error2);
+      setDeleteError("An unexpected error occurred while deleting the item.");
       setIsDeleting(false);
     }
   };
   const openMassActionModal = (action) => {
     setSelectedMassAction(action);
     setMassActionModalOpen(true);
+    setMassActionError("");
   };
   const closeMassActionModal = () => {
     setMassActionModalOpen(false);
     setSelectedMassAction(null);
     setIsExecutingMassAction(false);
+    setMassActionError("");
   };
   const handleMassActionConfirm = async () => {
     if (!selectedMassAction || selectedItems.size === 0) return;
     setIsExecutingMassAction(true);
     const selectedItemIds = Array.from(selectedItems);
     try {
-      const response = await fetch(massActionRoute, {
+      const response = await clientApiRequest(massActionRoute, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
         body: JSON.stringify({
           action: selectedMassAction.name,
           ids: selectedItemIds
@@ -43057,11 +43406,14 @@ function ModelList({
         setSelectedItems(/* @__PURE__ */ new Set());
         window.location.reload();
       } else {
+        const errorMessage = await extractErrorMessage(response);
+        setMassActionError(errorMessage);
         console.error("Mass action failed:", response.statusText);
         setIsExecutingMassAction(false);
       }
     } catch (error2) {
       console.error("Mass action error:", error2);
+      setMassActionError("An unexpected error occurred while executing the mass action.");
       setIsExecutingMassAction(false);
     }
   };
@@ -43092,7 +43444,8 @@ function ModelList({
     setEditingSaveSuccess(true);
     setTimeout(() => {
       cancelEditing();
-    }, 2e3);
+      window.location.reload();
+    }, 1500);
   };
   const handleInputBlur = () => {
     if (!isClickingSaveButton) {
@@ -43150,11 +43503,9 @@ function ModelList({
           convertedValue = Number(currentValue);
         }
         try {
-          const response = await fetch(`${window.location.pathname}/${item.id}`, {
+          const editUrl = inlineEditRoute ? inlineEditRoute(item.id) : `${window.location.pathname}/${item.id}`;
+          const response = await clientApiRequest(editUrl, {
             method: "PATCH",
-            headers: {
-              "Content-Type": "application/json"
-            },
             body: JSON.stringify({
               [editingCell.columnKey]: convertedValue
             })
@@ -43217,7 +43568,7 @@ function ModelList({
     });
   };
   const handleDateSelect = (columnKey, date) => {
-    const dateValue = date ? date.toISOString().split("T")[0] : "";
+    const dateValue = date ? formatDateForInput(date) : "";
     handleColumnFilter(columnKey, dateValue, "date");
     setOpenDateFilters((prev) => {
       const newSet = new Set(prev);
@@ -43227,26 +43578,26 @@ function ModelList({
   };
   const useLegacyRendering = !columns || columns.length === 0;
   const hasFilterableColumns = columns?.some((col) => col.filterable) || false;
-  return /* @__PURE__ */ (0, import_jsx_runtime42.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)("div", { className: "space-y-6", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)("div", { className: "flex items-center justify-between", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(Heading, { title }),
-      /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(Button, { icon: IconPlus, onClick: () => window.location.href = createRoute, children: "Create New" })
+  return /* @__PURE__ */ (0, import_jsx_runtime43.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)("div", { className: "space-y-6", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)("div", { className: "flex items-center justify-between", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Heading, { title }),
+      /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Button, { icon: IconPlus, onClick: () => window.location.href = createRoute, children: "Create New" })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(Card, { children: /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)(CardBody, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)("div", { className: "mb-4 flex items-baseline justify-between", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)("div", { className: "font-semibold", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Card, { children: /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)(CardBody, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)("div", { className: "mb-4 flex items-baseline justify-between", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)("div", { className: "font-semibold", children: [
           "All ",
           title
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime42.jsx)("div", { className: "flex items-center space-x-4", children: selectedItems.size > 0 && /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)("div", { className: "flex items-center space-x-2", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)("div", { className: "text-muted-foreground font-light", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime43.jsx)("div", { className: "flex items-center space-x-4", children: selectedItems.size > 0 && /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)("div", { className: "flex items-center space-x-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)("div", { className: "text-muted-foreground font-light", children: [
             "(",
             selectedItems.size,
             " selected)"
           ] }),
-          massActions && massActions.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)("div", { className: "flex items-center space-x-2", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime42.jsx)("span", { className: "text-muted-foreground text-sm", children: "\u2022" }),
-            /* @__PURE__ */ (0, import_jsx_runtime42.jsx)("div", { className: "flex items-center space-x-1", children: massActions.map((action) => /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(
+          massActions && massActions.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)("div", { className: "flex items-center space-x-2", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime43.jsx)("span", { className: "text-muted-foreground text-sm", children: "\u2022" }),
+            /* @__PURE__ */ (0, import_jsx_runtime43.jsx)("div", { className: "flex items-center space-x-1", children: massActions.map((action) => /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(
               Button,
               {
                 size: "sm",
@@ -43260,13 +43611,13 @@ function ModelList({
             )) })
           ] })
         ] }) }),
-        hasFilterableColumns && /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)("div", { className: "flex items-center space-x-2", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(Button, { size: "sm", onClick: () => setShowFilters(!showFilters), icon: IconFilter, children: "Filters" }),
-          Object.keys(columnFilters).length > 0 && /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(Button, { style: "ghost", size: "sm", onClick: clearAllFilters, icon: IconX, children: "Clear" })
+        hasFilterableColumns && /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)("div", { className: "flex items-center space-x-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Button, { size: "sm", onClick: () => setShowFilters(!showFilters), icon: IconFilter, children: "Filters" }),
+          Object.keys(columnFilters).length > 0 && /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Button, { style: "ghost", size: "sm", onClick: clearAllFilters, icon: IconX, children: "Clear" })
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(TableWrapper, { children: /* @__PURE__ */ (0, import_jsx_runtime42.jsxs)(Table, { modifier: "zebra pinCols", className: "w-full text-left text-sm", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(TableWrapper, { children: /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)(Table, { modifier: "zebra pinCols", className: "w-full text-left text-sm", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(
           TableHeader,
           {
             columns,
@@ -43286,7 +43637,7 @@ function ModelList({
             onToggleDateFilter: toggleDateFilter
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(
           ModelTableBody,
           {
             items: items ? { data: items.data, last_page: items.last_page } : null,
@@ -43311,7 +43662,7 @@ function ModelList({
           }
         )
       ] }) }),
-      items && items.last_page > 1 && /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(
+      items && items.last_page > 1 && /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(
         Pagination,
         {
           items,
@@ -43322,7 +43673,7 @@ function ModelList({
         }
       )
     ] }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(
       DateFilterCalendar,
       {
         openDateFilters,
@@ -43331,15 +43682,17 @@ function ModelList({
         onDateSelect: handleDateSelect
       }
     ),
-    /* @__PURE__ */ (0, import_jsx_runtime42.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(
       ModelListModals,
       {
         deleteModalOpen,
         itemToDelete,
         isDeleting,
+        deleteError,
         massActionModalOpen,
         selectedMassAction,
         isExecutingMassAction,
+        massActionError,
         selectedCount: selectedItems.size,
         onCloseDeleteModal: closeDeleteModal,
         onConfirmDelete: handleDeleteConfirm,
@@ -43349,7 +43702,7 @@ function ModelList({
     )
   ] }) });
 }
-var import_react126, import_jsx_runtime42;
+var import_react127, import_jsx_runtime43;
 var init_model_list = __esm({
   "src/components/model/model-list.tsx"() {
     "use strict";
@@ -43359,12 +43712,14 @@ var init_model_list = __esm({
     init_pagination();
     init_table();
     init_tabler_icons_react();
-    import_react126 = __toESM(require_react(), 1);
+    import_react127 = __toESM(require_react(), 1);
+    init_date_utils();
+    init_client_api();
     init_date_filter_calendar();
     init_modals();
     init_table_body();
     init_table_header();
-    import_jsx_runtime42 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime43 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -43378,7 +43733,7 @@ function DashboardPage({
   items,
   filters
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime44.jsx)(
     ModelList,
     {
       title: "Store Items",
@@ -43393,12 +43748,13 @@ function DashboardPage({
     }
   );
 }
-var import_jsx_runtime43, itemColumns, itemMassActions, metadata4;
+var import_jsx_runtime44, itemColumns, itemMassActions, metadata4;
 var init_page3 = __esm({
   "src/app/dashboard/page.tsx"() {
     "use strict";
     init_model_list();
-    import_jsx_runtime43 = __toESM(require_jsx_runtime(), 1);
+    init_date_utils();
+    import_jsx_runtime44 = __toESM(require_jsx_runtime(), 1);
     itemColumns = [
       {
         key: "name",
@@ -43429,7 +43785,7 @@ var init_page3 = __esm({
         filterType: "text",
         editableInline: true,
         editType: "number",
-        render: (item) => /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)("span", { className: "font-mono", children: [
+        render: (item) => /* @__PURE__ */ (0, import_jsx_runtime44.jsxs)("span", { className: "font-mono", children: [
           "$",
           item.price.toFixed(2)
         ] })
@@ -43442,7 +43798,7 @@ var init_page3 = __esm({
         filterType: "text",
         editableInline: true,
         editType: "number",
-        render: (item) => /* @__PURE__ */ (0, import_jsx_runtime43.jsx)("span", { className: `badge ${item.quantity === 0 ? "badge-error" : item.quantity < 10 ? "badge-warning" : "badge-success"}`, children: item.quantity })
+        render: (item) => /* @__PURE__ */ (0, import_jsx_runtime44.jsx)("span", { className: `badge ${item.quantity === 0 ? "badge-error" : item.quantity < 10 ? "badge-warning" : "badge-success"}`, children: item.quantity })
       },
       {
         key: "category",
@@ -43461,7 +43817,7 @@ var init_page3 = __esm({
         sortable: true,
         filterable: true,
         filterType: "date",
-        render: (item) => new Date(item.updatedAt).toLocaleDateString()
+        render: (item) => formatApiDate(item.updatedAt)
       }
     ];
     itemMassActions = [
@@ -43495,29 +43851,50 @@ __export(page_exports4, {
 });
 function UsersPage({
   users,
-  filters
+  filters,
+  currentUser
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime44.jsx)(
-    ModelList,
-    {
-      title: "Users Management",
-      items: users || null,
-      filters: filters || {},
-      columns: userColumns,
-      createRoute: "/dashboard/users/create",
-      editRoute: (id) => `/dashboard/users/edit/${id}`,
-      deleteRoute: (id) => `/api/users/${id}`,
-      massActionRoute: "/api/users/mass-action",
-      massActions: userMassActions
+  const isAdmin = currentUser?.role === "admin";
+  console.log("\u{1F50D} UsersPage Debug:", {
+    currentUser,
+    isAdmin,
+    hasCurrentUser: !!currentUser,
+    userRole: currentUser?.role,
+    userEmail: currentUser?.email,
+    massActionRoute: isAdmin ? "/api/users/mass-action" : "",
+    hasMassActions: isAdmin && userMassActions ? userMassActions.length : 0,
+    massActions: isAdmin ? userMassActions : null
+  });
+  const visibleColumns = userColumns.map((column) => {
+    if (column.key === "role" && !isAdmin) {
+      return {
+        ...column,
+        editableInline: false
+      };
     }
-  );
+    return column;
+  });
+  const modelListProps = {
+    title: "Users Management",
+    items: users || null,
+    filters: filters || {},
+    columns: visibleColumns,
+    createRoute: isAdmin ? "/dashboard/users/create" : "",
+    editRoute: isAdmin ? (id) => `/dashboard/users/edit/${id}` : () => "",
+    deleteRoute: isAdmin ? (id) => `/api/users/${id}` : () => "",
+    inlineEditRoute: isAdmin ? (id) => `/api/users/${id}` : () => "",
+    massActionRoute: isAdmin ? "/api/users/mass-action" : "",
+    ...isAdmin && { massActions: userMassActions }
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(ModelList, { ...modelListProps });
 }
-var import_jsx_runtime44, userColumns, userMassActions;
+var import_jsx_runtime45, userColumns, userMassActions;
 var init_page4 = __esm({
   "src/app/dashboard/users/page.tsx"() {
     "use strict";
     init_model_list();
-    import_jsx_runtime44 = __toESM(require_jsx_runtime(), 1);
+    init_date_utils();
+    import_jsx_runtime45 = __toESM(require_jsx_runtime(), 1);
     userColumns = [
       {
         key: "email",
@@ -43550,12 +43927,12 @@ var init_page4 = __esm({
           { value: "user", label: "User" },
           { value: "admin", label: "Admin" }
         ],
-        render: (user) => /* @__PURE__ */ (0, import_jsx_runtime44.jsx)("span", { className: `badge ${user.role === "admin" ? "badge-primary" : "badge-secondary"}`, children: user.role === "admin" ? "Admin" : "User" })
+        render: (user) => /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("span", { className: `badge ${user.role === "admin" ? "badge-primary" : "badge-secondary"}`, children: user.role === "admin" ? "Admin" : "User" })
       },
       {
         key: "picture",
         label: "Avatar",
-        render: (user) => user.picture ? /* @__PURE__ */ (0, import_jsx_runtime44.jsx)("div", { className: "avatar", children: /* @__PURE__ */ (0, import_jsx_runtime44.jsx)("div", { className: "w-8 h-8 rounded-full", children: /* @__PURE__ */ (0, import_jsx_runtime44.jsx)("img", { src: user.picture, alt: `${user.name || user.email} avatar` }) }) }) : /* @__PURE__ */ (0, import_jsx_runtime44.jsx)("div", { className: "avatar placeholder", children: /* @__PURE__ */ (0, import_jsx_runtime44.jsx)("div", { className: "bg-neutral text-neutral-content rounded-full w-8 h-8", children: /* @__PURE__ */ (0, import_jsx_runtime44.jsx)("span", { className: "text-xs", children: (user.name || user.email)?.[0]?.toUpperCase() }) }) })
+        render: (user) => user.picture ? /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("div", { className: "avatar", children: /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("div", { className: "w-8 h-8 rounded-full", children: /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("img", { src: user.picture, alt: `${user.name || user.email} avatar` }) }) }) : /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("div", { className: "avatar placeholder", children: /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("div", { className: "bg-neutral text-neutral-content rounded-full w-8 h-8", children: /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("span", { className: "text-xs", children: (user.name || user.email)?.[0]?.toUpperCase() }) }) })
       },
       {
         key: "created_at",
@@ -43563,7 +43940,7 @@ var init_page4 = __esm({
         sortable: true,
         filterable: true,
         filterType: "date",
-        render: (user) => new Date(user.created_at).toLocaleDateString()
+        render: (user) => formatApiDate(user.created_at)
       }
     ];
     userMassActions = [
@@ -43598,52 +43975,129 @@ function ModelEdit({
 }) {
   const isNew = !item;
   const initialData = item || {};
-  const [data, setDataState] = (0, import_react127.useState)(initialData);
-  const [errors, setErrors] = (0, import_react127.useState)({});
-  const [processing, setProcessing] = (0, import_react127.useState)(false);
+  const [data, setDataState] = (0, import_react128.useState)(initialData);
+  const [errors, setErrors] = (0, import_react128.useState)({});
+  const [processing, setProcessing] = (0, import_react128.useState)(false);
+  const [success, setSuccess] = (0, import_react128.useState)(false);
+  const [submitFailed, setSubmitFailed] = (0, import_react128.useState)(false);
+  const validateField = (key, value) => {
+    if (key === "email") {
+      if (data.type === "email") {
+        if (!value || value.trim() === "") return 'Email is required when type is "email"';
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) return "Please enter a valid email address";
+      } else if (value && value.trim()) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) return "Please enter a valid email address";
+      }
+    }
+    if (key === "domain") {
+      if (data.type === "domain") {
+        if (!value || value.trim() === "") return 'Domain is required when type is "domain"';
+        const domainRegex = /^@?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!domainRegex.test(value)) return "Please enter a valid domain (e.g., example.com)";
+      }
+    }
+    if (key === "type") {
+      if (!value) return "Type is required";
+      if (!["email", "domain"].includes(value)) return 'Type must be either "email" or "domain"';
+    }
+    if (key === "picture" && value) {
+      try {
+        new URL(value);
+      } catch {
+        return "Please enter a valid URL";
+      }
+    }
+    return null;
+  };
   const handleSubmit = async (e8) => {
     e8.preventDefault();
     if (readonly) return;
     setProcessing(true);
     setErrors({});
+    setSuccess(false);
+    setSubmitFailed(false);
+    const validationErrors = {};
+    Object.keys(data).forEach((key) => {
+      const error2 = validateField(key, data[key]);
+      if (error2) {
+        validationErrors[key] = error2;
+      }
+    });
+    if (data.type) {
+      if (data.type === "email") {
+        if (!data.email || !data.email.trim()) {
+          validationErrors["email"] = 'Email is required when type is "email"';
+        }
+      } else if (data.type === "domain") {
+        if (!data.domain || !data.domain.trim()) {
+          validationErrors["domain"] = 'Domain is required when type is "domain"';
+        }
+      }
+    }
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setProcessing(false);
+      return;
+    }
     try {
-      const response = await fetch(submitRoute, {
+      const cleanedData = { ...data };
+      Object.keys(cleanedData).forEach((key) => {
+        if (cleanedData[key] === "") {
+          cleanedData[key] = null;
+        }
+      });
+      if (cleanedData.type === "email") {
+        cleanedData.domain = null;
+      } else if (cleanedData.type === "domain") {
+        cleanedData.email = null;
+      }
+      const response = await clientApiRequest(submitRoute, {
         method: method.toUpperCase(),
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
+        body: JSON.stringify(cleanedData)
       });
       if (response.ok) {
-        window.location.href = backRoute;
+        setSuccess(true);
+        setProcessing(false);
+        setTimeout(() => {
+          window.location.href = backRoute;
+        }, 1500);
       } else {
         const errorData = await response.json();
         setErrors(errorData.errors || { general: "An error occurred" });
+        setSubmitFailed(true);
+        setProcessing(false);
       }
     } catch {
       setErrors({ general: "Network error occurred" });
-    } finally {
+      setSubmitFailed(true);
       setProcessing(false);
     }
   };
   const handleDataChange = (key, value) => {
     setDataState((prev) => ({ ...prev, [key]: value }));
+    const validationError = validateField(key, value);
+    setErrors((prev) => ({
+      ...prev,
+      [key]: validationError || void 0
+    }));
   };
   const reset = () => {
     setDataState(initialData);
     setErrors({});
   };
   const headingTitle = isNew ? `Create ${title}` : readonly ? `View ${title}` : `Edit ${title}`;
-  return /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime45.jsxs)("div", { className: "space-y-6", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime45.jsxs)("div", { className: "flex items-center justify-between", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(Heading, { title: headingTitle }),
-      /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(Button, { style: "outline", icon: IconArrowLeft, onClick: () => window.location.href = backRoute, children: "Back to List" })
+  return /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime46.jsxs)("div", { className: "space-y-6", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime46.jsxs)("div", { className: "flex items-center justify-between", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime46.jsx)(Heading, { title: headingTitle }),
+      /* @__PURE__ */ (0, import_jsx_runtime46.jsx)(Button, { style: "outline", icon: IconArrowLeft, onClick: () => window.location.href = backRoute, children: "Back to List" })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("form", { onSubmit: handleSubmit, children: /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(Card, { children: /* @__PURE__ */ (0, import_jsx_runtime45.jsxs)(CardBody, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(CardTitle, { children: isNew ? `New ${title}` : `${title} Details` }),
+    /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("form", { onSubmit: handleSubmit, children: /* @__PURE__ */ (0, import_jsx_runtime46.jsx)(Card, { children: /* @__PURE__ */ (0, import_jsx_runtime46.jsxs)(CardBody, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime46.jsx)(CardTitle, { children: isNew ? `New ${title}` : `${title} Details` }),
       renderForm(data, handleDataChange, errors, processing, readonly),
-      !readonly && /* @__PURE__ */ (0, import_jsx_runtime45.jsxs)(CardActions, { justify: "between", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime45.jsx)(
+      !readonly && /* @__PURE__ */ (0, import_jsx_runtime46.jsxs)(CardActions, { justify: "between", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime46.jsx)(
           Button,
           {
             type: "button",
@@ -43655,16 +44109,26 @@ function ModelEdit({
             children: "Reset"
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime45.jsxs)(Button, { type: "submit", disabled: processing, children: [
-          isNew ? "Create" : "Update",
-          " ",
-          title
-        ] })
+        /* @__PURE__ */ (0, import_jsx_runtime46.jsxs)(
+          Button,
+          {
+            type: "submit",
+            disabled: processing,
+            processing,
+            success,
+            fail: submitFailed,
+            children: [
+              isNew ? "Create" : "Update",
+              " ",
+              title
+            ]
+          }
+        )
       ] })
     ] }) }) })
   ] }) });
 }
-var import_react127, import_jsx_runtime45;
+var import_react128, import_jsx_runtime46;
 var init_model_edit = __esm({
   "src/components/model/model-edit.tsx"() {
     "use strict";
@@ -43672,8 +44136,9 @@ var init_model_edit = __esm({
     init_button2();
     init_card();
     init_tabler_icons_react();
-    import_react127 = __toESM(require_react(), 1);
-    import_jsx_runtime45 = __toESM(require_jsx_runtime(), 1);
+    import_react128 = __toESM(require_react(), 1);
+    init_client_api();
+    import_jsx_runtime46 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -43687,11 +44152,11 @@ function CreateUserPage() {
     id: "",
     // Will be generated by the server
     email: "",
-    name: "",
-    picture: "",
+    name: null,
+    picture: null,
     role: "user"
   };
-  return /* @__PURE__ */ (0, import_jsx_runtime46.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime47.jsx)(
     ModelEdit,
     {
       title: "User",
@@ -43703,135 +44168,13 @@ function CreateUserPage() {
     }
   );
 }
-var import_jsx_runtime46, renderUserForm;
+var import_jsx_runtime47, renderUserForm;
 var init_page5 = __esm({
   "src/app/dashboard/users/create/page.tsx"() {
     "use strict";
     init_model_edit();
-    import_jsx_runtime46 = __toESM(require_jsx_runtime(), 1);
-    renderUserForm = (data, setData, errors, processing, readonly) => {
-      return /* @__PURE__ */ (0, import_jsx_runtime46.jsxs)("div", { className: "space-y-4", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime46.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("span", { className: "label-text", children: "Email *" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime46.jsx)(
-            "input",
-            {
-              type: "email",
-              className: `input input-bordered w-full ${errors?.email ? "input-error" : ""}`,
-              value: data.email || "",
-              onChange: (e8) => setData("email", e8.target.value),
-              disabled: processing || readonly,
-              placeholder: "Enter email address",
-              required: true
-            }
-          ),
-          errors?.email && /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("span", { className: "label-text-alt text-error", children: errors.email }) })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime46.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("span", { className: "label-text", children: "Full Name" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime46.jsx)(
-            "input",
-            {
-              type: "text",
-              className: `input input-bordered w-full ${errors?.name ? "input-error" : ""}`,
-              value: data.name || "",
-              onChange: (e8) => setData("name", e8.target.value),
-              disabled: processing || readonly,
-              placeholder: "Enter full name (optional)"
-            }
-          ),
-          errors?.name && /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("span", { className: "label-text-alt text-error", children: errors?.name }) })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime46.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("span", { className: "label-text", children: "Role *" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime46.jsxs)(
-            "select",
-            {
-              className: `select select-bordered w-full ${errors?.role ? "select-error" : ""}`,
-              value: data.role || "user",
-              onChange: (e8) => setData("role", e8.target.value),
-              disabled: processing || readonly,
-              required: true,
-              children: [
-                /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("option", { value: "user", children: "User" }),
-                /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("option", { value: "admin", children: "Admin" })
-              ]
-            }
-          ),
-          errors?.role && /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("span", { className: "label-text-alt text-error", children: errors?.role }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("span", { className: "label-text-alt", children: "Users can manage their own data, admins can manage all system data." }) })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime46.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("span", { className: "label-text", children: "Profile Picture URL" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime46.jsx)(
-            "input",
-            {
-              type: "url",
-              className: `input input-bordered w-full ${errors?.picture ? "input-error" : ""}`,
-              value: data.picture || "",
-              onChange: (e8) => setData("picture", e8.target.value),
-              disabled: processing || readonly,
-              placeholder: "https://example.com/avatar.jpg (optional)"
-            }
-          ),
-          errors?.picture && /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("span", { className: "label-text-alt text-error", children: errors?.picture }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("span", { className: "label-text-alt", children: "Profile pictures are typically managed through Google OAuth." }) })
-        ] }),
-        readonly && data.created_at && /* @__PURE__ */ (0, import_jsx_runtime46.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime46.jsx)("span", { className: "label-text", children: "Created At" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime46.jsx)(
-            "input",
-            {
-              type: "text",
-              className: "input input-bordered w-full",
-              value: new Date(data.created_at).toLocaleString(),
-              disabled: true
-            }
-          )
-        ] })
-      ] });
-    };
-  }
-});
-
-// src/app/dashboard/users/edit/[id]/page.tsx
-var page_exports6 = {};
-__export(page_exports6, {
-  default: () => EditUserPage
-});
-function EditUserPage({
-  user,
-  params
-}) {
-  if (!user && params?.id) {
-    return /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("div", { className: "alert alert-warning", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsxs)("span", { children: [
-      "Loading user data for ID: ",
-      params.id,
-      "..."
-    ] }) }) });
-  }
-  if (!user) {
-    return /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("div", { className: "alert alert-error", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("span", { children: "User not found" }) }) });
-  }
-  return /* @__PURE__ */ (0, import_jsx_runtime47.jsx)(
-    ModelEdit,
-    {
-      title: "User",
-      item: user,
-      backRoute: "/dashboard/users",
-      submitRoute: `/api/users/${user.id}`,
-      method: "put",
-      renderForm: renderUserForm2
-    }
-  );
-}
-var import_jsx_runtime47, renderUserForm2;
-var init_page6 = __esm({
-  "src/app/dashboard/users/edit/[id]/page.tsx"() {
-    "use strict";
-    init_model_edit();
     import_jsx_runtime47 = __toESM(require_jsx_runtime(), 1);
-    renderUserForm2 = (data, setData, errors, processing, readonly) => {
+    renderUserForm = (data, setData, errors, processing, readonly) => {
       return /* @__PURE__ */ (0, import_jsx_runtime47.jsxs)("div", { className: "space-y-4", children: [
         /* @__PURE__ */ (0, import_jsx_runtime47.jsxs)("div", { className: "form-control w-full", children: [
           /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("span", { className: "label-text", children: "Email *" }) }),
@@ -43847,7 +44190,7 @@ var init_page6 = __esm({
               required: true
             }
           ),
-          errors?.email && /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("span", { className: "label-text-alt text-error", children: errors?.email }) })
+          errors?.email && /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("span", { className: "label-text-alt text-error", children: errors.email }) })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime47.jsxs)("div", { className: "form-control w-full", children: [
           /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("span", { className: "label-text", children: "Full Name" }) }),
@@ -43899,10 +44242,172 @@ var init_page6 = __esm({
           errors?.picture && /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("span", { className: "label-text-alt text-error", children: errors?.picture }) }),
           /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("span", { className: "label-text-alt", children: "Profile pictures are typically managed through Google OAuth." }) })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("div", { className: "divider", children: "System Information" }),
-        /* @__PURE__ */ (0, import_jsx_runtime47.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("span", { className: "label-text", children: "User ID" }) }),
+        readonly && data.created_at && /* @__PURE__ */ (0, import_jsx_runtime47.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("span", { className: "label-text", children: "Created At" }) }),
           /* @__PURE__ */ (0, import_jsx_runtime47.jsx)(
+            "input",
+            {
+              type: "text",
+              className: "input input-bordered w-full",
+              value: new Date(data.created_at).toLocaleString(),
+              disabled: true
+            }
+          )
+        ] })
+      ] });
+    };
+  }
+});
+
+// src/app/dashboard/users/edit/[id]/page.tsx
+var page_exports6 = {};
+__export(page_exports6, {
+  default: () => EditUserPage
+});
+function EditUserPage({
+  userData,
+  userId,
+  ...props
+}) {
+  console.log("EditUserPage props:", { userData, userId, props });
+  const [user, setUser] = import_react129.default.useState(userData || null);
+  const [loading, setLoading] = import_react129.default.useState(!userData);
+  const [error2, setError] = import_react129.default.useState(null);
+  import_react129.default.useEffect(() => {
+    if (userData) {
+      setUser(userData);
+      setLoading(false);
+      return;
+    }
+    const fetchUser = async () => {
+      if (!userId) {
+        setError("User ID is required");
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await clientApiRequest(`/api/users/${userId}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError("User not found");
+          } else {
+            setError("Failed to load user data");
+          }
+          setLoading(false);
+          return;
+        }
+        const fetchedUserData = await response.json();
+        setUser(fetchedUserData);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching user:", err);
+        setError("Failed to load user data");
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, [userData, userId]);
+  if (loading) {
+    return /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("div", { className: "alert alert-info", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { children: "Loading user data..." }) }) });
+  }
+  if (error2) {
+    return /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("div", { className: "alert alert-error", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { children: error2 }) }) });
+  }
+  if (!user) {
+    return /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("div", { className: "alert alert-error", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { children: "User not found" }) }) });
+  }
+  return /* @__PURE__ */ (0, import_jsx_runtime48.jsx)(
+    ModelEdit,
+    {
+      title: "User",
+      item: user,
+      backRoute: "/dashboard/users",
+      submitRoute: `/api/users/${user.id}`,
+      method: "put",
+      renderForm: renderUserForm2
+    }
+  );
+}
+var import_react129, import_jsx_runtime48, renderUserForm2;
+var init_page6 = __esm({
+  "src/app/dashboard/users/edit/[id]/page.tsx"() {
+    "use strict";
+    import_react129 = __toESM(require_react(), 1);
+    init_model_edit();
+    init_client_api();
+    import_jsx_runtime48 = __toESM(require_jsx_runtime(), 1);
+    renderUserForm2 = (data, setData, errors, processing, readonly) => {
+      return /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text", children: "Email *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsx)(
+            "input",
+            {
+              type: "email",
+              className: `input input-bordered w-full ${errors?.email ? "input-error" : ""}`,
+              value: data.email || "",
+              onChange: (e8) => setData("email", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "Enter email address",
+              required: true
+            }
+          ),
+          errors?.email && /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text-alt text-error", children: errors?.email }) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text", children: "Full Name" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsx)(
+            "input",
+            {
+              type: "text",
+              className: `input input-bordered w-full ${errors?.name ? "input-error" : ""}`,
+              value: data.name || "",
+              onChange: (e8) => setData("name", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "Enter full name (optional)"
+            }
+          ),
+          errors?.name && /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text-alt text-error", children: errors?.name }) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text", children: "Role *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)(
+            "select",
+            {
+              className: `select select-bordered w-full ${errors?.role ? "select-error" : ""}`,
+              value: data.role || "user",
+              onChange: (e8) => setData("role", e8.target.value),
+              disabled: processing || readonly,
+              required: true,
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("option", { value: "user", children: "User" }),
+                /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("option", { value: "admin", children: "Admin" })
+              ]
+            }
+          ),
+          errors?.role && /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text-alt text-error", children: errors?.role }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text-alt", children: "Users can manage their own data, admins can manage all system data." }) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text", children: "Profile Picture URL" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsx)(
+            "input",
+            {
+              type: "url",
+              className: `input input-bordered w-full ${errors?.picture ? "input-error" : ""}`,
+              value: data.picture || "",
+              onChange: (e8) => setData("picture", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "https://example.com/avatar.jpg (optional)"
+            }
+          ),
+          errors?.picture && /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text-alt text-error", children: errors?.picture }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text-alt", children: "Profile pictures are typically managed through Google OAuth." }) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("div", { className: "divider", children: "System Information" }),
+        /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text", children: "User ID" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsx)(
             "input",
             {
               type: "text",
@@ -43912,10 +44417,10 @@ var init_page6 = __esm({
             }
           )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime47.jsxs)("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime47.jsxs)("div", { className: "form-control w-full", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("span", { className: "label-text", children: "Created At" }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime47.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "form-control w-full", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text", children: "Created At" }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime48.jsx)(
               "input",
               {
                 type: "text",
@@ -43925,9 +44430,9 @@ var init_page6 = __esm({
               }
             )
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime47.jsxs)("div", { className: "form-control w-full", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime47.jsx)("span", { className: "label-text", children: "Updated At" }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime47.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "form-control w-full", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "label-text", children: "Updated At" }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime48.jsx)(
               "input",
               {
                 type: "text",
@@ -43952,7 +44457,7 @@ function TokensPage({
   tokens,
   filters
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime48.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)(
     ModelList,
     {
       title: "API Tokens",
@@ -43967,12 +44472,13 @@ function TokensPage({
     }
   );
 }
-var import_jsx_runtime48, tokenColumns, tokenMassActions;
+var import_jsx_runtime49, tokenColumns, tokenMassActions;
 var init_page7 = __esm({
   "src/app/dashboard/tokens/page.tsx"() {
     "use strict";
     init_model_list();
-    import_jsx_runtime48 = __toESM(require_jsx_runtime(), 1);
+    init_date_utils();
+    import_jsx_runtime49 = __toESM(require_jsx_runtime(), 1);
     tokenColumns = [
       {
         key: "name",
@@ -43987,7 +44493,7 @@ var init_page7 = __esm({
       {
         key: "token",
         label: "Token",
-        render: (token) => /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("span", { className: "font-mono text-xs", children: [
+        render: (token) => /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("span", { className: "font-mono text-xs", children: [
           token.token.substring(0, 8),
           "...",
           token.token.substring(token.token.length - 4)
@@ -44030,7 +44536,7 @@ var init_page7 = __esm({
             badgeColor = "badge-primary";
             label = "Read & Write";
           }
-          return /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: `badge ${badgeColor}`, children: label });
+          return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: `badge ${badgeColor}`, children: label });
         }
       },
       {
@@ -44044,16 +44550,16 @@ var init_page7 = __esm({
           if (!token.allowedDomains) return "-";
           try {
             const domains = JSON.parse(token.allowedDomains);
-            return /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "text-xs", children: [
-              domains.slice(0, 2).map((domain, idx) => /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("div", { className: "truncate max-w-32", children: domain }, idx)),
-              domains.length > 2 && /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "text-gray-500", children: [
+            return /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "text-xs", children: [
+              domains.slice(0, 2).map((domain, idx) => /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("div", { className: "truncate max-w-32", children: domain }, idx)),
+              domains.length > 2 && /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "text-gray-500", children: [
                 "+",
                 domains.length - 2,
                 " more"
               ] })
             ] });
           } catch {
-            return /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "text-xs text-gray-500", children: "Invalid JSON" });
+            return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "text-xs text-gray-500", children: "Invalid JSON" });
           }
         }
       },
@@ -44068,16 +44574,16 @@ var init_page7 = __esm({
           if (!token.allowedIps) return "-";
           try {
             const ips = JSON.parse(token.allowedIps);
-            return /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "text-xs", children: [
-              ips.slice(0, 2).map((ip, idx) => /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("div", { className: "font-mono", children: ip }, idx)),
-              ips.length > 2 && /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "text-gray-500", children: [
+            return /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "text-xs", children: [
+              ips.slice(0, 2).map((ip, idx) => /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("div", { className: "font-mono", children: ip }, idx)),
+              ips.length > 2 && /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "text-gray-500", children: [
                 "+",
                 ips.length - 2,
                 " more"
               ] })
             ] });
           } catch {
-            return /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "text-xs text-gray-500", children: "Invalid JSON" });
+            return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "text-xs text-gray-500", children: "Invalid JSON" });
           }
         }
       },
@@ -44091,11 +44597,11 @@ var init_page7 = __esm({
         editType: "date",
         render: (token) => {
           if (!token.expiresAt) {
-            return /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "text-green-600 text-xs", children: "Never" });
+            return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "text-green-600 text-xs", children: "Never" });
           }
           const expiresDate = new Date(token.expiresAt);
           const isExpired = expiresDate < /* @__PURE__ */ new Date();
-          return /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: `text-xs ${isExpired ? "text-red-600" : "text-gray-600"}`, children: expiresDate.toLocaleDateString() });
+          return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: `text-xs ${isExpired ? "text-red-600" : "text-gray-600"}`, children: formatApiDate(token.expiresAt) });
         }
       },
       {
@@ -44104,7 +44610,7 @@ var init_page7 = __esm({
         sortable: true,
         filterable: true,
         filterType: "date",
-        render: (token) => /* @__PURE__ */ (0, import_jsx_runtime48.jsx)("span", { className: "text-xs text-gray-500", children: new Date(token.createdAt).toLocaleDateString() })
+        render: (token) => /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "text-xs text-gray-500", children: formatApiDate(token.createdAt) })
       }
     ];
     tokenMassActions = [
@@ -44141,7 +44647,7 @@ function AllowedEmailsPage({
   allowedEmails,
   filters
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
     ModelList,
     {
       title: "Allowed Emails",
@@ -44150,18 +44656,20 @@ function AllowedEmailsPage({
       columns: allowedEmailColumns,
       createRoute: "/dashboard/allowed-emails/create",
       editRoute: (id) => `/dashboard/allowed-emails/edit/${id}`,
+      inlineEditRoute: (id) => `/api/allowed-emails/${id}`,
       deleteRoute: (id) => `/api/allowed-emails/${id}`,
       massActionRoute: "/api/allowed-emails/mass-action",
       massActions: allowedEmailMassActions
     }
   );
 }
-var import_jsx_runtime49, allowedEmailColumns, allowedEmailMassActions;
+var import_jsx_runtime50, allowedEmailColumns, allowedEmailMassActions;
 var init_page8 = __esm({
   "src/app/dashboard/allowed-emails/page.tsx"() {
     "use strict";
     init_model_list();
-    import_jsx_runtime49 = __toESM(require_jsx_runtime(), 1);
+    init_date_utils();
+    import_jsx_runtime50 = __toESM(require_jsx_runtime(), 1);
     allowedEmailColumns = [
       {
         key: "type",
@@ -44179,7 +44687,7 @@ var init_page8 = __esm({
           { value: "email", label: "Specific Email" },
           { value: "domain", label: "Domain Pattern" }
         ],
-        render: (allowedEmail) => /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: `badge ${allowedEmail.type === "email" ? "badge-primary" : "badge-secondary"}`, children: allowedEmail.type === "email" ? "Email" : "Domain" })
+        render: (allowedEmail) => /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: `badge ${allowedEmail.type === "email" ? "badge-primary" : "badge-secondary"}`, children: allowedEmail.type === "email" ? "Email" : "Domain" })
       },
       {
         key: "email",
@@ -44194,9 +44702,9 @@ var init_page8 = __esm({
         },
         render: (allowedEmail) => {
           if (allowedEmail.type === "email" && allowedEmail.email) {
-            return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "font-mono text-sm", children: allowedEmail.email });
+            return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "font-mono text-sm", children: allowedEmail.email });
           }
-          return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "text-gray-400", children: "-" });
+          return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "text-gray-400", children: "-" });
         }
       },
       {
@@ -44212,9 +44720,9 @@ var init_page8 = __esm({
         },
         render: (allowedEmail) => {
           if (allowedEmail.type === "domain" && allowedEmail.domain) {
-            return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "font-mono text-sm", children: allowedEmail.domain.startsWith("@") ? allowedEmail.domain : `@${allowedEmail.domain}` });
+            return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "font-mono text-sm", children: allowedEmail.domain.startsWith("@") ? allowedEmail.domain : `@${allowedEmail.domain}` });
           }
-          return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "text-gray-400", children: "-" });
+          return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "text-gray-400", children: "-" });
         }
       },
       {
@@ -44223,7 +44731,7 @@ var init_page8 = __esm({
         sortable: true,
         filterable: true,
         filterType: "date",
-        render: (allowedEmail) => /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "text-sm text-gray-600", children: new Date(allowedEmail.createdAt).toLocaleDateString() })
+        render: (allowedEmail) => /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "text-sm text-gray-600", children: formatApiDate(allowedEmail.createdAt) })
       }
     ];
     allowedEmailMassActions = [
@@ -44243,6 +44751,286 @@ var init_page8 = __esm({
         confirmMessage: "Are you sure you want to remove the selected entries from the allowed list? This may prevent some users from accessing the system."
       }
     ];
+  }
+});
+
+// src/app/dashboard/allowed-emails/create/page.tsx
+var page_exports9 = {};
+__export(page_exports9, {
+  default: () => CreateAllowedEmailPage
+});
+function CreateAllowedEmailPage() {
+  const newAllowedEmail = {
+    id: "",
+    // Will be generated by the server
+    email: null,
+    domain: null,
+    type: "email"
+    // Default to email type
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime51.jsx)(
+    ModelEdit,
+    {
+      title: "Allowed Email",
+      item: newAllowedEmail,
+      backRoute: "/dashboard/allowed-emails",
+      submitRoute: "/api/allowed-emails",
+      method: "post",
+      renderForm: renderAllowedEmailForm
+    }
+  );
+}
+var import_jsx_runtime51, renderAllowedEmailForm;
+var init_page9 = __esm({
+  "src/app/dashboard/allowed-emails/create/page.tsx"() {
+    "use strict";
+    init_model_edit();
+    import_jsx_runtime51 = __toESM(require_jsx_runtime(), 1);
+    renderAllowedEmailForm = (data, setData, errors, processing, readonly) => {
+      return /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text", children: "Type *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)(
+            "select",
+            {
+              className: `select select-bordered w-full ${errors?.type ? "select-error" : ""}`,
+              value: data.type || "email",
+              onChange: (e8) => {
+                setData("type", e8.target.value);
+                if (e8.target.value === "email") {
+                  setData("domain", null);
+                } else {
+                  setData("email", null);
+                }
+              },
+              disabled: processing || readonly,
+              required: true,
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("option", { value: "email", children: "Specific Email" }),
+                /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("option", { value: "domain", children: "Domain Pattern" })
+              ]
+            }
+          ),
+          errors?.type && /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text-alt text-error", children: errors.type }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text-alt", children: 'Choose "Specific Email" to allow one email address, or "Domain Pattern" to allow all emails from a domain.' }) })
+        ] }),
+        data.type === "email" && /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text", children: "Email Address *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)(
+            "input",
+            {
+              type: "email",
+              className: `input input-bordered w-full ${errors?.email ? "input-error" : ""}`,
+              value: data.email || "",
+              onChange: (e8) => setData("email", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "user@example.com",
+              required: true
+            }
+          ),
+          errors?.email && /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text-alt text-error", children: errors.email }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text-alt", children: "Enter the specific email address to allow access." }) })
+        ] }),
+        data.type === "domain" && /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text", children: "Domain Pattern *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)(
+            "input",
+            {
+              type: "text",
+              className: `input input-bordered w-full ${errors?.domain ? "input-error" : ""}`,
+              value: data.domain || "",
+              onChange: (e8) => setData("domain", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "example.com or @example.com",
+              required: true
+            }
+          ),
+          errors?.domain && /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text-alt text-error", children: errors.domain }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text-alt", children: 'Enter a domain like "example.com" to allow all emails from that domain (e.g., user@example.com, admin@example.com).' }) })
+        ] }),
+        readonly && data.created_at && /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text", children: "Created At" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)(
+            "input",
+            {
+              type: "text",
+              className: "input input-bordered w-full",
+              value: new Date(data.created_at).toLocaleString(),
+              disabled: true
+            }
+          )
+        ] })
+      ] });
+    };
+  }
+});
+
+// src/app/dashboard/allowed-emails/edit/[id]/page.tsx
+var page_exports10 = {};
+__export(page_exports10, {
+  default: () => EditAllowedEmailPage
+});
+function EditAllowedEmailPage({
+  allowedEmailData,
+  allowedEmailId,
+  ...props
+}) {
+  console.log("EditAllowedEmailPage props:", { allowedEmailData, allowedEmailId, props });
+  const [allowedEmail, setAllowedEmail] = import_react130.default.useState(allowedEmailData || null);
+  const [loading, setLoading] = import_react130.default.useState(!allowedEmailData);
+  const [error2, setError] = import_react130.default.useState(null);
+  import_react130.default.useEffect(() => {
+    if (allowedEmailData) {
+      setAllowedEmail(allowedEmailData);
+      setLoading(false);
+      return;
+    }
+    const fetchAllowedEmail = async () => {
+      if (!allowedEmailId) {
+        setError("Allowed Email ID is required");
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await clientApiRequest(`/api/allowed-emails/${allowedEmailId}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError("Allowed email rule not found");
+          } else {
+            setError("Failed to load allowed email data");
+          }
+          setLoading(false);
+          return;
+        }
+        const fetchedAllowedEmailData = await response.json();
+        setAllowedEmail(fetchedAllowedEmailData);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching allowed email:", err);
+        setError("Failed to load allowed email data");
+        setLoading(false);
+      }
+    };
+    fetchAllowedEmail();
+  }, [allowedEmailData, allowedEmailId]);
+  if (loading) {
+    return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "alert alert-info", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { children: "Loading allowed email data..." }) }) });
+  }
+  if (error2) {
+    return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "alert alert-error", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { children: error2 }) }) });
+  }
+  if (!allowedEmail) {
+    return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "alert alert-error", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { children: "Allowed email rule not found" }) }) });
+  }
+  return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)(
+    ModelEdit,
+    {
+      title: "Allowed Email",
+      item: allowedEmail,
+      backRoute: "/dashboard/allowed-emails",
+      submitRoute: `/api/allowed-emails/${allowedEmail.id}`,
+      method: "put",
+      renderForm: renderAllowedEmailForm2
+    }
+  );
+}
+var import_react130, import_jsx_runtime52, renderAllowedEmailForm2;
+var init_page10 = __esm({
+  "src/app/dashboard/allowed-emails/edit/[id]/page.tsx"() {
+    "use strict";
+    import_react130 = __toESM(require_react(), 1);
+    init_model_edit();
+    init_client_api();
+    import_jsx_runtime52 = __toESM(require_jsx_runtime(), 1);
+    renderAllowedEmailForm2 = (data, setData, errors, processing, readonly) => {
+      return /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text", children: "Type *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)(
+            "select",
+            {
+              className: `select select-bordered w-full ${errors?.type ? "select-error" : ""}`,
+              value: data.type || "email",
+              onChange: (e8) => {
+                setData("type", e8.target.value);
+                if (e8.target.value === "email") {
+                  setData("domain", null);
+                } else {
+                  setData("email", null);
+                }
+              },
+              disabled: processing || readonly,
+              required: true,
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("option", { value: "email", children: "Specific Email" }),
+                /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("option", { value: "domain", children: "Domain Pattern" })
+              ]
+            }
+          ),
+          errors?.type && /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text-alt text-error", children: errors.type }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text-alt", children: 'Choose "Specific Email" to allow one email address, or "Domain Pattern" to allow all emails from a domain.' }) })
+        ] }),
+        data.type === "email" && /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text", children: "Email Address *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)(
+            "input",
+            {
+              type: "email",
+              className: `input input-bordered w-full ${errors?.email ? "input-error" : ""}`,
+              value: data.email || "",
+              onChange: (e8) => setData("email", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "user@example.com",
+              required: true
+            }
+          ),
+          errors?.email && /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text-alt text-error", children: errors.email }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text-alt", children: "Enter the specific email address to allow access." }) })
+        ] }),
+        data.type === "domain" && /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text", children: "Domain Pattern *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)(
+            "input",
+            {
+              type: "text",
+              className: `input input-bordered w-full ${errors?.domain ? "input-error" : ""}`,
+              value: data.domain || "",
+              onChange: (e8) => setData("domain", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "example.com or @example.com",
+              required: true
+            }
+          ),
+          errors?.domain && /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text-alt text-error", children: errors.domain }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text-alt", children: 'Enter a domain like "example.com" to allow all emails from that domain (e.g., user@example.com, admin@example.com).' }) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "divider", children: "System Information" }),
+        /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text", children: "Rule ID" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)(
+            "input",
+            {
+              type: "text",
+              className: "input input-bordered w-full",
+              value: data.id,
+              disabled: true
+            }
+          )
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text", children: "Created At" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)(
+            "input",
+            {
+              type: "text",
+              className: "input input-bordered w-full",
+              value: new Date(data.created_at).toLocaleString(),
+              disabled: true
+            }
+          )
+        ] })
+      ] });
+    };
   }
 });
 
@@ -44279,7 +45067,9 @@ var pageComponents = {
   "/dashboard/users/create": async () => (await Promise.resolve().then(() => (init_page5(), page_exports5))).default,
   "/dashboard/users/edit/[id]": async () => (await Promise.resolve().then(() => (init_page6(), page_exports6))).default,
   "/dashboard/tokens": async () => (await Promise.resolve().then(() => (init_page7(), page_exports7))).default,
-  "/dashboard/allowed-emails": async () => (await Promise.resolve().then(() => (init_page8(), page_exports8))).default
+  "/dashboard/allowed-emails": async () => (await Promise.resolve().then(() => (init_page8(), page_exports8))).default,
+  "/dashboard/allowed-emails/create": async () => (await Promise.resolve().then(() => (init_page9(), page_exports9))).default,
+  "/dashboard/allowed-emails/edit/[id]": async () => (await Promise.resolve().then(() => (init_page10(), page_exports10))).default
 };
 
 // src/lib/layout-setup.ts
@@ -44313,7 +45103,7 @@ async function initializeLayoutSystem() {
 }
 
 // src/client.tsx
-var import_jsx_runtime50 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime53 = __toESM(require_jsx_runtime(), 1);
 await initializeLayoutSystem();
 var initTheme = () => {
   if (typeof window !== "undefined") {
@@ -44332,14 +45122,14 @@ if (appElement) {
   const searchParams = Object.fromEntries(
     new URLSearchParams(window.location.search).entries()
   );
-  const content = /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
+  const content = /* @__PURE__ */ (0, import_jsx_runtime53.jsx)(
     LayoutProvider,
     {
       layoutSystem,
       currentRoute: path,
       params,
       searchParams,
-      children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
+      children: /* @__PURE__ */ (0, import_jsx_runtime53.jsx)(
         LayoutRenderer,
         {
           route,
@@ -44435,6 +45225,8 @@ react/cjs/react-jsx-runtime.development.js:
 @tabler/icons-react/dist/esm/icons/IconMail.mjs:
 @tabler/icons-react/dist/esm/icons/IconPlus.mjs:
 @tabler/icons-react/dist/esm/icons/IconTrash.mjs:
+@tabler/icons-react/dist/esm/icons/IconUserCheck.mjs:
+@tabler/icons-react/dist/esm/icons/IconUserX.mjs:
 @tabler/icons-react/dist/esm/icons/IconUser.mjs:
 @tabler/icons-react/dist/esm/icons/IconUsers.mjs:
 @tabler/icons-react/dist/esm/icons/IconX.mjs:

@@ -3,6 +3,7 @@ import { TableCell } from '@/components/ui/table';
 import { IModel } from '@/types/models';
 import { IconCalendar, IconX } from '@tabler/icons-react';
 import React from 'react';
+import { formatApiDate } from '@/lib/date-utils';
 import { IColumnDefinition } from '../types';
 
 export interface DateFilterCellProps<T extends IModel> {
@@ -39,7 +40,7 @@ export function DateFilterCell<T extends IModel>({
                     size="sm"
                     type="text"
                     placeholder={`Filter ${column.label.toLowerCase()}...`}
-                    value={filterValue ? new Date(filterValue).toLocaleDateString() : ''}
+                    value={filterValue ? formatApiDate(filterValue) : ''}
                     onClick={() => onToggleDateFilter(columnKey)}
                     readOnly
                     suffix={

@@ -6,6 +6,7 @@
 import React from 'react';
 import { ModelList, IColumnDefinition } from '../../components/model/model-list';
 import { IPaginatedResponse } from '../../types/models';
+import { formatApiDate } from '../../lib/date-utils';
 
 // Item interface based on the backend structure with adapted frontend data
 interface Item {
@@ -93,7 +94,7 @@ const itemColumns: IColumnDefinition<Item>[] = [
     sortable: true,
     filterable: true,
     filterType: 'date',
-    render: (item) => new Date(item.updatedAt).toLocaleDateString()
+    render: (item) => formatApiDate(item.updatedAt)
   }
 ];
 

@@ -24,9 +24,10 @@ export function LayoutRenderer({
   children,
   pageProps = {}
 }: LayoutRendererProps) {
-  // Convert params and searchParams to Promises (Next.js 15+ pattern)
-  const asyncParams = useMemo(() => Promise.resolve(params), [params])
-  const asyncSearchParams = useMemo(() => Promise.resolve(searchParams), [searchParams])
+  // For SSR compatibility, pass params and searchParams directly
+  // Only convert to Promises if we're in client-side routing context
+  const asyncParams = useMemo(() => params, [params])
+  const asyncSearchParams = useMemo(() => searchParams, [searchParams])
 
   // Build the nested layout structure
   const renderLayoutHierarchy = useMemo(() => {
@@ -139,8 +140,8 @@ export function LayoutWrapper({
   searchParams?: Record<string, string | string[]>
 }) {
   const LayoutComponent = layout.component
-  const asyncParams = useMemo(() => Promise.resolve(params), [params])
-  const asyncSearchParams = useMemo(() => Promise.resolve(searchParams), [searchParams])
+  const asyncParams = useMemo(() => params, [params])
+  const asyncSearchParams = useMemo(() => searchParams, [searchParams])
 
   const layoutProps: LayoutProps = {
     children,

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { getPrismaClient } from '../lib/database.js';
 import { writeAuthMiddleware } from '../middleware/auth.js';
+import { formatApiDate } from '../lib/date-utils.js';
 
 const app = new Hono();
 
@@ -54,13 +55,11 @@ app.get('/', writeAuthMiddleware, async (c) => {
         const column = key.replace('filter_', '');
         if (column === 'name') {
           whereConditions[column] = {
-            contains: value,
-            mode: 'insensitive'
+            contains: value
           };
         } else if (column === 'permissions') {
           whereConditions.permissions = {
-            contains: value,
-            mode: 'insensitive'
+            contains: value
           };
         } else if (column === 'created_at') {
           // Handle date filtering
@@ -131,9 +130,9 @@ app.get('/', writeAuthMiddleware, async (c) => {
         ...token,
         allowed_ips: token.allowedIps,
         allowed_domains: token.allowedDomains,
-        expires_at: token.expiresAt?.toISOString() || null,
-        created_at: token.createdAt.toISOString(),
-        updated_at: token.updatedAt.toISOString(),
+        expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
+        created_at: formatApiDate(token.createdAt),
+        updated_at: formatApiDate(token.updatedAt),
       })),
       current_page: pageNum,
       last_page: Math.ceil(totalCount / limitNum),
@@ -181,9 +180,9 @@ app.get('/:id', writeAuthMiddleware, async (c) => {
       ...token,
       allowed_ips: token.allowedIps,
       allowed_domains: token.allowedDomains,
-      expires_at: token.expiresAt?.toISOString() || null,
-      created_at: token.createdAt.toISOString(),
-      updated_at: token.updatedAt.toISOString(),
+      expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
+      created_at: formatApiDate(token.createdAt),
+      updated_at: formatApiDate(token.updatedAt),
     };
 
     return c.json(response);
@@ -240,9 +239,9 @@ app.post('/', writeAuthMiddleware, zValidator('json', CreateTokenSchema), async 
       ...token,
       allowed_ips: token.allowedIps,
       allowed_domains: token.allowedDomains,
-      expires_at: token.expiresAt?.toISOString() || null,
-      created_at: token.createdAt.toISOString(),
-      updated_at: token.updatedAt.toISOString(),
+      expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
+      created_at: formatApiDate(token.createdAt),
+      updated_at: formatApiDate(token.updatedAt),
     };
 
     return c.json(response, 201);
@@ -314,9 +313,9 @@ app.put('/:id', writeAuthMiddleware, zValidator('json', UpdateTokenSchema), asyn
       ...token,
       allowed_ips: token.allowedIps,
       allowed_domains: token.allowedDomains,
-      expires_at: token.expiresAt?.toISOString() || null,
-      created_at: token.createdAt.toISOString(),
-      updated_at: token.updatedAt.toISOString(),
+      expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
+      created_at: formatApiDate(token.createdAt),
+      updated_at: formatApiDate(token.updatedAt),
     };
 
     return c.json(response);
@@ -397,9 +396,9 @@ app.patch('/:id', writeAuthMiddleware, async (c) => {
       ...token,
       allowed_ips: token.allowedIps,
       allowed_domains: token.allowedDomains,
-      expires_at: token.expiresAt?.toISOString() || null,
-      created_at: token.createdAt.toISOString(),
-      updated_at: token.updatedAt.toISOString(),
+      expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
+      created_at: formatApiDate(token.createdAt),
+      updated_at: formatApiDate(token.updatedAt),
     };
 
     return c.json(response);

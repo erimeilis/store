@@ -8,18 +8,23 @@ import { reactRenderer } from '@hono/react-renderer'
 import { faviconDataUri } from './lib/favicon.js'
 import IS_PROD from './config/is_prod.js'
 import { initializeLayoutSystem } from './lib/layout-setup.js'
-import { registerRoutes, registerAuthRoutes, registerCatchAllRoute } from './lib/route-setup.js'
+import { registerRoutes, registerAuthRoutes, registerApiProxyRoutes, registerCatchAllRoute } from './lib/route-setup.js'
+import type { Env, Variables } from './types/hono.js'
 
 // Initialize Hono app
-const app = new Hono()
+const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
 // Initialize layout system
 await initializeLayoutSystem()
 
 
 // React renderer setup
-app.use(
-  reactRenderer(({ children, initialProps, adminToken, theme }: { children: any; initialProps?: any; adminToken?: string; theme?: string }) => {
+app.use((c, next) => {
+  // Get environment variables from context before the render
+  const apiUrl = c.env?.API_URL || 'http://localhost:8787'
+  const accessToken = c.env?.ADMIN_ACCESS_TOKEN
+  
+  return reactRenderer(({ children, initialProps, adminToken, theme }: { children: any; initialProps?: any; adminToken?: string; theme?: string }) => {
     const isProduction = IS_PROD
     
     // Use theme passed from handlers, fallback to dim
@@ -125,15 +130,15 @@ app.use(
             }} />
             
             {/* Initial props and admin token */}
-            {initialProps && (
-              <script dangerouslySetInnerHTML={{
-                __html: `
-                  window.__INITIAL_PROPS__ = ${JSON.stringify(initialProps)};
-                  ${adminToken ? `window.__ADMIN_TOKEN__ = "${adminToken}";` : ''}
-                  window.__INITIAL_THEME__ = "${selectedTheme}";
-                `
-              }} />
-            )}
+            <script dangerouslySetInnerHTML={{
+              __html: `
+                ${initialProps ? `window.__INITIAL_PROPS__ = ${JSON.stringify(initialProps)};` : ''}
+                ${adminToken ? `window.__ADMIN_TOKEN__ = "${adminToken}";` : ''}
+                window.__INITIAL_THEME__ = "${selectedTheme}";
+                window.__API_URL__ = "${apiUrl}";
+                ${accessToken ? `window.__ACCESS_TOKEN__ = "${accessToken}";` : ''}
+              `
+            }} />
             
           </head>
           <body className="min-h-screen bg-base-200" data-theme={selectedTheme} style={{colorScheme: selectedTheme === 'nord' ? 'light' : 'dark'}}>
@@ -146,8 +151,8 @@ app.use(
         </html>
       </>
     )
-  })
-)
+  })(c, next)
+})
 
 // Global error handling middleware
 app.onError((err, c) => {
@@ -174,6 +179,7 @@ app.onError((err, c) => {
 // Register routes in correct order
 registerRoutes(app)        // Register regular page routes first
 registerAuthRoutes(app)    // Register auth routes second
+registerApiProxyRoutes(app) // Register API proxy routes third
 
 // Health check endpoint
 app.get('/health', (c) => {

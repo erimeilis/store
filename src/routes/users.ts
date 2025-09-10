@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { getPrismaClient } from '../lib/database.js';
 import { writeAuthMiddleware } from '../middleware/auth.js';
+import { adminOnlyMiddleware, adminOrOwnerMiddleware } from '../middleware/admin.js';
+import { formatApiDate } from '../lib/date-utils.js';
+import { validateAdminCount, validateEmailAllowed, validateBulkAdminOperation } from '../lib/security-utils.js';
 
 const app = new Hono();
 
@@ -30,7 +33,7 @@ const MassActionSchema = z.object({
 app.get('/', writeAuthMiddleware, async (c) => {
   try {
     const database = getPrismaClient(c.env);
-    const { page = '1', limit = '10', sort, direction = 'asc', ...filters } = c.req.query();
+    const { page = '1', limit = '10', sort, direction = 'asc', exact, ...filters } = c.req.query();
     
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
@@ -44,10 +47,15 @@ app.get('/', writeAuthMiddleware, async (c) => {
       if (key.startsWith('filter_') && value) {
         const column = key.replace('filter_', '');
         if (column === 'email' || column === 'name') {
-          whereConditions[column] = {
-            contains: value,
-            mode: 'insensitive'
-          };
+          if (exact && column === 'email') {
+            // Exact match for email (used by OAuth callback)
+            whereConditions[column] = value;
+          } else {
+            // Case-sensitive partial match for SQLite/D1 (no mode support)
+            whereConditions[column] = {
+              contains: value
+            };
+          }
         } else if (column === 'role') {
           whereConditions.role = value;
         } else if (column === 'created_at') {
@@ -102,8 +110,8 @@ app.get('/', writeAuthMiddleware, async (c) => {
     const response = {
       data: users.map(user => ({
         ...user,
-        created_at: user.createdAt.toISOString(),
-        updated_at: user.updatedAt.toISOString(),
+        created_at: formatApiDate(user.createdAt),
+        updated_at: formatApiDate(user.updatedAt),
       })),
       current_page: pageNum,
       last_page: Math.ceil(totalCount / limitNum),
@@ -147,8 +155,8 @@ app.get('/:id', writeAuthMiddleware, async (c) => {
 
     const response = {
       ...user,
-      created_at: user.createdAt.toISOString(),
-      updated_at: user.updatedAt.toISOString(),
+      created_at: formatApiDate(user.createdAt),
+      updated_at: formatApiDate(user.updatedAt),
     };
 
     return c.json(response);
@@ -158,8 +166,8 @@ app.get('/:id', writeAuthMiddleware, async (c) => {
   }
 });
 
-// Create new user
-app.post('/', writeAuthMiddleware, zValidator('json', CreateUserSchema), async (c) => {
+// Create new user (Admin only + Email validation)
+app.post('/', adminOnlyMiddleware, zValidator('json', CreateUserSchema), async (c) => {
   try {
     const database = getPrismaClient(c.env);
     const userData = c.req.valid('json');
@@ -176,12 +184,26 @@ app.post('/', writeAuthMiddleware, zValidator('json', CreateUserSchema), async (
       }, 400);
     }
 
+    // Validate email against allowed_emails (for new users)
+    const emailValidation = await validateEmailAllowed(database, userData.email);
+    if (!emailValidation.isAllowed && emailValidation.matchType !== 'grandfathered') {
+      return c.json({
+        error: 'Email not allowed',
+        errors: { email: emailValidation.message },
+        details: 'Only emails in the allowed_emails list can be used for new user accounts'
+      }, 403);
+    }
+
+    // Check if this is the first user - if so, make them admin
+    const userCount = await database.user.count();
+    const finalRole = userCount === 0 ? 'admin' : userData.role;
+
     const user = await database.user.create({
       data: {
         email: userData.email,
         name: userData.name || null,
         picture: userData.picture || null,
-        role: userData.role,
+        role: finalRole,
       },
       select: {
         id: true,
@@ -196,8 +218,8 @@ app.post('/', writeAuthMiddleware, zValidator('json', CreateUserSchema), async (
 
     const response = {
       ...user,
-      created_at: user.createdAt.toISOString(),
-      updated_at: user.updatedAt.toISOString(),
+      created_at: formatApiDate(user.createdAt),
+      updated_at: formatApiDate(user.updatedAt),
     };
 
     return c.json(response, 201);
@@ -207,8 +229,8 @@ app.post('/', writeAuthMiddleware, zValidator('json', CreateUserSchema), async (
   }
 });
 
-// Update user
-app.put('/:id', writeAuthMiddleware, zValidator('json', UpdateUserSchema), async (c) => {
+// Update user (Admin only + Admin protection)
+app.put('/:id', adminOnlyMiddleware, zValidator('json', UpdateUserSchema), async (c) => {
   try {
     const database = getPrismaClient(c.env);
     const { id } = c.req.param();
@@ -227,6 +249,18 @@ app.put('/:id', writeAuthMiddleware, zValidator('json', UpdateUserSchema), async
       return c.json({ error: 'User not found' }, 404);
     }
 
+    // Admin protection: prevent removing last admin
+    if (userData.role && userData.role !== existingUser.role) {
+      const adminValidation = await validateAdminCount(database, id, userData.role);
+      if (!adminValidation.canProceed) {
+        return c.json({
+          error: 'Admin protection violation',
+          message: adminValidation.message,
+          details: 'Cannot modify admin role in a way that would leave the system without administrators'
+        }, 403);
+      }
+    }
+
     // Check email uniqueness if email is being updated
     if (userData.email && userData.email !== existingUser.email) {
       const emailExists = await database.user.findUnique({
@@ -239,6 +273,9 @@ app.put('/:id', writeAuthMiddleware, zValidator('json', UpdateUserSchema), async
           errors: { email: 'This email is already registered' }
         }, 400);
       }
+
+      // For existing users, allow email changes (grandfathered access)
+      // New email validation only applies to new user creation
     }
 
     const user = await database.user.update({
@@ -262,8 +299,8 @@ app.put('/:id', writeAuthMiddleware, zValidator('json', UpdateUserSchema), async
 
     const response = {
       ...user,
-      created_at: user.createdAt.toISOString(),
-      updated_at: user.updatedAt.toISOString(),
+      created_at: formatApiDate(user.createdAt),
+      updated_at: formatApiDate(user.updatedAt),
     };
 
     return c.json(response);
@@ -273,8 +310,8 @@ app.put('/:id', writeAuthMiddleware, zValidator('json', UpdateUserSchema), async
   }
 });
 
-// Patch user (for inline editing)
-app.patch('/:id', writeAuthMiddleware, async (c) => {
+// Patch user (for inline editing - Admin only + Admin protection)
+app.patch('/:id', adminOnlyMiddleware, async (c) => {
   try {
     const database = getPrismaClient(c.env);
     const { id } = c.req.param();
@@ -291,6 +328,18 @@ app.patch('/:id', writeAuthMiddleware, async (c) => {
 
     if (!existingUser) {
       return c.json({ error: 'User not found' }, 404);
+    }
+
+    // Admin protection: prevent role changes that would remove last admin
+    if (updates.role && updates.role !== existingUser.role) {
+      const adminValidation = await validateAdminCount(database, id, updates.role);
+      if (!adminValidation.canProceed) {
+        return c.json({
+          error: 'Admin protection violation',
+          message: adminValidation.message,
+          details: 'Cannot modify admin role - would leave system without administrators'
+        }, 403);
+      }
     }
 
     // Validate specific field updates for inline editing
@@ -342,8 +391,8 @@ app.patch('/:id', writeAuthMiddleware, async (c) => {
 
     const response = {
       ...user,
-      created_at: user.createdAt.toISOString(),
-      updated_at: user.updatedAt.toISOString(),
+      created_at: formatApiDate(user.createdAt),
+      updated_at: formatApiDate(user.updatedAt),
     };
 
     return c.json(response);
@@ -353,8 +402,8 @@ app.patch('/:id', writeAuthMiddleware, async (c) => {
   }
 });
 
-// Delete user
-app.delete('/:id', writeAuthMiddleware, async (c) => {
+// Delete user (Admin only + Admin protection)
+app.delete('/:id', adminOnlyMiddleware, async (c) => {
   try {
     const database = getPrismaClient(c.env);
     const { id } = c.req.param();
@@ -372,26 +421,49 @@ app.delete('/:id', writeAuthMiddleware, async (c) => {
       return c.json({ error: 'User not found' }, 404);
     }
 
+    // Admin protection: prevent deleting last admin
+    const adminValidation = await validateAdminCount(database, id);
+    if (!adminValidation.canProceed) {
+      return c.json({
+        error: 'Admin protection violation',
+        message: adminValidation.message,
+        details: 'Cannot delete the last admin user. At least one admin must exist.'
+      }, 403);
+    }
+
     // Delete user (cascade will handle related records)
     await database.user.delete({
       where: { id }
     });
 
-    return c.json({ message: 'User deleted successfully' });
+    return c.json({ 
+      message: 'User deleted successfully',
+      details: `User ${existingUser.email} has been removed from the system`
+    });
   } catch (error) {
     console.error('Error deleting user:', error);
     return c.json({ error: 'Failed to delete user' }, 500);
   }
 });
 
-// Mass actions endpoint
-app.post('/mass-action', writeAuthMiddleware, zValidator('json', MassActionSchema), async (c) => {
+// Mass actions endpoint (Admin only + Bulk admin protection)
+app.post('/mass-action', adminOnlyMiddleware, zValidator('json', MassActionSchema), async (c) => {
   try {
     const database = getPrismaClient(c.env);
     const { action, ids } = c.req.valid('json');
     
     if (ids.length === 0) {
       return c.json({ error: 'No users selected' }, 400);
+    }
+
+    // Validate bulk admin operations
+    const bulkValidation = await validateBulkAdminOperation(database, ids, action);
+    if (!bulkValidation.canProceed) {
+      return c.json({
+        error: 'Bulk admin protection violation',
+        message: bulkValidation.message,
+        details: 'This operation would compromise admin access to the system'
+      }, 403);
     }
 
     let result;
@@ -423,7 +495,8 @@ app.post('/mass-action', writeAuthMiddleware, zValidator('json', MassActionSchem
 
     return c.json({ 
       message: `Successfully ${action.replace('_', ' ')}ed ${result.count} user(s)`,
-      count: result.count 
+      count: result.count,
+      details: bulkValidation.message 
     });
   } catch (error) {
     console.error('Error executing mass action:', error);

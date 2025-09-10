@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Modal, ModalAction, ModalBackdrop, ModalBox } from '@/components/ui/modal';
-import { IconAlertTriangle, IconTrash } from '@tabler/icons-react';
+import { IconAlertTriangle, IconCheck, IconTrash, IconUserCheck, IconUserX } from '@tabler/icons-react';
 import React from 'react';
 
-interface DeleteConfirmationProps {
+interface MassActionConfirmationProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: () => void;
@@ -13,59 +13,85 @@ interface DeleteConfirmationProps {
     confirmButtonText?: string;
     cancelButtonText?: string;
     isLoading?: boolean;
+    actionType?: 'delete' | 'warning' | 'info';
+    actionName?: string; // Used to determine icon and styling
 }
 
 /**
- * Reusable delete confirmation modal component
+ * Reusable mass action confirmation modal component
  *
- * Provides a consistent modal interface for delete confirmations across the application.
- * Uses DaisyUI modal components for styling and behavior.
+ * Provides a consistent modal interface for mass actions across the application.
+ * Supports different action types with appropriate styling and icons.
  *
  * @param isOpen - Whether the modal is currently open
  * @param onClose - Callback function when modal should be closed
- * @param onConfirm - Callback function when delete is confirmed
- * @param title - Custom title for the modal (default: "Confirm Delete")
- * @param message - Custom message for the confirmation (default: generic message)
- * @param confirmButtonText - Text for the confirm button (default: "Delete")
+ * @param onConfirm - Callback function when action is confirmed
+ * @param title - Custom title for the modal
+ * @param message - Custom message for the confirmation
+ * @param confirmButtonText - Text for the confirm button
  * @param cancelButtonText - Text for the cancel button (default: "Cancel")
- * @param isLoading - Whether the delete action is currently in progress
- *
- * @example
- * const [showDeleteModal, setShowDeleteModal] = useState(false)
- * const [isDeleting, setIsDeleting] = useState(false)
- *
- * const handleDelete = async () => {
- *   setIsDeleting(true)
- *   try {
- *     await deleteItem(itemId)
- *     setShowDeleteModal(false)
- *   } finally {
- *     setIsDeleting(false)
- *   }
- * }
- *
- * <DeleteConfirmation
- *   isOpen={showDeleteModal}
- *   onClose={() => setShowDeleteModal(false)}
- *   onConfirm={handleDelete}
- *   message="Are you sure you want to delete this user? This action cannot be undone."
- *   isLoading={isDeleting}
- * />
+ * @param isLoading - Whether the action is currently in progress
+ * @param actionType - Type of action for styling (delete, warning, info)
+ * @param actionName - Name of the action to determine appropriate icon
  */
-export function DeleteConfirmation({
+export function MassActionConfirmation({
     isOpen,
     onClose,
     onConfirm,
-    title = 'Confirm Delete',
-    message = 'Are you sure you want to delete this item? This action cannot be undone.',
+    title,
+    message,
     errorMessage,
-    confirmButtonText = 'Delete',
+    confirmButtonText = 'Confirm',
     cancelButtonText = 'Cancel',
     isLoading = false,
-}: DeleteConfirmationProps) {
+    actionType = 'warning',
+    actionName = '',
+}: MassActionConfirmationProps) {
+    // Determine styling based on action type
+    const getActionStyling = () => {
+        switch (actionType) {
+            case 'delete':
+                return {
+                    bgClass: 'bg-error/10',
+                    textClass: 'text-error',
+                    buttonColor: 'error' as const,
+                };
+            case 'info':
+                return {
+                    bgClass: 'bg-info/10',
+                    textClass: 'text-info',
+                    buttonColor: 'info' as const,
+                };
+            default: // warning
+                return {
+                    bgClass: 'bg-warning/10',
+                    textClass: 'text-warning',
+                    buttonColor: 'warning' as const,
+                };
+        }
+    };
+
+    // Determine icon based on action name
+    const getActionIcon = () => {
+        if (isLoading) return undefined;
+        
+        switch (actionName.toLowerCase()) {
+            case 'delete':
+                return IconTrash;
+            case 'make_admin':
+                return IconUserCheck;
+            case 'make_user':
+                return IconUserX;
+            default:
+                return IconCheck;
+        }
+    };
+
+    const styling = getActionStyling();
+    const ActionIcon = getActionIcon();
+
     // Handle escape key and backdrop clicks to close modal
     const handleModalClick = (e: React.MouseEvent) => {
-        // If clicking the modal backdrop (not the modal box), close the modal
         if (e.target === e.currentTarget) {
             onClose();
         }
@@ -79,7 +105,7 @@ export function DeleteConfirmation({
 
     return (
         <Modal
-            id="delete-confirmation-modal"
+            id="mass-action-confirmation-modal"
             modifier={isOpen ? 'open' : 'default'}
             placement="middle"
             onClick={handleModalClick}
@@ -88,8 +114,8 @@ export function DeleteConfirmation({
             <ModalBox className="max-w-sm">
                 {/* Warning Icon */}
                 <div className="mb-4 flex justify-center">
-                    <div className="rounded-full bg-error/10 p-3">
-                        <IconAlertTriangle className="h-8 w-8 text-error" />
+                    <div className={`rounded-full ${styling.bgClass} p-3`}>
+                        <IconAlertTriangle className={`h-8 w-8 ${styling.textClass}`} />
                     </div>
                 </div>
 
@@ -110,11 +136,11 @@ export function DeleteConfirmation({
                 <ModalAction className="justify-center">
                     <Button
                         style="soft"
-                        color="error"
+                        color={styling.buttonColor}
                         onClick={onConfirm}
                         processing={isLoading}
                         disabled={isLoading}
-                        icon={!isLoading ? IconTrash : undefined}
+                        icon={ActionIcon}
                         className="min-w-24"
                     >
                         {confirmButtonText}

@@ -28,12 +28,16 @@ export async function handleLoginPage(c: Context) {
   
   const googleAuthUrl = getGoogleAuthURL(authConfig)
 
+  // Extract search parameters from the request URL
+  const url = new URL(c.req.url)
+  const searchParams = Object.fromEntries(url.searchParams.entries())
+
   const content = (
     <LayoutProvider
       layoutSystem={layoutSystem}
       currentRoute="/"
       params={{}}
-      searchParams={{}}
+      searchParams={searchParams}
     >
       <LayoutRenderer
         route={{
@@ -43,8 +47,12 @@ export async function handleLoginPage(c: Context) {
         }}
         layouts={[]}
         params={{}}
-        searchParams={{}}
-        pageProps={{ googleAuthUrl }}
+        searchParams={searchParams}
+        pageProps={{ 
+          googleAuthUrl,
+          error: searchParams.error,
+          message: searchParams.message
+        }}
       />
     </LayoutProvider>
   )
@@ -87,11 +95,122 @@ export async function handleOAuthCallback(c: Context) {
       name: userInfo.name
     })
     
+    // Fetch or create user based on allowed_emails validation
+    let userRole = 'user' // Default role
+    let userExists = false
+    
+    try {
+      const apiUrl = c.env?.API_URL || 'http://localhost:8787'
+      const adminToken = c.env?.ADMIN_ACCESS_TOKEN || ''
+      
+      console.log('🔍 OAuth callback - API config:', {
+        apiUrl,
+        hasAdminToken: !!adminToken,
+        adminTokenStart: adminToken ? adminToken.substring(0, 10) + '...' : 'MISSING',
+        userEmail: userInfo.email
+      })
+      
+      // Look up user by exact email match
+      const userResponse = await fetch(`${apiUrl}/api/users?filter_email=${encodeURIComponent(userInfo.email)}&exact=true`, {
+        headers: {
+          'Authorization': `Bearer ${adminToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      if (userResponse.ok) {
+        const userResult = await userResponse.json() as any
+        // API returns paginated results, get the first user from the data array
+        if (userResult.data && userResult.data.length > 0) {
+          const dbUser = userResult.data[0]
+          userRole = dbUser.role || 'user'
+          userExists = true
+          console.log('✅ Existing user found in database:', { email: userInfo.email, role: userRole })
+        } else {
+          console.log('⚠️ User not found in database, checking allowed_emails...')
+          
+          // User doesn't exist, check if email is allowed
+          console.log('🔍 Validating email access for new user:', userInfo.email)
+          const emailValidationResponse = await fetch(`${apiUrl}/api/allowed-emails/validate`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${adminToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: userInfo.email })
+          })
+          
+          console.log('📡 Email validation response status:', emailValidationResponse.status)
+          
+          if (emailValidationResponse.ok) {
+            const validationResult = await emailValidationResponse.json() as any
+            console.log('📧 Email validation result:', validationResult)
+            
+            if (validationResult.isAllowed) {
+              console.log('✅ Email is allowed, creating new user:', { email: userInfo.email, matchType: validationResult.matchType })
+              
+              // Create new user
+              const createUserResponse = await fetch(`${apiUrl}/api/users`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${adminToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  email: userInfo.email,
+                  name: userInfo.name,
+                  picture: userInfo.picture,
+                  role: 'user'
+                })
+              })
+              
+              if (createUserResponse.ok) {
+                const newUser = await createUserResponse.json() as any
+                userRole = newUser.role || 'user'
+                userExists = true
+                console.log('✅ New user created successfully:', { email: userInfo.email, role: userRole })
+              } else {
+                console.error('❌ Failed to create new user:', await createUserResponse.text())
+                throw new Error('Failed to create user account')
+              }
+            } else {
+              console.log('❌ Email not allowed for registration:', { email: userInfo.email, message: validationResult.message })
+              console.log('🔀 Redirecting directly with access denied error')
+              return c.redirect(`/?error=access_denied&message=${encodeURIComponent(validationResult.message)}`)
+            }
+          } else {
+            const errorText = await emailValidationResponse.text()
+            console.error('❌ Email validation check failed:', {
+              status: emailValidationResponse.status,
+              statusText: emailValidationResponse.statusText,
+              responseText: errorText
+            })
+            throw new Error('Failed to validate email access')
+          }
+        }
+      } else {
+        console.log('⚠️ User lookup API call failed:', await userResponse.text())
+        throw new Error('Failed to check user access')
+      }
+    } catch (error) {
+      console.error('❌ OAuth callback error during user validation:', error)
+      // Redirect to login with specific error
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed'
+      return c.redirect(`/?error=access_denied&message=${encodeURIComponent(errorMessage)}`)
+    }
+    
+    // Only proceed if user exists or was created successfully
+    if (!userExists) {
+      console.error('❌ User authentication failed - no valid user account')
+      return c.redirect('/?error=no_access&message=Access%20denied')
+    }
+    
     const user = {
       id: userInfo.id,
       name: userInfo.name,
       email: userInfo.email,
-      image: userInfo.picture
+      image: userInfo.picture,
+      role: userRole
     }
     
     const sessionCookie = createSessionCookie(user)
@@ -120,6 +239,20 @@ export async function handleOAuthCallback(c: Context) {
     
   } catch (error) {
     console.error('❌ OAuth callback error:', error)
+    console.error('❌ Error type:', typeof error, 'Error instanceof Error:', error instanceof Error)
+    console.error('❌ Error message:', error instanceof Error ? error.message : 'No message')
+    
+    // If the error already contains access denied information, preserve it
+    if (error instanceof Error && (
+      error.message.includes('Access denied:') || 
+      error.message.includes('not in the allowed list') ||
+      error.message.includes('Email') && error.message.includes('allowed')
+    )) {
+      const errorMessage = error.message.replace('Error: ', '').replace('Access denied: ', '')
+      console.log('🔀 Redirecting with access denied error:', errorMessage)
+      return c.redirect(`/?error=access_denied&message=${encodeURIComponent(errorMessage)}`)
+    }
+    console.log('🔀 Redirecting with generic auth failed error')
     return c.redirect('/?error=auth_failed')
   }
 }
