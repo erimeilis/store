@@ -6,6 +6,8 @@ import { Table, TableWrapper } from '@/components/ui/table';
 import { IMassAction, IModel } from '@/types/models';
 import { IconFilter, IconPlus, IconTrash, IconX } from '@tabler/icons-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { formatDateForInput } from '@/lib/date-utils';
+import { clientApiRequest } from '@/lib/client-api';
 
 // Import our extracted components
 import { DateFilterCalendar } from './model-list/date-filter-calendar';
@@ -17,6 +19,50 @@ import { EditingCell, IColumnDefinition, ModelListComponentProps } from './model
 // Re-export the interface for backward compatibility
 export type { IColumnDefinition };
 
+// Helper function to extract user-friendly error messages from API responses
+async function extractErrorMessage(response: Response): Promise<string> {
+    try {
+        const errorData = await response.json() as any;
+        
+        // Handle different error response formats
+        if (errorData.message) {
+            return errorData.message;
+        } else if (errorData.error) {
+            return errorData.error;
+        } else if (errorData.details) {
+            return `${errorData.error || 'Operation failed'}: ${errorData.details}`;
+        }
+        
+        // Fallback based on status code
+        switch (response.status) {
+            case 403:
+                return "You don't have permission to perform this action. This operation may compromise system security.";
+            case 401:
+                return "Authentication required. Please log in again.";
+            case 404:
+                return "The requested item was not found.";
+            case 400:
+                return "Invalid request. Please check your input and try again.";
+            default:
+                return `Operation failed with status ${response.status}`;
+        }
+    } catch {
+        // If we can't parse JSON, return a generic message based on status
+        switch (response.status) {
+            case 403:
+                return "Access denied. This operation may violate security policies.";
+            case 401:
+                return "Authentication required. Please log in again.";
+            case 404:
+                return "The requested item was not found.";
+            case 400:
+                return "Invalid request. Please check your input and try again.";
+            default:
+                return `Operation failed (${response.status})`;
+        }
+    }
+}
+
 export function ModelList<T extends IModel>({
     title,
     items,
@@ -24,12 +70,21 @@ export function ModelList<T extends IModel>({
     createRoute,
     editRoute,
     deleteRoute,
+    inlineEditRoute,
     massActionRoute,
     columns,
     massActions,
     renderItem,
     renderHeader,
 }: ModelListComponentProps<T>) {
+    // Debug logging for mass actions
+    console.log('🔍 ModelList Debug:', {
+        title,
+        hasMassActions: !!massActions,
+        massActionsLength: massActions?.length || 0,
+        massActionRoute,
+        createRoute
+    });
     // Selection state
     const [selectedItems, setSelectedItems] = useState<Set<number | string>>(new Set());
 
@@ -44,9 +99,11 @@ export function ModelList<T extends IModel>({
     const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
     const [itemToDelete, setItemToDelete] = useState<T | null>(null);
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
+    const [deleteError, setDeleteError] = useState<string>('');
     const [massActionModalOpen, setMassActionModalOpen] = useState<boolean>(false);
     const [selectedMassAction, setSelectedMassAction] = useState<IMassAction | null>(null);
     const [isExecutingMassAction, setIsExecutingMassAction] = useState<boolean>(false);
+    const [massActionError, setMassActionError] = useState<string>('');
 
     // Inline editing state
     const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
@@ -210,12 +267,14 @@ export function ModelList<T extends IModel>({
     const openDeleteModal = (item: T) => {
         setItemToDelete(item);
         setDeleteModalOpen(true);
+        setDeleteError(''); // Reset any previous error
     };
 
     const closeDeleteModal = () => {
         setDeleteModalOpen(false);
         setItemToDelete(null);
         setIsDeleting(false);
+        setDeleteError(''); // Reset error when closing
     };
 
     const handleDeleteConfirm = async () => {
@@ -224,11 +283,8 @@ export function ModelList<T extends IModel>({
         setIsDeleting(true);
         
         try {
-            const response = await fetch(deleteRoute(itemToDelete.id), {
+            const response = await clientApiRequest(deleteRoute(itemToDelete.id), {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
             });
 
             if (response.ok) {
@@ -236,11 +292,14 @@ export function ModelList<T extends IModel>({
                 // Refresh the page to show updated data
                 window.location.reload();
             } else {
+                const errorMessage = await extractErrorMessage(response);
+                setDeleteError(errorMessage);
                 console.error('Delete failed:', response.statusText);
                 setIsDeleting(false);
             }
         } catch (error) {
             console.error('Delete error:', error);
+            setDeleteError('An unexpected error occurred while deleting the item.');
             setIsDeleting(false);
         }
     };
@@ -249,12 +308,14 @@ export function ModelList<T extends IModel>({
     const openMassActionModal = (action: IMassAction) => {
         setSelectedMassAction(action);
         setMassActionModalOpen(true);
+        setMassActionError(''); // Reset any previous error
     };
 
     const closeMassActionModal = () => {
         setMassActionModalOpen(false);
         setSelectedMassAction(null);
         setIsExecutingMassAction(false);
+        setMassActionError(''); // Reset error when closing
     };
 
     const handleMassActionConfirm = async () => {
@@ -264,11 +325,8 @@ export function ModelList<T extends IModel>({
         const selectedItemIds = Array.from(selectedItems);
 
         try {
-            const response = await fetch(massActionRoute, {
+            const response = await clientApiRequest(massActionRoute, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify({
                     action: selectedMassAction.name,
                     ids: selectedItemIds,
@@ -281,11 +339,14 @@ export function ModelList<T extends IModel>({
                 // Refresh the page to show updated data
                 window.location.reload();
             } else {
+                const errorMessage = await extractErrorMessage(response);
+                setMassActionError(errorMessage);
                 console.error('Mass action failed:', response.statusText);
                 setIsExecutingMassAction(false);
             }
         } catch (error) {
             console.error('Mass action error:', error);
+            setMassActionError('An unexpected error occurred while executing the mass action.');
             setIsExecutingMassAction(false);
         }
     };
@@ -326,7 +387,9 @@ export function ModelList<T extends IModel>({
         // Show success feedback for 2 seconds before canceling editing
         setTimeout(() => {
             cancelEditing();
-        }, 2000);
+            // Refresh the page to show the updated data
+            window.location.reload();
+        }, 1500);
     };
 
     const handleInputBlur = () => {
@@ -407,11 +470,12 @@ export function ModelList<T extends IModel>({
                 }
 
                 try {
-                    const response = await fetch(`${window.location.pathname}/${item.id}`, {
+                    const editUrl = inlineEditRoute 
+                        ? inlineEditRoute(item.id)
+                        : `${window.location.pathname}/${item.id}`;
+                    
+                    const response = await clientApiRequest(editUrl, {
                         method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
                         body: JSON.stringify({
                             [editingCell.columnKey]: convertedValue,
                         }),
@@ -481,7 +545,7 @@ export function ModelList<T extends IModel>({
 
     // Handle date selection from calendar
     const handleDateSelect = (columnKey: string, date: Date | undefined) => {
-        const dateValue = date ? date.toISOString().split('T')[0] : '';
+        const dateValue = date ? formatDateForInput(date) : '';
         handleColumnFilter(columnKey, dateValue, 'date');
         // Close the dropdown after selection
         setOpenDateFilters((prev) => {
@@ -618,9 +682,11 @@ export function ModelList<T extends IModel>({
                     deleteModalOpen={deleteModalOpen}
                     itemToDelete={itemToDelete}
                     isDeleting={isDeleting}
+                    deleteError={deleteError}
                     massActionModalOpen={massActionModalOpen}
                     selectedMassAction={selectedMassAction}
                     isExecutingMassAction={isExecutingMassAction}
+                    massActionError={massActionError}
                     selectedCount={selectedItems.size}
                     onCloseDeleteModal={closeDeleteModal}
                     onConfirmDelete={handleDeleteConfirm}

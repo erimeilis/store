@@ -7,13 +7,13 @@ import React, { ReactNode } from 'react'
 
 export interface LayoutProps {
   children: ReactNode
-  params?: Promise<Record<string, string>>
-  searchParams?: Promise<Record<string, string | string[]>>
+  params?: Record<string, string> | Promise<Record<string, string>>
+  searchParams?: Record<string, string | string[]> | Promise<Record<string, string | string[]>>
 }
 
 export interface PageProps {
-  params?: Promise<Record<string, string>>
-  searchParams?: Promise<Record<string, string | string[]>>
+  params?: Record<string, string> | Promise<Record<string, string>>
+  searchParams?: Record<string, string | string[]> | Promise<Record<string, string | string[]>>
 }
 
 export interface LayoutConfig {

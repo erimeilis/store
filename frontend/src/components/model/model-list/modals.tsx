@@ -6,9 +6,11 @@ import { ModalsProps } from './types';
 export function ModelListModals<T extends IModel>({
     deleteModalOpen,
     isDeleting,
+    deleteError,
     massActionModalOpen,
     selectedMassAction,
     isExecutingMassAction,
+    massActionError,
     selectedCount,
     onCloseDeleteModal,
     onConfirmDelete,
@@ -18,7 +20,13 @@ export function ModelListModals<T extends IModel>({
     return (
         <>
             {/* Delete Confirmation Modal */}
-            <DeleteModal isOpen={deleteModalOpen} isLoading={isDeleting} onClose={onCloseDeleteModal} onConfirm={onConfirmDelete} />
+            <DeleteModal 
+                isOpen={deleteModalOpen} 
+                isLoading={isDeleting} 
+                error={deleteError}
+                onClose={onCloseDeleteModal} 
+                onConfirm={onConfirmDelete} 
+            />
 
             {/* Mass Action Confirmation Modal */}
             <MassActionModal
@@ -26,6 +34,7 @@ export function ModelListModals<T extends IModel>({
                 isLoading={isExecutingMassAction}
                 selectedAction={selectedMassAction}
                 selectedCount={selectedCount}
+                error={massActionError}
                 onClose={onCloseMassActionModal}
                 onConfirm={onConfirmMassAction}
             />

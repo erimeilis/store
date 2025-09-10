@@ -3,16 +3,18 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { getPrismaClient } from '../lib/database.js';
 import { writeAuthMiddleware } from '../middleware/auth.js';
+import { formatApiDate } from '../lib/date-utils.js';
+import { validateEmailAllowed } from '../lib/security-utils.js';
 
 const app = new Hono();
 
 // AllowedEmail validation schemas
 const CreateAllowedEmailSchema = z.object({
   type: z.enum(['email', 'domain'], {
-    required_error: 'Type is required and must be either "email" or "domain"'
+    message: 'Type is required and must be either "email" or "domain"'
   }),
-  email: z.string().email('Invalid email address').optional(),
-  domain: z.string().min(1, 'Domain is required').optional(),
+  email: z.string().email('Invalid email address').nullable().optional(),
+  domain: z.string().min(1, 'Domain is required').nullable().optional(),
 }).refine(
   (data) => {
     if (data.type === 'email' && !data.email) {
@@ -31,13 +33,17 @@ const CreateAllowedEmailSchema = z.object({
 
 const UpdateAllowedEmailSchema = z.object({
   type: z.enum(['email', 'domain']).optional(),
-  email: z.string().email('Invalid email address').optional(),
-  domain: z.string().min(1, 'Domain is required').optional(),
+  email: z.string().email('Invalid email address').nullable().optional(),
+  domain: z.string().min(1, 'Domain is required').nullable().optional(),
 });
 
 const MassActionSchema = z.object({
   action: z.enum(['delete']),
   ids: z.array(z.string()),
+});
+
+const ValidateEmailSchema = z.object({
+  email: z.string().email('Invalid email address'),
 });
 
 // Get all allowed emails with pagination, filtering, and sorting
@@ -59,13 +65,11 @@ app.get('/', writeAuthMiddleware, async (c) => {
         const column = key.replace('filter_', '');
         if (column === 'email' && value) {
           whereConditions.email = {
-            contains: value,
-            mode: 'insensitive'
+            contains: value
           };
         } else if (column === 'domain' && value) {
           whereConditions.domain = {
-            contains: value,
-            mode: 'insensitive'
+            contains: value
           };
         } else if (column === 'type' && value) {
           whereConditions.type = value;
@@ -117,7 +121,7 @@ app.get('/', writeAuthMiddleware, async (c) => {
     const response = {
       data: allowedEmails.map(allowedEmail => ({
         ...allowedEmail,
-        created_at: allowedEmail.createdAt.toISOString(),
+        created_at: formatApiDate(allowedEmail.createdAt),
       })),
       current_page: pageNum,
       last_page: Math.ceil(totalCount / limitNum),
@@ -159,7 +163,7 @@ app.get('/:id', writeAuthMiddleware, async (c) => {
 
     const response = {
       ...allowedEmail,
-      created_at: allowedEmail.createdAt.toISOString(),
+      created_at: formatApiDate(allowedEmail.createdAt),
     };
 
     return c.json(response);
@@ -225,7 +229,7 @@ app.post('/', writeAuthMiddleware, zValidator('json', CreateAllowedEmailSchema),
 
     const response = {
       ...allowedEmail,
-      created_at: allowedEmail.createdAt.toISOString(),
+      created_at: formatApiDate(allowedEmail.createdAt),
     };
 
     return c.json(response, 201);
@@ -340,7 +344,7 @@ app.put('/:id', writeAuthMiddleware, zValidator('json', UpdateAllowedEmailSchema
 
     const response = {
       ...allowedEmail,
-      created_at: allowedEmail.createdAt.toISOString(),
+      created_at: formatApiDate(allowedEmail.createdAt),
     };
 
     return c.json(response);
@@ -436,7 +440,7 @@ app.patch('/:id', writeAuthMiddleware, async (c) => {
 
     const response = {
       ...allowedEmail,
-      created_at: allowedEmail.createdAt.toISOString(),
+      created_at: formatApiDate(allowedEmail.createdAt),
     };
 
     return c.json(response);
@@ -507,6 +511,34 @@ app.post('/mass-action', writeAuthMiddleware, zValidator('json', MassActionSchem
   } catch (error) {
     console.error('Error executing mass action:', error);
     return c.json({ error: 'Failed to execute mass action' }, 500);
+  }
+});
+
+// Email validation endpoint (for OAuth callback)
+app.post('/validate', writeAuthMiddleware, zValidator('json', ValidateEmailSchema), async (c) => {
+  try {
+    const database = getPrismaClient(c.env);
+    const { email } = c.req.valid('json');
+    
+    console.log('🔍 Validating email access:', { email });
+    
+    const validationResult = await validateEmailAllowed(database, email);
+    
+    console.log('✅ Email validation result:', {
+      email,
+      isAllowed: validationResult.isAllowed,
+      matchType: validationResult.matchType,
+      message: validationResult.message
+    });
+    
+    return c.json(validationResult);
+  } catch (error) {
+    console.error('Error validating email:', error);
+    return c.json({ 
+      isAllowed: false,
+      matchType: null,
+      message: 'Failed to validate email due to server error'
+    }, 500);
   }
 });
 

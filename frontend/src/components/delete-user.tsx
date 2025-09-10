@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Modal, ModalBackdrop, ModalBox, ModalTrigger } from '@/components/ui/modal';
 import { IconKeyFilled } from '@tabler/icons-react';
+import { clientApiRequest } from '@/lib/client-api';
 
 export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -33,11 +34,8 @@ export default function DeleteUser() {
         setErrors({});
 
         try {
-            const response = await fetch('/profile', {
+            const response = await clientApiRequest('/profile', {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify({ password: data.password }),
             });
 

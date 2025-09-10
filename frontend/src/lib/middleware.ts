@@ -10,6 +10,7 @@ interface UserSession {
   name: string
   email: string
   image?: string
+  role: string // User role from database
   exp: number // expiration timestamp
 }
 
@@ -44,7 +45,8 @@ export const authMiddleware = async (c: Context<{ Bindings: Env; Variables: Vari
       id: session.id,
       name: session.name,
       email: session.email,
-      image: session.image
+      image: session.image,
+      role: session.role || 'user' // Default to user role if not present
     })
     
     await next()
@@ -56,9 +58,10 @@ export const authMiddleware = async (c: Context<{ Bindings: Env; Variables: Vari
 }
 
 // Helper function to create session cookie
-export const createSessionCookie = (user: { id: string; name: string; email: string; image?: string }): string => {
+export const createSessionCookie = (user: { id: string; name: string; email: string; image?: string; role?: string }): string => {
   const session: UserSession = {
     ...user,
+    role: user.role || 'user', // Default to user role if not provided
     exp: Date.now() + (authConfig.session.maxAge * 1000) // Convert to milliseconds
   }
   

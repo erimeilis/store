@@ -18,7 +18,11 @@ const auth = new Hono<{ Bindings: Bindings }>()
 auth.post('/register', writeAuthMiddleware, async (c) => {
   console.log('=== BACKEND USER REGISTER ENDPOINT ===')
   console.log('Request method:', c.req.method)
-  console.log('Request headers:', Object.fromEntries(c.req.raw.headers.entries()))
+  const headers: Record<string, string> = {}
+  c.req.raw.headers.forEach((value, key) => {
+    headers[key] = value
+  })
+  console.log('Request headers:', headers)
   
   try {
     const body = await c.req.json()

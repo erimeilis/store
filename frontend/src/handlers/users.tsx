@@ -10,13 +10,19 @@ export async function handleUsersPage(c: Context<{ Bindings: Env; Variables: Var
   const user = c.get('user')
   const users = await fetchHandlerData(API_ENDPOINTS.users, c)
   
-  const usersProps = buildPageProps(user, c, { users })
+  const usersProps = buildPageProps(user, c, { users, currentUser: user })
   
   return renderDashboardPage(c, '/dashboard/users', usersProps)
 }
 
 export async function handleCreateUserPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
   const user = c.get('user')
+  
+  // Admin-only access protection
+  if (user?.role !== 'admin') {
+    return c.redirect('/dashboard/users?error=access_denied')
+  }
+  
   const createUserProps = buildPageProps(user, c, {})
   
   return renderDashboardPage(c, '/dashboard/users/create', createUserProps)
@@ -25,6 +31,11 @@ export async function handleCreateUserPage(c: Context<{ Bindings: Env; Variables
 export async function handleEditUserPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
   const user = c.get('user')
   const userId = c.req.param('id')
+
+  // Admin-only access protection
+  if (user?.role !== 'admin') {
+    return c.redirect('/dashboard/users?error=access_denied')
+  }
 
   // Fetch specific user data
   let userData = null

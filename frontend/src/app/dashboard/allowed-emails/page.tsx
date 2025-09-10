@@ -1,6 +1,7 @@
 import React from 'react';
 import { ModelList, IColumnDefinition } from '../../../components/model/model-list';
 import { IPaginatedResponse } from '../../../types/models';
+import { formatApiDate } from '../../../lib/date-utils';
 
 // AllowedEmail interface based on the Prisma schema
 interface AllowedEmail {
@@ -87,7 +88,7 @@ const allowedEmailColumns: IColumnDefinition<AllowedEmail>[] = [
     filterType: 'date',
     render: (allowedEmail) => (
       <span className="text-sm text-gray-600">
-        {new Date(allowedEmail.createdAt).toLocaleDateString()}
+        {formatApiDate(allowedEmail.createdAt)}
       </span>
     )
   }
@@ -127,6 +128,7 @@ export default function AllowedEmailsPage({
       columns={allowedEmailColumns}
       createRoute="/dashboard/allowed-emails/create"
       editRoute={(id) => `/dashboard/allowed-emails/edit/${id}`}
+      inlineEditRoute={(id) => `/api/allowed-emails/${id}`}
       deleteRoute={(id) => `/api/allowed-emails/${id}`}
       massActionRoute="/api/allowed-emails/mass-action"
       massActions={allowedEmailMassActions}

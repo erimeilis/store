@@ -1,5 +1,6 @@
 import React from 'react';
 import { ModelEdit } from '../../../../../components/model/model-edit';
+import { clientApiRequest } from '../../../../../lib/client-api';
 
 // User interface matching our Prisma schema
 interface User {
@@ -156,20 +157,75 @@ const renderUserForm = (
 };
 
 export default function EditUserPage({ 
-  user,
-  params 
+  userData,
+  userId,
+  ...props
 }: { 
-  user?: User,
-  params?: { id: string }
+  userData?: User | null,
+  userId?: string
 }) {
-  // In a real implementation, you would fetch the user data here
-  // For now, this is a placeholder structure
+  console.log('EditUserPage props:', { userData, userId, props });
   
-  if (!user && params?.id) {
+  const [user, setUser] = React.useState<User | null>(userData || null);
+  const [loading, setLoading] = React.useState(!userData);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    // If userData is already provided from the server, no need to fetch
+    if (userData) {
+      setUser(userData);
+      setLoading(false);
+      return;
+    }
+
+    const fetchUser = async () => {
+      if (!userId) {
+        setError('User ID is required');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await clientApiRequest(`/api/users/${userId}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError('User not found');
+          } else {
+            setError('Failed to load user data');
+          }
+          setLoading(false);
+          return;
+        }
+
+        const fetchedUserData = await response.json() as User;
+        setUser(fetchedUserData);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching user:', err);
+        setError('Failed to load user data');
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [userData, userId]);
+
+  if (loading) {
     return (
       <div className="px-4 py-6">
-        <div className="alert alert-warning">
-          <span>Loading user data for ID: {params.id}...</span>
+        <div className="alert alert-info">
+          <span>Loading user data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="px-4 py-6">
+        <div className="alert alert-error">
+          <span>{error}</span>
         </div>
       </div>
     );

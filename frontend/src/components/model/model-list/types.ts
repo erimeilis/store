@@ -30,6 +30,7 @@ export interface ModelListComponentProps<T extends IModel> extends IModelListPro
     createRoute: string;
     editRoute: (id: number | string) => string;
     deleteRoute: (id: number | string) => string;
+    inlineEditRoute?: (id: number | string) => string;
     massActionRoute: string;
     columns: IColumnDefinition<T>[];
     massActions?: IMassAction[];
@@ -153,9 +154,11 @@ export interface ModalsProps<T extends IModel> {
     deleteModalOpen: boolean;
     itemToDelete: T | null;
     isDeleting: boolean;
+    deleteError?: string;
     massActionModalOpen: boolean;
     selectedMassAction: IMassAction | null;
     isExecutingMassAction: boolean;
+    massActionError?: string;
     selectedCount: number;
     onCloseDeleteModal: () => void;
     onConfirmDelete: () => Promise<void>;

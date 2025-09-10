@@ -9,6 +9,7 @@ interface DeleteConfirmationProps {
     onConfirm: () => void;
     title?: string;
     message?: string;
+    errorMessage?: string;
     confirmButtonText?: string;
     cancelButtonText?: string;
     isLoading?: boolean;
@@ -57,6 +58,7 @@ export function DeleteConfirmation({
     onConfirm,
     title = 'Confirm Delete',
     message = 'Are you sure you want to delete this item? This action cannot be undone.',
+    errorMessage,
     confirmButtonText = 'Delete',
     cancelButtonText = 'Cancel',
     isLoading = false,
@@ -95,7 +97,14 @@ export function DeleteConfirmation({
                 <h3 className="mb-2 text-center text-lg font-bold">{title}</h3>
 
                 {/* Message */}
-                <p className="text-muted-foreground mb-6 text-center text-sm">{message}</p>
+                <p className="text-muted-foreground mb-4 text-center text-sm">{message}</p>
+
+                {/* Error Message */}
+                {errorMessage && (
+                    <div className="mb-6 rounded-lg bg-error/10 p-3 border border-error/20">
+                        <p className="text-sm text-error text-center font-medium">{errorMessage}</p>
+                    </div>
+                )}
 
                 {/* Actions */}
                 <ModalAction className="justify-center">

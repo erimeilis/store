@@ -1,6 +1,7 @@
 import React from 'react';
 import { ModelList, IColumnDefinition } from '../../../components/model/model-list';
 import { IPaginatedResponse } from '../../../types/models';
+import { formatApiDate } from '../../../lib/date-utils';
 
 // Token interface based on the Prisma schema
 interface Token {
@@ -147,7 +148,7 @@ const tokenColumns: IColumnDefinition<Token>[] = [
       const isExpired = expiresDate < new Date();
       return (
         <span className={`text-xs ${isExpired ? 'text-red-600' : 'text-gray-600'}`}>
-          {expiresDate.toLocaleDateString()}
+          {formatApiDate(token.expiresAt)}
         </span>
       );
     }
@@ -160,7 +161,7 @@ const tokenColumns: IColumnDefinition<Token>[] = [
     filterType: 'date',
     render: (token) => (
       <span className="text-xs text-gray-500">
-        {new Date(token.createdAt).toLocaleDateString()}
+        {formatApiDate(token.createdAt)}
       </span>
     )
   }
