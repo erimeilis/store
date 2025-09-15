@@ -70,22 +70,22 @@ export interface AutoResizeTextareaProps extends Omit<TextareaProps, 'resizable'
  * Supports validation states, character counting, and resize control.
  */
 function Textarea({
-    className,
-    color,
-    size,
-    style,
-    error = false,
-    label,
-    helperText,
-    errorMessage,
-    characterCount = false,
-    maxLength,
-    resizable = true,
-    value,
-    onChange,
-    id,
-    ...props
-}: TextareaProps) {
+                      className,
+                      color,
+                      size,
+                      style,
+                      error = false,
+                      label,
+                      helperText,
+                      errorMessage,
+                      characterCount = false,
+                      maxLength,
+                      resizable = true,
+                      value,
+                      onChange,
+                      id,
+                      ...props
+                  }: TextareaProps) {
     const [charCount, setCharCount] = React.useState(0)
     const textareaId = id || `textarea-${Math.random().toString(36).substring(2, 9)}`
 
@@ -105,11 +105,9 @@ function Textarea({
     const displayText = error && errorMessage ? errorMessage : helperText
 
     return (
-        <div className="w-full">
+        <fieldset className="fieldset">
             {label && (
-                <label htmlFor={textareaId} className="label">
-                    <span className="label-text">{label}</span>
-                </label>
+                <legend className="fieldset-legend">{label}</legend>
             )}
 
             <textarea
@@ -143,7 +141,7 @@ function Textarea({
                     )}
                 </div>
             )}
-        </div>
+        </fieldset>
     )
 }
 
@@ -153,26 +151,26 @@ function Textarea({
  * Textarea with configurable label positioning and styling.
  */
 function TextareaWithLabel({
-    className,
-    color,
-    size,
-    style,
-    error = false,
-    label,
-    helperText,
-    errorMessage,
-    characterCount = false,
-    maxLength,
-    resizable = true,
-    labelPosition = 'top',
-    labelClassName,
-    containerClassName,
-    required = false,
-    value,
-    onChange,
-    id,
-    ...props
-}: TextareaWithLabelProps) {
+                               className,
+                               color,
+                               size,
+                               style,
+                               error = false,
+                               label,
+                               helperText,
+                               errorMessage,
+                               characterCount = false,
+                               maxLength,
+                               resizable = true,
+                               labelPosition = 'top',
+                               labelClassName,
+                               containerClassName,
+                               required = false,
+                               value,
+                               onChange,
+                               id,
+                               ...props
+                           }: TextareaWithLabelProps) {
     const [charCount, setCharCount] = React.useState(0)
     const textareaId = id || `textarea-${Math.random().toString(36).substring(2, 9)}`
 
@@ -261,23 +259,23 @@ function TextareaWithLabel({
  * Textarea that automatically adjusts height based on content.
  */
 function AutoResizeTextarea({
-    className,
-    color,
-    size,
-    style,
-    error = false,
-    label,
-    helperText,
-    errorMessage,
-    characterCount = false,
-    maxLength,
-    minRows = 3,
-    maxRows = 10,
-    value,
-    onChange,
-    id,
-    ...props
-}: AutoResizeTextareaProps) {
+                                className,
+                                color,
+                                size,
+                                style,
+                                error = false,
+                                label,
+                                helperText,
+                                errorMessage,
+                                characterCount = false,
+                                maxLength,
+                                minRows = 3,
+                                maxRows = 10,
+                                value,
+                                onChange,
+                                id,
+                                ...props
+                            }: AutoResizeTextareaProps) {
     const textareaRef = React.useRef<HTMLTextAreaElement>(null)
     const [charCount, setCharCount] = React.useState(0)
     const textareaId = id || `textarea-${Math.random().toString(36).substring(2, 9)}`
@@ -365,13 +363,13 @@ function AutoResizeTextarea({
  * Minimal textarea without additional features.
  */
 function SimpleTextarea({
-    className,
-    color,
-    size,
-    style = 'bordered' as const,
-    resizable = true,
-    ...props
-}: Omit<TextareaProps, 'error' | 'label' | 'helperText' | 'errorMessage' | 'characterCount' | 'maxLength'>) {
+                            className,
+                            color,
+                            size,
+                            style = 'bordered' as const,
+                            resizable = true,
+                            ...props
+                        }: Omit<TextareaProps, 'error' | 'label' | 'helperText' | 'errorMessage' | 'characterCount' | 'maxLength'>) {
     return (
         <textarea
             className={cn(
@@ -394,13 +392,13 @@ function SimpleTextarea({
  * Textarea optimized for code input with monospace font.
  */
 function CodeTextarea({
-    className,
-    color,
-    size,
-    style = 'bordered' as const,
-    resizable = true,
-    ...props
-}: Omit<TextareaProps, 'error' | 'label' | 'helperText' | 'errorMessage' | 'characterCount' | 'maxLength'>) {
+                          className,
+                          color,
+                          size,
+                          style = 'bordered' as const,
+                          resizable = true,
+                          ...props
+                      }: Omit<TextareaProps, 'error' | 'label' | 'helperText' | 'errorMessage' | 'characterCount' | 'maxLength'>) {
     return (
         <textarea
             className={cn(

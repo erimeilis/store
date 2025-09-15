@@ -3,3 +3,4 @@
 /frontend/.dev.vars
 
 /src/generated/prisma
+/Store.iml

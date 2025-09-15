@@ -1,6 +1,6 @@
 import React from 'react';
-import { ModelEdit } from '../../../../../components/model/model-edit';
-import { clientApiRequest } from '../../../../../lib/client-api';
+import { ModelEdit } from '@/components/model/model-edit';
+import { clientApiRequest } from '@/lib/client-api';
 
 // User interface matching our Prisma schema
 interface User {

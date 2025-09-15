@@ -3,7 +3,7 @@ import {cva, type VariantProps} from 'class-variance-authority'
 import {cn} from '@/lib/utils'
 
 const cardVariants = cva(
-    'card bg-base-100',
+    'card',
     {
         variants: {
             // DaisyUI card size variants
@@ -14,11 +14,25 @@ const cardVariants = cva(
                 lg: 'card-lg',
                 xl: 'card-xl',
             },
+            // Color variants (similar to Button)
+            color: {
+                default: 'bg-base-100',
+                neutral: 'badge-neutral',
+                primary: 'badge-primary',
+                secondary: 'badge-secondary',
+                accent: 'badge-accent',
+                info: 'badge-info',
+                success: 'badge-success',
+                warning: 'badge-warning',
+                error: 'badge-error',
+            },
             // DaisyUI card style variants
             style: {
                 default: '',
                 border: 'card-border',
                 dash: 'card-dash',
+                soft: 'badge-soft',
+                ghost: 'card-ghost',
             },
             // DaisyUI card modifier variants
             modifier: {
@@ -37,6 +51,7 @@ const cardVariants = cva(
         },
         defaultVariants: {
             size: 'md',
+            color: 'default',
             style: 'default',
             modifier: 'default',
             shadow: 'md',
@@ -70,10 +85,10 @@ const cardActionsVariants = cva(
 type CardProps = React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof cardVariants>
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-    ({className, size, style, modifier, shadow, ...props}, ref) => (
+    ({className, size, color, style, modifier, shadow, ...props}, ref) => (
         <div
             ref={ref}
-            className={cn(cardVariants({size, style, modifier, shadow}), className)}
+            className={cn(cardVariants({size, color, style, modifier, shadow}), className)}
             {...props}
         />
     )

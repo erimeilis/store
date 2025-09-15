@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { IModel } from '@/types/models';
 import { IconDeviceFloppy } from '@tabler/icons-react';
-import { InlineEditComponentProps } from '../types';
+import { InlineEditComponentProps } from '@/components/model/model-list/types';
 
 export function TextEditComponent<T extends IModel>({
     column,

@@ -1,9 +1,10 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { getPrismaClient } from '../lib/database.js';
-import { writeAuthMiddleware } from '../middleware/auth.js';
-import { formatApiDate } from '../lib/date-utils.js';
+import { getPrismaClient } from '@/lib/database.js';
+import { writeAuthMiddleware } from '@/middleware/auth.js';
+import { formatApiDate } from '@/lib/date-utils.js';
+import { buildPaginationInfo } from '@/utils/common.js';
 
 const app = new Hono();
 
@@ -125,6 +126,7 @@ app.get('/', writeAuthMiddleware, async (c) => {
     ]);
 
     // Format response
+    const pagination = buildPaginationInfo(pageNum, limitNum, totalCount);
     const response = {
       data: tokens.map(token => ({
         ...token,
@@ -134,10 +136,7 @@ app.get('/', writeAuthMiddleware, async (c) => {
         created_at: formatApiDate(token.createdAt),
         updated_at: formatApiDate(token.updatedAt),
       })),
-      current_page: pageNum,
-      last_page: Math.ceil(totalCount / limitNum),
-      per_page: limitNum,
-      total: totalCount,
+      pagination
     };
 
     return c.json(response);

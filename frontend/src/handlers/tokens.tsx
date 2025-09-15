@@ -3,8 +3,8 @@
  */
 
 import type { Context } from 'hono'
-import type { Env, Variables } from '../types/hono.js'
-import { fetchHandlerData, renderDashboardPage, buildPageProps, API_ENDPOINTS } from '../lib/handler-utils.js'
+import type { Env, Variables } from '@/types/hono'
+import { fetchHandlerData, renderDashboardPage, buildPageProps, API_ENDPOINTS } from '@/lib/handler-utils'
 
 export async function handleTokensPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
   const user = c.get('user')

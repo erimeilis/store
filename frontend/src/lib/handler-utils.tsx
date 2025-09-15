@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
-import type { Env, Variables } from '../types/hono.js'
-import type { User, PaginatedResponse } from '../types/models.js'
+import type { Env, Variables } from '@/types/hono'
+import type { User, PaginatedResponse } from '@/types/models'
 
 // Configuration constants
 export const PAGINATION_CONFIG = {
@@ -49,9 +49,29 @@ export async function fetchHandlerData<T = PaginatedResponse<any>>(
       ...additionalParams
     })
     
+    const finalUrl = `${apiUrl}${endpoint}?${params.toString()}`
+    console.log('🔍 fetchHandlerData - Building request:', {
+      endpoint,
+      limit,
+      page,
+      additionalParams,
+      paramsString: params.toString(),
+      finalUrl
+    })
+    
+    // Get user information from context for proper user tracking
+    const user = c.get('user')
+    const userHeaders = user ? {
+      email: user.email,
+      name: user.name,
+      id: user.id
+    } : undefined
+
     const backendResponse = await fetchAPI(
-      `${apiUrl}${endpoint}?${params.toString()}`,
-      c.env?.ADMIN_ACCESS_TOKEN || ''
+      finalUrl,
+      c.env?.ADMIN_ACCESS_TOKEN || '',
+      {},
+      userHeaders
     )
     
     return transformPaginatedResponse(backendResponse, transformer) as T
@@ -68,9 +88,9 @@ export async function renderDashboardPage(
   route: string,
   pageProps: Record<string, any>
 ) {
-  const { layoutSystem } = await import('../lib/layout-system.js')
-  const { LayoutProvider } = await import('../components/LayoutProvider.js')
-  const { LayoutRenderer } = await import('../components/LayoutRenderer.js')
+  const { layoutSystem } = await import('@/lib/layout-system')
+  const { LayoutProvider } = await import('@/components/LayoutProvider')
+  const { LayoutRenderer } = await import('@/components/LayoutRenderer')
   
   const { layouts, route: resolvedRoute } = layoutSystem.resolveLayoutHierarchy(route)
   const params = {}

@@ -4,7 +4,7 @@ import { IModel } from '@/types/models';
 import { IconCalendar, IconX } from '@tabler/icons-react';
 import React from 'react';
 import { formatApiDate } from '@/lib/date-utils';
-import { IColumnDefinition } from '../types';
+import { IColumnDefinition } from '@/components/model/model-list/types';
 
 export interface DateFilterCellProps<T extends IModel> {
     column: IColumnDefinition<T>;

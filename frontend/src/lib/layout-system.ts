@@ -3,7 +3,7 @@
  * Provides layout discovery, registration, and hierarchy management
  */
 
-import { LayoutConfig, RouteConfig, LayoutRegistry, LayoutSystemOptions } from '../types/layout.js'
+import { LayoutConfig, RouteConfig, LayoutRegistry, LayoutSystemOptions } from '@/types/layout'
 
 export class LayoutSystemCore implements LayoutRegistry {
   public layouts = new Map<string, LayoutConfig>()

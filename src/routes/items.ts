@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
-import { readAuthMiddleware, writeAuthMiddleware } from '../middleware/auth.js'
-import { getPrismaClient } from '../lib/database.js'
+import { readAuthMiddleware, writeAuthMiddleware } from '@/middleware/auth.js'
+import { getPrismaClient } from '@/lib/database.js'
 import type { Bindings } from '../../types/bindings.js'
-import type { UserContext } from '../types/database.js'
+import type { UserContext } from '@/types/database.js'
 
 /**
  * Items CRUD Routes
@@ -29,8 +29,93 @@ itemsRoutes.get('/api/items', readAuthMiddleware, async (c) => {
     const sort = c.req.query('sort') || 'updated_at'
     const direction = c.req.query('direction') || 'desc'
     
+    // Extract filter parameters
+    const filterName = c.req.query('filter_name') || ''
+    const filterDescription = c.req.query('filter_description') || ''
+    const filterPrice = c.req.query('filter_price') || ''
+    const filterQuantity = c.req.query('filter_quantity') || ''
+    const filterCategory = c.req.query('filter_category') || ''
+    const filterUpdated = c.req.query('filter_updated_at') || ''
+    
+    // Debug: Log all filter parameters
+    console.log('🔍 Items API Debug - Filter parameters:', {
+      filterName,
+      filterDescription,
+      filterPrice,
+      filterQuantity,
+      filterCategory,
+      filterUpdated,
+      query: c.req.url
+    })
+    
     // Calculate offset
     const offset = (page - 1) * limit
+    
+    // Build WHERE conditions for filtering
+    const where: any = {}
+    
+    // Text filters (SQLite/D1 compatible)
+    if (filterName) {
+      where.name = {
+        contains: filterName
+      }
+    }
+    
+    if (filterDescription) {
+      where.description = {
+        contains: filterDescription
+      }
+    }
+    
+    // JSON field filters using simple string contains (works better with SQLite)
+    if (filterCategory) {
+      where.data = {
+        contains: `"category":"${filterCategory}"`
+      }
+    }
+    
+    if (filterPrice) {
+      // Handle price filtering - search for the price value in JSON
+      const priceValue = parseFloat(filterPrice)
+      if (!isNaN(priceValue)) {
+        const priceCondition = { data: { contains: `"price":${priceValue}` } }
+        
+        if (where.data) {
+          // Combine with existing data filter using AND
+          where.AND = [{ data: where.data }, priceCondition]
+          delete where.data
+        } else {
+          where.data = priceCondition.data
+        }
+      }
+    }
+    
+    if (filterQuantity) {
+      // Handle quantity filtering - search for the quantity value in JSON
+      const quantityValue = parseInt(filterQuantity)
+      if (!isNaN(quantityValue)) {
+        const quantityCondition = { data: { contains: `"quantity":${quantityValue}` } }
+        
+        if (where.AND) {
+          where.AND.push(quantityCondition)
+        } else if (where.data) {
+          where.AND = [{ data: where.data }, quantityCondition]
+          delete where.data
+        } else {
+          where.data = quantityCondition.data
+        }
+      }
+    }
+    
+    // Date filter for updated_at
+    if (filterUpdated) {
+      where.updatedAt = {
+        gte: new Date(filterUpdated + 'T00:00:00.000Z'),
+        lt: new Date(filterUpdated + 'T23:59:59.999Z')
+      }
+    }
+    
+    console.log('🔍 Items API Debug - Where conditions:', JSON.stringify(where, null, 2))
     
     // Determine sort field and direction
     const orderBy: any = {}
@@ -44,11 +129,12 @@ itemsRoutes.get('/api/items', readAuthMiddleware, async (c) => {
       orderBy.updatedAt = 'desc'
     }
     
-    // Get total count for pagination metadata
-    const totalCount = await prisma.item.count()
+    // Get total count for pagination metadata with same filters
+    const totalCount = await prisma.item.count({ where })
     
-    // Get paginated items
+    // Get paginated items with filtering
     const items = await prisma.item.findMany({
+      where,
       skip: offset,
       take: limit,
       orderBy
@@ -218,6 +304,139 @@ itemsRoutes.put('/api/items/:id', writeAuthMiddleware, async (c) => {
       }, 400)
     }
     
+    return c.json({
+      error: 'Failed to update item',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    }, 500)
+  }
+})
+
+/**
+ * Partially update item (inline editing)
+ * PATCH /api/items/:id
+ */
+itemsRoutes.patch('/api/items/:id', writeAuthMiddleware, async (c) => {
+  try {
+    const id = c.req.param('id')
+
+    if (!id) {
+      return c.json({
+        error: 'Invalid item ID',
+        message: 'Item ID is required'
+      }, 400)
+    }
+
+    const body = await c.req.json()
+
+    // For PATCH, we allow partial updates - no required fields
+    if (Object.keys(body).length === 0) {
+      return c.json({
+        error: 'Validation failed',
+        message: 'At least one field must be provided for update'
+      }, 400)
+    }
+
+    const prisma = getPrismaClient(c.env)
+
+    try {
+      // First, get the current item to merge data
+      const currentItem = await prisma.item.findUnique({
+        where: { id }
+      })
+
+      if (!currentItem) {
+        return c.json({
+          error: 'Item not found',
+          message: `Item with ID ${id} does not exist`
+        }, 404)
+      }
+
+      // Parse current data
+      let currentData: any = {}
+      try {
+        currentData = JSON.parse(currentItem.data || '{}')
+      } catch {
+        currentData = {}
+      }
+
+      // Prepare update data
+      const updateData: any = {}
+
+      // Handle direct field updates
+      if (body.name !== undefined) {
+        if (typeof body.name !== 'string' || body.name.trim() === '') {
+          return c.json({
+            error: 'Validation failed',
+            message: 'Name must be a non-empty string'
+          }, 400)
+        }
+        updateData.name = body.name.trim()
+      }
+
+      if (body.description !== undefined) {
+        updateData.description = body.description || null
+      }
+
+      // Handle JSON data field updates (for price, quantity, category)
+      if (body.price !== undefined || body.quantity !== undefined || body.category !== undefined) {
+        const newData = { ...currentData }
+
+        if (body.price !== undefined) {
+          const price = parseFloat(body.price)
+          if (isNaN(price)) {
+            return c.json({
+              error: 'Validation failed',
+              message: 'Price must be a valid number'
+            }, 400)
+          }
+          newData.price = price
+        }
+
+        if (body.quantity !== undefined) {
+          const quantity = parseInt(body.quantity)
+          if (isNaN(quantity) || quantity < 0) {
+            return c.json({
+              error: 'Validation failed',
+              message: 'Quantity must be a non-negative integer'
+            }, 400)
+          }
+          newData.quantity = quantity
+        }
+
+        if (body.category !== undefined) {
+          newData.category = body.category || ''
+        }
+
+        updateData.data = JSON.stringify(newData)
+      }
+
+      // Update item using Prisma
+      const item = await prisma.item.update({
+        where: { id },
+        data: updateData
+      })
+
+      return c.json({
+        item,
+        message: 'Item updated successfully'
+      })
+    } catch (prismaError: any) {
+      if (prismaError.code === 'P2025') {
+        return c.json({
+          error: 'Item not found',
+          message: `Item with ID ${id} does not exist`
+        }, 404)
+      }
+      throw prismaError
+    }
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return c.json({
+        error: 'Invalid JSON',
+        message: 'Request body must be valid JSON'
+      }, 400)
+    }
+
     return c.json({
       error: 'Failed to update item',
       message: error instanceof Error ? error.message : 'Unknown error'

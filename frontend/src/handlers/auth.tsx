@@ -3,18 +3,18 @@
  */
 
 import type { Context } from 'hono'
-import { createAuthConfig, getGoogleAuthURL } from '../lib/auth.js'
-import { LayoutProvider } from '../components/LayoutProvider.js'
-import { LayoutRenderer } from '../components/LayoutRenderer.js'
-import { layoutSystem } from '../lib/layout-system.js'
-import LoginPage from '../app/login/page.js'
+import { createAuthConfig, getGoogleAuthURL } from '@/lib/auth'
+import { LayoutProvider } from '@/components/LayoutProvider'
+import { LayoutRenderer } from '@/components/LayoutRenderer'
+import { layoutSystem } from '@/lib/layout-system'
+import LoginPage from '@/app/login/page'
 
 export async function handleLoginPage(c: Context) {
   const authConfig = createAuthConfig(c.env)
   
   // Check if already logged in
   const { getCookie } = await import('hono/cookie')
-  const { parseSessionCookie } = await import('../lib/middleware.js')
+  const { parseSessionCookie } = await import('@/lib/middleware')
   const sessionCookie = getCookie(c, authConfig.session.cookieName)
   
   if (sessionCookie) {
@@ -80,8 +80,8 @@ export async function handleOAuthCallback(c: Context) {
     }
 
     console.log('📞 Exchanging code for tokens...')
-    const { exchangeCodeForTokens, getGoogleUserInfo } = await import('../lib/auth.js')
-    const { createSessionCookie } = await import('../lib/middleware.js')
+    const { exchangeCodeForTokens, getGoogleUserInfo } = await import('@/lib/auth')
+    const { createSessionCookie } = await import('@/lib/middleware')
     const { setCookie } = await import('hono/cookie')
     
     const callbackAuthConfig = createAuthConfig(c.env)

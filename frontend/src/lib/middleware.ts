@@ -1,6 +1,6 @@
 import { Context, Next } from 'hono'
 import { createMiddleware } from 'hono/factory'
-import { Env, Variables } from '../types/hono'
+import { Env, Variables } from '@/types/hono'
 import { getCookie } from 'hono/cookie'
 import { authConfig } from './auth'
 

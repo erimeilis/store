@@ -28,12 +28,12 @@ const CATEGORIES = ['Electronics', 'Home', 'Fashion', 'Sports', 'Office', 'Books
 
 export function generateItems(count: number, environment: string): Item[] {
   // Use environment-specific seed for consistent results
-  const seeds = {
+  const seeds: Record<string, number> = {
     local: 1001,
-    preview: 2002, 
+    preview: 2002,
     production: 3003
   };
-  
+
   faker.seed(seeds[environment] || 1001);
   
   const items: Item[] = [];
@@ -87,16 +87,17 @@ export function generateSeedFile(environment: string, count: number): void {
   console.log(`✅ Generated ${fileName} with ${count} items`);
 }
 
-// CLI usage
-if (import.meta.url === `file://${process.argv[1]}`) {
+// CLI usage - check if this file is being run directly
+const isRunDirectly = process.argv[1]?.endsWith('faker-items-generator.ts');
+if (isRunDirectly) {
   const environment = process.argv[2];
   const count = parseInt(process.argv[3]);
-  
+
   if (!environment || !count) {
     console.error('Usage: tsx seeds/faker-items-generator.ts <environment> <count>');
     console.error('Example: tsx seeds/faker-items-generator.ts local 10');
     process.exit(1);
   }
-  
+
   generateSeedFile(environment, count);
 }

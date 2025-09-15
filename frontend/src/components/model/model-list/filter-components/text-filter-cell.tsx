@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { TableCell } from '@/components/ui/table';
 import { IModel } from '@/types/models';
-import { IColumnDefinition } from '../types';
+import { IColumnDefinition } from '@/components/model/model-list/types';
 
 export interface TextFilterCellProps<T extends IModel> {
     column: IColumnDefinition<T>;

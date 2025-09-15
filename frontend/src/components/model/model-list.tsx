@@ -14,10 +14,10 @@ import { DateFilterCalendar } from './model-list/date-filter-calendar';
 import { ModelListModals } from './model-list/modals';
 import { ModelTableBody } from './model-list/table-body';
 import { TableHeader } from './model-list/table-header';
-import { EditingCell, IColumnDefinition, ModelListComponentProps } from './model-list/types';
+import { EditingCell, IColumnDefinition, IRowAction, ModelListComponentProps } from './model-list/types';
 
-// Re-export the interface for backward compatibility
-export type { IColumnDefinition };
+// Re-export the interfaces for backward compatibility
+export type { IColumnDefinition, IRowAction };
 
 // Helper function to extract user-friendly error messages from API responses
 async function extractErrorMessage(response: Response): Promise<string> {
@@ -74,16 +74,20 @@ export function ModelList<T extends IModel>({
     massActionRoute,
     columns,
     massActions,
+    rowActions,
     renderItem,
     renderHeader,
 }: ModelListComponentProps<T>) {
-    // Debug logging for mass actions
+    // Debug logging for mass actions and row actions
     console.log('🔍 ModelList Debug:', {
         title,
         hasMassActions: !!massActions,
         massActionsLength: massActions?.length || 0,
         massActionRoute,
-        createRoute
+        createRoute,
+        hasRowActions: !!rowActions,
+        rowActionsLength: rowActions?.length || 0,
+        rowActions: rowActions
     });
     // Selection state
     const [selectedItems, setSelectedItems] = useState<Set<number | string>>(new Set());
@@ -112,9 +116,135 @@ export function ModelList<T extends IModel>({
     const [editingError, setEditingError] = useState<string>('');
     const [isClickingSaveButton, setIsClickingSaveButton] = useState<boolean>(false);
     const [editingSaveSuccess, setEditingSaveSuccess] = useState<boolean>(false);
+    // Add row state
+    const [isAddingNewRow, setIsAddingNewRow] = useState<boolean>(false);
+    const [newRowData, setNewRowData] = useState<Record<string, string>>({});
+    const [newRowError, setNewRowError] = useState<string>('');
+    const [isSavingNewRow, setIsSavingNewRow] = useState<boolean>(false);
 
     // Debounce ref for text filters
     const debounceTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
+
+    // Add Row functionality
+    const startAddingNewRow = () => {
+        console.log('Starting to add new row');
+
+        // Initialize newRowData with default values based on column types
+        // Only include editable columns (skip system columns like 'order')
+        const initialData: Record<string, string> = {};
+        columns.forEach(column => {
+            const columnKey = String(column.key);
+
+            // Skip system/non-editable columns like 'order', 'created_at', etc.
+            if (!column.editableInline && !column.editType) {
+                return;
+            }
+
+            // Skip columns that are clearly system-generated
+            if (columnKey === 'order' || columnKey === 'created_at' || columnKey === 'updated_at' || columnKey === 'id') {
+                return;
+            }
+
+            if (column.editType === 'toggle' || column.filterType === 'select') {
+                initialData[columnKey] = 'false'; // Default for boolean fields
+            } else {
+                initialData[columnKey] = column.editValidation?.required ? '' : '';
+            }
+        });
+
+        setNewRowData(initialData);
+        setIsAddingNewRow(true);
+        setNewRowError('');
+    };
+
+    const cancelAddingNewRow = () => {
+        setIsAddingNewRow(false);
+        setNewRowData({});
+        setNewRowError('');
+        setIsSavingNewRow(false);
+    };
+
+    const updateNewRowData = (columnKey: string, value: string) => {
+        setNewRowData(prev => ({
+            ...prev,
+            [columnKey]: value
+        }));
+        // Clear error when user starts typing
+        if (newRowError) {
+            setNewRowError('');
+        }
+    };
+
+    const saveNewRow = async () => {
+        console.log('Saving new row:', newRowData);
+
+        // Validate required fields (only for editable columns)
+        for (const column of columns) {
+            const columnKey = String(column.key);
+
+            // Skip system/non-editable columns
+            if (!column.editableInline && !column.editType) {
+                continue;
+            }
+
+            // Skip columns that are clearly system-generated
+            if (columnKey === 'order' || columnKey === 'created_at' || columnKey === 'updated_at' || columnKey === 'id') {
+                continue;
+            }
+
+            const value = newRowData[columnKey] || '';
+
+            if (column.editValidation?.required && !value.trim()) {
+                setNewRowError(`${column.label.replace(' *', '')} is required`);
+                return;
+            }
+
+            // Validate patterns
+            if (column.editValidation?.pattern && value.trim()) {
+                if (!column.editValidation.pattern.test(value)) {
+                    setNewRowError(`${column.label.replace(' *', '')} has invalid format`);
+                    return;
+                }
+            }
+        }
+
+        setIsSavingNewRow(true);
+        setNewRowError('');
+        
+        try {
+            // Use the same base route as inlineEditRoute but without the ID (POST to create)
+            const baseUrl = inlineEditRoute ? inlineEditRoute('').replace('/undefined', '').replace('/null', '') : massActionRoute.replace('/mass-action', '');
+            const createUrl = baseUrl.replace(/\/$/, '');
+            console.log('🔍 Add Row API URL Debug:', { baseUrl, createUrl, inlineEditRoute: inlineEditRoute?.toString() });
+            
+            // Check if this is a table data API endpoint and wrap data accordingly
+            const isTableDataApi = createUrl.includes('/tables/') && createUrl.includes('/data');
+            const requestBody = isTableDataApi ? { data: newRowData } : newRowData;
+
+            const response = await clientApiRequest(createUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (response.ok) {
+                // Success - reload the page to show the new data
+                console.log('New row created successfully');
+                cancelAddingNewRow();
+                window.location.reload(); // Simple approach to refresh the data
+            } else {
+                const errorMessage = await extractErrorMessage(response);
+                setNewRowError(errorMessage);
+            }
+        } catch (error) {
+            console.error('Error saving new row:', error);
+            setNewRowError(error instanceof Error ? error.message : 'Failed to save new row');
+        } finally {
+            setIsSavingNewRow(false);
+        }
+    };
 
     // Reset selected items when items change
     useEffect(() => {
@@ -306,6 +436,10 @@ export function ModelList<T extends IModel>({
 
     // Handle mass action modal
     const openMassActionModal = (action: IMassAction) => {
+        if (selectedItems.size === 0) {
+            alert('Please select items from the table first.');
+            return;
+        }
         setSelectedMassAction(action);
         setMassActionModalOpen(true);
         setMassActionError(''); // Reset any previous error
@@ -319,17 +453,30 @@ export function ModelList<T extends IModel>({
     };
 
     const handleMassActionConfirm = async () => {
-        if (!selectedMassAction || selectedItems.size === 0) return;
+        if (!selectedMassAction) {
+            setMassActionError('No action selected');
+            return;
+        }
+
+        if (selectedItems.size === 0) {
+            setMassActionError('No items selected. Please select items from the table first.');
+            setIsExecutingMassAction(false);
+            return;
+        }
 
         setIsExecutingMassAction(true);
         const selectedItemIds = Array.from(selectedItems);
 
         try {
+            // Determine the correct parameter name based on the route
+            const isColumnsRoute = massActionRoute.includes('/columns/mass-action');
+            const idsParam = isColumnsRoute ? 'columnIds' : 'ids';
+
             const response = await clientApiRequest(massActionRoute, {
                 method: 'POST',
                 body: JSON.stringify({
                     action: selectedMassAction.name,
-                    ids: selectedItemIds,
+                    [idsParam]: selectedItemIds,
                 }),
             });
 
@@ -424,22 +571,43 @@ export function ModelList<T extends IModel>({
     };
 
     const saveEditing = async (valueToSave?: string) => {
-        if (!editingCell) return;
+        console.log('🔥 ModelList.saveEditing called:', {
+            editingCell,
+            valueToSave,
+            editValue,
+            hasInlineEditRoute: !!inlineEditRoute
+        });
+
+        if (!editingCell) {
+            console.log('❌ No editing cell - returning early');
+            return;
+        }
 
         const item = items?.data?.find((i) => i.id === editingCell.itemId);
         const column = columns.find((c) => String(c.key) === editingCell.columnKey);
 
-        if (!item || !column || !column.editableInline) return;
+        console.log('🔍 saveEditing item and column check:', {
+            item: item ? { id: item.id, [editingCell.columnKey]: item[editingCell.columnKey as keyof typeof item] } : null,
+            column: column ? { key: column.key, editableInline: column.editableInline, editType: column.editType } : null
+        });
+
+        if (!item || !column || !column.editableInline) {
+            console.log('❌ Missing requirements - returning early');
+            return;
+        }
 
         // Use provided value or fall back to current editValue
         const currentValue = valueToSave ?? editValue;
+        console.log('💾 Current value to save:', currentValue);
 
         const validationError = validateEditValue(column, currentValue);
         if (validationError) {
+            console.log('❌ Validation error:', validationError);
             setEditingError(validationError);
             return;
         }
 
+        console.log('✅ Validation passed, starting save process');
         setIsEditingSaving(true);
         setEditingError('');
 
@@ -467,29 +635,51 @@ export function ModelList<T extends IModel>({
                     }
                 } else if (column.editType === 'number') {
                     convertedValue = Number(currentValue);
+                } else if (column.editType === 'toggle') {
+                    // Convert checkbox values to proper booleans
+                    convertedValue = currentValue === '1' || currentValue === 'true' || (currentValue as any) === true;
                 }
 
+                console.log('🌐 About to make API request:', {
+                    convertedValue,
+                    columnKey: editingCell.columnKey,
+                    payload: { [editingCell.columnKey]: convertedValue }
+                });
+
                 try {
-                    const editUrl = inlineEditRoute 
+                    const editUrl = inlineEditRoute
                         ? inlineEditRoute(item.id)
                         : `${window.location.pathname}/${item.id}`;
-                    
+
+                    console.log('🔗 Making PATCH request to:', editUrl);
+
+                    // Check if this is a table data API endpoint and wrap data accordingly
+                    const isTableDataEditApi = editUrl.includes('/tables/') && editUrl.includes('/data');
+                    const editPayload = isTableDataEditApi
+                        ? { data: { [editingCell.columnKey]: convertedValue } }
+                        : { [editingCell.columnKey]: convertedValue };
+
                     const response = await clientApiRequest(editUrl, {
                         method: 'PATCH',
-                        body: JSON.stringify({
-                            [editingCell.columnKey]: convertedValue,
-                        }),
+                        body: JSON.stringify(editPayload),
+                    });
+
+                    console.log('📡 API Response:', {
+                        status: response.status,
+                        ok: response.ok,
+                        statusText: response.statusText
                     });
 
                     if (response.ok) {
+                        console.log('✅ Save successful');
                         handleSaveSuccess();
                     } else {
-                        console.error('Save failed:', response.statusText);
+                        console.error('❌ Save failed:', response.statusText);
                         setEditingError('Failed to save changes');
                         setIsEditingSaving(false);
                     }
                 } catch (error) {
-                    console.error('Save error:', error);
+                    console.error('💥 Save error:', error);
                     setEditingError('Failed to save changes');
                     setIsEditingSaving(false);
                 }
@@ -564,9 +754,15 @@ export function ModelList<T extends IModel>({
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <Heading title={title} />
-                    <Button icon={IconPlus} onClick={() => window.location.href = createRoute}>
-                        Create New
-                    </Button>
+                    {createRoute && createRoute !== null ? (
+                        <Button icon={IconPlus} onClick={() => window.location.href = createRoute}>
+                            Create New
+                        </Button>
+                    ) : (
+                        <Button icon={IconPlus} onClick={() => startAddingNewRow()}>
+                            Add Row
+                        </Button>
+                    )}
                 </div>
 
                 <Card>
@@ -653,6 +849,15 @@ export function ModelList<T extends IModel>({
                                     onSetIsClickingSaveButton={setIsClickingSaveButton}
                                     onDeleteItem={openDeleteModal}
                                     renderItem={renderItem}
+                                    rowActions={rowActions}
+                                    // Add Row functionality
+                                    isAddingNewRow={isAddingNewRow}
+                                    newRowData={newRowData}
+                                    newRowError={newRowError}
+                                    isSavingNewRow={isSavingNewRow}
+                                    onUpdateNewRowData={updateNewRowData}
+                                    onSaveNewRow={saveNewRow}
+                                    onCancelAddingNewRow={cancelAddingNewRow}
                                 />
                             </Table>
                         </TableWrapper>

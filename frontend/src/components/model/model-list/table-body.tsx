@@ -4,10 +4,209 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { TableBody, TableCell, TableHeaderCell, TableRow } from '@/components/ui/table';
 import { IModel } from '@/types/models';
 import { formatApiDate } from '@/lib/date-utils';
-import { IconEdit, IconTrash } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconCheck, IconX } from '@tabler/icons-react';
 import React from 'react';
 import { InlineEditComponent } from './inline-edit';
-import { EditingCell, IColumnDefinition, TableBodyProps } from './types';
+import { EditingCell, IColumnDefinition, IRowAction, TableBodyProps } from './types';
+
+// Add New Row Component
+function AddNewRowComponent<T extends IModel>({
+    columns,
+    newRowData,
+    _newRowError,
+    isSavingNewRow,
+    onUpdateNewRowData,
+    onSaveNewRow,
+    onCancelAddingNewRow,
+}: {
+    columns: IColumnDefinition<T>[];
+    newRowData: Record<string, string>;
+    _newRowError: string;
+    isSavingNewRow: boolean;
+    onUpdateNewRowData: (columnKey: string, value: string) => void;
+    onSaveNewRow: () => Promise<void>;
+    onCancelAddingNewRow: () => void;
+}) {
+    const handleInputChange = (columnKey: string, value: string) => {
+        onUpdateNewRowData(columnKey, value);
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !isSavingNewRow) {
+            e.preventDefault();
+            onSaveNewRow();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            onCancelAddingNewRow();
+        }
+    };
+
+    const renderInputForColumn = (column: IColumnDefinition<T>) => {
+        const columnKey = String(column.key);
+        const value = newRowData[columnKey] || '';
+
+        // Check if this is a system/non-editable column
+        const isSystemColumn = !column.editableInline && !column.editType ||
+                              columnKey === 'order' ||
+                              columnKey === 'created_at' ||
+                              columnKey === 'updated_at' ||
+                              columnKey === 'id';
+
+        // For system columns, render a disabled input showing the auto-generated value
+        if (isSystemColumn) {
+            let displayValue = '';
+            if (columnKey === 'order') {
+                displayValue = 'Auto';
+            } else if (columnKey === 'created_at' || columnKey === 'updated_at') {
+                displayValue = 'Auto-generated';
+            } else if (columnKey === 'id') {
+                displayValue = 'Auto-generated';
+            }
+
+            return (
+                <input
+                    type="text"
+                    value={displayValue}
+                    placeholder={displayValue}
+                    className="input input-sm input-bordered w-full"
+                    disabled={true}
+                    readOnly={true}
+                />
+            );
+        }
+
+        switch (column.editType) {
+            case 'email':
+                return (
+                    <input
+                        type="email"
+                        value={value}
+                        onChange={(e) => handleInputChange(columnKey, e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        placeholder={`Enter ${column.label.replace(' *', '')}`}
+                        className="input input-sm input-bordered w-full"
+                        disabled={isSavingNewRow}
+                        required={column.editValidation?.required}
+                    />
+                );
+            case 'number':
+                return (
+                    <input
+                        type="number"
+                        value={value}
+                        onChange={(e) => handleInputChange(columnKey, e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        placeholder={`Enter ${column.label.replace(' *', '')}`}
+                        className="input input-sm input-bordered w-full"
+                        disabled={isSavingNewRow}
+                        required={column.editValidation?.required}
+                    />
+                );
+            case 'date':
+                return (
+                    <input
+                        type="date"
+                        value={value}
+                        onChange={(e) => handleInputChange(columnKey, e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        className="input input-sm input-bordered w-full"
+                        disabled={isSavingNewRow}
+                        required={column.editValidation?.required}
+                    />
+                );
+            case 'toggle':
+                return (
+                    <select
+                        value={value}
+                        onChange={(e) => handleInputChange(columnKey, e.target.value)}
+                        onKeyDown={handleKeyPress as any}
+                        className="select select-sm select-bordered w-full"
+                        disabled={isSavingNewRow}
+                        required={column.editValidation?.required}
+                    >
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                );
+            case 'select':
+                return (
+                    <select
+                        value={value}
+                        onChange={(e) => handleInputChange(columnKey, e.target.value)}
+                        onKeyDown={handleKeyPress as any}
+                        className="select select-sm select-bordered w-full"
+                        disabled={isSavingNewRow}
+                        required={column.editValidation?.required}
+                    >
+                        <option value="">Select...</option>
+                        {column.editOptions?.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                );
+            default:
+                return (
+                    <input
+                        type="text"
+                        value={value}
+                        onChange={(e) => handleInputChange(columnKey, e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        placeholder={`Enter ${column.label.replace(' *', '')}`}
+                        className="input input-sm input-bordered w-full"
+                        disabled={isSavingNewRow}
+                        required={column.editValidation?.required}
+                        maxLength={column.editValidation?.maxLength}
+                        minLength={column.editValidation?.minLength}
+                    />
+                );
+        }
+    };
+
+    return (
+        <TableRow className="bg-base-100 border-2 border-dashed border-primary">
+            <TableHeaderCell className="w-4">
+                <div className="flex items-center">
+                    <span className="text-xs text-primary font-semibold">New</span>
+                </div>
+            </TableHeaderCell>
+            {columns.map((column) => (
+                <TableCell key={String(column.key)} className={column.className || ''}>
+                    {renderInputForColumn(column)}
+                </TableCell>
+            ))}
+            <TableHeaderCell className="w-fit text-right">
+                <div className="flex items-center justify-end gap-2">
+                    {isSavingNewRow ? (
+                        <span className="loading loading-spinner loading-sm"></span>
+                    ) : (
+                        <>
+                            <Button 
+                                size="icon" 
+                                color="success" 
+                                style="soft" 
+                                icon={IconCheck} 
+                                title="Save new row" 
+                                onClick={() => onSaveNewRow()}
+                                disabled={isSavingNewRow}
+                            />
+                            <Button
+                                size="icon"
+                                color="default"
+                                style="ghost" 
+                                icon={IconX} 
+                                title="Cancel" 
+                                onClick={onCancelAddingNewRow}
+                                disabled={isSavingNewRow}
+                            />
+                        </>
+                    )}
+                </div>
+            </TableHeaderCell>
+        </TableRow>
+    );
+}
 
 // Individual Table Cell Component
 function TableCellContent<T extends IModel>({
@@ -136,6 +335,7 @@ function ModelTableRow<T extends IModel>({
     onSetIsClickingSaveButton,
     onDeleteItem,
     renderItem,
+    rowActions,
 }: {
     item: T;
     columns: IColumnDefinition<T>[];
@@ -156,6 +356,7 @@ function ModelTableRow<T extends IModel>({
     onSetIsClickingSaveButton: (value: boolean) => void;
     onDeleteItem: (item: T) => void;
     renderItem?: (item: T) => React.ReactNode;
+    rowActions?: IRowAction<T>[];
 }) {
     return (
         <TableRow key={item.id} className="hover:bg-base-300">
@@ -191,6 +392,19 @@ function ModelTableRow<T extends IModel>({
                   ))}
             <TableHeaderCell className="w-fit text-right">
                 <div className="flex items-center justify-end gap-2">
+                    {/* Custom row actions */}
+                    {rowActions?.map((action, index) => (
+                        <Button
+                            key={index}
+                            size="icon"
+                            color={action.color || 'primary'}
+                            style={action.style || 'soft'}
+                            icon={action.icon}
+                            title={action.title}
+                            onClick={() => action.onClick(item)}
+                        />
+                    ))}
+                    {/* Standard actions */}
                     <Button size="icon" color="primary" style="soft" icon={IconEdit} title="Edit" onClick={() => window.location.href = (editRoute as any)(item.id)} />
                     <Button size="icon" color="error" style="soft" icon={IconTrash} title="Delete" onClick={() => onDeleteItem(item)} />
                 </div>
@@ -220,9 +434,44 @@ export function ModelTableBody<T extends IModel>({
     onSetIsClickingSaveButton,
     onDeleteItem,
     renderItem,
+    rowActions,
+    // Add Row functionality
+    isAddingNewRow,
+    newRowData,
+    newRowError,
+    isSavingNewRow,
+    onUpdateNewRowData,
+    onSaveNewRow,
+    onCancelAddingNewRow,
 }: TableBodyProps<T>) {
     return (
         <TableBody>
+            {/* Add New Row Component - shows at the top when active */}
+            {isAddingNewRow && onUpdateNewRowData && onSaveNewRow && onCancelAddingNewRow && (
+                <>
+                    <AddNewRowComponent
+                        columns={columns as IColumnDefinition<IModel>[]}
+                        newRowData={newRowData || {}}
+                        _newRowError={newRowError || ''}
+                        isSavingNewRow={isSavingNewRow || false}
+                        onUpdateNewRowData={onUpdateNewRowData}
+                        onSaveNewRow={onSaveNewRow}
+                        onCancelAddingNewRow={onCancelAddingNewRow}
+                    />
+                    {/* Show error message below the add row if there is one */}
+                    {newRowError && (
+                        <TableRow>
+                            <TableCell colSpan={100} className="p-2">
+                                <div className="alert alert-error text-sm">
+                                    <span>{newRowError}</span>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </>
+            )}
+            
+            {/* Regular table rows */}
             {!items || !items.data || items.data.length === 0 ? (
                 <TableRow>
                     <TableCell colSpan={100} className="p-2 text-center">
@@ -252,6 +501,7 @@ export function ModelTableBody<T extends IModel>({
                         onSetIsClickingSaveButton={onSetIsClickingSaveButton}
                         onDeleteItem={onDeleteItem}
                         renderItem={renderItem}
+                        rowActions={rowActions}
                     />
                 ))
             )}

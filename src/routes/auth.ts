@@ -7,7 +7,7 @@ import { Hono } from 'hono'
 import { PrismaClient } from '@prisma/client'
 import { PrismaD1 } from '@prisma/adapter-d1'
 import type { Bindings } from '../../types/bindings.js'
-import { writeAuthMiddleware } from '../middleware/auth.js'
+import { writeAuthMiddleware } from '@/middleware/auth.js'
 
 const auth = new Hono<{ Bindings: Bindings }>()
 

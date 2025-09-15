@@ -4,9 +4,9 @@
 
 import type { Context } from 'hono'
 import React from 'react'
-import { LayoutProvider } from '../components/LayoutProvider.js'
-import { layoutSystem } from '../lib/layout-system.js'
-import ErrorPage from '../components/ErrorPage.js'
+import { LayoutProvider } from '@/components/LayoutProvider'
+import { layoutSystem } from '@/lib/layout-system'
+import ErrorPage from '@/components/ErrorPage'
 
 export async function handleErrorPage(c: Context) {
   const code = parseInt(c.req.query('code') || '500')

@@ -4,7 +4,7 @@
  */
 
 import React, { ReactNode, useMemo } from 'react'
-import { LayoutConfig, RouteConfig, LayoutProps, PageProps } from '../types/layout.js'
+import { LayoutConfig, RouteConfig, LayoutProps, PageProps } from '@/types/layout'
 import { useLayoutContext } from './LayoutProvider.js'
 
 interface LayoutRendererProps {

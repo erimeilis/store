@@ -2,7 +2,7 @@ import InputError from '@/components/input-error';
 import { Toggle } from '@/components/ui/toggle';
 import { IModel } from '@/types/models';
 import React from 'react';
-import { InlineEditComponentProps } from '../types';
+import { InlineEditComponentProps } from '@/components/model/model-list/types';
 
 export function ToggleEditComponent<T extends IModel>({
     editValue,
@@ -14,11 +14,23 @@ export function ToggleEditComponent<T extends IModel>({
     onInputBlur,
 }: InlineEditComponentProps<T>) {
     const handleToggleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        console.log('🔄 ToggleEditComponent.handleToggleChange:', {
+            checked: e.target.checked,
+            currentEditValue: editValue,
+            newValue: e.target.checked ? '1' : '0'
+        });
+
         const newValue = e.target.checked ? '1' : '0';
         onSetEditValue(newValue);
 
+        console.log('🚀 ToggleEditComponent: About to call onSaveEditing with:', newValue);
         // Auto-save on toggle change
-        await onSaveEditing(newValue);
+        try {
+            await onSaveEditing(newValue);
+            console.log('✅ ToggleEditComponent: onSaveEditing completed successfully');
+        } catch (error) {
+            console.error('❌ ToggleEditComponent: onSaveEditing failed:', error);
+        }
     };
 
     // Convert string value to boolean for the checkbox

@@ -24,7 +24,7 @@ head_sampling_rate = 1
 [vars]
 NODE_ENV = "production"
 API_URL = "https://store-crud-api.eri-42e.workers.dev"
-ALLOWED_ORIGINS = "https://store-crud-front.eri-42e.workers.dev"
+ALLOWED_ORIGINS = "https://store-crud-front.eri-42e.workers.dev,https://store-crud-api.eri-42e.workers.dev"
 
 # Local Environment (uses local D1 in .wrangler/state/)
 [env.local]
@@ -94,7 +94,7 @@ id = "faf63b06f0cf4d5c969166dda943cf36"
 [env.production.vars]
 NODE_ENV = "production"
 API_URL = "https://store-crud-api.eri-42e.workers.dev"
-ALLOWED_ORIGINS = "https://store-crud-front.eri-42e.workers.dev"
+ALLOWED_ORIGINS = "https://store-crud-front.eri-42e.workers.dev,https://store-crud-api.eri-42e.workers.dev"
 
 [env.production.observability]
 enabled = true

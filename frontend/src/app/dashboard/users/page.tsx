@@ -1,7 +1,7 @@
 import React from 'react';
-import { ModelList, IColumnDefinition } from '../../../components/model/model-list';
-import { IPaginatedResponse } from '../../../types/models';
-import { formatApiDate } from '../../../lib/date-utils';
+import { ModelList, IColumnDefinition } from '@/components/model/model-list';
+import { IPaginatedResponse } from '@/types/models';
+import { formatApiDate } from '@/lib/date-utils';
 
 // User interface matching our Prisma schema
 interface User {
