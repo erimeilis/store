@@ -4,3 +4,8 @@
 
 /src/generated/prisma
 /Store.iml
+/.wrangler/
+/.playwright-mcp/
+/.junie/
+/.idea/
+/.claude/
