@@ -1,5 +1,5 @@
 import React from 'react';
-import { ModelEdit } from '../../../../components/model/model-edit';
+import { ModelEdit } from '@/components/model/model-edit';
 
 // AllowedEmail interface matching our Prisma schema
 interface AllowedEmail {

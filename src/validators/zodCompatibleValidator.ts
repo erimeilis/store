@@ -1,0 +1,263 @@
+import { z } from 'zod'
+import type {
+  CreateTableRequest,
+  UpdateTableRequest,
+  TableMassAction,
+  AddTableDataRequest,
+  UpdateTableDataRequest,
+  TableDataMassAction,
+  ParsedTableData
+} from '@/types/dynamic-tables.js'
+
+/**
+ * Zod schemas that match existing types exactly
+ */
+
+// Valid column types matching the existing enum
+const validColumnTypes = ['text', 'number', 'date', 'boolean', 'email', 'url', 'textarea'] as const
+
+const ColumnSchema = z.object({
+  name: z.string().min(1, 'Column name is required'),
+  type: z.enum(validColumnTypes, { message: `Column type must be one of: ${validColumnTypes.join(', ')}` }),
+  is_required: z.boolean().default(false),
+  default_value: z.any().optional(),
+  position: z.number().optional() // For compatibility with existing schema
+})
+
+const CreateTableRequestSchema = z.object({
+  name: z.string().min(1, 'Table name is required'),
+  description: z.string().optional(),
+  is_public: z.boolean().default(false),
+  user_id: z.string().optional(), // For compatibility
+  columns: z.array(ColumnSchema).min(1, 'At least one column is required')
+})
+
+const UpdateTableRequestSchema = z.object({
+  name: z.string().min(1, 'Table name is required').optional(),
+  description: z.string().optional(),
+  is_public: z.boolean().optional()
+}).refine(
+  (data) => Object.keys(data).length > 0,
+  { message: 'At least one field must be provided for update' }
+)
+
+const AddTableDataRequestSchema = z.object({
+  data: z.record(z.string(), z.any())
+})
+
+const UpdateTableDataRequestSchema = z.object({
+  data: z.record(z.string(), z.any())
+})
+
+/**
+ * Compatible validator that maintains the old interface structure
+ */
+export class ZodCompatibleValidator {
+  /**
+   * Validate create table request
+   */
+  validateCreateRequest(data: unknown): { valid: boolean; errors: string[] } {
+    try {
+      CreateTableRequestSchema.parse(data)
+      return { valid: true, errors: [] }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors = error.issues.map((issue: any) =>
+          issue.path.length > 0 ? `${issue.path.join('.')}: ${issue.message}` : issue.message
+        )
+        return { valid: false, errors }
+      }
+      return { valid: false, errors: ['Validation failed'] }
+    }
+  }
+
+  /**
+   * Validate update table request
+   */
+  validateUpdateTableRequest(data: unknown): { valid: boolean; errors: string[] } {
+    try {
+      UpdateTableRequestSchema.parse(data)
+      return { valid: true, errors: [] }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors = error.issues.map((issue: any) =>
+          issue.path.length > 0 ? `${issue.path.join('.')}: ${issue.message}` : issue.message
+        )
+        return { valid: false, errors }
+      }
+      return { valid: false, errors: ['Validation failed'] }
+    }
+  }
+
+  /**
+   * Validate table ID
+   */
+  validateTableId(tableId: unknown): { valid: boolean; errors: string[] } {
+    try {
+      z.string().min(1, 'Table ID is required').parse(tableId)
+      return { valid: true, errors: [] }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors = error.issues.map((issue: any) => issue.message)
+        return { valid: false, errors }
+      }
+      return { valid: false, errors: ['Table ID validation failed'] }
+    }
+  }
+
+  /**
+   * Validate table mass action request
+   */
+  validateMassAction(action: TableMassAction | TableDataMassAction, ids: string[]): { valid: boolean; errors: string[] } {
+    try {
+      // Allow both table and table data mass actions
+      z.enum(['delete', 'export', 'make_public', 'make_private']).parse(action)
+      z.array(z.string().min(1, 'ID cannot be empty')).min(1, 'No items selected').parse(ids)
+      return { valid: true, errors: [] }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors = error.issues.map((issue: any) => issue.message)
+        return { valid: false, errors }
+      }
+      return { valid: false, errors: ['Mass action validation failed'] }
+    }
+  }
+
+  /**
+   * Validate add table data request
+   */
+  validateAddRequest(data: unknown): { valid: boolean; errors: string[] } {
+    try {
+      AddTableDataRequestSchema.parse(data)
+      return { valid: true, errors: [] }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors = error.issues.map((issue: any) =>
+          issue.path.length > 0 ? `${issue.path.join('.')}: ${issue.message}` : issue.message
+        )
+        return { valid: false, errors }
+      }
+      return { valid: false, errors: ['Add request validation failed'] }
+    }
+  }
+
+  /**
+   * Validate update table data request
+   */
+  validateUpdateRequest(data: unknown): { valid: boolean; errors: string[] } {
+    try {
+      UpdateTableDataRequestSchema.parse(data)
+      return { valid: true, errors: [] }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors = error.issues.map((issue: any) =>
+          issue.path.length > 0 ? `${issue.path.join('.')}: ${issue.message}` : issue.message
+        )
+        return { valid: false, errors }
+      }
+      return { valid: false, errors: ['Update request validation failed'] }
+    }
+  }
+
+  /**
+   * Validate IDs
+   */
+  validateIds(tableId: unknown, rowId?: unknown): { valid: boolean; errors: string[] } {
+    try {
+      z.string().min(1, 'Table ID is required').parse(tableId)
+      if (rowId !== undefined) {
+        z.string().min(1, 'Row ID is required').parse(rowId)
+      }
+      return { valid: true, errors: [] }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors = error.issues.map((issue: any) => issue.message)
+        return { valid: false, errors }
+      }
+      return { valid: false, errors: ['ID validation failed'] }
+    }
+  }
+
+  /**
+   * Validate table data against schema
+   */
+  async validateTableData(
+    tableColumns: Array<{ name: string; type: string; is_required: boolean; default_value: any }>,
+    data: ParsedTableData
+  ): Promise<{ valid: boolean; errors: string[]; validatedData?: ParsedTableData }> {
+    try {
+      // Create dynamic schema based on table columns
+      const schemaFields: Record<string, z.ZodSchema> = {}
+
+      for (const column of tableColumns) {
+        let columnValidator: z.ZodSchema
+
+        switch (column.type) {
+          case 'text':
+          case 'textarea':
+            columnValidator = z.string()
+            break
+          case 'number':
+            columnValidator = z.coerce.number()
+            break
+          case 'boolean':
+            columnValidator = z.coerce.boolean()
+            break
+          case 'date':
+            columnValidator = z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/))
+            break
+          case 'email':
+            columnValidator = z.string().email('Must be a valid email address')
+            break
+          case 'url':
+            columnValidator = z.string().url('Must be a valid URL')
+            break
+          default:
+            columnValidator = z.any()
+        }
+
+        if (!column.is_required) {
+          columnValidator = columnValidator.optional().nullable()
+        }
+
+        // Add default value transformation if specified
+        if (column.default_value !== null && column.default_value !== undefined) {
+          columnValidator = columnValidator.transform(val =>
+            val === undefined || val === null ? column.default_value : val
+          )
+        }
+
+        schemaFields[column.name] = columnValidator
+      }
+
+      const tableSchema = z.object(schemaFields)
+      const validatedData = tableSchema.parse(data)
+
+      return { valid: true, errors: [], validatedData }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors = error.issues.map((issue: any) =>
+          issue.path.length > 0 ? `Column '${issue.path.join('.')}': ${issue.message}` : issue.message
+        )
+        return { valid: false, errors }
+      }
+      return { valid: false, errors: ['Table data validation failed'] }
+    }
+  }
+
+  /**
+   * Extract filters from query parameters
+   */
+  extractFilters(queryParams: URLSearchParams): { [key: string]: string } {
+    const filters: { [key: string]: string } = {}
+
+    for (const [key, value] of queryParams.entries()) {
+      if (key.startsWith('filter_') && value.trim()) {
+        const columnName = key.replace('filter_', '')
+        filters[columnName] = value.trim()
+      }
+    }
+
+    return filters
+  }
+}

@@ -1,11 +1,12 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { getPrismaClient } from '../lib/database.js';
-import { writeAuthMiddleware } from '../middleware/auth.js';
-import { adminOnlyMiddleware, adminOrOwnerMiddleware } from '../middleware/admin.js';
-import { formatApiDate } from '../lib/date-utils.js';
-import { validateAdminCount, validateEmailAllowed, validateBulkAdminOperation } from '../lib/security-utils.js';
+import { getPrismaClient } from '@/lib/database.js';
+import { writeAuthMiddleware } from '@/middleware/auth.js';
+import { adminOnlyMiddleware, adminOrOwnerMiddleware } from '@/middleware/admin.js';
+import { formatApiDate } from '@/lib/date-utils.js';
+import { validateAdminCount, validateEmailAllowed, validateBulkAdminOperation } from '@/lib/security-utils.js';
+import { buildPaginationInfo } from '@/utils/common.js';
 
 const app = new Hono();
 
@@ -107,16 +108,14 @@ app.get('/', writeAuthMiddleware, async (c) => {
     ]);
 
     // Format response
+    const pagination = buildPaginationInfo(pageNum, limitNum, totalCount);
     const response = {
       data: users.map(user => ({
         ...user,
         created_at: formatApiDate(user.createdAt),
         updated_at: formatApiDate(user.updatedAt),
       })),
-      current_page: pageNum,
-      last_page: Math.ceil(totalCount / limitNum),
-      per_page: limitNum,
-      total: totalCount,
+      pagination
     };
 
     return c.json(response);
@@ -184,19 +183,22 @@ app.post('/', adminOnlyMiddleware, zValidator('json', CreateUserSchema), async (
       }, 400);
     }
 
-    // Validate email against allowed_emails (for new users)
-    const emailValidation = await validateEmailAllowed(database, userData.email);
-    if (!emailValidation.isAllowed && emailValidation.matchType !== 'grandfathered') {
-      return c.json({
-        error: 'Email not allowed',
-        errors: { email: emailValidation.message },
-        details: 'Only emails in the allowed_emails list can be used for new user accounts'
-      }, 403);
-    }
-
-    // Check if this is the first user - if so, make them admin
+    // Check if this is the first user - if so, make them admin and bypass email validation
     const userCount = await database.user.count();
-    const finalRole = userCount === 0 ? 'admin' : userData.role;
+    const isFirstUser = userCount === 0;
+    const finalRole = isFirstUser ? 'admin' : userData.role;
+
+    // Validate email against allowed_emails (only for non-first users)
+    if (!isFirstUser) {
+      const emailValidation = await validateEmailAllowed(database, userData.email);
+      if (!emailValidation.isAllowed && emailValidation.matchType !== 'grandfathered') {
+        return c.json({
+          error: 'Email not allowed',
+          errors: { email: emailValidation.message },
+          details: 'Only emails in the allowed_emails list can be used for new user accounts'
+        }, 403);
+      }
+    }
 
     const user = await database.user.create({
       data: {

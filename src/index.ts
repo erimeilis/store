@@ -2,18 +2,20 @@ import { Hono } from 'hono'
 import type { Bindings } from '../types/bindings.js'
 
 // Import middleware
-import { corsMiddleware } from './middleware/cors.js'
-import { notFoundHandler, globalErrorHandler } from './middleware/error.js'
+import { corsMiddleware } from '@/middleware/cors.js'
+import { notFoundHandler, globalErrorHandler } from '@/middleware/error.js'
 
 // Import route groups
-import { healthRoutes } from './routes/health.js'
-import { itemsRoutes } from './routes/items.js'
-import { uploadRoutes } from './routes/upload.js'
-import { importRoutes } from './routes/import.js'
-import usersRoutes from './routes/users.js'
-import { auth } from './routes/auth.js'
-import tokensRoutes from './routes/tokens.js'
-import allowedEmailsRoutes from './routes/allowed-emails.js'
+import { healthRoutes } from '@/routes/health.js'
+import { itemsRoutes } from '@/routes/items.js'
+import { uploadRoutes } from '@/routes/upload.js'
+import { importRoutes } from '@/routes/import.js'
+import usersRoutes from '@/routes/users.js'
+import { auth } from '@/routes/auth.js'
+import tokensRoutes from '@/routes/tokens.js'
+import allowedEmailsRoutes from '@/routes/allowed-emails.js'
+import { tablesRoutes } from '@/routes/tables.js'
+import { tableDataRoutes } from '@/routes/table-data.js'
 
 /**
  * Store CRUD API - Backend Server
@@ -24,7 +26,7 @@ import allowedEmailsRoutes from './routes/allowed-emails.js'
  * 
  * Architecture:
  * - Middleware: CORS, Authentication, Error handling
- * - Routes: Health, Items CRUD, Upload, Import, Users Management, Tokens, Allowed Emails
+ * - Routes: Health, Items CRUD, Upload, Import, Users Management, Tokens, Allowed Emails, Dynamic Tables
  * - Storage: Cloudflare D1 (SQLite), R2 (File storage)
  * - Authentication: Bearer token with D1 database + env fallback
  */
@@ -64,6 +66,10 @@ app.route('/api/auth', auth)
 app.route('/api/tokens', tokensRoutes)
 // Allowed emails management operations (protected with auth middleware)
 app.route('/api/allowed-emails', allowedEmailsRoutes)
+
+// Dynamic tables management operations (protected with auth middleware)
+app.route('/', tablesRoutes)
+app.route('/', tableDataRoutes)
 
 // =============================================================================
 // ERROR HANDLING

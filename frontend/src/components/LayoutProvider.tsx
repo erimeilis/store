@@ -4,8 +4,8 @@
  */
 
 import React, { createContext, useContext, useCallback, useMemo, ReactNode } from 'react'
-import { LayoutContext, LayoutConfig, LayoutSystemOptions } from '../types/layout.js'
-import { LayoutSystemCore, layoutSystem as defaultLayoutSystem } from '../lib/layout-system.js'
+import { LayoutContext, LayoutConfig, LayoutSystemOptions } from '@/types/layout'
+import { LayoutSystemCore, layoutSystem as defaultLayoutSystem } from '@/lib/layout-system'
 
 interface LayoutProviderProps {
   children: ReactNode

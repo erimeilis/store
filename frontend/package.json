@@ -12,7 +12,7 @@
     "version": "echo \"export default `date +'%s'`\" > ./src/config/build_time.ts && echo \"export default true\" > ./src/config/is_prod.ts",
     "build:css": "postcss src/styles/globals.css -o dist/styles.css",
     "build:css:watch": "postcss src/styles/globals.css -o dist/styles.css --watch",
-    "build:client": "esbuild src/client.tsx --bundle --outfile=dist/client.js --format=esm --jsx=automatic --tsconfig=tsconfig.json --conditions=style --external:*.css",
+    "build:client": "node esbuild.config.js",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint src --ext .ts,.tsx,.js,.jsx --fix"
@@ -54,6 +54,6 @@
     "postcss-cli": "^11.0.1",
     "tailwindcss": "^4.1.12",
     "typescript": "^5.5.3",
-    "wrangler": "^4.34.0"
+    "wrangler": "^4.35.0"
   }
 }

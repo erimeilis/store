@@ -3,12 +3,10 @@
 /**
  * Clean Architecture Database Reset Script
  * Uses Wrangler D1 Native approach with comprehensive clearing strategy
- * 
- * Environments:
- * - local: Uses local D1 (stored in .wrangler/state/), 10 items
- * - preview: Uses remote preview D1 on Cloudflare, 100 items  
- * - production: Uses remote production D1 on Cloudflare, 200 items
- * 
+ *
+ * Dynamically reads configuration from wrangler.toml files
+ * Generates secure tokens for each environment
+ *
  * Usage: tsx scripts/db-reset.ts <environment>
  */
 
@@ -16,57 +14,32 @@ import { execSync } from 'child_process';
 import { readFileSync, readdirSync, writeFileSync, unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
 import * as readline from 'readline';
-
-// Environment configurations
-const ENVIRONMENTS = {
-  local: {
-    dbName: 'store-database-preview',
-    dbId: '6a7a4053-7868-45a6-839d-1bfa6c62f41c',
-    itemCount: 10,
-    useRemote: false,
-    requiresConfirmation: false,
-    clearWranglerState: true,
-    description: 'Local Development Database (local D1 in .wrangler/state/)',
-    tokenDomains: '["localhost", "localhost:*", "http://localhost:5173", "http://localhost:8787"]',
-    frontendToken: '35890e45a5122de41a406cdaa290e711404c1292205b6ad4a10514228df378ce',
-    adminToken: 'eeb77aa92c4763586c086b89876037dc74b3252e19fe5dbd2ea0a80100e3855f'
-  },
-  preview: {
-    dbName: 'store-database-preview',
-    dbId: '6a7a4053-7868-45a6-839d-1bfa6c62f41c',
-    itemCount: 100,
-    useRemote: true,
-    requiresConfirmation: false,
-    clearWranglerState: false,
-    description: 'Preview Database (remote D1 on Cloudflare)',
-    tokenDomains: '["localhost", "localhost:*", "http://localhost:5173", "http://localhost:8787"]',
-    frontendToken: '35890e45a5122de41a406cdaa290e711404c1292205b6ad4a10514228df378ce',
-    adminToken: 'eeb77aa92c4763586c086b89876037dc74b3252e19fe5dbd2ea0a80100e3855f'
-  },
-  production: {
-    dbName: 'store-database',
-    dbId: 'a293b988-9b67-4430-ad66-6d63e3cebf20',
-    itemCount: 200,
-    useRemote: true,
-    requiresConfirmation: true,
-    clearWranglerState: false,
-    description: 'Production Database (remote D1 on Cloudflare)',
-    tokenDomains: '["https://store-crud-front.eri-42e.workers.dev"]',
-    frontendToken: 'prod-frontend-token-placeholder',
-    adminToken: 'prod-admin-token-placeholder'
-  }
-};
+import { getEnvironmentConfig, EnvironmentConfig } from './wrangler-config';
 
 // Get environment from command line args
 const envArg = process.argv[2];
-if (!envArg || !ENVIRONMENTS[envArg]) {
+const validEnvironments = ['local', 'preview', 'production'];
+
+if (!envArg || !validEnvironments.includes(envArg)) {
   console.error('❌ Usage: tsx scripts/db-reset.ts <environment>');
   console.error('   Available environments: local, preview, production');
   process.exit(1);
 }
 
-const config = ENVIRONMENTS[envArg];
-console.log(`🔄 Resetting ${config.description}...`);
+// Load configuration dynamically from wrangler.toml files
+let config: EnvironmentConfig;
+try {
+  config = getEnvironmentConfig(envArg);
+  console.log(`🔄 Resetting ${config.description}...`);
+  console.log(`📋 Configuration:`);
+  console.log(`   Database: ${config.dbName} (${config.dbId})`);
+  console.log(`   Items: ${config.itemCount}`);
+  console.log(`   Remote: ${config.useRemote}`);
+  console.log(`   API URL: ${config.apiUrl}`);
+} catch (error) {
+  console.error('❌ Failed to load configuration:', error.message);
+  process.exit(1);
+}
 
 // Safety check for production
 async function confirmProductionReset(): Promise<boolean> {
@@ -192,21 +165,24 @@ function applyMigrations(): void {
 
 function updateTokensWithEnvironmentData(): void {
   console.log('🔧 Updating tokens with environment-specific data...');
-  
+  console.log(`   🔑 Frontend Token: ${config.frontendToken.substring(0, 8)}...`);
+  console.log(`   🔑 Admin Token: ${config.adminToken.substring(0, 8)}...`);
+  console.log(`   🌐 Allowed Domains: ${config.allowedDomains}`);
+
   // Read the essential tokens seed file
   const tokensSeedPath = './seeds/essential-tokens.sql';
   let tokensSeed = readFileSync(tokensSeedPath, 'utf8');
-  
+
   // Replace placeholders with environment-specific values
   tokensSeed = tokensSeed
     .replace(/frontend-access-token-placeholder/g, config.frontendToken)
     .replace(/admin-access-token-placeholder/g, config.adminToken)
-    .replace(/\["placeholder-domain"\]/g, config.tokenDomains);
-  
+    .replace(/\[\"placeholder-domain\"\]/g, config.allowedDomains);
+
   // Write updated tokens seed to temp file
   const tempTokensFile = './scripts/temp-tokens.sql';
   writeFileSync(tempTokensFile, tokensSeed);
-  
+
   try {
     execSync(buildWranglerCommand(tempTokensFile, true), { stdio: 'inherit' });
     console.log('   ✓ Tokens configured for environment');

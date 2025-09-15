@@ -19,6 +19,7 @@ export interface PaginatedResponse<T> {
   prev_page_url: string | null
   next_page_url: string | null
   last_page_url: string | null
+  _meta?: any // Optional metadata field for table data responses (contains column definitions)
 }
 
 export interface PaginationLink {

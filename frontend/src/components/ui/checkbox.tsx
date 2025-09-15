@@ -40,11 +40,12 @@ export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputE
     VariantProps<typeof checkboxVariants> {
     label?: React.ReactNode
     labelClassName?: string
+    labelPosition?: 'left' | 'right'
     indeterminate?: boolean
 }
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
-    ({className, variant, size, color, label, labelClassName, indeterminate, ...props}, ref) => {
+    ({className, variant, size, color, label, labelClassName, labelPosition = 'left', indeterminate, ...props}, ref) => {
         const inputRef = React.useRef<HTMLInputElement>(null)
 
         // Combine refs
@@ -71,11 +72,12 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             return checkboxElement
         }
 
-        // Return checkbox wrapped in label
+        // Return checkbox wrapped in label with configurable position
         return (
-            <label className={cn('label cursor-pointer', labelClassName)}>
-                <span className="label-text">{label}</span>
+            <label className={cn('label cursor-pointer', labelPosition === 'right' ? 'justify-start' : '', labelClassName)}>
+                {labelPosition === 'left' && <span className="label-text">{label}</span>}
                 {checkboxElement}
+                {labelPosition === 'right' && <span className="label-text">{label}</span>}
             </label>
         )
     }

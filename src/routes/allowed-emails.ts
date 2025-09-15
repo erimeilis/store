@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { getPrismaClient } from '../lib/database.js';
-import { writeAuthMiddleware } from '../middleware/auth.js';
-import { formatApiDate } from '../lib/date-utils.js';
-import { validateEmailAllowed } from '../lib/security-utils.js';
+import { getPrismaClient } from '@/lib/database.js';
+import { writeAuthMiddleware } from '@/middleware/auth.js';
+import { formatApiDate } from '@/lib/date-utils.js';
+import { validateEmailAllowed } from '@/lib/security-utils.js';
+import { buildPaginationInfo } from '@/utils/common.js';
 
 const app = new Hono();
 
@@ -118,15 +119,13 @@ app.get('/', writeAuthMiddleware, async (c) => {
     ]);
 
     // Format response
+    const pagination = buildPaginationInfo(pageNum, limitNum, totalCount);
     const response = {
       data: allowedEmails.map(allowedEmail => ({
         ...allowedEmail,
         created_at: formatApiDate(allowedEmail.createdAt),
       })),
-      current_page: pageNum,
-      last_page: Math.ceil(totalCount / limitNum),
-      per_page: limitNum,
-      total: totalCount,
+      pagination
     };
 
     return c.json(response);
@@ -519,22 +518,35 @@ app.post('/validate', writeAuthMiddleware, zValidator('json', ValidateEmailSchem
   try {
     const database = getPrismaClient(c.env);
     const { email } = c.req.valid('json');
-    
+
     console.log('🔍 Validating email access:', { email });
-    
+
+    // Check if this is the first user - if so, bypass email validation
+    const userCount = await database.user.count();
+    const isFirstUser = userCount === 0;
+
+    if (isFirstUser) {
+      console.log('✅ First user - bypassing email validation:', { email });
+      return c.json({
+        isAllowed: true,
+        matchType: 'grandfathered',
+        message: 'First user - automatically allowed'
+      });
+    }
+
     const validationResult = await validateEmailAllowed(database, email);
-    
+
     console.log('✅ Email validation result:', {
       email,
       isAllowed: validationResult.isAllowed,
       matchType: validationResult.matchType,
       message: validationResult.message
     });
-    
+
     return c.json(validationResult);
   } catch (error) {
     console.error('Error validating email:', error);
-    return c.json({ 
+    return c.json({
       isAllowed: false,
       matchType: null,
       message: 'Failed to validate email due to server error'

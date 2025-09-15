@@ -4,9 +4,9 @@
  */
 
 import React from 'react'
-import { PageProps } from '../../types/layout.js'
-import { Button } from '../../components/ui/button.js'
-import { Card, CardBody, CardTitle, CardActions } from '../../components/ui/card.js'
+import { PageProps } from '@/types/layout'
+import { Button } from '@/components/ui/button'
+import { Card, CardBody, CardTitle, CardActions } from '@/components/ui/card'
 import { IconBrandGoogleFilled } from '@tabler/icons-react'
 
 interface LoginPageProps extends PageProps {

@@ -12,29 +12,32 @@ declare global {
 }
 
 /**
- * Get the backend API URL for client-side requests
+ * Get the API URL for client-side requests
+ * This should point to the frontend server so requests go through the proxy handler
+ * which adds session headers before forwarding to the backend
  */
 export function getApiUrl(): string {
-  // First try to get from global window object (set by server)
-  if (typeof window !== 'undefined' && window.__API_URL__) {
-    return window.__API_URL__;
+  // For client-side requests, always use the current origin (frontend server)
+  // so requests go through the proxy handler with session headers
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
   }
   
-  // Fallback for development
-  return 'http://localhost:8787';
+  // Fallback for development (should not be used in practice)
+  return 'http://localhost:5173';
 }
 
 /**
  * Get the access token for API requests
  */
 export function getAccessToken(): string | null {
-  // First try to get from global window object (set by server)
+  // Get from global window object (set by server)
   if (typeof window !== 'undefined' && window.__ACCESS_TOKEN__) {
     return window.__ACCESS_TOKEN__;
   }
   
-  // Fallback - would normally get from session/cookies but for now return hardcoded
-  return 'eeb77aa92c4763586c086b89876037dc74b3252e19fe5dbd2ea0a80100e3855f';
+  // No token available
+  return null;
 }
 
 /**

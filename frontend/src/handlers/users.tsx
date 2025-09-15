@@ -3,8 +3,8 @@
  */
 
 import type { Context } from 'hono'
-import type { Env, Variables } from '../types/hono.js'
-import { fetchHandlerData, renderDashboardPage, buildPageProps, API_ENDPOINTS } from '../lib/handler-utils.js'
+import type { Env, Variables } from '@/types/hono'
+import { fetchHandlerData, renderDashboardPage, buildPageProps, API_ENDPOINTS } from '@/lib/handler-utils'
 
 export async function handleUsersPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
   const user = c.get('user')
@@ -41,7 +41,7 @@ export async function handleEditUserPage(c: Context<{ Bindings: Env; Variables: 
   let userData = null
   try {
     const apiUrl = c.env?.API_URL || 'http://localhost:8787'
-    const { fetchAPI } = await import('../lib/api-utils.js')
+    const { fetchAPI } = await import('@/lib/api-utils')
     
     userData = await fetchAPI(
       `${apiUrl}/api/users/${userId}`,

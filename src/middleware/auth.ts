@@ -1,8 +1,8 @@
 import type { Context, Next } from 'hono'
 import type { Bindings } from '../../types/bindings.js'
-import { getPrismaClient } from '../lib/database.js'
-import { validateToken, hasPermission } from '../lib/token-service.js'
-import type { UserContext, TokenPermissions } from '../types/database.js'
+import { getPrismaClient } from '@/lib/database.js'
+import { validateToken, hasPermission } from '@/lib/token-service.js'
+import type { UserContext, TokenPermissions } from '@/types/database.js'
 
 // Define context variables type
 type Variables = {

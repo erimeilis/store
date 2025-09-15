@@ -4,9 +4,9 @@
  */
 
 import React from 'react';
-import { ModelList, IColumnDefinition } from '../../components/model/model-list';
-import { IPaginatedResponse } from '../../types/models';
-import { formatApiDate } from '../../lib/date-utils';
+import { ModelList, IColumnDefinition } from '@/components/model/model-list';
+import { IPaginatedResponse } from '@/types/models';
+import { formatApiDate } from '@/lib/date-utils';
 
 // Item interface based on the backend structure with adapted frontend data
 interface Item {
@@ -132,6 +132,7 @@ export default function DashboardPage({
       columns={itemColumns}
       createRoute="/dashboard/items/create"
       editRoute={(id) => `/dashboard/items/edit/${id}`}
+      inlineEditRoute={(id) => `/api/items/${id}`}
       deleteRoute={(id) => `/api/items/${id}`}
       massActionRoute="/api/items/mass-action"
       massActions={itemMassActions}

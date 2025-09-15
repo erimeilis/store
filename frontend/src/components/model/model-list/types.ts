@@ -1,6 +1,15 @@
 import { IMassAction, IModel, IModelListProps } from '@/types/models';
 import React from 'react';
 
+// Custom row action interface
+export interface IRowAction<T extends IModel> {
+    icon: React.ComponentType<any>;
+    title: string;
+    color?: 'default' | 'neutral' | 'primary' | 'secondary' | 'accent' | 'info' | 'success' | 'warning' | 'error';
+    style?: 'default' | 'outline' | 'dash' | 'soft' | 'ghost' | 'link';
+    onClick: (item: T) => void;
+}
+
 // Column definition interface for enhanced table functionality
 export interface IColumnDefinition<T extends IModel> {
     key: keyof T | string;
@@ -27,13 +36,14 @@ export interface IColumnDefinition<T extends IModel> {
 // Main component props interface
 export interface ModelListComponentProps<T extends IModel> extends IModelListProps<T> {
     title: string;
-    createRoute: string;
+    createRoute?: string | null;
     editRoute: (id: number | string) => string;
     deleteRoute: (id: number | string) => string;
     inlineEditRoute?: (id: number | string) => string;
     massActionRoute: string;
     columns: IColumnDefinition<T>[];
     massActions?: IMassAction[];
+    rowActions?: IRowAction<T>[];
     // Legacy props for backward compatibility
     renderItem?: (item: T) => React.ReactNode;
     renderHeader?: () => React.ReactNode;
@@ -119,6 +129,15 @@ export interface TableBodyProps<T extends IModel> {
     onSetIsClickingSaveButton: (value: boolean) => void;
     onDeleteItem: (item: T) => void;
     renderItem?: (item: T) => React.ReactNode;
+    rowActions?: IRowAction<T>[];
+    // Add Row functionality
+    isAddingNewRow?: boolean;
+    newRowData?: Record<string, string>;
+    newRowError?: string;
+    isSavingNewRow?: boolean;
+    onUpdateNewRowData?: (columnKey: string, value: string) => void;
+    onSaveNewRow?: () => Promise<void>;
+    onCancelAddingNewRow?: () => void;
 }
 
 export interface FiltersRowProps<T extends IModel> {

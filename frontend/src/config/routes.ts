@@ -24,68 +24,124 @@ export interface LayoutConfig {
 export const routes: RouteConfig[] = [
   {
     path: '/',
-    handler: async (c) => (await import('../handlers/auth.js')).handleLoginPage(c),
+    handler: async (c) => (await import('@/handlers/auth')).handleLoginPage(c),
     layout: 'root',
     segment: 'root'
   },
   {
     path: '/error',
-    handler: async (c) => (await import('../handlers/error.js')).handleErrorPage(c),
+    handler: async (c) => (await import('@/handlers/error')).handleErrorPage(c),
     layout: 'root',
     segment: 'error'
   },
   {
     path: '/dashboard',
-    handler: async (c) => (await import('../handlers/dashboard.js')).handleDashboardPage(c),
+    handler: async (c) => (await import('@/handlers/dashboard')).handleDashboardPage(c),
     layout: 'dashboard',
     segment: 'dashboard',
     requiresAuth: true
   },
   {
     path: '/dashboard/users',
-    handler: async (c) => (await import('../handlers/users.js')).handleUsersPage(c),
+    handler: async (c) => (await import('@/handlers/users')).handleUsersPage(c),
     layout: 'dashboard',
     segment: 'users',
     requiresAuth: true
   },
   {
     path: '/dashboard/users/create',
-    handler: async (c) => (await import('../handlers/users.js')).handleCreateUserPage(c),
+    handler: async (c) => (await import('@/handlers/users')).handleCreateUserPage(c),
     layout: 'dashboard',
     segment: 'create',
     requiresAuth: true
   },
   {
     path: '/dashboard/users/edit/:id',
-    handler: async (c) => (await import('../handlers/users.js')).handleEditUserPage(c),
+    handler: async (c) => (await import('@/handlers/users')).handleEditUserPage(c),
     layout: 'dashboard',
     segment: 'edit',
     requiresAuth: true
   },
   {
     path: '/dashboard/tokens',
-    handler: async (c) => (await import('../handlers/tokens.js')).handleTokensPage(c),
+    handler: async (c) => (await import('@/handlers/tokens')).handleTokensPage(c),
     layout: 'dashboard',
     segment: 'tokens',
     requiresAuth: true
   },
   {
     path: '/dashboard/allowed-emails',
-    handler: async (c) => (await import('../handlers/allowed-emails.js')).handleAllowedEmailsPage(c),
+    handler: async (c) => (await import('@/handlers/allowed-emails')).handleAllowedEmailsPage(c),
     layout: 'dashboard',
     segment: 'allowed-emails',
     requiresAuth: true
   },
   {
     path: '/dashboard/allowed-emails/create',
-    handler: async (c) => (await import('../handlers/allowed-emails.js')).handleCreateAllowedEmailPage(c),
+    handler: async (c) => (await import('@/handlers/allowed-emails')).handleCreateAllowedEmailPage(c),
     layout: 'dashboard',
     segment: 'create',
     requiresAuth: true
   },
   {
     path: '/dashboard/allowed-emails/edit/:id',
-    handler: async (c) => (await import('../handlers/allowed-emails.js')).handleEditAllowedEmailPage(c),
+    handler: async (c) => (await import('@/handlers/allowed-emails')).handleEditAllowedEmailPage(c),
+    layout: 'dashboard',
+    segment: 'edit',
+    requiresAuth: true
+  },
+  {
+    path: '/dashboard/items/create',
+    handler: async (c) => (await import('@/handlers/items')).handleCreateItemPage(c),
+    layout: 'dashboard',
+    segment: 'create',
+    requiresAuth: true
+  },
+  {
+    path: '/dashboard/items/edit/:id',
+    handler: async (c) => (await import('@/handlers/items')).handleEditItemPage(c),
+    layout: 'dashboard',
+    segment: 'edit',
+    requiresAuth: true
+  },
+  {
+    path: '/dashboard/tables',
+    handler: async (c) => (await import('@/handlers/tables')).handleTablesListPage(c),
+    layout: 'dashboard',
+    segment: 'tables',
+    requiresAuth: true
+  },
+  {
+    path: '/dashboard/tables/create',
+    handler: async (c) => (await import('@/handlers/tables')).handleTableCreatePage(c),
+    layout: 'dashboard',
+    segment: 'create',
+    requiresAuth: true
+  },
+  {
+    path: '/dashboard/tables/:id/data',
+    handler: async (c) => (await import('@/handlers/tables')).handleTableDataPage(c),
+    layout: 'dashboard',
+    segment: 'data',
+    requiresAuth: true
+  },
+  {
+    path: '/dashboard/tables/:id/edit',
+    handler: async (c) => (await import('@/handlers/tables')).handleTableEditPage(c),
+    layout: 'dashboard',
+    segment: 'edit',
+    requiresAuth: true
+  },
+  {
+    path: '/dashboard/tables/:id/columns',
+    handler: async (c) => (await import('@/handlers/tables')).handleTableColumnsPage(c),
+    layout: 'dashboard',
+    segment: 'columns',
+    requiresAuth: true
+  },
+  {
+    path: '/dashboard/tables/:id/data/edit/:rowId',
+    handler: async (c) => (await import('@/handlers/tables')).handleTableDataEditPage(c),
     layout: 'dashboard',
     segment: 'edit',
     requiresAuth: true
@@ -98,26 +154,34 @@ export const layouts: LayoutConfig[] = [
     name: 'root',
     path: '/dashboard',
     segment: 'dashboard',
-    component: async () => (await import('../app/layout.js')).default
+    component: async () => (await import('@/app/layout')).default
   },
   {
     name: 'dashboard',
     path: '/dashboard',
     segment: 'dashboard',
-    component: async () => (await import('../app/dashboard/layout.js')).default
+    component: async () => (await import('@/app/dashboard/layout')).default
   }
 ]
 
 // Client-side page components mapping
 export const pageComponents = {
-  '/': async () => (await import('../app/login/page.js')).default,
-  '/error': async () => (await import('../app/error/page.js')).default,
-  '/dashboard': async () => (await import('../app/dashboard/page.js')).default,
-  '/dashboard/users': async () => (await import('../app/dashboard/users/page.js')).default,
-  '/dashboard/users/create': async () => (await import('../app/dashboard/users/create/page.js')).default,
-  '/dashboard/users/edit/[id]': async () => (await import('../app/dashboard/users/edit/[id]/page.js')).default,
-  '/dashboard/tokens': async () => (await import('../app/dashboard/tokens/page.js')).default,
-  '/dashboard/allowed-emails': async () => (await import('../app/dashboard/allowed-emails/page.js')).default,
-  '/dashboard/allowed-emails/create': async () => (await import('../app/dashboard/allowed-emails/create/page.js')).default,
-  '/dashboard/allowed-emails/edit/[id]': async () => (await import('../app/dashboard/allowed-emails/edit/[id]/page.js')).default
+  '/': async () => (await import('@/app/login/page')).default,
+  '/error': async () => (await import('@/app/error/page')).default,
+  '/dashboard': async () => (await import('@/app/dashboard/page')).default,
+  '/dashboard/users': async () => (await import('@/app/dashboard/users/page')).default,
+  '/dashboard/users/create': async () => (await import('@/app/dashboard/users/create/page')).default,
+  '/dashboard/users/edit/[id]': async () => (await import('@/app/dashboard/users/edit/[id]/page')).default,
+  '/dashboard/items/create': async () => (await import('@/app/dashboard/items/create/page')).default,
+  '/dashboard/items/edit/[id]': async () => (await import('@/app/dashboard/items/edit/[id]/page')).default,
+  '/dashboard/tokens': async () => (await import('@/app/dashboard/tokens/page')).default,
+  '/dashboard/allowed-emails': async () => (await import('@/app/dashboard/allowed-emails/page')).default,
+  '/dashboard/allowed-emails/create': async () => (await import('@/app/dashboard/allowed-emails/create/page')).default,
+  '/dashboard/allowed-emails/edit/[id]': async () => (await import('@/app/dashboard/allowed-emails/edit/[id]/page')).default,
+  '/dashboard/tables': async () => (await import('@/app/dashboard/tables/page')).default,
+  '/dashboard/tables/create': async () => (await import('@/app/dashboard/tables/create/page')).default,
+  '/dashboard/tables/[id]/data': async () => (await import('@/app/dashboard/tables/[id]/data/page')).default,
+  '/dashboard/tables/[id]/edit': async () => (await import('@/app/dashboard/tables/[id]/edit/page')).default,
+  '/dashboard/tables/[id]/columns': async () => (await import('@/app/dashboard/tables/[id]/columns/page')).default,
+  '/dashboard/tables/[id]/data/edit/[rowId]': async () => (await import('@/app/dashboard/tables/[id]/data/edit/[rowId]/page')).default
 }

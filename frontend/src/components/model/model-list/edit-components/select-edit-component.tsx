@@ -2,7 +2,7 @@ import InputError from '@/components/input-error';
 import { Select } from '@/components/ui/select';
 import { IModel } from '@/types/models';
 import React from 'react';
-import { InlineEditComponentProps } from '../types';
+import { InlineEditComponentProps } from '@/components/model/model-list/types';
 
 export function SelectEditComponent<T extends IModel>({
     column,

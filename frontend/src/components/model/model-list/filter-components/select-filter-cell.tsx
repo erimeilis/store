@@ -1,7 +1,7 @@
 import { Select } from '@/components/ui/select';
 import { TableCell } from '@/components/ui/table';
 import { IModel } from '@/types/models';
-import { IColumnDefinition } from '../types';
+import { IColumnDefinition } from '@/components/model/model-list/types';
 
 export interface SelectFilterCellProps<T extends IModel> {
     column: IColumnDefinition<T>;

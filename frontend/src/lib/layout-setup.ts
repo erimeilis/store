@@ -4,9 +4,9 @@
  */
 
 import React from 'react'
-import type { PageProps } from '../types/layout.js'
+import type { PageProps } from '@/types/layout'
 import { layoutSystem } from './layout-system.js'
-import { layouts, pageComponents } from '../config/routes.js'
+import { layouts, pageComponents } from '@/config/routes'
 
 /**
  * Register layouts with the layout system

@@ -1,5 +1,5 @@
 import React from 'react'
-import ErrorPage from '../../components/ErrorPage.js'
+import ErrorPage from '@/components/ErrorPage'
 
 interface ErrorPageComponentProps {
   params: any

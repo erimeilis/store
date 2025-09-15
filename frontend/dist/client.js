@@ -1306,7 +1306,7 @@ var require_react_dom_development = __commonJS({
         return dispatcher;
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React51 = require_react(), Internals = {
+      var React58 = require_react(), Internals = {
         d: {
           f: noop3,
           r: function() {
@@ -1324,7 +1324,7 @@ var require_react_dom_development = __commonJS({
         },
         p: 0,
         findDOMNode: null
-      }, REACT_PORTAL_TYPE = Symbol.for("react.portal"), ReactSharedInternals = React51.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+      }, REACT_PORTAL_TYPE = Symbol.for("react.portal"), ReactSharedInternals = React58.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
       "function" === typeof Map && null != Map.prototype && "function" === typeof Map.prototype.forEach && "function" === typeof Set && null != Set.prototype && "function" === typeof Set.prototype.clear && "function" === typeof Set.prototype.forEach || console.error(
         "React depends on Map and Set built-in types. Make sure that you load a polyfill in older browsers. https://reactjs.org/link/react-polyfills"
       );
@@ -2866,7 +2866,7 @@ var require_react_dom_client_development = __commonJS({
         "number" === type && getActiveElement(node.ownerDocument) === node || node.defaultValue === "" + value || (node.defaultValue = "" + value);
       }
       function validateOptionProps(element, props) {
-        null == props.value && ("object" === typeof props.children && null !== props.children ? React51.Children.forEach(props.children, function(child) {
+        null == props.value && ("object" === typeof props.children && null !== props.children ? React58.Children.forEach(props.children, function(child) {
           null == child || "string" === typeof child || "number" === typeof child || "bigint" === typeof child || didWarnInvalidChild || (didWarnInvalidChild = true, console.error(
             "Cannot infer the option value of complex children. Pass a `value` prop or use a plain string as children to <option>."
           ));
@@ -16448,14 +16448,14 @@ var require_react_dom_client_development = __commonJS({
         ));
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var Scheduler = require_scheduler(), React51 = require_react(), ReactDOM3 = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"), REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = Symbol.for("react.profiler"), REACT_PROVIDER_TYPE = Symbol.for("react.provider"), REACT_CONSUMER_TYPE = Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = Symbol.for("react.memo"), REACT_LAZY_TYPE = Symbol.for("react.lazy");
+      var Scheduler = require_scheduler(), React58 = require_react(), ReactDOM3 = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"), REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = Symbol.for("react.profiler"), REACT_PROVIDER_TYPE = Symbol.for("react.provider"), REACT_CONSUMER_TYPE = Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = Symbol.for("react.memo"), REACT_LAZY_TYPE = Symbol.for("react.lazy");
       Symbol.for("react.scope");
       var REACT_ACTIVITY_TYPE = Symbol.for("react.activity");
       Symbol.for("react.legacy_hidden");
       Symbol.for("react.tracing_marker");
       var REACT_MEMO_CACHE_SENTINEL = Symbol.for("react.memo_cache_sentinel");
       Symbol.for("react.view_transition");
-      var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React51.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM3.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
+      var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React58.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM3.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
         pending: false,
         data: null,
         method: null,
@@ -19177,7 +19177,7 @@ var require_react_dom_client_development = __commonJS({
         }
       };
       (function() {
-        var isomorphicReactPackageVersion = React51.version;
+        var isomorphicReactPackageVersion = React58.version;
         if ("19.1.1" !== isomorphicReactPackageVersion)
           throw Error(
             'Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:\n  - react:      ' + (isomorphicReactPackageVersion + "\n  - react-dom:  19.1.1\nLearn more: https://react.dev/warnings/version-mismatch")
@@ -19728,20 +19728,20 @@ var require_react_jsx_runtime_development = __commonJS({
       function validateChildKeys(node) {
         "object" === typeof node && null !== node && node.$$typeof === REACT_ELEMENT_TYPE && node._store && (node._store.validated = 1);
       }
-      var React51 = require_react(), REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = Symbol.for("react.profiler");
+      var React58 = require_react(), REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = Symbol.for("react.profiler");
       Symbol.for("react.provider");
-      var REACT_CONSUMER_TYPE = Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = Symbol.for("react.memo"), REACT_LAZY_TYPE = Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"), ReactSharedInternals = React51.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
+      var REACT_CONSUMER_TYPE = Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = Symbol.for("react.memo"), REACT_LAZY_TYPE = Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"), ReactSharedInternals = React58.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
         return null;
       };
-      React51 = {
+      React58 = {
         react_stack_bottom_frame: function(callStackForError) {
           return callStackForError();
         }
       };
       var specialPropKeyWarningShown;
       var didWarnAboutElementRef = {};
-      var unknownOwnerDebugStack = React51.react_stack_bottom_frame.bind(
-        React51,
+      var unknownOwnerDebugStack = React58.react_stack_bottom_frame.bind(
+        React58,
         UnknownOwner
       )();
       var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
@@ -19821,9 +19821,9 @@ var import_react, import_jsx_runtime, LayoutContextProvider;
 var init_LayoutProvider = __esm({
   "src/components/LayoutProvider.tsx"() {
     "use strict";
-    import_react = __toESM(require_react(), 1);
+    import_react = __toESM(require_react());
     init_layout_system();
-    import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime = __toESM(require_jsx_runtime());
     LayoutContextProvider = (0, import_react.createContext)(null);
   }
 });
@@ -19870,9 +19870,9 @@ var import_react2, import_jsx_runtime2;
 var init_LayoutRenderer = __esm({
   "src/components/LayoutRenderer.tsx"() {
     "use strict";
-    import_react2 = __toESM(require_react(), 1);
+    import_react2 = __toESM(require_react());
     init_LayoutProvider();
-    import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime2 = __toESM(require_jsx_runtime());
   }
 });
 
@@ -20286,7 +20286,7 @@ var import_jsx_runtime3, metadata;
 var init_layout = __esm({
   "src/app/layout.tsx"() {
     "use strict";
-    import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime3 = __toESM(require_jsx_runtime());
     metadata = {
       title: "Store Management System",
       description: "Full-stack store CRUD application built with Hono and React",
@@ -23560,7 +23560,7 @@ var init_navbar = __esm({
     init_dist3();
     init_dist4();
     init_utils();
-    import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime5 = __toESM(require_jsx_runtime());
     navbarVariants = cva(
       "navbar",
       {
@@ -23689,278 +23689,344 @@ var init_IconAlertTriangle = __esm({
   }
 });
 
+// node_modules/@tabler/icons-react/dist/esm/icons/IconArrowDown.mjs
+var __iconNode2, IconArrowDown;
+var init_IconArrowDown = __esm({
+  "node_modules/@tabler/icons-react/dist/esm/icons/IconArrowDown.mjs"() {
+    "use strict";
+    init_createReactComponent();
+    __iconNode2 = [["path", { "d": "M12 5l0 14", "key": "svg-0" }], ["path", { "d": "M18 13l-6 6", "key": "svg-1" }], ["path", { "d": "M6 13l6 6", "key": "svg-2" }]];
+    IconArrowDown = createReactComponent("outline", "arrow-down", "ArrowDown", __iconNode2);
+  }
+});
+
 // node_modules/@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs
-var __iconNode2, IconArrowLeft;
+var __iconNode3, IconArrowLeft;
 var init_IconArrowLeft = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode2 = [["path", { "d": "M5 12l14 0", "key": "svg-0" }], ["path", { "d": "M5 12l6 6", "key": "svg-1" }], ["path", { "d": "M5 12l6 -6", "key": "svg-2" }]];
-    IconArrowLeft = createReactComponent("outline", "arrow-left", "ArrowLeft", __iconNode2);
+    __iconNode3 = [["path", { "d": "M5 12l14 0", "key": "svg-0" }], ["path", { "d": "M5 12l6 6", "key": "svg-1" }], ["path", { "d": "M5 12l6 -6", "key": "svg-2" }]];
+    IconArrowLeft = createReactComponent("outline", "arrow-left", "ArrowLeft", __iconNode3);
+  }
+});
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconArrowUp.mjs
+var __iconNode4, IconArrowUp;
+var init_IconArrowUp = __esm({
+  "node_modules/@tabler/icons-react/dist/esm/icons/IconArrowUp.mjs"() {
+    "use strict";
+    init_createReactComponent();
+    __iconNode4 = [["path", { "d": "M12 5l0 14", "key": "svg-0" }], ["path", { "d": "M18 11l-6 -6", "key": "svg-1" }], ["path", { "d": "M6 11l6 -6", "key": "svg-2" }]];
+    IconArrowUp = createReactComponent("outline", "arrow-up", "ArrowUp", __iconNode4);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconBox.mjs
-var __iconNode3, IconBox;
+var __iconNode5, IconBox;
 var init_IconBox = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconBox.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode3 = [["path", { "d": "M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5", "key": "svg-0" }], ["path", { "d": "M12 12l8 -4.5", "key": "svg-1" }], ["path", { "d": "M12 12l0 9", "key": "svg-2" }], ["path", { "d": "M12 12l-8 -4.5", "key": "svg-3" }]];
-    IconBox = createReactComponent("outline", "box", "Box", __iconNode3);
+    __iconNode5 = [["path", { "d": "M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5", "key": "svg-0" }], ["path", { "d": "M12 12l8 -4.5", "key": "svg-1" }], ["path", { "d": "M12 12l0 9", "key": "svg-2" }], ["path", { "d": "M12 12l-8 -4.5", "key": "svg-3" }]];
+    IconBox = createReactComponent("outline", "box", "Box", __iconNode5);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconCalendar.mjs
-var __iconNode4, IconCalendar;
+var __iconNode6, IconCalendar;
 var init_IconCalendar = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconCalendar.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode4 = [["path", { "d": "M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z", "key": "svg-0" }], ["path", { "d": "M16 3v4", "key": "svg-1" }], ["path", { "d": "M8 3v4", "key": "svg-2" }], ["path", { "d": "M4 11h16", "key": "svg-3" }], ["path", { "d": "M11 15h1", "key": "svg-4" }], ["path", { "d": "M12 15v3", "key": "svg-5" }]];
-    IconCalendar = createReactComponent("outline", "calendar", "Calendar", __iconNode4);
+    __iconNode6 = [["path", { "d": "M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z", "key": "svg-0" }], ["path", { "d": "M16 3v4", "key": "svg-1" }], ["path", { "d": "M8 3v4", "key": "svg-2" }], ["path", { "d": "M4 11h16", "key": "svg-3" }], ["path", { "d": "M11 15h1", "key": "svg-4" }], ["path", { "d": "M12 15v3", "key": "svg-5" }]];
+    IconCalendar = createReactComponent("outline", "calendar", "Calendar", __iconNode6);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconCancel.mjs
-var __iconNode5, IconCancel;
+var __iconNode7, IconCancel;
 var init_IconCancel = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconCancel.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode5 = [["path", { "d": "M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0", "key": "svg-0" }], ["path", { "d": "M18.364 5.636l-12.728 12.728", "key": "svg-1" }]];
-    IconCancel = createReactComponent("outline", "cancel", "Cancel", __iconNode5);
+    __iconNode7 = [["path", { "d": "M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0", "key": "svg-0" }], ["path", { "d": "M18.364 5.636l-12.728 12.728", "key": "svg-1" }]];
+    IconCancel = createReactComponent("outline", "cancel", "Cancel", __iconNode7);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconCheck.mjs
-var __iconNode6, IconCheck;
+var __iconNode8, IconCheck;
 var init_IconCheck = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconCheck.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode6 = [["path", { "d": "M5 12l5 5l10 -10", "key": "svg-0" }]];
-    IconCheck = createReactComponent("outline", "check", "Check", __iconNode6);
+    __iconNode8 = [["path", { "d": "M5 12l5 5l10 -10", "key": "svg-0" }]];
+    IconCheck = createReactComponent("outline", "check", "Check", __iconNode8);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconChevronDown.mjs
-var __iconNode7, IconChevronDown;
+var __iconNode9, IconChevronDown;
 var init_IconChevronDown = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconChevronDown.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode7 = [["path", { "d": "M6 9l6 6l6 -6", "key": "svg-0" }]];
-    IconChevronDown = createReactComponent("outline", "chevron-down", "ChevronDown", __iconNode7);
+    __iconNode9 = [["path", { "d": "M6 9l6 6l6 -6", "key": "svg-0" }]];
+    IconChevronDown = createReactComponent("outline", "chevron-down", "ChevronDown", __iconNode9);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconChevronLeft.mjs
-var __iconNode8, IconChevronLeft;
+var __iconNode10, IconChevronLeft;
 var init_IconChevronLeft = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconChevronLeft.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode8 = [["path", { "d": "M15 6l-6 6l6 6", "key": "svg-0" }]];
-    IconChevronLeft = createReactComponent("outline", "chevron-left", "ChevronLeft", __iconNode8);
+    __iconNode10 = [["path", { "d": "M15 6l-6 6l6 6", "key": "svg-0" }]];
+    IconChevronLeft = createReactComponent("outline", "chevron-left", "ChevronLeft", __iconNode10);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs
-var __iconNode9, IconChevronRight;
+var __iconNode11, IconChevronRight;
 var init_IconChevronRight = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode9 = [["path", { "d": "M9 6l6 6l-6 6", "key": "svg-0" }]];
-    IconChevronRight = createReactComponent("outline", "chevron-right", "ChevronRight", __iconNode9);
+    __iconNode11 = [["path", { "d": "M9 6l6 6l-6 6", "key": "svg-0" }]];
+    IconChevronRight = createReactComponent("outline", "chevron-right", "ChevronRight", __iconNode11);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconChevronUp.mjs
-var __iconNode10, IconChevronUp;
+var __iconNode12, IconChevronUp;
 var init_IconChevronUp = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconChevronUp.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode10 = [["path", { "d": "M6 15l6 -6l6 6", "key": "svg-0" }]];
-    IconChevronUp = createReactComponent("outline", "chevron-up", "ChevronUp", __iconNode10);
+    __iconNode12 = [["path", { "d": "M6 15l6 -6l6 6", "key": "svg-0" }]];
+    IconChevronUp = createReactComponent("outline", "chevron-up", "ChevronUp", __iconNode12);
+  }
+});
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconColumns3.mjs
+var __iconNode13, IconColumns3;
+var init_IconColumns3 = __esm({
+  "node_modules/@tabler/icons-react/dist/esm/icons/IconColumns3.mjs"() {
+    "use strict";
+    init_createReactComponent();
+    __iconNode13 = [["path", { "d": "M3 3m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v16a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1zm6 -1v18m6 -18v18", "key": "svg-0" }]];
+    IconColumns3 = createReactComponent("outline", "columns-3", "Columns3", __iconNode13);
+  }
+});
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconCopy.mjs
+var __iconNode14, IconCopy;
+var init_IconCopy = __esm({
+  "node_modules/@tabler/icons-react/dist/esm/icons/IconCopy.mjs"() {
+    "use strict";
+    init_createReactComponent();
+    __iconNode14 = [["path", { "d": "M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z", "key": "svg-0" }], ["path", { "d": "M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1", "key": "svg-1" }]];
+    IconCopy = createReactComponent("outline", "copy", "Copy", __iconNode14);
+  }
+});
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconDatabase.mjs
+var __iconNode15, IconDatabase;
+var init_IconDatabase = __esm({
+  "node_modules/@tabler/icons-react/dist/esm/icons/IconDatabase.mjs"() {
+    "use strict";
+    init_createReactComponent();
+    __iconNode15 = [["path", { "d": "M12 6m-8 0a8 3 0 1 0 16 0a8 3 0 1 0 -16 0", "key": "svg-0" }], ["path", { "d": "M4 6v6a8 3 0 0 0 16 0v-6", "key": "svg-1" }], ["path", { "d": "M4 12v6a8 3 0 0 0 16 0v-6", "key": "svg-2" }]];
+    IconDatabase = createReactComponent("outline", "database", "Database", __iconNode15);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconDeviceFloppy.mjs
-var __iconNode11, IconDeviceFloppy;
+var __iconNode16, IconDeviceFloppy;
 var init_IconDeviceFloppy = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconDeviceFloppy.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode11 = [["path", { "d": "M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2", "key": "svg-0" }], ["path", { "d": "M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0", "key": "svg-1" }], ["path", { "d": "M14 4l0 4l-6 0l0 -4", "key": "svg-2" }]];
-    IconDeviceFloppy = createReactComponent("outline", "device-floppy", "DeviceFloppy", __iconNode11);
+    __iconNode16 = [["path", { "d": "M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2", "key": "svg-0" }], ["path", { "d": "M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0", "key": "svg-1" }], ["path", { "d": "M14 4l0 4l-6 0l0 -4", "key": "svg-2" }]];
+    IconDeviceFloppy = createReactComponent("outline", "device-floppy", "DeviceFloppy", __iconNode16);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconDots.mjs
-var __iconNode12, IconDots;
+var __iconNode17, IconDots;
 var init_IconDots = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconDots.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode12 = [["path", { "d": "M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "key": "svg-0" }], ["path", { "d": "M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "key": "svg-1" }], ["path", { "d": "M19 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "key": "svg-2" }]];
-    IconDots = createReactComponent("outline", "dots", "Dots", __iconNode12);
+    __iconNode17 = [["path", { "d": "M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "key": "svg-0" }], ["path", { "d": "M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "key": "svg-1" }], ["path", { "d": "M19 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "key": "svg-2" }]];
+    IconDots = createReactComponent("outline", "dots", "Dots", __iconNode17);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconEdit.mjs
-var __iconNode13, IconEdit;
+var __iconNode18, IconEdit;
 var init_IconEdit = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconEdit.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode13 = [["path", { "d": "M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1", "key": "svg-0" }], ["path", { "d": "M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z", "key": "svg-1" }], ["path", { "d": "M16 5l3 3", "key": "svg-2" }]];
-    IconEdit = createReactComponent("outline", "edit", "Edit", __iconNode13);
+    __iconNode18 = [["path", { "d": "M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1", "key": "svg-0" }], ["path", { "d": "M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z", "key": "svg-1" }], ["path", { "d": "M16 5l3 3", "key": "svg-2" }]];
+    IconEdit = createReactComponent("outline", "edit", "Edit", __iconNode18);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconFilter.mjs
-var __iconNode14, IconFilter;
+var __iconNode19, IconFilter;
 var init_IconFilter = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconFilter.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode14 = [["path", { "d": "M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 2v-8.5l-4.48 -4.928a2 2 0 0 1 -.52 -1.345v-2.227z", "key": "svg-0" }]];
-    IconFilter = createReactComponent("outline", "filter", "Filter", __iconNode14);
+    __iconNode19 = [["path", { "d": "M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 2v-8.5l-4.48 -4.928a2 2 0 0 1 -.52 -1.345v-2.227z", "key": "svg-0" }]];
+    IconFilter = createReactComponent("outline", "filter", "Filter", __iconNode19);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconKey.mjs
-var __iconNode15, IconKey;
+var __iconNode20, IconKey;
 var init_IconKey = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconKey.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode15 = [["path", { "d": "M16.555 3.843l3.602 3.602a2.877 2.877 0 0 1 0 4.069l-2.643 2.643a2.877 2.877 0 0 1 -4.069 0l-.301 -.301l-6.558 6.558a2 2 0 0 1 -1.239 .578l-.175 .008h-1.172a1 1 0 0 1 -.993 -.883l-.007 -.117v-1.172a2 2 0 0 1 .467 -1.284l.119 -.13l.414 -.414h2v-2h2v-2l2.144 -2.144l-.301 -.301a2.877 2.877 0 0 1 0 -4.069l2.643 -2.643a2.877 2.877 0 0 1 4.069 0z", "key": "svg-0" }], ["path", { "d": "M15 9h.01", "key": "svg-1" }]];
-    IconKey = createReactComponent("outline", "key", "Key", __iconNode15);
+    __iconNode20 = [["path", { "d": "M16.555 3.843l3.602 3.602a2.877 2.877 0 0 1 0 4.069l-2.643 2.643a2.877 2.877 0 0 1 -4.069 0l-.301 -.301l-6.558 6.558a2 2 0 0 1 -1.239 .578l-.175 .008h-1.172a1 1 0 0 1 -.993 -.883l-.007 -.117v-1.172a2 2 0 0 1 .467 -1.284l.119 -.13l.414 -.414h2v-2h2v-2l2.144 -2.144l-.301 -.301a2.877 2.877 0 0 1 0 -4.069l2.643 -2.643a2.877 2.877 0 0 1 4.069 0z", "key": "svg-0" }], ["path", { "d": "M15 9h.01", "key": "svg-1" }]];
+    IconKey = createReactComponent("outline", "key", "Key", __iconNode20);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconLayoutDashboard.mjs
-var __iconNode16, IconLayoutDashboard;
+var __iconNode21, IconLayoutDashboard;
 var init_IconLayoutDashboard = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconLayoutDashboard.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode16 = [["path", { "d": "M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1", "key": "svg-0" }], ["path", { "d": "M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1", "key": "svg-1" }], ["path", { "d": "M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1", "key": "svg-2" }], ["path", { "d": "M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1", "key": "svg-3" }]];
-    IconLayoutDashboard = createReactComponent("outline", "layout-dashboard", "LayoutDashboard", __iconNode16);
+    __iconNode21 = [["path", { "d": "M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1", "key": "svg-0" }], ["path", { "d": "M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1", "key": "svg-1" }], ["path", { "d": "M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1", "key": "svg-2" }], ["path", { "d": "M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1", "key": "svg-3" }]];
+    IconLayoutDashboard = createReactComponent("outline", "layout-dashboard", "LayoutDashboard", __iconNode21);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconLogout.mjs
-var __iconNode17, IconLogout;
+var __iconNode22, IconLogout;
 var init_IconLogout = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconLogout.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode17 = [["path", { "d": "M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2", "key": "svg-0" }], ["path", { "d": "M9 12h12l-3 -3", "key": "svg-1" }], ["path", { "d": "M18 15l3 -3", "key": "svg-2" }]];
-    IconLogout = createReactComponent("outline", "logout", "Logout", __iconNode17);
+    __iconNode22 = [["path", { "d": "M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2", "key": "svg-0" }], ["path", { "d": "M9 12h12l-3 -3", "key": "svg-1" }], ["path", { "d": "M18 15l3 -3", "key": "svg-2" }]];
+    IconLogout = createReactComponent("outline", "logout", "Logout", __iconNode22);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconMail.mjs
-var __iconNode18, IconMail;
+var __iconNode23, IconMail;
 var init_IconMail = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconMail.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode18 = [["path", { "d": "M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z", "key": "svg-0" }], ["path", { "d": "M3 7l9 6l9 -6", "key": "svg-1" }]];
-    IconMail = createReactComponent("outline", "mail", "Mail", __iconNode18);
+    __iconNode23 = [["path", { "d": "M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z", "key": "svg-0" }], ["path", { "d": "M3 7l9 6l9 -6", "key": "svg-1" }]];
+    IconMail = createReactComponent("outline", "mail", "Mail", __iconNode23);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconPlus.mjs
-var __iconNode19, IconPlus;
+var __iconNode24, IconPlus;
 var init_IconPlus = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconPlus.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode19 = [["path", { "d": "M12 5l0 14", "key": "svg-0" }], ["path", { "d": "M5 12l14 0", "key": "svg-1" }]];
-    IconPlus = createReactComponent("outline", "plus", "Plus", __iconNode19);
+    __iconNode24 = [["path", { "d": "M12 5l0 14", "key": "svg-0" }], ["path", { "d": "M5 12l14 0", "key": "svg-1" }]];
+    IconPlus = createReactComponent("outline", "plus", "Plus", __iconNode24);
+  }
+});
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconTable.mjs
+var __iconNode25, IconTable;
+var init_IconTable = __esm({
+  "node_modules/@tabler/icons-react/dist/esm/icons/IconTable.mjs"() {
+    "use strict";
+    init_createReactComponent();
+    __iconNode25 = [["path", { "d": "M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z", "key": "svg-0" }], ["path", { "d": "M3 10h18", "key": "svg-1" }], ["path", { "d": "M10 3v18", "key": "svg-2" }]];
+    IconTable = createReactComponent("outline", "table", "Table", __iconNode25);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconTrash.mjs
-var __iconNode20, IconTrash;
+var __iconNode26, IconTrash;
 var init_IconTrash = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconTrash.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode20 = [["path", { "d": "M4 7l16 0", "key": "svg-0" }], ["path", { "d": "M10 11l0 6", "key": "svg-1" }], ["path", { "d": "M14 11l0 6", "key": "svg-2" }], ["path", { "d": "M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12", "key": "svg-3" }], ["path", { "d": "M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3", "key": "svg-4" }]];
-    IconTrash = createReactComponent("outline", "trash", "Trash", __iconNode20);
+    __iconNode26 = [["path", { "d": "M4 7l16 0", "key": "svg-0" }], ["path", { "d": "M10 11l0 6", "key": "svg-1" }], ["path", { "d": "M14 11l0 6", "key": "svg-2" }], ["path", { "d": "M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12", "key": "svg-3" }], ["path", { "d": "M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3", "key": "svg-4" }]];
+    IconTrash = createReactComponent("outline", "trash", "Trash", __iconNode26);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconUserCheck.mjs
-var __iconNode21, IconUserCheck;
+var __iconNode27, IconUserCheck;
 var init_IconUserCheck = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconUserCheck.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode21 = [["path", { "d": "M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0", "key": "svg-0" }], ["path", { "d": "M6 21v-2a4 4 0 0 1 4 -4h4", "key": "svg-1" }], ["path", { "d": "M15 19l2 2l4 -4", "key": "svg-2" }]];
-    IconUserCheck = createReactComponent("outline", "user-check", "UserCheck", __iconNode21);
+    __iconNode27 = [["path", { "d": "M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0", "key": "svg-0" }], ["path", { "d": "M6 21v-2a4 4 0 0 1 4 -4h4", "key": "svg-1" }], ["path", { "d": "M15 19l2 2l4 -4", "key": "svg-2" }]];
+    IconUserCheck = createReactComponent("outline", "user-check", "UserCheck", __iconNode27);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconUserX.mjs
-var __iconNode22, IconUserX;
+var __iconNode28, IconUserX;
 var init_IconUserX = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconUserX.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode22 = [["path", { "d": "M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0", "key": "svg-0" }], ["path", { "d": "M6 21v-2a4 4 0 0 1 4 -4h3.5", "key": "svg-1" }], ["path", { "d": "M22 22l-5 -5", "key": "svg-2" }], ["path", { "d": "M17 22l5 -5", "key": "svg-3" }]];
-    IconUserX = createReactComponent("outline", "user-x", "UserX", __iconNode22);
+    __iconNode28 = [["path", { "d": "M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0", "key": "svg-0" }], ["path", { "d": "M6 21v-2a4 4 0 0 1 4 -4h3.5", "key": "svg-1" }], ["path", { "d": "M22 22l-5 -5", "key": "svg-2" }], ["path", { "d": "M17 22l5 -5", "key": "svg-3" }]];
+    IconUserX = createReactComponent("outline", "user-x", "UserX", __iconNode28);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconUser.mjs
-var __iconNode23, IconUser;
+var __iconNode29, IconUser;
 var init_IconUser = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconUser.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode23 = [["path", { "d": "M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0", "key": "svg-0" }], ["path", { "d": "M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2", "key": "svg-1" }]];
-    IconUser = createReactComponent("outline", "user", "User", __iconNode23);
+    __iconNode29 = [["path", { "d": "M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0", "key": "svg-0" }], ["path", { "d": "M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2", "key": "svg-1" }]];
+    IconUser = createReactComponent("outline", "user", "User", __iconNode29);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconUsers.mjs
-var __iconNode24, IconUsers;
+var __iconNode30, IconUsers;
 var init_IconUsers = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconUsers.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode24 = [["path", { "d": "M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0", "key": "svg-0" }], ["path", { "d": "M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2", "key": "svg-1" }], ["path", { "d": "M16 3.13a4 4 0 0 1 0 7.75", "key": "svg-2" }], ["path", { "d": "M21 21v-2a4 4 0 0 0 -3 -3.85", "key": "svg-3" }]];
-    IconUsers = createReactComponent("outline", "users", "Users", __iconNode24);
+    __iconNode30 = [["path", { "d": "M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0", "key": "svg-0" }], ["path", { "d": "M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2", "key": "svg-1" }], ["path", { "d": "M16 3.13a4 4 0 0 1 0 7.75", "key": "svg-2" }], ["path", { "d": "M21 21v-2a4 4 0 0 0 -3 -3.85", "key": "svg-3" }]];
+    IconUsers = createReactComponent("outline", "users", "Users", __iconNode30);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconX.mjs
-var __iconNode25, IconX;
+var __iconNode31, IconX;
 var init_IconX = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconX.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode25 = [["path", { "d": "M18 6l-12 12", "key": "svg-0" }], ["path", { "d": "M6 6l12 12", "key": "svg-1" }]];
-    IconX = createReactComponent("outline", "x", "X", __iconNode25);
+    __iconNode31 = [["path", { "d": "M18 6l-12 12", "key": "svg-0" }], ["path", { "d": "M6 6l12 12", "key": "svg-1" }]];
+    IconX = createReactComponent("outline", "x", "X", __iconNode31);
   }
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconBrandGoogleFilled.mjs
-var __iconNode26, IconBrandGoogleFilled;
+var __iconNode32, IconBrandGoogleFilled;
 var init_IconBrandGoogleFilled = __esm({
   "node_modules/@tabler/icons-react/dist/esm/icons/IconBrandGoogleFilled.mjs"() {
     "use strict";
     init_createReactComponent();
-    __iconNode26 = [["path", { "d": "M12 2a9.96 9.96 0 0 1 6.29 2.226a1 1 0 0 1 .04 1.52l-1.51 1.362a1 1 0 0 1 -1.265 .06a6 6 0 1 0 2.103 6.836l.001 -.004h-3.66a1 1 0 0 1 -.992 -.883l-.007 -.117v-2a1 1 0 0 1 1 -1h6.945a1 1 0 0 1 .994 .89c.04 .367 .061 .737 .061 1.11c0 5.523 -4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10z", "key": "svg-0" }]];
-    IconBrandGoogleFilled = createReactComponent("filled", "brand-google-filled", "BrandGoogleFilled", __iconNode26);
+    __iconNode32 = [["path", { "d": "M12 2a9.96 9.96 0 0 1 6.29 2.226a1 1 0 0 1 .04 1.52l-1.51 1.362a1 1 0 0 1 -1.265 .06a6 6 0 1 0 2.103 6.836l.001 -.004h-3.66a1 1 0 0 1 -.992 -.883l-.007 -.117v-2a1 1 0 0 1 1 -1h6.945a1 1 0 0 1 .994 .89c.04 .367 .061 .737 .061 1.11c0 5.523 -4.477 10 -10 10s-10 -4.477 -10 -10s4.477 -10 10 -10z", "key": "svg-0" }]];
+    IconBrandGoogleFilled = createReactComponent("filled", "brand-google-filled", "BrandGoogleFilled", __iconNode32);
   }
 });
 
@@ -23969,7 +24035,9 @@ var init_tabler_icons_react = __esm({
   "node_modules/@tabler/icons-react/dist/esm/tabler-icons-react.mjs"() {
     "use strict";
     init_IconAlertTriangle();
+    init_IconArrowDown();
     init_IconArrowLeft();
+    init_IconArrowUp();
     init_IconBox();
     init_IconCalendar();
     init_IconCancel();
@@ -23978,6 +24046,9 @@ var init_tabler_icons_react = __esm({
     init_IconChevronLeft();
     init_IconChevronRight();
     init_IconChevronUp();
+    init_IconColumns3();
+    init_IconCopy();
+    init_IconDatabase();
     init_IconDeviceFloppy();
     init_IconDots();
     init_IconEdit();
@@ -23987,6 +24058,7 @@ var init_tabler_icons_react = __esm({
     init_IconLogout();
     init_IconMail();
     init_IconPlus();
+    init_IconTable();
     init_IconTrash();
     init_IconUserCheck();
     init_IconUserX();
@@ -26675,9 +26747,9 @@ var require_use_sync_external_store_with_selector_development = __commonJS({
         return x12 === y11 && (0 !== x12 || 1 / x12 === 1 / y11) || x12 !== x12 && y11 !== y11;
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React51 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore = React51.useSyncExternalStore, useRef12 = React51.useRef, useEffect12 = React51.useEffect, useMemo6 = React51.useMemo, useDebugValue = React51.useDebugValue;
+      var React58 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore = React58.useSyncExternalStore, useRef13 = React58.useRef, useEffect17 = React58.useEffect, useMemo6 = React58.useMemo, useDebugValue = React58.useDebugValue;
       exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-        var instRef = useRef12(null);
+        var instRef = useRef13(null);
         if (null === instRef.current) {
           var inst = { hasValue: false, value: null };
           instRef.current = inst;
@@ -26718,7 +26790,7 @@ var require_use_sync_external_store_with_selector_development = __commonJS({
           [getSnapshot, getServerSnapshot, selector, isEqual]
         );
         var value = useSyncExternalStore(subscribe, instRef[0], instRef[1]);
-        useEffect12(
+        useEffect17(
           function() {
             inst.hasValue = true;
             inst.value = value;
@@ -33176,13 +33248,13 @@ var React9, import_jsx_runtime6, buttonVariants;
 var init_button2 = __esm({
   "src/components/ui/button.tsx"() {
     "use strict";
-    React9 = __toESM(require_react(), 1);
+    React9 = __toESM(require_react());
     init_dist3();
     init_dist4();
     init_utils();
     init_tabler_icons_react();
     init_headlessui_esm();
-    import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime6 = __toESM(require_jsx_runtime());
     buttonVariants = cva(
       "btn",
       {
@@ -33359,10 +33431,10 @@ var React10, import_jsx_runtime7, menuVariants, menuItemVariants;
 var init_menu2 = __esm({
   "src/components/ui/menu.tsx"() {
     "use strict";
-    React10 = __toESM(require_react(), 1);
+    React10 = __toESM(require_react());
     init_dist4();
     init_utils();
-    import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime7 = __toESM(require_jsx_runtime());
     menuVariants = cva(
       "menu",
       {
@@ -33461,6 +33533,14 @@ function DashboardLayout({ children, user }) {
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
             MenuItem,
             {
+              icon: IconTable,
+              href: "/dashboard/tables",
+              children: "Dynamic Tables"
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+            MenuItem,
+            {
               icon: IconUsers,
               href: "/dashboard/users",
               children: "Users"
@@ -33543,13 +33623,13 @@ var import_react92, import_jsx_runtime8, metadata2;
 var init_layout2 = __esm({
   "src/app/dashboard/layout.tsx"() {
     "use strict";
-    import_react92 = __toESM(require_react(), 1);
+    import_react92 = __toESM(require_react());
     init_navbar();
     init_button2();
     init_menu2();
     init_tabler_icons_react();
     init_useThemeStore();
-    import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime8 = __toESM(require_jsx_runtime());
     metadata2 = {
       title: "Dashboard - Store Management",
       description: "Manage your store inventory, view analytics, and configure settings"
@@ -33562,12 +33642,12 @@ var React12, import_jsx_runtime9, cardVariants, cardBodyVariants, cardTitleVaria
 var init_card = __esm({
   "src/components/ui/card.tsx"() {
     "use strict";
-    React12 = __toESM(require_react(), 1);
+    React12 = __toESM(require_react());
     init_dist4();
     init_utils();
-    import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime9 = __toESM(require_jsx_runtime());
     cardVariants = cva(
-      "card bg-base-100",
+      "card",
       {
         variants: {
           // DaisyUI card size variants
@@ -33578,11 +33658,25 @@ var init_card = __esm({
             lg: "card-lg",
             xl: "card-xl"
           },
+          // Color variants (similar to Button)
+          color: {
+            default: "bg-base-100",
+            neutral: "badge-neutral",
+            primary: "badge-primary",
+            secondary: "badge-secondary",
+            accent: "badge-accent",
+            info: "badge-info",
+            success: "badge-success",
+            warning: "badge-warning",
+            error: "badge-error"
+          },
           // DaisyUI card style variants
           style: {
             default: "",
             border: "card-border",
-            dash: "card-dash"
+            dash: "card-dash",
+            soft: "badge-soft",
+            ghost: "card-ghost"
           },
           // DaisyUI card modifier variants
           modifier: {
@@ -33601,6 +33695,7 @@ var init_card = __esm({
         },
         defaultVariants: {
           size: "md",
+          color: "default",
           style: "default",
           modifier: "default",
           shadow: "md"
@@ -33628,11 +33723,11 @@ var init_card = __esm({
       }
     );
     Card = React12.forwardRef(
-      ({ className, size: size4, style, modifier, shadow, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      ({ className, size: size4, color, style, modifier, shadow, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
         "div",
         {
           ref,
-          className: cn(cardVariants({ size: size4, style, modifier, shadow }), className),
+          className: cn(cardVariants({ size: size4, color, style, modifier, shadow }), className),
           ...props
         }
       )
@@ -33747,11 +33842,11 @@ var import_react93, import_jsx_runtime10, metadata3;
 var init_page = __esm({
   "src/app/login/page.tsx"() {
     "use strict";
-    import_react93 = __toESM(require_react(), 1);
+    import_react93 = __toESM(require_react());
     init_button2();
     init_card();
     init_tabler_icons_react();
-    import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime10 = __toESM(require_jsx_runtime());
     metadata3 = {
       title: "Login - Store Management",
       description: "Sign in to your store management account"
@@ -33841,7 +33936,7 @@ var init_ErrorPage = __esm({
   "src/components/ErrorPage.tsx"() {
     "use strict";
     init_link();
-    import_jsx_runtime12 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime12 = __toESM(require_jsx_runtime());
     ErrorPage = ({ errorCode, title, description }) => {
       return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "min-h-screen flex flex-col items-center justify-center relative p-8", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "text-center space-y-6 max-w-2xl mx-auto", children: [
         /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "mb-8", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h1", { className: "text-9xl font-bold text-primary opacity-90 select-none", children: errorCode }) }),
@@ -33923,7 +34018,7 @@ var init_page2 = __esm({
   "src/app/error/page.tsx"() {
     "use strict";
     init_ErrorPage();
-    import_jsx_runtime13 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime13 = __toESM(require_jsx_runtime());
   }
 });
 
@@ -33938,7 +34033,7 @@ var import_jsx_runtime14;
 var init_heading = __esm({
   "src/components/heading.tsx"() {
     "use strict";
-    import_jsx_runtime14 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime14 = __toESM(require_jsx_runtime());
   }
 });
 
@@ -33947,10 +34042,10 @@ var React14, import_jsx_runtime15, inputVariants, Input;
 var init_input2 = __esm({
   "src/components/ui/input.tsx"() {
     "use strict";
-    React14 = __toESM(require_react(), 1);
+    React14 = __toESM(require_react());
     init_utils();
     init_dist4();
-    import_jsx_runtime15 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime15 = __toESM(require_jsx_runtime());
     inputVariants = cva(
       "input [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(255,255,255,0.05)] [&:-webkit-autofill]:![-webkit-text-fill-color:inherit] [&:-webkit-autofill]:![transition:background-color_9999s_ease-in-out_0s] [&:-webkit-autofill:hover]:!shadow-[inset_0_0_0px_1000px_rgba(255,255,255,0.05)] [&:-webkit-autofill:focus]:!shadow-[inset_0_0_0px_1000px_rgba(255,255,255,0.05)] [&:-webkit-autofill:active]:!shadow-[inset_0_0_0px_1000px_rgba(255,255,255,0.05)]",
       {
@@ -33986,30 +34081,39 @@ var init_input2 = __esm({
       }
     );
     Input = React14.forwardRef(
-      ({ className, type, style, color, size: size4, prefix, suffix, containerClassName, ...props }, ref) => {
-        if (!prefix && !suffix) {
-          return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
-            "input",
-            {
-              type,
-              className: cn(inputVariants({ style, color, size: size4 }), className),
-              ref,
-              ...props
-            }
-          );
+      ({ className, type, style, color, size: size4, prefix, suffix, containerClassName, label, labelClassName, ...props }, ref) => {
+        const inputElement = (() => {
+          if (!prefix && !suffix) {
+            return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
+              "input",
+              {
+                type,
+                className: cn(inputVariants({ style, color, size: size4 }), className),
+                ref,
+                ...props
+              }
+            );
+          }
+          return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("label", { className: cn(inputVariants({ style, color, size: size4 }), containerClassName), children: [
+            prefix && prefix,
+            /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
+              "input",
+              {
+                type,
+                className: cn("grow bg-transparent outline-none [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(255,255,255,0.05)] [&:-webkit-autofill]:![-webkit-text-fill-color:inherit] [&:-webkit-autofill]:![transition:background-color_9999s_ease-in-out_0s] [&:-webkit-autofill:hover]:!shadow-[inset_0_0_0px_1000px_rgba(255,255,255,0.05)] [&:-webkit-autofill:focus]:!shadow-[inset_0_0_0px_1000px_rgba(255,255,255,0.05)] [&:-webkit-autofill:active]:!shadow-[inset_0_0_0px_1000px_rgba(255,255,255,0.05)]", className),
+                ref,
+                ...props
+              }
+            ),
+            suffix && suffix
+          ] });
+        })();
+        if (!label) {
+          return inputElement;
         }
-        return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("label", { className: cn(inputVariants({ style, color, size: size4 }), containerClassName), children: [
-          prefix && prefix,
-          /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
-            "input",
-            {
-              type,
-              className: cn("grow bg-transparent outline-none [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(255,255,255,0.05)] [&:-webkit-autofill]:![-webkit-text-fill-color:inherit] [&:-webkit-autofill]:![transition:background-color_9999s_ease-in-out_0s] [&:-webkit-autofill:hover]:!shadow-[inset_0_0_0px_1000px_rgba(255,255,255,0.05)] [&:-webkit-autofill:focus]:!shadow-[inset_0_0_0px_1000px_rgba(255,255,255,0.05)] [&:-webkit-autofill:active]:!shadow-[inset_0_0_0px_1000px_rgba(255,255,255,0.05)]", className),
-              ref,
-              ...props
-            }
-          ),
-          suffix && suffix
+        return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "flex flex-col space-y-1", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("label", { className: cn("text-sm font-medium leading-none text-base-content/90", labelClassName), children: label }),
+          inputElement
         ] });
       }
     );
@@ -34268,9 +34372,9 @@ var init_pagination = __esm({
     "use strict";
     init_input2();
     init_button2();
-    import_react94 = __toESM(require_react(), 1);
+    import_react94 = __toESM(require_react());
     init_tabler_icons_react();
-    import_jsx_runtime16 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime16 = __toESM(require_jsx_runtime());
   }
 });
 
@@ -34279,10 +34383,10 @@ var React16, import_jsx_runtime17, getModifierClasses, tableVariants, tableWrapp
 var init_table = __esm({
   "src/components/ui/table.tsx"() {
     "use strict";
-    React16 = __toESM(require_react(), 1);
+    React16 = __toESM(require_react());
     init_dist4();
     init_utils();
-    import_jsx_runtime17 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime17 = __toESM(require_jsx_runtime());
     getModifierClasses = (modifiers) => {
       if (!modifiers || modifiers === "default") return "";
       const modifierMap = {
@@ -34494,16 +34598,16 @@ var init_date_utils = __esm({
 
 // src/lib/client-api.ts
 function getApiUrl() {
-  if (typeof window !== "undefined" && window.__API_URL__) {
-    return window.__API_URL__;
+  if (typeof window !== "undefined") {
+    return window.location.origin;
   }
-  return "http://localhost:8787";
+  return "http://localhost:5173";
 }
 function getAccessToken() {
   if (typeof window !== "undefined" && window.__ACCESS_TOKEN__) {
     return window.__ACCESS_TOKEN__;
   }
-  return "eeb77aa92c4763586c086b89876037dc74b3252e19fe5dbd2ea0a80100e3855f";
+  return null;
 }
 async function clientApiRequest(path, options = {}) {
   const apiUrl = getApiUrl();
@@ -41532,7 +41636,7 @@ var init_select2 = __esm({
     "use strict";
     init_dist4();
     init_utils();
-    import_jsx_runtime18 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime18 = __toESM(require_jsx_runtime());
     selectVariants = cva(
       "select",
       {
@@ -41666,14 +41770,14 @@ var React44, import_jsx_runtime19, calendarVariants, Calendar;
 var init_calendar = __esm({
   "src/components/ui/calendar.tsx"() {
     "use strict";
-    React44 = __toESM(require_react(), 1);
+    React44 = __toESM(require_react());
     init_esm4();
     init_utils();
     init_dist4();
     init_button2();
     init_select2();
     init_tabler_icons_react();
-    import_jsx_runtime19 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime19 = __toESM(require_jsx_runtime());
     calendarVariants = cva(
       "rdp",
       {
@@ -41875,7 +41979,7 @@ var init_modal = __esm({
     init_dist4();
     init_utils();
     init_button2();
-    import_jsx_runtime21 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime21 = __toESM(require_jsx_runtime());
     modalVariants = cva(
       "modal",
       {
@@ -41969,7 +42073,7 @@ var init_delete_confirmation = __esm({
     init_button2();
     init_modal();
     init_tabler_icons_react();
-    import_jsx_runtime22 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime22 = __toESM(require_jsx_runtime());
   }
 });
 
@@ -42101,7 +42205,7 @@ var init_mass_action_confirmation = __esm({
     init_button2();
     init_modal();
     init_tabler_icons_react();
-    import_jsx_runtime24 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime24 = __toESM(require_jsx_runtime());
   }
 });
 
@@ -42109,54 +42213,19 @@ var init_mass_action_confirmation = __esm({
 function MassActionModal({ isOpen, isLoading, selectedAction, selectedCount, error: error2, onClose, onConfirm }) {
   if (!selectedAction) return null;
   const actionType = selectedAction.name === "delete" ? "delete" : "warning";
-  const getActionTitle = () => {
-    switch (selectedAction.name) {
-      case "make_admin":
-        return "Change Role to Admin";
-      case "make_user":
-        return "Change Role to User";
-      case "delete":
-        return "Delete Users";
-      default:
-        return selectedAction.label;
-    }
-  };
-  const getConfirmButtonText = () => {
-    switch (selectedAction.name) {
-      case "make_admin":
-      case "make_user":
-        return "Change Role";
-      case "delete":
-        return "Delete";
-      default:
-        return "Confirm";
-    }
-  };
-  const getMessage = () => {
-    if (selectedAction.confirmMessage) {
-      return selectedAction.confirmMessage;
-    }
-    switch (selectedAction.name) {
-      case "make_admin":
-        return `Are you sure you want to promote the selected ${selectedCount} user${selectedCount === 1 ? "" : "s"} to admin role?`;
-      case "make_user":
-        return `Are you sure you want to change the selected ${selectedCount} user${selectedCount === 1 ? "" : "s"} to regular user role?`;
-      case "delete":
-        return `Are you sure you want to delete ${selectedCount} selected user${selectedCount === 1 ? "" : "s"}? This action cannot be undone.`;
-      default:
-        return `Are you sure you want to ${selectedAction.label.toLowerCase()} ${selectedCount} selected user${selectedCount === 1 ? "" : "s"}?`;
-    }
-  };
+  const title = selectedAction.label;
+  const message2 = selectedAction.confirmMessage || `Are you sure you want to ${selectedAction.label.toLowerCase()} ${selectedCount} selected item${selectedCount === 1 ? "" : "s"}?`;
+  const confirmButtonText = selectedAction.label.split(" ")[0];
   return /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(
     MassActionConfirmation,
     {
       isOpen,
       onClose,
       onConfirm,
-      title: getActionTitle(),
-      message: getMessage(),
+      title,
+      message: message2,
       errorMessage: error2,
-      confirmButtonText: getConfirmButtonText(),
+      confirmButtonText,
       isLoading,
       actionType,
       actionName: selectedAction.name
@@ -42243,7 +42312,7 @@ var init_icon = __esm({
   "src/components/icon.tsx"() {
     "use strict";
     init_utils();
-    import_jsx_runtime27 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime27 = __toESM(require_jsx_runtime());
   }
 });
 
@@ -42252,10 +42321,10 @@ var React45, import_jsx_runtime28, checkboxVariants, Checkbox;
 var init_checkbox2 = __esm({
   "src/components/ui/checkbox.tsx"() {
     "use strict";
-    React45 = __toESM(require_react(), 1);
+    React45 = __toESM(require_react());
     init_utils();
     init_dist4();
-    import_jsx_runtime28 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime28 = __toESM(require_jsx_runtime());
     checkboxVariants = cva(
       "checkbox",
       {
@@ -42290,7 +42359,7 @@ var init_checkbox2 = __esm({
       }
     );
     Checkbox = React45.forwardRef(
-      ({ className, variant, size: size4, color, label, labelClassName, indeterminate, ...props }, ref) => {
+      ({ className, variant, size: size4, color, label, labelClassName, labelPosition = "left", indeterminate, ...props }, ref) => {
         const inputRef = React45.useRef(null);
         React45.useImperativeHandle(ref, () => inputRef.current);
         React45.useEffect(() => {
@@ -42310,9 +42379,10 @@ var init_checkbox2 = __esm({
         if (!label) {
           return checkboxElement;
         }
-        return /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)("label", { className: cn("label cursor-pointer", labelClassName), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("span", { className: "label-text", children: label }),
-          checkboxElement
+        return /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)("label", { className: cn("label cursor-pointer", labelPosition === "right" ? "justify-start" : "", labelClassName), children: [
+          labelPosition === "left" && /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("span", { className: "label-text", children: label }),
+          checkboxElement,
+          labelPosition === "right" && /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("span", { className: "label-text", children: label })
         ] });
       }
     );
@@ -42343,7 +42413,7 @@ var init_badge = __esm({
     "use strict";
     init_dist4();
     init_utils();
-    import_jsx_runtime29 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime29 = __toESM(require_jsx_runtime());
     badgeVariants = cva(
       "badge",
       {
@@ -42404,7 +42474,7 @@ var init_input_error = __esm({
     init_badge();
     init_utils();
     init_tabler_icons_react();
-    import_jsx_runtime30 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime30 = __toESM(require_jsx_runtime());
   }
 });
 
@@ -42583,10 +42653,10 @@ var React46, import_jsx_runtime34, toggleVariants, Toggle;
 var init_toggle = __esm({
   "src/components/ui/toggle.tsx"() {
     "use strict";
-    React46 = __toESM(require_react(), 1);
+    React46 = __toESM(require_react());
     init_utils();
     init_dist4();
-    import_jsx_runtime34 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime34 = __toESM(require_jsx_runtime());
     toggleVariants = cva(
       "toggle",
       {
@@ -42658,9 +42728,20 @@ function ToggleEditComponent({
   onInputBlur
 }) {
   const handleToggleChange = async (e8) => {
+    console.log("\u{1F504} ToggleEditComponent.handleToggleChange:", {
+      checked: e8.target.checked,
+      currentEditValue: editValue,
+      newValue: e8.target.checked ? "1" : "0"
+    });
     const newValue = e8.target.checked ? "1" : "0";
     onSetEditValue(newValue);
-    await onSaveEditing(newValue);
+    console.log("\u{1F680} ToggleEditComponent: About to call onSaveEditing with:", newValue);
+    try {
+      await onSaveEditing(newValue);
+      console.log("\u2705 ToggleEditComponent: onSaveEditing completed successfully");
+    } catch (error2) {
+      console.error("\u274C ToggleEditComponent: onSaveEditing failed:", error2);
+    }
   };
   const isChecked = editValue === "1" || editValue === "true";
   return /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: "w-full gap-2", children: [
@@ -42717,6 +42798,175 @@ var init_inline_edit = __esm({
 });
 
 // src/components/model/model-list/table-body.tsx
+function AddNewRowComponent({
+  columns,
+  newRowData,
+  _newRowError,
+  isSavingNewRow,
+  onUpdateNewRowData,
+  onSaveNewRow,
+  onCancelAddingNewRow
+}) {
+  const handleInputChange = (columnKey, value) => {
+    onUpdateNewRowData(columnKey, value);
+  };
+  const handleKeyPress = (e8) => {
+    if (e8.key === "Enter" && !isSavingNewRow) {
+      e8.preventDefault();
+      onSaveNewRow();
+    } else if (e8.key === "Escape") {
+      e8.preventDefault();
+      onCancelAddingNewRow();
+    }
+  };
+  const renderInputForColumn = (column) => {
+    const columnKey = String(column.key);
+    const value = newRowData[columnKey] || "";
+    const isSystemColumn = !column.editableInline && !column.editType || columnKey === "order" || columnKey === "created_at" || columnKey === "updated_at" || columnKey === "id";
+    if (isSystemColumn) {
+      let displayValue = "";
+      if (columnKey === "order") {
+        displayValue = "Auto";
+      } else if (columnKey === "created_at" || columnKey === "updated_at") {
+        displayValue = "Auto-generated";
+      } else if (columnKey === "id") {
+        displayValue = "Auto-generated";
+      }
+      return /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+        "input",
+        {
+          type: "text",
+          value: displayValue,
+          placeholder: displayValue,
+          className: "input input-sm input-bordered w-full",
+          disabled: true,
+          readOnly: true
+        }
+      );
+    }
+    switch (column.editType) {
+      case "email":
+        return /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+          "input",
+          {
+            type: "email",
+            value,
+            onChange: (e8) => handleInputChange(columnKey, e8.target.value),
+            onKeyDown: handleKeyPress,
+            placeholder: `Enter ${column.label.replace(" *", "")}`,
+            className: "input input-sm input-bordered w-full",
+            disabled: isSavingNewRow,
+            required: column.editValidation?.required
+          }
+        );
+      case "number":
+        return /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+          "input",
+          {
+            type: "number",
+            value,
+            onChange: (e8) => handleInputChange(columnKey, e8.target.value),
+            onKeyDown: handleKeyPress,
+            placeholder: `Enter ${column.label.replace(" *", "")}`,
+            className: "input input-sm input-bordered w-full",
+            disabled: isSavingNewRow,
+            required: column.editValidation?.required
+          }
+        );
+      case "date":
+        return /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+          "input",
+          {
+            type: "date",
+            value,
+            onChange: (e8) => handleInputChange(columnKey, e8.target.value),
+            onKeyDown: handleKeyPress,
+            className: "input input-sm input-bordered w-full",
+            disabled: isSavingNewRow,
+            required: column.editValidation?.required
+          }
+        );
+      case "toggle":
+        return /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)(
+          "select",
+          {
+            value,
+            onChange: (e8) => handleInputChange(columnKey, e8.target.value),
+            onKeyDown: handleKeyPress,
+            className: "select select-sm select-bordered w-full",
+            disabled: isSavingNewRow,
+            required: column.editValidation?.required,
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("option", { value: "false", children: "No" }),
+              /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("option", { value: "true", children: "Yes" })
+            ]
+          }
+        );
+      case "select":
+        return /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)(
+          "select",
+          {
+            value,
+            onChange: (e8) => handleInputChange(columnKey, e8.target.value),
+            onKeyDown: handleKeyPress,
+            className: "select select-sm select-bordered w-full",
+            disabled: isSavingNewRow,
+            required: column.editValidation?.required,
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("option", { value: "", children: "Select..." }),
+              column.editOptions?.map((option) => /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("option", { value: option.value, children: option.label }, option.value))
+            ]
+          }
+        );
+      default:
+        return /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+          "input",
+          {
+            type: "text",
+            value,
+            onChange: (e8) => handleInputChange(columnKey, e8.target.value),
+            onKeyDown: handleKeyPress,
+            placeholder: `Enter ${column.label.replace(" *", "")}`,
+            className: "input input-sm input-bordered w-full",
+            disabled: isSavingNewRow,
+            required: column.editValidation?.required,
+            maxLength: column.editValidation?.maxLength,
+            minLength: column.editValidation?.minLength
+          }
+        );
+    }
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)(TableRow, { className: "bg-base-100 border-2 border-dashed border-primary", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableHeaderCell, { className: "w-4", children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("div", { className: "flex items-center", children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("span", { className: "text-xs text-primary font-semibold", children: "New" }) }) }),
+    columns.map((column) => /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableCell, { className: column.className || "", children: renderInputForColumn(column) }, String(column.key))),
+    /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableHeaderCell, { className: "w-fit text-right", children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("div", { className: "flex items-center justify-end gap-2", children: isSavingNewRow ? /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("span", { className: "loading loading-spinner loading-sm" }) : /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)(import_jsx_runtime37.Fragment, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+        Button,
+        {
+          size: "icon",
+          color: "success",
+          style: "soft",
+          icon: IconCheck,
+          title: "Save new row",
+          onClick: () => onSaveNewRow(),
+          disabled: isSavingNewRow
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+        Button,
+        {
+          size: "icon",
+          color: "default",
+          style: "ghost",
+          icon: IconX,
+          title: "Cancel",
+          onClick: onCancelAddingNewRow,
+          disabled: isSavingNewRow
+        }
+      )
+    ] }) }) })
+  ] });
+}
 function TableCellContent({
   item,
   column,
@@ -42815,7 +43065,8 @@ function ModelTableRow({
   onInputBlur,
   onSetIsClickingSaveButton,
   onDeleteItem,
-  renderItem
+  renderItem,
+  rowActions
 }) {
   return /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)(TableRow, { className: "hover:bg-base-300", children: [
     /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableHeaderCell, { className: "w-4 cursor-pointer", children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("div", { className: "flex items-center", children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
@@ -42845,6 +43096,18 @@ function ModelTableRow({
       }
     ) }, String(column.key))),
     /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableHeaderCell, { className: "w-fit text-right", children: /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)("div", { className: "flex items-center justify-end gap-2", children: [
+      rowActions?.map((action, index3) => /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+        Button,
+        {
+          size: "icon",
+          color: action.color || "primary",
+          style: action.style || "soft",
+          icon: action.icon,
+          title: action.title,
+          onClick: () => action.onClick(item)
+        },
+        index3
+      )),
       /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(Button, { size: "icon", color: "primary", style: "soft", icon: IconEdit, title: "Edit", onClick: () => window.location.href = editRoute(item.id) }),
       /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(Button, { size: "icon", color: "error", style: "soft", icon: IconTrash, title: "Delete", onClick: () => onDeleteItem(item) })
     ] }) })
@@ -42869,33 +43132,60 @@ function ModelTableBody({
   onInputBlur,
   onSetIsClickingSaveButton,
   onDeleteItem,
-  renderItem
+  renderItem,
+  rowActions,
+  // Add Row functionality
+  isAddingNewRow,
+  newRowData,
+  newRowError,
+  isSavingNewRow,
+  onUpdateNewRowData,
+  onSaveNewRow,
+  onCancelAddingNewRow
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableBody, { children: !items || !items.data || items.data.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableCell, { colSpan: 100, className: "p-2 text-center", children: "No items found" }) }) : items.data.map((item) => /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
-    ModelTableRow,
-    {
-      item,
-      columns,
-      selectedItems,
-      editingCell,
-      editValue,
-      editingError,
-      isEditingSaving,
-      editingSaveSuccess,
-      editRoute,
-      useLegacyRendering,
-      onItemSelect,
-      onStartEditing,
-      onSaveEditing,
-      onSetEditValue,
-      onEditKeyPress,
-      onInputBlur,
-      onSetIsClickingSaveButton,
-      onDeleteItem,
-      renderItem
-    },
-    item.id
-  )) });
+  return /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)(TableBody, { children: [
+    isAddingNewRow && onUpdateNewRowData && onSaveNewRow && onCancelAddingNewRow && /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)(import_jsx_runtime37.Fragment, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+        AddNewRowComponent,
+        {
+          columns,
+          newRowData: newRowData || {},
+          _newRowError: newRowError || "",
+          isSavingNewRow: isSavingNewRow || false,
+          onUpdateNewRowData,
+          onSaveNewRow,
+          onCancelAddingNewRow
+        }
+      ),
+      newRowError && /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableCell, { colSpan: 100, className: "p-2", children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("div", { className: "alert alert-error text-sm", children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)("span", { children: newRowError }) }) }) })
+    ] }),
+    !items || !items.data || items.data.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(TableCell, { colSpan: 100, className: "p-2 text-center", children: "No items found" }) }) : items.data.map((item) => /* @__PURE__ */ (0, import_jsx_runtime37.jsx)(
+      ModelTableRow,
+      {
+        item,
+        columns,
+        selectedItems,
+        editingCell,
+        editValue,
+        editingError,
+        isEditingSaving,
+        editingSaveSuccess,
+        editRoute,
+        useLegacyRendering,
+        onItemSelect,
+        onStartEditing,
+        onSaveEditing,
+        onSetEditValue,
+        onEditKeyPress,
+        onInputBlur,
+        onSetIsClickingSaveButton,
+        onDeleteItem,
+        renderItem,
+        rowActions
+      },
+      item.id
+    ))
+  ] });
 }
 var import_jsx_runtime37;
 var init_table_body = __esm({
@@ -43202,6 +43492,7 @@ function ModelList({
   massActionRoute,
   columns,
   massActions,
+  rowActions,
   renderItem,
   renderHeader
 }) {
@@ -43210,7 +43501,10 @@ function ModelList({
     hasMassActions: !!massActions,
     massActionsLength: massActions?.length || 0,
     massActionRoute,
-    createRoute
+    createRoute,
+    hasRowActions: !!rowActions,
+    rowActionsLength: rowActions?.length || 0,
+    rowActions
   });
   const [selectedItems, setSelectedItems] = (0, import_react127.useState)(/* @__PURE__ */ new Set());
   const [columnFilters, setColumnFilters] = (0, import_react127.useState)({});
@@ -43232,7 +43526,99 @@ function ModelList({
   const [editingError, setEditingError] = (0, import_react127.useState)("");
   const [isClickingSaveButton, setIsClickingSaveButton] = (0, import_react127.useState)(false);
   const [editingSaveSuccess, setEditingSaveSuccess] = (0, import_react127.useState)(false);
+  const [isAddingNewRow, setIsAddingNewRow] = (0, import_react127.useState)(false);
+  const [newRowData, setNewRowData] = (0, import_react127.useState)({});
+  const [newRowError, setNewRowError] = (0, import_react127.useState)("");
+  const [isSavingNewRow, setIsSavingNewRow] = (0, import_react127.useState)(false);
   const debounceTimeouts = (0, import_react127.useRef)({});
+  const startAddingNewRow = () => {
+    console.log("Starting to add new row");
+    const initialData = {};
+    columns.forEach((column) => {
+      const columnKey = String(column.key);
+      if (!column.editableInline && !column.editType) {
+        return;
+      }
+      if (columnKey === "order" || columnKey === "created_at" || columnKey === "updated_at" || columnKey === "id") {
+        return;
+      }
+      if (column.editType === "toggle" || column.filterType === "select") {
+        initialData[columnKey] = "false";
+      } else {
+        initialData[columnKey] = column.editValidation?.required ? "" : "";
+      }
+    });
+    setNewRowData(initialData);
+    setIsAddingNewRow(true);
+    setNewRowError("");
+  };
+  const cancelAddingNewRow = () => {
+    setIsAddingNewRow(false);
+    setNewRowData({});
+    setNewRowError("");
+    setIsSavingNewRow(false);
+  };
+  const updateNewRowData = (columnKey, value) => {
+    setNewRowData((prev) => ({
+      ...prev,
+      [columnKey]: value
+    }));
+    if (newRowError) {
+      setNewRowError("");
+    }
+  };
+  const saveNewRow = async () => {
+    console.log("Saving new row:", newRowData);
+    for (const column of columns) {
+      const columnKey = String(column.key);
+      if (!column.editableInline && !column.editType) {
+        continue;
+      }
+      if (columnKey === "order" || columnKey === "created_at" || columnKey === "updated_at" || columnKey === "id") {
+        continue;
+      }
+      const value = newRowData[columnKey] || "";
+      if (column.editValidation?.required && !value.trim()) {
+        setNewRowError(`${column.label.replace(" *", "")} is required`);
+        return;
+      }
+      if (column.editValidation?.pattern && value.trim()) {
+        if (!column.editValidation.pattern.test(value)) {
+          setNewRowError(`${column.label.replace(" *", "")} has invalid format`);
+          return;
+        }
+      }
+    }
+    setIsSavingNewRow(true);
+    setNewRowError("");
+    try {
+      const baseUrl = inlineEditRoute ? inlineEditRoute("").replace("/undefined", "").replace("/null", "") : massActionRoute.replace("/mass-action", "");
+      const createUrl = baseUrl.replace(/\/$/, "");
+      console.log("\u{1F50D} Add Row API URL Debug:", { baseUrl, createUrl, inlineEditRoute: inlineEditRoute?.toString() });
+      const isTableDataApi = createUrl.includes("/tables/") && createUrl.includes("/data");
+      const requestBody = isTableDataApi ? { data: newRowData } : newRowData;
+      const response = await clientApiRequest(createUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+      });
+      if (response.ok) {
+        console.log("New row created successfully");
+        cancelAddingNewRow();
+        window.location.reload();
+      } else {
+        const errorMessage = await extractErrorMessage(response);
+        setNewRowError(errorMessage);
+      }
+    } catch (error2) {
+      console.error("Error saving new row:", error2);
+      setNewRowError(error2 instanceof Error ? error2.message : "Failed to save new row");
+    } finally {
+      setIsSavingNewRow(false);
+    }
+  };
   (0, import_react127.useEffect)(() => {
     setSelectedItems(/* @__PURE__ */ new Set());
   }, [items]);
@@ -43379,6 +43765,10 @@ function ModelList({
     }
   };
   const openMassActionModal = (action) => {
+    if (selectedItems.size === 0) {
+      alert("Please select items from the table first.");
+      return;
+    }
     setSelectedMassAction(action);
     setMassActionModalOpen(true);
     setMassActionError("");
@@ -43390,15 +43780,25 @@ function ModelList({
     setMassActionError("");
   };
   const handleMassActionConfirm = async () => {
-    if (!selectedMassAction || selectedItems.size === 0) return;
+    if (!selectedMassAction) {
+      setMassActionError("No action selected");
+      return;
+    }
+    if (selectedItems.size === 0) {
+      setMassActionError("No items selected. Please select items from the table first.");
+      setIsExecutingMassAction(false);
+      return;
+    }
     setIsExecutingMassAction(true);
     const selectedItemIds = Array.from(selectedItems);
     try {
+      const isColumnsRoute = massActionRoute.includes("/columns/mass-action");
+      const idsParam = isColumnsRoute ? "columnIds" : "ids";
       const response = await clientApiRequest(massActionRoute, {
         method: "POST",
         body: JSON.stringify({
           action: selectedMassAction.name,
-          ids: selectedItemIds
+          [idsParam]: selectedItemIds
         })
       });
       if (response.ok) {
@@ -43470,16 +43870,35 @@ function ModelList({
     return "";
   };
   const saveEditing = async (valueToSave) => {
-    if (!editingCell) return;
+    console.log("\u{1F525} ModelList.saveEditing called:", {
+      editingCell,
+      valueToSave,
+      editValue,
+      hasInlineEditRoute: !!inlineEditRoute
+    });
+    if (!editingCell) {
+      console.log("\u274C No editing cell - returning early");
+      return;
+    }
     const item = items?.data?.find((i18) => i18.id === editingCell.itemId);
     const column = columns.find((c18) => String(c18.key) === editingCell.columnKey);
-    if (!item || !column || !column.editableInline) return;
+    console.log("\u{1F50D} saveEditing item and column check:", {
+      item: item ? { id: item.id, [editingCell.columnKey]: item[editingCell.columnKey] } : null,
+      column: column ? { key: column.key, editableInline: column.editableInline, editType: column.editType } : null
+    });
+    if (!item || !column || !column.editableInline) {
+      console.log("\u274C Missing requirements - returning early");
+      return;
+    }
     const currentValue = valueToSave ?? editValue;
+    console.log("\u{1F4BE} Current value to save:", currentValue);
     const validationError = validateEditValue(column, currentValue);
     if (validationError) {
+      console.log("\u274C Validation error:", validationError);
       setEditingError(validationError);
       return;
     }
+    console.log("\u2705 Validation passed, starting save process");
     setIsEditingSaving(true);
     setEditingError("");
     try {
@@ -43501,24 +43920,38 @@ function ModelList({
           }
         } else if (column.editType === "number") {
           convertedValue = Number(currentValue);
+        } else if (column.editType === "toggle") {
+          convertedValue = currentValue === "1" || currentValue === "true" || currentValue === true;
         }
+        console.log("\u{1F310} About to make API request:", {
+          convertedValue,
+          columnKey: editingCell.columnKey,
+          payload: { [editingCell.columnKey]: convertedValue }
+        });
         try {
           const editUrl = inlineEditRoute ? inlineEditRoute(item.id) : `${window.location.pathname}/${item.id}`;
+          console.log("\u{1F517} Making PATCH request to:", editUrl);
+          const isTableDataEditApi = editUrl.includes("/tables/") && editUrl.includes("/data");
+          const editPayload = isTableDataEditApi ? { data: { [editingCell.columnKey]: convertedValue } } : { [editingCell.columnKey]: convertedValue };
           const response = await clientApiRequest(editUrl, {
             method: "PATCH",
-            body: JSON.stringify({
-              [editingCell.columnKey]: convertedValue
-            })
+            body: JSON.stringify(editPayload)
+          });
+          console.log("\u{1F4E1} API Response:", {
+            status: response.status,
+            ok: response.ok,
+            statusText: response.statusText
           });
           if (response.ok) {
+            console.log("\u2705 Save successful");
             handleSaveSuccess();
           } else {
-            console.error("Save failed:", response.statusText);
+            console.error("\u274C Save failed:", response.statusText);
             setEditingError("Failed to save changes");
             setIsEditingSaving(false);
           }
         } catch (error2) {
-          console.error("Save error:", error2);
+          console.error("\u{1F4A5} Save error:", error2);
           setEditingError("Failed to save changes");
           setIsEditingSaving(false);
         }
@@ -43581,7 +44014,7 @@ function ModelList({
   return /* @__PURE__ */ (0, import_jsx_runtime43.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)("div", { className: "space-y-6", children: [
     /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)("div", { className: "flex items-center justify-between", children: [
       /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Heading, { title }),
-      /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Button, { icon: IconPlus, onClick: () => window.location.href = createRoute, children: "Create New" })
+      createRoute && createRoute !== null ? /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Button, { icon: IconPlus, onClick: () => window.location.href = createRoute, children: "Create New" }) : /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Button, { icon: IconPlus, onClick: () => startAddingNewRow(), children: "Add Row" })
     ] }),
     /* @__PURE__ */ (0, import_jsx_runtime43.jsx)(Card, { children: /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)(CardBody, { children: [
       /* @__PURE__ */ (0, import_jsx_runtime43.jsxs)("div", { className: "mb-4 flex items-baseline justify-between", children: [
@@ -43658,7 +44091,15 @@ function ModelList({
             onInputBlur: handleInputBlur,
             onSetIsClickingSaveButton: setIsClickingSaveButton,
             onDeleteItem: openDeleteModal,
-            renderItem
+            renderItem,
+            rowActions,
+            isAddingNewRow,
+            newRowData,
+            newRowError,
+            isSavingNewRow,
+            onUpdateNewRowData: updateNewRowData,
+            onSaveNewRow: saveNewRow,
+            onCancelAddingNewRow: cancelAddingNewRow
           }
         )
       ] }) }),
@@ -43712,14 +44153,14 @@ var init_model_list = __esm({
     init_pagination();
     init_table();
     init_tabler_icons_react();
-    import_react127 = __toESM(require_react(), 1);
+    import_react127 = __toESM(require_react());
     init_date_utils();
     init_client_api();
     init_date_filter_calendar();
     init_modals();
     init_table_body();
     init_table_header();
-    import_jsx_runtime43 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime43 = __toESM(require_jsx_runtime());
   }
 });
 
@@ -43742,6 +44183,7 @@ function DashboardPage({
       columns: itemColumns,
       createRoute: "/dashboard/items/create",
       editRoute: (id) => `/dashboard/items/edit/${id}`,
+      inlineEditRoute: (id) => `/api/items/${id}`,
       deleteRoute: (id) => `/api/items/${id}`,
       massActionRoute: "/api/items/mass-action",
       massActions: itemMassActions
@@ -43754,7 +44196,7 @@ var init_page3 = __esm({
     "use strict";
     init_model_list();
     init_date_utils();
-    import_jsx_runtime44 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime44 = __toESM(require_jsx_runtime());
     itemColumns = [
       {
         key: "name",
@@ -43894,7 +44336,7 @@ var init_page4 = __esm({
     "use strict";
     init_model_list();
     init_date_utils();
-    import_jsx_runtime45 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime45 = __toESM(require_jsx_runtime());
     userColumns = [
       {
         key: "email",
@@ -44136,9 +44578,9 @@ var init_model_edit = __esm({
     init_button2();
     init_card();
     init_tabler_icons_react();
-    import_react128 = __toESM(require_react(), 1);
+    import_react128 = __toESM(require_react());
     init_client_api();
-    import_jsx_runtime46 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime46 = __toESM(require_jsx_runtime());
   }
 });
 
@@ -44173,7 +44615,7 @@ var init_page5 = __esm({
   "src/app/dashboard/users/create/page.tsx"() {
     "use strict";
     init_model_edit();
-    import_jsx_runtime47 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime47 = __toESM(require_jsx_runtime());
     renderUserForm = (data, setData, errors, processing, readonly) => {
       return /* @__PURE__ */ (0, import_jsx_runtime47.jsxs)("div", { className: "space-y-4", children: [
         /* @__PURE__ */ (0, import_jsx_runtime47.jsxs)("div", { className: "form-control w-full", children: [
@@ -44332,10 +44774,10 @@ var import_react129, import_jsx_runtime48, renderUserForm2;
 var init_page6 = __esm({
   "src/app/dashboard/users/edit/[id]/page.tsx"() {
     "use strict";
-    import_react129 = __toESM(require_react(), 1);
+    import_react129 = __toESM(require_react());
     init_model_edit();
     init_client_api();
-    import_jsx_runtime48 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime48 = __toESM(require_jsx_runtime());
     renderUserForm2 = (data, setData, errors, processing, readonly) => {
       return /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "space-y-4", children: [
         /* @__PURE__ */ (0, import_jsx_runtime48.jsxs)("div", { className: "form-control w-full", children: [
@@ -44448,16 +44890,366 @@ var init_page6 = __esm({
   }
 });
 
-// src/app/dashboard/tokens/page.tsx
+// src/app/dashboard/items/create/page.tsx
 var page_exports7 = {};
 __export(page_exports7, {
+  default: () => CreateItemPage
+});
+function CreateItemPage() {
+  const newItem = {
+    id: "",
+    // Will be generated by the server
+    name: "",
+    description: null,
+    price: 0,
+    quantity: 0,
+    category: ""
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)(
+    ModelEdit,
+    {
+      title: "Item",
+      item: newItem,
+      backRoute: "/dashboard",
+      submitRoute: "/api/items",
+      method: "post",
+      renderForm: renderItemForm
+    }
+  );
+}
+var import_jsx_runtime49, renderItemForm;
+var init_page7 = __esm({
+  "src/app/dashboard/items/create/page.tsx"() {
+    "use strict";
+    init_model_edit();
+    import_jsx_runtime49 = __toESM(require_jsx_runtime());
+    renderItemForm = (data, setData, errors, processing, readonly) => {
+      return /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "label-text", children: "Name *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime49.jsx)(
+            "input",
+            {
+              type: "text",
+              className: `input input-bordered w-full ${errors?.name ? "input-error" : ""}`,
+              value: data.name || "",
+              onChange: (e8) => setData("name", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "Enter item name",
+              required: true
+            }
+          ),
+          errors?.name && /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "label-text-alt text-error", children: errors.name }) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "label-text", children: "Description" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime49.jsx)(
+            "textarea",
+            {
+              className: `textarea textarea-bordered w-full ${errors?.description ? "textarea-error" : ""}`,
+              value: data.description || "",
+              onChange: (e8) => setData("description", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "Enter item description (optional)",
+              rows: 3
+            }
+          ),
+          errors?.description && /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "label-text-alt text-error", children: errors?.description }) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "form-control w-full", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "label-text", children: "Price *" }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "relative", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500", children: "$" }),
+              /* @__PURE__ */ (0, import_jsx_runtime49.jsx)(
+                "input",
+                {
+                  type: "number",
+                  step: "0.01",
+                  min: "0",
+                  className: `input input-bordered w-full pl-8 ${errors?.price ? "input-error" : ""}`,
+                  value: data.price || "",
+                  onChange: (e8) => setData("price", parseFloat(e8.target.value) || 0),
+                  disabled: processing || readonly,
+                  placeholder: "0.00",
+                  required: true
+                }
+              )
+            ] }),
+            errors?.price && /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "label-text-alt text-error", children: errors?.price }) })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "form-control w-full", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "label-text", children: "Quantity *" }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime49.jsx)(
+              "input",
+              {
+                type: "number",
+                min: "0",
+                className: `input input-bordered w-full ${errors?.quantity ? "input-error" : ""}`,
+                value: data.quantity || "",
+                onChange: (e8) => setData("quantity", parseInt(e8.target.value) || 0),
+                disabled: processing || readonly,
+                placeholder: "0",
+                required: true
+              }
+            ),
+            errors?.quantity && /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "label-text-alt text-error", children: errors?.quantity }) })
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "label-text", children: "Category" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime49.jsx)(
+            "input",
+            {
+              type: "text",
+              className: `input input-bordered w-full ${errors?.category ? "input-error" : ""}`,
+              value: data.category || "",
+              onChange: (e8) => setData("category", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "Enter item category (optional)"
+            }
+          ),
+          errors?.category && /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "label-text-alt text-error", children: errors?.category }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "label-text-alt", children: "Categories help organize your inventory." }) })
+        ] }),
+        readonly && data.createdAt && /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "label-text", children: "Created At" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime49.jsx)(
+            "input",
+            {
+              type: "text",
+              className: "input input-bordered w-full",
+              value: new Date(data.createdAt).toLocaleString(),
+              disabled: true
+            }
+          )
+        ] })
+      ] });
+    };
+  }
+});
+
+// src/app/dashboard/items/edit/[id]/page.tsx
+var page_exports8 = {};
+__export(page_exports8, {
+  default: () => EditItemPage
+});
+function EditItemPage({
+  item,
+  itemId,
+  ...props
+}) {
+  console.log("EditItemPage props:", { item, itemId, props });
+  const [itemData, setItemData] = import_react130.default.useState(item || null);
+  const [loading, setLoading] = import_react130.default.useState(!item);
+  const [error2, setError] = import_react130.default.useState(null);
+  import_react130.default.useEffect(() => {
+    if (item) {
+      setItemData(item);
+      setLoading(false);
+      return;
+    }
+    const fetchItem = async () => {
+      if (!itemId) {
+        setError("Item ID is required");
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await clientApiRequest(`/api/items/${itemId}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError("Item not found");
+          } else {
+            setError("Failed to load item data");
+          }
+          setLoading(false);
+          return;
+        }
+        const data = await response.json();
+        const fetchedItem = data.item || data;
+        setItemData(fetchedItem);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching item:", err);
+        setError("Failed to load item data");
+        setLoading(false);
+      }
+    };
+    fetchItem();
+  }, [item, itemId]);
+  if (loading) {
+    return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("div", { className: "alert alert-info", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { children: "Loading item data..." }) }) });
+  }
+  if (error2) {
+    return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("div", { className: "alert alert-error", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { children: error2 }) }) });
+  }
+  if (!itemData) {
+    return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("div", { className: "alert alert-error", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { children: "Item not found" }) }) });
+  }
+  return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
+    ModelEdit,
+    {
+      title: "Item",
+      item: itemData,
+      backRoute: "/dashboard",
+      submitRoute: `/api/items/${itemData.id}`,
+      method: "put",
+      renderForm: renderItemForm2
+    }
+  );
+}
+var import_react130, import_jsx_runtime50, renderItemForm2;
+var init_page8 = __esm({
+  "src/app/dashboard/items/edit/[id]/page.tsx"() {
+    "use strict";
+    import_react130 = __toESM(require_react());
+    init_model_edit();
+    init_client_api();
+    import_jsx_runtime50 = __toESM(require_jsx_runtime());
+    renderItemForm2 = (data, setData, errors, processing, readonly) => {
+      return /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text", children: "Name *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
+            "input",
+            {
+              type: "text",
+              className: `input input-bordered w-full ${errors?.name ? "input-error" : ""}`,
+              value: data.name || "",
+              onChange: (e8) => setData("name", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "Enter item name",
+              required: true
+            }
+          ),
+          errors?.name && /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text-alt text-error", children: errors.name }) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text", children: "Description" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
+            "textarea",
+            {
+              className: `textarea textarea-bordered w-full ${errors?.description ? "textarea-error" : ""}`,
+              value: data.description || "",
+              onChange: (e8) => setData("description", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "Enter item description (optional)",
+              rows: 3
+            }
+          ),
+          errors?.description && /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text-alt text-error", children: errors?.description }) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)("div", { className: "form-control w-full", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text", children: "Price *" }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)("div", { className: "relative", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500", children: "$" }),
+              /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
+                "input",
+                {
+                  type: "number",
+                  step: "0.01",
+                  min: "0",
+                  className: `input input-bordered w-full pl-8 ${errors?.price ? "input-error" : ""}`,
+                  value: data.price || "",
+                  onChange: (e8) => setData("price", parseFloat(e8.target.value) || 0),
+                  disabled: processing || readonly,
+                  placeholder: "0.00",
+                  required: true
+                }
+              )
+            ] }),
+            errors?.price && /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text-alt text-error", children: errors?.price }) })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)("div", { className: "form-control w-full", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text", children: "Quantity *" }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
+              "input",
+              {
+                type: "number",
+                min: "0",
+                className: `input input-bordered w-full ${errors?.quantity ? "input-error" : ""}`,
+                value: data.quantity || "",
+                onChange: (e8) => setData("quantity", parseInt(e8.target.value) || 0),
+                disabled: processing || readonly,
+                placeholder: "0",
+                required: true
+              }
+            ),
+            errors?.quantity && /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text-alt text-error", children: errors?.quantity }) })
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text", children: "Category" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
+            "input",
+            {
+              type: "text",
+              className: `input input-bordered w-full ${errors?.category ? "input-error" : ""}`,
+              value: data.category || "",
+              onChange: (e8) => setData("category", e8.target.value),
+              disabled: processing || readonly,
+              placeholder: "Enter item category (optional)"
+            }
+          ),
+          errors?.category && /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text-alt text-error", children: errors?.category }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text-alt", children: "Categories help organize your inventory." }) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("div", { className: "divider", children: "System Information" }),
+        /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text", children: "Item ID" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
+            "input",
+            {
+              type: "text",
+              className: "input input-bordered w-full",
+              value: data.id,
+              disabled: true
+            }
+          )
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)("div", { className: "form-control w-full", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text", children: "Created At" }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
+              "input",
+              {
+                type: "text",
+                className: "input input-bordered w-full",
+                value: new Date(data.createdAt).toLocaleString(),
+                disabled: true
+              }
+            )
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime50.jsxs)("div", { className: "form-control w-full", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "label-text", children: "Updated At" }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
+              "input",
+              {
+                type: "text",
+                className: "input input-bordered w-full",
+                value: new Date(data.updatedAt).toLocaleString(),
+                disabled: true
+              }
+            )
+          ] })
+        ] })
+      ] });
+    };
+  }
+});
+
+// src/app/dashboard/tokens/page.tsx
+var page_exports9 = {};
+__export(page_exports9, {
   default: () => TokensPage
 });
 function TokensPage({
   tokens,
   filters
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime51.jsx)(
     ModelList,
     {
       title: "API Tokens",
@@ -44472,13 +45264,13 @@ function TokensPage({
     }
   );
 }
-var import_jsx_runtime49, tokenColumns, tokenMassActions;
-var init_page7 = __esm({
+var import_jsx_runtime51, tokenColumns, tokenMassActions;
+var init_page9 = __esm({
   "src/app/dashboard/tokens/page.tsx"() {
     "use strict";
     init_model_list();
     init_date_utils();
-    import_jsx_runtime49 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime51 = __toESM(require_jsx_runtime());
     tokenColumns = [
       {
         key: "name",
@@ -44493,7 +45285,7 @@ var init_page7 = __esm({
       {
         key: "token",
         label: "Token",
-        render: (token) => /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("span", { className: "font-mono text-xs", children: [
+        render: (token) => /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("span", { className: "font-mono text-xs", children: [
           token.token.substring(0, 8),
           "...",
           token.token.substring(token.token.length - 4)
@@ -44536,7 +45328,7 @@ var init_page7 = __esm({
             badgeColor = "badge-primary";
             label = "Read & Write";
           }
-          return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: `badge ${badgeColor}`, children: label });
+          return /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: `badge ${badgeColor}`, children: label });
         }
       },
       {
@@ -44550,16 +45342,16 @@ var init_page7 = __esm({
           if (!token.allowedDomains) return "-";
           try {
             const domains = JSON.parse(token.allowedDomains);
-            return /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "text-xs", children: [
-              domains.slice(0, 2).map((domain, idx) => /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("div", { className: "truncate max-w-32", children: domain }, idx)),
-              domains.length > 2 && /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "text-gray-500", children: [
+            return /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "text-xs", children: [
+              domains.slice(0, 2).map((domain, idx) => /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("div", { className: "truncate max-w-32", children: domain }, idx)),
+              domains.length > 2 && /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "text-gray-500", children: [
                 "+",
                 domains.length - 2,
                 " more"
               ] })
             ] });
           } catch {
-            return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "text-xs text-gray-500", children: "Invalid JSON" });
+            return /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "text-xs text-gray-500", children: "Invalid JSON" });
           }
         }
       },
@@ -44574,16 +45366,16 @@ var init_page7 = __esm({
           if (!token.allowedIps) return "-";
           try {
             const ips = JSON.parse(token.allowedIps);
-            return /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "text-xs", children: [
-              ips.slice(0, 2).map((ip, idx) => /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("div", { className: "font-mono", children: ip }, idx)),
-              ips.length > 2 && /* @__PURE__ */ (0, import_jsx_runtime49.jsxs)("div", { className: "text-gray-500", children: [
+            return /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "text-xs", children: [
+              ips.slice(0, 2).map((ip, idx) => /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("div", { className: "font-mono", children: ip }, idx)),
+              ips.length > 2 && /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "text-gray-500", children: [
                 "+",
                 ips.length - 2,
                 " more"
               ] })
             ] });
           } catch {
-            return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "text-xs text-gray-500", children: "Invalid JSON" });
+            return /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "text-xs text-gray-500", children: "Invalid JSON" });
           }
         }
       },
@@ -44597,11 +45389,11 @@ var init_page7 = __esm({
         editType: "date",
         render: (token) => {
           if (!token.expiresAt) {
-            return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "text-green-600 text-xs", children: "Never" });
+            return /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "text-green-600 text-xs", children: "Never" });
           }
           const expiresDate = new Date(token.expiresAt);
           const isExpired = expiresDate < /* @__PURE__ */ new Date();
-          return /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: `text-xs ${isExpired ? "text-red-600" : "text-gray-600"}`, children: formatApiDate(token.expiresAt) });
+          return /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: `text-xs ${isExpired ? "text-red-600" : "text-gray-600"}`, children: formatApiDate(token.expiresAt) });
         }
       },
       {
@@ -44610,7 +45402,7 @@ var init_page7 = __esm({
         sortable: true,
         filterable: true,
         filterType: "date",
-        render: (token) => /* @__PURE__ */ (0, import_jsx_runtime49.jsx)("span", { className: "text-xs text-gray-500", children: formatApiDate(token.createdAt) })
+        render: (token) => /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "text-xs text-gray-500", children: formatApiDate(token.createdAt) })
       }
     ];
     tokenMassActions = [
@@ -44639,15 +45431,15 @@ var init_page7 = __esm({
 });
 
 // src/app/dashboard/allowed-emails/page.tsx
-var page_exports8 = {};
-__export(page_exports8, {
+var page_exports10 = {};
+__export(page_exports10, {
   default: () => AllowedEmailsPage
 });
 function AllowedEmailsPage({
   allowedEmails,
   filters
 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)(
     ModelList,
     {
       title: "Allowed Emails",
@@ -44663,13 +45455,13 @@ function AllowedEmailsPage({
     }
   );
 }
-var import_jsx_runtime50, allowedEmailColumns, allowedEmailMassActions;
-var init_page8 = __esm({
+var import_jsx_runtime52, allowedEmailColumns, allowedEmailMassActions;
+var init_page10 = __esm({
   "src/app/dashboard/allowed-emails/page.tsx"() {
     "use strict";
     init_model_list();
     init_date_utils();
-    import_jsx_runtime50 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime52 = __toESM(require_jsx_runtime());
     allowedEmailColumns = [
       {
         key: "type",
@@ -44687,7 +45479,7 @@ var init_page8 = __esm({
           { value: "email", label: "Specific Email" },
           { value: "domain", label: "Domain Pattern" }
         ],
-        render: (allowedEmail) => /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: `badge ${allowedEmail.type === "email" ? "badge-primary" : "badge-secondary"}`, children: allowedEmail.type === "email" ? "Email" : "Domain" })
+        render: (allowedEmail) => /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: `badge ${allowedEmail.type === "email" ? "badge-primary" : "badge-secondary"}`, children: allowedEmail.type === "email" ? "Email" : "Domain" })
       },
       {
         key: "email",
@@ -44702,9 +45494,9 @@ var init_page8 = __esm({
         },
         render: (allowedEmail) => {
           if (allowedEmail.type === "email" && allowedEmail.email) {
-            return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "font-mono text-sm", children: allowedEmail.email });
+            return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "font-mono text-sm", children: allowedEmail.email });
           }
-          return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "text-gray-400", children: "-" });
+          return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "text-gray-400", children: "-" });
         }
       },
       {
@@ -44720,9 +45512,9 @@ var init_page8 = __esm({
         },
         render: (allowedEmail) => {
           if (allowedEmail.type === "domain" && allowedEmail.domain) {
-            return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "font-mono text-sm", children: allowedEmail.domain.startsWith("@") ? allowedEmail.domain : `@${allowedEmail.domain}` });
+            return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "font-mono text-sm", children: allowedEmail.domain.startsWith("@") ? allowedEmail.domain : `@${allowedEmail.domain}` });
           }
-          return /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "text-gray-400", children: "-" });
+          return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "text-gray-400", children: "-" });
         }
       },
       {
@@ -44731,7 +45523,7 @@ var init_page8 = __esm({
         sortable: true,
         filterable: true,
         filterType: "date",
-        render: (allowedEmail) => /* @__PURE__ */ (0, import_jsx_runtime50.jsx)("span", { className: "text-sm text-gray-600", children: formatApiDate(allowedEmail.createdAt) })
+        render: (allowedEmail) => /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "text-sm text-gray-600", children: formatApiDate(allowedEmail.createdAt) })
       }
     ];
     allowedEmailMassActions = [
@@ -44755,8 +45547,8 @@ var init_page8 = __esm({
 });
 
 // src/app/dashboard/allowed-emails/create/page.tsx
-var page_exports9 = {};
-__export(page_exports9, {
+var page_exports11 = {};
+__export(page_exports11, {
   default: () => CreateAllowedEmailPage
 });
 function CreateAllowedEmailPage() {
@@ -44768,7 +45560,7 @@ function CreateAllowedEmailPage() {
     type: "email"
     // Default to email type
   };
-  return /* @__PURE__ */ (0, import_jsx_runtime51.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime53.jsx)(
     ModelEdit,
     {
       title: "Allowed Email",
@@ -44780,17 +45572,17 @@ function CreateAllowedEmailPage() {
     }
   );
 }
-var import_jsx_runtime51, renderAllowedEmailForm;
-var init_page9 = __esm({
+var import_jsx_runtime53, renderAllowedEmailForm;
+var init_page11 = __esm({
   "src/app/dashboard/allowed-emails/create/page.tsx"() {
     "use strict";
     init_model_edit();
-    import_jsx_runtime51 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime53 = __toESM(require_jsx_runtime());
     renderAllowedEmailForm = (data, setData, errors, processing, readonly) => {
-      return /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "space-y-4", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text", children: "Type *" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)(
+      return /* @__PURE__ */ (0, import_jsx_runtime53.jsxs)("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime53.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("span", { className: "label-text", children: "Type *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime53.jsxs)(
             "select",
             {
               className: `select select-bordered w-full ${errors?.type ? "select-error" : ""}`,
@@ -44806,17 +45598,17 @@ var init_page9 = __esm({
               disabled: processing || readonly,
               required: true,
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("option", { value: "email", children: "Specific Email" }),
-                /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("option", { value: "domain", children: "Domain Pattern" })
+                /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("option", { value: "email", children: "Specific Email" }),
+                /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("option", { value: "domain", children: "Domain Pattern" })
               ]
             }
           ),
-          errors?.type && /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text-alt text-error", children: errors.type }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text-alt", children: 'Choose "Specific Email" to allow one email address, or "Domain Pattern" to allow all emails from a domain.' }) })
+          errors?.type && /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("span", { className: "label-text-alt text-error", children: errors.type }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("span", { className: "label-text-alt", children: 'Choose "Specific Email" to allow one email address, or "Domain Pattern" to allow all emails from a domain.' }) })
         ] }),
-        data.type === "email" && /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text", children: "Email Address *" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)(
+        data.type === "email" && /* @__PURE__ */ (0, import_jsx_runtime53.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("span", { className: "label-text", children: "Email Address *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime53.jsx)(
             "input",
             {
               type: "email",
@@ -44828,12 +45620,12 @@ var init_page9 = __esm({
               required: true
             }
           ),
-          errors?.email && /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text-alt text-error", children: errors.email }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text-alt", children: "Enter the specific email address to allow access." }) })
+          errors?.email && /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("span", { className: "label-text-alt text-error", children: errors.email }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("span", { className: "label-text-alt", children: "Enter the specific email address to allow access." }) })
         ] }),
-        data.type === "domain" && /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text", children: "Domain Pattern *" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)(
+        data.type === "domain" && /* @__PURE__ */ (0, import_jsx_runtime53.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("span", { className: "label-text", children: "Domain Pattern *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime53.jsx)(
             "input",
             {
               type: "text",
@@ -44845,12 +45637,12 @@ var init_page9 = __esm({
               required: true
             }
           ),
-          errors?.domain && /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text-alt text-error", children: errors.domain }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text-alt", children: 'Enter a domain like "example.com" to allow all emails from that domain (e.g., user@example.com, admin@example.com).' }) })
+          errors?.domain && /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("span", { className: "label-text-alt text-error", children: errors.domain }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("span", { className: "label-text-alt", children: 'Enter a domain like "example.com" to allow all emails from that domain (e.g., user@example.com, admin@example.com).' }) })
         ] }),
-        readonly && data.created_at && /* @__PURE__ */ (0, import_jsx_runtime51.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime51.jsx)("span", { className: "label-text", children: "Created At" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime51.jsx)(
+        readonly && data.created_at && /* @__PURE__ */ (0, import_jsx_runtime53.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime53.jsx)("span", { className: "label-text", children: "Created At" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime53.jsx)(
             "input",
             {
               type: "text",
@@ -44866,8 +45658,8 @@ var init_page9 = __esm({
 });
 
 // src/app/dashboard/allowed-emails/edit/[id]/page.tsx
-var page_exports10 = {};
-__export(page_exports10, {
+var page_exports12 = {};
+__export(page_exports12, {
   default: () => EditAllowedEmailPage
 });
 function EditAllowedEmailPage({
@@ -44876,10 +45668,10 @@ function EditAllowedEmailPage({
   ...props
 }) {
   console.log("EditAllowedEmailPage props:", { allowedEmailData, allowedEmailId, props });
-  const [allowedEmail, setAllowedEmail] = import_react130.default.useState(allowedEmailData || null);
-  const [loading, setLoading] = import_react130.default.useState(!allowedEmailData);
-  const [error2, setError] = import_react130.default.useState(null);
-  import_react130.default.useEffect(() => {
+  const [allowedEmail, setAllowedEmail] = import_react131.default.useState(allowedEmailData || null);
+  const [loading, setLoading] = import_react131.default.useState(!allowedEmailData);
+  const [error2, setError] = import_react131.default.useState(null);
+  import_react131.default.useEffect(() => {
     if (allowedEmailData) {
       setAllowedEmail(allowedEmailData);
       setLoading(false);
@@ -44914,15 +45706,15 @@ function EditAllowedEmailPage({
     fetchAllowedEmail();
   }, [allowedEmailData, allowedEmailId]);
   if (loading) {
-    return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "alert alert-info", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { children: "Loading allowed email data..." }) }) });
+    return /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("div", { className: "alert alert-info", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { children: "Loading allowed email data..." }) }) });
   }
   if (error2) {
-    return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "alert alert-error", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { children: error2 }) }) });
+    return /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("div", { className: "alert alert-error", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { children: error2 }) }) });
   }
   if (!allowedEmail) {
-    return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "alert alert-error", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { children: "Allowed email rule not found" }) }) });
+    return /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("div", { className: "px-4 py-6", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("div", { className: "alert alert-error", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { children: "Allowed email rule not found" }) }) });
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime52.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime54.jsx)(
     ModelEdit,
     {
       title: "Allowed Email",
@@ -44934,19 +45726,19 @@ function EditAllowedEmailPage({
     }
   );
 }
-var import_react130, import_jsx_runtime52, renderAllowedEmailForm2;
-var init_page10 = __esm({
+var import_react131, import_jsx_runtime54, renderAllowedEmailForm2;
+var init_page12 = __esm({
   "src/app/dashboard/allowed-emails/edit/[id]/page.tsx"() {
     "use strict";
-    import_react130 = __toESM(require_react(), 1);
+    import_react131 = __toESM(require_react());
     init_model_edit();
     init_client_api();
-    import_jsx_runtime52 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime54 = __toESM(require_jsx_runtime());
     renderAllowedEmailForm2 = (data, setData, errors, processing, readonly) => {
-      return /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)("div", { className: "space-y-4", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text", children: "Type *" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)(
+      return /* @__PURE__ */ (0, import_jsx_runtime54.jsxs)("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime54.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { className: "label-text", children: "Type *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsxs)(
             "select",
             {
               className: `select select-bordered w-full ${errors?.type ? "select-error" : ""}`,
@@ -44962,17 +45754,17 @@ var init_page10 = __esm({
               disabled: processing || readonly,
               required: true,
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("option", { value: "email", children: "Specific Email" }),
-                /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("option", { value: "domain", children: "Domain Pattern" })
+                /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("option", { value: "email", children: "Specific Email" }),
+                /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("option", { value: "domain", children: "Domain Pattern" })
               ]
             }
           ),
-          errors?.type && /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text-alt text-error", children: errors.type }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text-alt", children: 'Choose "Specific Email" to allow one email address, or "Domain Pattern" to allow all emails from a domain.' }) })
+          errors?.type && /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { className: "label-text-alt text-error", children: errors.type }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { className: "label-text-alt", children: 'Choose "Specific Email" to allow one email address, or "Domain Pattern" to allow all emails from a domain.' }) })
         ] }),
-        data.type === "email" && /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text", children: "Email Address *" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)(
+        data.type === "email" && /* @__PURE__ */ (0, import_jsx_runtime54.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { className: "label-text", children: "Email Address *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsx)(
             "input",
             {
               type: "email",
@@ -44984,12 +45776,12 @@ var init_page10 = __esm({
               required: true
             }
           ),
-          errors?.email && /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text-alt text-error", children: errors.email }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text-alt", children: "Enter the specific email address to allow access." }) })
+          errors?.email && /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { className: "label-text-alt text-error", children: errors.email }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { className: "label-text-alt", children: "Enter the specific email address to allow access." }) })
         ] }),
-        data.type === "domain" && /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text", children: "Domain Pattern *" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)(
+        data.type === "domain" && /* @__PURE__ */ (0, import_jsx_runtime54.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { className: "label-text", children: "Domain Pattern *" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsx)(
             "input",
             {
               type: "text",
@@ -45001,13 +45793,13 @@ var init_page10 = __esm({
               required: true
             }
           ),
-          errors?.domain && /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text-alt text-error", children: errors.domain }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text-alt", children: 'Enter a domain like "example.com" to allow all emails from that domain (e.g., user@example.com, admin@example.com).' }) })
+          errors?.domain && /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { className: "label-text-alt text-error", children: errors.domain }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { className: "label-text-alt", children: 'Enter a domain like "example.com" to allow all emails from that domain (e.g., user@example.com, admin@example.com).' }) })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("div", { className: "divider", children: "System Information" }),
-        /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text", children: "Rule ID" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("div", { className: "divider", children: "System Information" }),
+        /* @__PURE__ */ (0, import_jsx_runtime54.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { className: "label-text", children: "Rule ID" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsx)(
             "input",
             {
               type: "text",
@@ -45017,9 +45809,9 @@ var init_page10 = __esm({
             }
           )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime52.jsxs)("div", { className: "form-control w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime52.jsx)("span", { className: "label-text", children: "Created At" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime52.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime54.jsxs)("div", { className: "form-control w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime54.jsx)("span", { className: "label-text", children: "Created At" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime54.jsx)(
             "input",
             {
               type: "text",
@@ -45030,6 +45822,1889 @@ var init_page10 = __esm({
           )
         ] })
       ] });
+    };
+  }
+});
+
+// src/app/dashboard/tables/page.tsx
+var page_exports13 = {};
+__export(page_exports13, {
+  default: () => TablesPage,
+  metadata: () => metadata5
+});
+function TablesPage({
+  tables,
+  filters
+}) {
+  return /* @__PURE__ */ (0, import_jsx_runtime55.jsx)(
+    ModelList,
+    {
+      title: "Your Tables",
+      items: tables || null,
+      filters: filters || {},
+      columns: tableColumns,
+      createRoute: "/dashboard/tables/create",
+      editRoute: (id) => `/dashboard/tables/${id}/edit`,
+      deleteRoute: (id) => `/api/tables/${id}`,
+      inlineEditRoute: (id) => `/api/tables/${id}`,
+      massActionRoute: "/api/tables/mass-action",
+      massActions: tableMassActions,
+      rowActions: tableRowActions
+    }
+  );
+}
+var import_jsx_runtime55, tableColumns, tableRowActions, tableMassActions, metadata5;
+var init_page13 = __esm({
+  "src/app/dashboard/tables/page.tsx"() {
+    "use strict";
+    init_model_list();
+    init_date_utils();
+    init_tabler_icons_react();
+    import_jsx_runtime55 = __toESM(require_jsx_runtime());
+    tableColumns = [
+      {
+        key: "name",
+        label: "Table Name",
+        sortable: true,
+        filterable: true,
+        filterType: "text",
+        editableInline: true,
+        editType: "text",
+        editValidation: { required: true, minLength: 1, maxLength: 100 },
+        render: (table) => /* @__PURE__ */ (0, import_jsx_runtime55.jsx)("span", { className: "font-medium", children: table.name })
+      },
+      {
+        key: "description",
+        label: "Description",
+        sortable: true,
+        filterable: true,
+        filterType: "text",
+        editableInline: true,
+        editType: "text",
+        editValidation: { maxLength: 500 },
+        render: (table) => table.description || /* @__PURE__ */ (0, import_jsx_runtime55.jsx)("span", { className: "text-gray-500 italic", children: "No description" })
+      },
+      {
+        key: "created_by",
+        label: "Owner",
+        sortable: true,
+        filterable: true,
+        filterType: "text",
+        render: (table) => /* @__PURE__ */ (0, import_jsx_runtime55.jsx)("span", { className: "text-sm", children: table.owner_display_name || table.created_by })
+      },
+      {
+        key: "is_public",
+        label: "Visibility",
+        sortable: true,
+        filterable: true,
+        filterType: "select",
+        filterOptions: [
+          { value: "true", label: "Public" },
+          { value: "false", label: "Private" }
+        ],
+        editableInline: true,
+        editType: "toggle",
+        render: (table) => /* @__PURE__ */ (0, import_jsx_runtime55.jsx)("span", { className: `badge ${table.is_public ? "badge-success" : "badge-warning"}`, children: table.is_public ? "Public" : "Private" })
+      },
+      {
+        key: "created_at",
+        label: "Created",
+        sortable: true,
+        filterable: true,
+        filterType: "date",
+        render: (table) => formatApiDate(table.created_at)
+      },
+      {
+        key: "updated_at",
+        label: "Updated",
+        sortable: true,
+        filterable: true,
+        filterType: "date",
+        render: (table) => formatApiDate(table.updated_at)
+      }
+    ];
+    tableRowActions = [
+      {
+        icon: IconDatabase,
+        title: "View Data",
+        color: "info",
+        style: "soft",
+        onClick: (table) => window.location.href = `/dashboard/tables/${table.id}/data`
+      },
+      {
+        icon: IconColumns3,
+        title: "Manage Columns",
+        color: "warning",
+        style: "soft",
+        onClick: (table) => window.location.href = `/dashboard/tables/${table.id}/columns`
+      }
+    ];
+    tableMassActions = [
+      {
+        name: "make_public",
+        label: "Make Public",
+        confirmMessage: "Are you sure you want to make the selected tables public? This will allow all authenticated users to edit them."
+      },
+      {
+        name: "make_private",
+        label: "Make Private",
+        confirmMessage: "Are you sure you want to make the selected tables private? Only you will be able to edit them."
+      },
+      {
+        name: "delete",
+        label: "Delete Tables",
+        confirmMessage: "Are you sure you want to delete the selected tables? This will permanently delete all table data and cannot be undone."
+      }
+    ];
+    metadata5 = {
+      title: "Dynamic Tables - Dashboard",
+      description: "Manage your custom data tables with configurable columns and permissions"
+    };
+  }
+});
+
+// src/components/ui/alert.tsx
+function Alert({
+  className,
+  color,
+  style,
+  direction,
+  children,
+  ...props
+}) {
+  return /* @__PURE__ */ (0, import_jsx_runtime56.jsx)(
+    "div",
+    {
+      role: "alert",
+      className: cn(alertVariants({ color, style, direction }), className),
+      ...props,
+      children
+    }
+  );
+}
+var import_jsx_runtime56, alertVariants;
+var init_alert = __esm({
+  "src/components/ui/alert.tsx"() {
+    "use strict";
+    init_dist4();
+    init_utils();
+    import_jsx_runtime56 = __toESM(require_jsx_runtime());
+    alertVariants = cva(
+      "alert",
+      {
+        variants: {
+          // Color variants
+          color: {
+            default: "",
+            info: "alert-info",
+            success: "alert-success",
+            warning: "alert-warning",
+            error: "alert-error"
+          },
+          // Style variants
+          style: {
+            default: "",
+            outline: "alert-outline",
+            dash: "alert-dash",
+            soft: "alert-soft"
+          },
+          // Direction variants
+          direction: {
+            default: "",
+            vertical: "alert-vertical",
+            horizontal: "alert-horizontal"
+          }
+        },
+        defaultVariants: {
+          color: "default",
+          style: "default",
+          direction: "default"
+        }
+      }
+    );
+  }
+});
+
+// src/components/ui/textarea.tsx
+function Textarea({
+  className,
+  color,
+  size: size4,
+  style,
+  error: error2 = false,
+  label,
+  helperText,
+  errorMessage,
+  characterCount = false,
+  maxLength,
+  resizable = true,
+  value,
+  onChange,
+  id,
+  ...props
+}) {
+  const [charCount, setCharCount] = React52.useState(0);
+  const textareaId = id || `textarea-${Math.random().toString(36).substring(2, 9)}`;
+  React52.useEffect(() => {
+    if (typeof value === "string") {
+      setCharCount(value.length);
+    }
+  }, [value]);
+  const handleChange = (event) => {
+    setCharCount(event.target.value.length);
+    onChange?.(event);
+  };
+  const effectiveColor = error2 ? "error" : color;
+  const displayText = error2 && errorMessage ? errorMessage : helperText;
+  return /* @__PURE__ */ (0, import_jsx_runtime57.jsxs)("fieldset", { className: "fieldset", children: [
+    label && /* @__PURE__ */ (0, import_jsx_runtime57.jsx)("legend", { className: "fieldset-legend", children: label }),
+    /* @__PURE__ */ (0, import_jsx_runtime57.jsx)(
+      "textarea",
+      {
+        id: textareaId,
+        className: cn(
+          textareaVariants({
+            color: effectiveColor,
+            size: size4,
+            style
+          }),
+          !resizable && "resize-none",
+          className
+        ),
+        value,
+        onChange: handleChange,
+        maxLength,
+        ...props
+      }
+    ),
+    (displayText || characterCount) && /* @__PURE__ */ (0, import_jsx_runtime57.jsxs)("div", { className: "label", children: [
+      displayText && /* @__PURE__ */ (0, import_jsx_runtime57.jsx)("span", { className: cn("label-text-alt", error2 && "text-error"), children: displayText }),
+      characterCount && /* @__PURE__ */ (0, import_jsx_runtime57.jsxs)("span", { className: "label-text-alt", children: [
+        charCount,
+        maxLength ? `/${maxLength}` : ""
+      ] })
+    ] })
+  ] });
+}
+var React52, import_jsx_runtime57, textareaVariants;
+var init_textarea2 = __esm({
+  "src/components/ui/textarea.tsx"() {
+    "use strict";
+    React52 = __toESM(require_react());
+    init_dist4();
+    init_utils();
+    import_jsx_runtime57 = __toESM(require_jsx_runtime());
+    textareaVariants = cva(
+      "textarea",
+      {
+        variants: {
+          // Color variants
+          color: {
+            default: "",
+            primary: "textarea-primary",
+            secondary: "textarea-secondary",
+            accent: "textarea-accent",
+            info: "textarea-info",
+            success: "textarea-success",
+            warning: "textarea-warning",
+            error: "textarea-error"
+          },
+          // Size variants
+          size: {
+            xs: "textarea-xs",
+            sm: "textarea-sm",
+            md: "textarea-md",
+            lg: "textarea-lg",
+            xl: "textarea-xl"
+          },
+          // Style variants
+          style: {
+            default: "",
+            bordered: "textarea-bordered",
+            ghost: "textarea-ghost"
+          }
+        },
+        defaultVariants: {
+          color: "default",
+          size: "md",
+          style: "bordered"
+        }
+      }
+    );
+  }
+});
+
+// src/components/table-info-form.tsx
+function TableInfoForm({ data, errors = {}, onChange }) {
+  return /* @__PURE__ */ (0, import_jsx_runtime58.jsx)(Card, { children: /* @__PURE__ */ (0, import_jsx_runtime58.jsxs)(CardBody, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime58.jsx)(CardTitle, { children: "Table Information" }),
+    /* @__PURE__ */ (0, import_jsx_runtime58.jsx)(
+      Input,
+      {
+        type: "text",
+        value: data.name,
+        onChange: (e8) => onChange("name", e8.target.value),
+        label: "Table Name *",
+        placeholder: "Enter table name...",
+        maxLength: 100,
+        className: errors.name ? "input-error" : "",
+        required: true
+      }
+    ),
+    errors.name && /* @__PURE__ */ (0, import_jsx_runtime58.jsx)("p", { className: "text-error text-sm mt-1", children: errors.name }),
+    /* @__PURE__ */ (0, import_jsx_runtime58.jsx)(
+      Textarea,
+      {
+        value: data.description,
+        onChange: (e8) => onChange("description", e8.target.value),
+        label: "Description",
+        placeholder: "Describe what this table will be used for...",
+        maxLength: 500,
+        rows: 3
+      }
+    ),
+    /* @__PURE__ */ (0, import_jsx_runtime58.jsx)(
+      Checkbox,
+      {
+        label: "Public Table",
+        labelPosition: "right",
+        checked: data.is_public,
+        onChange: (e8) => onChange("is_public", e8.target.checked)
+      }
+    )
+  ] }) });
+}
+var import_jsx_runtime58;
+var init_table_info_form = __esm({
+  "src/components/table-info-form.tsx"() {
+    "use strict";
+    init_card();
+    init_input2();
+    init_textarea2();
+    init_checkbox2();
+    import_jsx_runtime58 = __toESM(require_jsx_runtime());
+  }
+});
+
+// src/types/dynamic-tables.ts
+function getColumnTypeLabel(type) {
+  const option = COLUMN_TYPE_OPTIONS.find((opt) => opt.value === type);
+  return option?.label || type;
+}
+function validateColumnValue(value, column) {
+  if (column.is_required && (value === null || value === void 0 || value === "")) {
+    if (column.default_value) {
+      return { valid: true };
+    }
+    return { valid: false, error: `${column.name} is required` };
+  }
+  if (value === null || value === void 0 || value === "") {
+    return { valid: true };
+  }
+  switch (column.type) {
+    case "email": {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(String(value))) {
+        return { valid: false, error: `${column.name} must be a valid email address` };
+      }
+      break;
+    }
+    case "url":
+      try {
+        new URL(String(value));
+      } catch {
+        return { valid: false, error: `${column.name} must be a valid URL` };
+      }
+      break;
+    case "number":
+      if (isNaN(Number(value))) {
+        return { valid: false, error: `${column.name} must be a valid number` };
+      }
+      break;
+    case "date": {
+      const dateValue = new Date(value);
+      if (isNaN(dateValue.getTime())) {
+        return { valid: false, error: `${column.name} must be a valid date` };
+      }
+      break;
+    }
+    case "boolean":
+      break;
+    case "text":
+    case "textarea":
+      break;
+  }
+  return { valid: true };
+}
+var COLUMN_TYPE_OPTIONS;
+var init_dynamic_tables = __esm({
+  "src/types/dynamic-tables.ts"() {
+    "use strict";
+    COLUMN_TYPE_OPTIONS = [
+      { value: "text", label: "Text", description: "Short text input (max 255 chars)" },
+      { value: "textarea", label: "Long Text", description: "Multi-line text area" },
+      { value: "number", label: "Number", description: "Numeric value (integer or decimal)" },
+      { value: "date", label: "Date", description: "Date picker input" },
+      { value: "boolean", label: "Boolean", description: "True/false checkbox" },
+      { value: "email", label: "Email", description: "Email address with validation" },
+      { value: "url", label: "URL", description: "Web address with validation" }
+    ];
+  }
+});
+
+// src/app/dashboard/tables/create/page.tsx
+var page_exports14 = {};
+__export(page_exports14, {
+  default: () => CreateTablePage,
+  metadata: () => metadata6
+});
+function CreateTablePage() {
+  const [isSubmitting, setIsSubmitting] = (0, import_react132.useState)(false);
+  const [errors, setErrors] = (0, import_react132.useState)({});
+  const [formData, setFormData] = (0, import_react132.useState)({
+    name: "",
+    description: "",
+    is_public: false,
+    columns: [
+      {
+        name: "",
+        type: "text",
+        is_required: false,
+        default_value: "",
+        position: 0
+      }
+    ]
+  });
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: void 0, general: void 0 }));
+  };
+  const handleColumnChange = (index3, field, value) => {
+    const newColumns = [...formData.columns];
+    newColumns[index3] = { ...newColumns[index3], [field]: value };
+    setFormData((prev) => ({ ...prev, columns: newColumns }));
+    setErrors((prev) => ({ ...prev, [`column_${index3}_${field}`]: void 0, columns: void 0, general: void 0 }));
+  };
+  const addColumn = () => {
+    const newColumn = {
+      name: "",
+      type: "text",
+      is_required: false,
+      default_value: "",
+      position: formData.columns.length
+    };
+    setFormData((prev) => ({ ...prev, columns: [...prev.columns, newColumn] }));
+  };
+  const removeColumn = (index3) => {
+    if (formData.columns.length <= 1) {
+      setErrors((prev) => ({ ...prev, columns: "At least one column is required" }));
+      return;
+    }
+    const newColumns = formData.columns.filter((_10, i18) => i18 !== index3);
+    newColumns.forEach((col, i18) => {
+      col.position = i18;
+    });
+    setFormData((prev) => ({ ...prev, columns: newColumns }));
+  };
+  const moveColumn = (index3, direction) => {
+    const newIndex = direction === "up" ? index3 - 1 : index3 + 1;
+    if (newIndex < 0 || newIndex >= formData.columns.length) return;
+    const newColumns = [...formData.columns];
+    [newColumns[index3], newColumns[newIndex]] = [newColumns[newIndex], newColumns[index3]];
+    newColumns.forEach((col, i18) => {
+      col.position = i18;
+    });
+    setFormData((prev) => ({ ...prev, columns: newColumns }));
+  };
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) {
+      newErrors.name = "Table name is required";
+    } else if (formData.name.length > 100) {
+      newErrors.name = "Table name cannot exceed 100 characters";
+    }
+    if (formData.columns.length === 0) {
+      newErrors.columns = "At least one column is required";
+    } else {
+      const columnNames = /* @__PURE__ */ new Set();
+      formData.columns.forEach((col, index3) => {
+        if (!col.name.trim()) {
+          newErrors[`column_${index3}_name`] = "Column name is required";
+        } else if (col.name.length > 100) {
+          newErrors[`column_${index3}_name`] = "Column name cannot exceed 100 characters";
+        } else if (columnNames.has(col.name.toLowerCase())) {
+          newErrors[`column_${index3}_name`] = "Column names must be unique";
+        } else {
+          columnNames.add(col.name.toLowerCase());
+        }
+      });
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  const handleSubmit = async (e8) => {
+    e8.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
+    setIsSubmitting(true);
+    setErrors({});
+    const form = e8.target;
+    const formData2 = new FormData(form);
+    try {
+      const response = await fetch("/api/tables/create", {
+        method: "POST",
+        body: formData2
+      });
+      if (response.ok) {
+        const result = await response.json();
+        window.location.href = `/dashboard/tables/${result.tableId}/data`;
+      } else {
+        const errorData = await response.json();
+        setErrors({
+          general: errorData.message || "Failed to create table"
+        });
+      }
+    } catch (error2) {
+      setErrors({
+        general: error2 instanceof Error ? error2.message : "An unexpected error occurred"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)("div", { className: "container mx-auto p-4 max-w-4xl", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)("div", { className: "mb-6", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("h1", { className: "text-3xl font-bold text-gray-800", children: "Create New Table" }),
+      /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("p", { className: "text-gray-600 mt-2", children: "Design a custom data table with configurable columns and access controls." })
+    ] }),
+    errors.general && /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(Alert, { color: "error", className: "mb-6", children: errors.general }),
+    /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)("form", { onSubmit: handleSubmit, className: "space-y-6", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("input", { type: "hidden", name: "tableData", value: JSON.stringify({
+        name: formData.name.trim(),
+        description: formData.description.trim() || void 0,
+        is_public: formData.is_public,
+        columns: formData.columns.map((col) => ({
+          name: col.name.trim(),
+          type: col.type,
+          is_required: col.is_required,
+          default_value: col.default_value.trim() || void 0,
+          position: col.position
+        }))
+      }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+        TableInfoForm,
+        {
+          data: {
+            name: formData.name,
+            description: formData.description,
+            is_public: formData.is_public
+          },
+          errors,
+          onChange: handleInputChange
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(Card, { children: /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)(CardBody, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)("div", { className: "flex flex-row items-center justify-between mb-4", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(CardTitle, { children: "Column Configuration" }),
+          /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+            Button,
+            {
+              type: "button",
+              onClick: addColumn,
+              style: "outline",
+              size: "sm",
+              icon: IconPlus,
+              children: "Add Column"
+            }
+          )
+        ] }),
+        errors.columns && /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(Alert, { color: "error", className: "mb-4", children: errors.columns }),
+        /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("div", { className: "space-y-4", children: formData.columns.map((column, index3) => /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+          Card,
+          {
+            color: "info",
+            style: "soft",
+            children: /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)(CardBody, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)("div", { className: "flex flex-row items-center justify-between mb-4", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)(CardTitle, { children: [
+                  "Column ",
+                  index3 + 1
+                ] }),
+                /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)("div", { className: "flex items-center gap-2", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+                    Button,
+                    {
+                      type: "button",
+                      onClick: () => moveColumn(index3, "up"),
+                      disabled: index3 === 0,
+                      style: "ghost",
+                      size: "icon",
+                      icon: IconArrowUp
+                    }
+                  ),
+                  /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+                    Button,
+                    {
+                      type: "button",
+                      onClick: () => moveColumn(index3, "down"),
+                      disabled: index3 === formData.columns.length - 1,
+                      style: "ghost",
+                      size: "icon",
+                      icon: IconArrowDown
+                    }
+                  ),
+                  /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+                    Button,
+                    {
+                      type: "button",
+                      onClick: () => removeColumn(index3),
+                      disabled: formData.columns.length <= 1,
+                      style: "soft",
+                      size: "icon",
+                      color: "error",
+                      icon: IconTrash
+                    }
+                  )
+                ] })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)("div", { children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+                    Input,
+                    {
+                      type: "text",
+                      value: column.name,
+                      onChange: (e8) => handleColumnChange(index3, "name", e8.target.value),
+                      label: "Column Name *",
+                      placeholder: "Enter column name...",
+                      maxLength: 100,
+                      className: errors[`column_${index3}_name`] ? "input-error" : "",
+                      required: true
+                    }
+                  ),
+                  errors[`column_${index3}_name`] && /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("p", { className: "text-error text-sm mt-1", children: errors[`column_${index3}_name`] })
+                ] }),
+                /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)("div", { children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("span", { className: "label-text", children: "Data Type" }) }),
+                  /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+                    Select2,
+                    {
+                      value: column.type,
+                      onChange: (e8) => handleColumnChange(index3, "type", e8.target.value),
+                      children: COLUMN_TYPE_OPTIONS.map((option) => /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("option", { value: option.value, children: option.label }, option.value))
+                    }
+                  )
+                ] }),
+                /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("div", { children: /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+                  Input,
+                  {
+                    type: "text",
+                    value: column.default_value,
+                    onChange: (e8) => handleColumnChange(index3, "default_value", e8.target.value),
+                    label: "Default Value",
+                    placeholder: "Optional default value..."
+                  }
+                ) }),
+                /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("div", { className: "flex items-start pt-6", children: /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+                  Checkbox,
+                  {
+                    checked: column.is_required,
+                    onChange: (e8) => handleColumnChange(index3, "is_required", e8.target.checked),
+                    label: "Required Field",
+                    labelPosition: "right"
+                  }
+                ) })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("div", { className: "mt-2 text-sm text-gray-600", children: COLUMN_TYPE_OPTIONS.find((opt) => opt.value === column.type)?.description })
+            ] })
+          },
+          index3
+        )) })
+      ] }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)("div", { className: "flex justify-between items-center", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+          Button,
+          {
+            type: "button",
+            style: "ghost",
+            onClick: () => window.location.href = "/dashboard/tables",
+            children: "Cancel"
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime59.jsx)(
+          Button,
+          {
+            type: "submit",
+            color: "primary",
+            style: "soft",
+            disabled: isSubmitting,
+            children: isSubmitting ? /* @__PURE__ */ (0, import_jsx_runtime59.jsxs)(import_jsx_runtime59.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime59.jsx)("span", { className: "loading loading-spinner loading-sm mr-2" }),
+              "Creating Table..."
+            ] }) : "Create Table"
+          }
+        )
+      ] })
+    ] })
+  ] });
+}
+var import_react132, import_jsx_runtime59, metadata6;
+var init_page14 = __esm({
+  "src/app/dashboard/tables/create/page.tsx"() {
+    "use strict";
+    "use client";
+    import_react132 = __toESM(require_react());
+    init_button2();
+    init_card();
+    init_input2();
+    init_select2();
+    init_checkbox2();
+    init_alert();
+    init_table_info_form();
+    init_dynamic_tables();
+    init_tabler_icons_react();
+    import_jsx_runtime59 = __toESM(require_jsx_runtime());
+    metadata6 = {
+      title: "Create Table - Dynamic Tables",
+      description: "Create a new dynamic table with custom columns"
+    };
+  }
+});
+
+// src/components/table-navigation.tsx
+function TableNavigation({ tableId, activePage, className = "" }) {
+  const buttons = [
+    {
+      key: "list",
+      label: "Back to Tables",
+      shortLabel: "\u2190 Tables",
+      href: "/dashboard/tables"
+    },
+    {
+      key: "edit",
+      label: "Edit Table Info",
+      shortLabel: "Edit Info",
+      href: `/dashboard/tables/${tableId}/edit`
+    },
+    {
+      key: "columns",
+      label: "Edit Columns",
+      shortLabel: "Columns",
+      href: `/dashboard/tables/${tableId}/columns`
+    },
+    {
+      key: "data",
+      label: "Edit Data",
+      shortLabel: "Data",
+      href: `/dashboard/tables/${tableId}/data`
+    }
+  ];
+  return /* @__PURE__ */ (0, import_jsx_runtime60.jsx)("div", { className: `flex flex-col sm:flex-row gap-2 shrink-0 ${className}`, children: buttons.map((button) => {
+    const isActive = button.key === activePage;
+    return /* @__PURE__ */ (0, import_jsx_runtime60.jsxs)(
+      Button,
+      {
+        type: "button",
+        size: "sm",
+        color: isActive ? "primary" : "neutral",
+        style: isActive ? "soft" : "ghost",
+        onClick: () => window.location.href = button.href,
+        className: isActive ? "font-semibold" : "",
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime60.jsx)("span", { className: "hidden sm:inline", children: button.label }),
+          /* @__PURE__ */ (0, import_jsx_runtime60.jsx)("span", { className: "sm:hidden", children: button.shortLabel })
+        ]
+      },
+      button.key
+    );
+  }) });
+}
+var import_jsx_runtime60;
+var init_table_navigation = __esm({
+  "src/components/table-navigation.tsx"() {
+    "use strict";
+    init_button2();
+    import_jsx_runtime60 = __toESM(require_jsx_runtime());
+  }
+});
+
+// src/app/dashboard/tables/[id]/data/page.tsx
+var page_exports15 = {};
+__export(page_exports15, {
+  default: () => TableDataPage,
+  metadata: () => metadata7
+});
+function TableDataPage({
+  initialData = null,
+  tableId
+}) {
+  console.log("\u{1F50D} TableDataPage Props Structure:", JSON.stringify(initialData, null, 2));
+  console.log("\u{1F50D} TableDataPage Props Summary:", {
+    hasInitialData: !!initialData,
+    tableId,
+    keys: initialData ? Object.keys(initialData) : null,
+    _meta: initialData?._meta,
+    current_page: initialData?.current_page,
+    dataLength: initialData?.data?.length,
+    // Check if _meta is in a different location
+    metaAlternatives: initialData ? {
+      rootMeta: initialData._meta,
+      dataMeta: initialData.data?.[0]?._meta,
+      hasColumns: !!initialData._meta?.columns
+    } : null
+  });
+  const [paginatedData, setPaginatedData] = (0, import_react133.useState)(initialData);
+  const [isLoading, setIsLoading] = (0, import_react133.useState)(!initialData);
+  const [error2, setError] = (0, import_react133.useState)("");
+  const currentTableId = tableId || (typeof window !== "undefined" ? window.location.pathname.split("/")[3] : void 0);
+  (0, import_react133.useEffect)(() => {
+    if (!initialData && currentTableId) {
+      loadTableData();
+    }
+  }, [currentTableId, initialData]);
+  (0, import_react133.useEffect)(() => {
+    if (!initialData && currentTableId) {
+      loadTableData();
+    }
+  }, [typeof window !== "undefined" ? window.location.search : ""]);
+  const loadTableData = async () => {
+    if (!currentTableId) {
+      setError("Table ID is required");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const currentUrl = new URL(window.location.href);
+      const queryParams = currentUrl.search;
+      const apiUrl = `/api/tables/${currentTableId}/data${queryParams}`;
+      console.log("\u{1F50D} TableData loadTableData - API URL:", apiUrl);
+      const response = await clientApiRequest(apiUrl);
+      if (response.ok) {
+        const result = await response.json();
+        setPaginatedData(result);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "Failed to load table data");
+      }
+    } catch (error3) {
+      setError(error3 instanceof Error ? error3.message : "Failed to load table data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const generateColumnDefinitions = (columns2) => {
+    return columns2.map((column) => {
+      const columnDef = {
+        key: column.name,
+        label: column.name + (column.is_required ? " *" : ""),
+        sortable: true,
+        filterable: true,
+        filterType: getFilterType(column.type),
+        editableInline: true,
+        editType: getEditType(column.type),
+        editValidation: {
+          required: column.is_required,
+          ...column.type === "email" && { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ }
+        },
+        render: (row) => renderCellValue(column, row.data[column.name])
+      };
+      if (column.type === "boolean") {
+        columnDef.filterType = "select";
+        columnDef.filterOptions = [
+          { value: "true", label: "Yes" },
+          { value: "false", label: "No" }
+        ];
+        columnDef.editType = "toggle";
+      }
+      return columnDef;
+    });
+  };
+  const getFilterType = (columnType) => {
+    switch (columnType) {
+      case "date":
+        return "date";
+      case "boolean":
+        return "select";
+      default:
+        return "text";
+    }
+  };
+  const getEditType = (columnType) => {
+    switch (columnType) {
+      case "email":
+        return "email";
+      case "number":
+        return "number";
+      case "date":
+        return "date";
+      case "boolean":
+        return "toggle";
+      default:
+        return "text";
+    }
+  };
+  const renderCellValue = (column, value) => {
+    switch (column.type) {
+      case "boolean":
+        return /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("span", { className: `badge ${value ? "badge-success" : "badge-ghost"}`, children: value ? "Yes" : "No" });
+      case "date":
+        return value ? formatApiDate(value) : "-";
+      case "url":
+        return value ? /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("a", { href: value, target: "_blank", rel: "noopener noreferrer", className: "link link-primary", children: value }) : "-";
+      case "email":
+        return value ? /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("a", { href: `mailto:${value}`, className: "link link-primary", children: value }) : "-";
+      default:
+        return value || "-";
+    }
+  };
+  const tableInfo = paginatedData?._meta || paginatedData?.data?.[0]?._meta;
+  const table = tableInfo?.table;
+  const columns = tableInfo?.columns || [];
+  const dataMassActions = [
+    {
+      name: "export",
+      label: "Export Selected",
+      confirmMessage: "Export the selected rows to CSV?"
+    },
+    {
+      name: "delete",
+      label: "Delete Rows",
+      confirmMessage: "Are you sure you want to delete the selected rows? This action cannot be undone."
+    }
+  ];
+  if (isLoading) {
+    return /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("div", { className: "container mx-auto p-4", children: /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("div", { className: "flex justify-center items-center h-64", children: /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("span", { className: "loading loading-spinner loading-lg" }) }) });
+  }
+  if (error2 || !paginatedData) {
+    return /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("div", { className: "container mx-auto p-4", children: /* @__PURE__ */ (0, import_jsx_runtime61.jsxs)("div", { className: "alert alert-error", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("svg", { className: "stroke-current shrink-0 h-6 w-6", fill: "none", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("span", { children: error2 || "Failed to load table data" })
+    ] }) });
+  }
+  const columnDefinitions = generateColumnDefinitions(columns);
+  const transformedPaginatedData = {
+    ...paginatedData,
+    data: paginatedData.data.map((row) => ({
+      ...row,
+      // Flatten the data object to top level for easier access
+      ...row.data
+    }))
+  };
+  console.log("\u{1F50D} TableData Debug:", {
+    title: "Table Data",
+    createRoute: void 0,
+    columns: columnDefinitions.length,
+    table: table?.name,
+    totalRows: transformedPaginatedData.total,
+    paginatedData: {
+      current_page: transformedPaginatedData.current_page,
+      last_page: transformedPaginatedData.last_page,
+      per_page: transformedPaginatedData.per_page,
+      total: transformedPaginatedData.total,
+      displayedRows: transformedPaginatedData.data.length
+    }
+  });
+  return /* @__PURE__ */ (0, import_jsx_runtime61.jsxs)("div", { className: "container mx-auto p-4", children: [
+    table && /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("div", { className: "mb-6", children: /* @__PURE__ */ (0, import_jsx_runtime61.jsxs)("div", { className: "flex justify-between items-start", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime61.jsxs)("div", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("h1", { className: "text-2xl font-bold", children: table.name }),
+        table.description && /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("p", { className: "text-gray-600 mt-1", children: table.description }),
+        /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("div", { className: "flex items-center gap-2 mt-2", children: /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("span", { className: `badge ${table.is_public ? "badge-success" : "badge-warning"}`, children: table.is_public ? "Public" : "Private" }) })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime61.jsx)(
+        TableNavigation,
+        {
+          tableId: currentTableId || "",
+          activePage: "data"
+        }
+      )
+    ] }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime61.jsx)(
+      ModelList,
+      {
+        title: "Table Data",
+        items: transformedPaginatedData,
+        filters: {},
+        columns: columnDefinitions,
+        createRoute: void 0,
+        editRoute: (id) => `/dashboard/tables/${currentTableId}/data/edit/${id}`,
+        deleteRoute: (id) => `/api/tables/${currentTableId}/data/${id}`,
+        inlineEditRoute: (id) => `/api/tables/${currentTableId}/data/${id}`,
+        massActionRoute: `/api/tables/${currentTableId}/data/mass-action`,
+        massActions: dataMassActions
+      }
+    )
+  ] });
+}
+var import_react133, import_jsx_runtime61, metadata7;
+var init_page15 = __esm({
+  "src/app/dashboard/tables/[id]/data/page.tsx"() {
+    "use strict";
+    "use client";
+    import_react133 = __toESM(require_react());
+    init_model_list();
+    init_date_utils();
+    init_client_api();
+    init_table_navigation();
+    import_jsx_runtime61 = __toESM(require_jsx_runtime());
+    metadata7 = {
+      title: "Table Data - Dynamic Tables",
+      description: "View and manage data in your dynamic table"
+    };
+  }
+});
+
+// src/app/dashboard/tables/[id]/edit/page.tsx
+var page_exports16 = {};
+__export(page_exports16, {
+  default: () => TableEditPage,
+  metadata: () => metadata8
+});
+function TableEditPage({ tableSchema = null, tableId }) {
+  const [isLoading, setIsLoading] = (0, import_react134.useState)(!tableSchema);
+  const [isSubmitting, setIsSubmitting] = (0, import_react134.useState)(false);
+  const [errors, setErrors] = (0, import_react134.useState)({});
+  const [formData, setFormData] = (0, import_react134.useState)({
+    name: tableSchema?.table.name || "",
+    description: tableSchema?.table.description || "",
+    is_public: tableSchema?.table.is_public || false
+  });
+  (0, import_react134.useEffect)(() => {
+    if (!tableSchema && tableId) {
+      loadTableData();
+    }
+  }, [tableId, tableSchema]);
+  const loadTableData = async () => {
+    if (!tableId) return;
+    setIsLoading(true);
+    try {
+      const response = await clientApiRequest(`/api/tables/${tableId}`);
+      if (response.ok) {
+        const result = await response.json();
+        const schema = result.table;
+        setFormData({
+          name: schema.table.name,
+          description: schema.table.description || "",
+          is_public: schema.table.is_public
+        });
+      } else {
+        const errorData = await response.json();
+        setErrors({ general: errorData.message || "Failed to load table data" });
+      }
+    } catch (error2) {
+      setErrors({ general: error2 instanceof Error ? error2.message : "Failed to load table data" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: void 0, general: void 0 }));
+  };
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) {
+      newErrors.name = "Table name is required";
+    } else if (formData.name.length > 100) {
+      newErrors.name = "Table name cannot exceed 100 characters";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  const handleSubmit = async (e8) => {
+    e8.preventDefault();
+    if (!validateForm() || !tableId) {
+      return;
+    }
+    setIsSubmitting(true);
+    setErrors({});
+    try {
+      const requestData = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || void 0,
+        is_public: formData.is_public
+      };
+      const response = await clientApiRequest(`/api/tables/${tableId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData)
+      });
+      if (response.ok) {
+        window.location.href = `/dashboard/tables/${tableId}/data`;
+      } else {
+        const errorData = await response.json();
+        setErrors({
+          general: errorData.message || "Failed to update table"
+        });
+      }
+    } catch (error2) {
+      setErrors({
+        general: error2 instanceof Error ? error2.message : "An unexpected error occurred"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  const handleCancel = () => {
+    window.location.href = `/dashboard/tables/${tableId}/data`;
+  };
+  if (isLoading) {
+    return /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("div", { className: "container mx-auto p-4 max-w-2xl", children: /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("div", { className: "flex justify-center items-center h-64", children: /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("span", { className: "loading loading-spinner loading-lg" }) }) });
+  }
+  return /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("div", { className: "container mx-auto p-4 max-w-2xl", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("div", { className: "mb-6", children: /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("div", { className: "flex justify-between items-start mb-4", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("div", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("h1", { className: "text-3xl font-bold text-gray-800", children: "Edit Table" }),
+        /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("p", { className: "text-gray-600 mt-2", children: "Update table information and access settings." })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
+        TableNavigation,
+        {
+          tableId: tableId || "",
+          activePage: "edit"
+        }
+      )
+    ] }) }),
+    errors.general && /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(Alert, { color: "error", className: "mb-6", children: errors.general }),
+    /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("form", { onSubmit: handleSubmit, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
+        TableInfoForm,
+        {
+          data: formData,
+          errors,
+          onChange: handleInputChange
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)("div", { className: "flex justify-between items-center mt-6", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
+          Button,
+          {
+            type: "button",
+            style: "ghost",
+            onClick: handleCancel,
+            children: "Cancel"
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(
+          Button,
+          {
+            type: "submit",
+            style: "soft",
+            color: "primary",
+            disabled: isSubmitting,
+            children: isSubmitting ? /* @__PURE__ */ (0, import_jsx_runtime62.jsxs)(import_jsx_runtime62.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime62.jsx)("span", { className: "loading loading-spinner loading-sm mr-2" }),
+              "Saving Changes..."
+            ] }) : "Save Changes"
+          }
+        )
+      ] })
+    ] })
+  ] });
+}
+var import_react134, import_jsx_runtime62, metadata8;
+var init_page16 = __esm({
+  "src/app/dashboard/tables/[id]/edit/page.tsx"() {
+    "use strict";
+    "use client";
+    import_react134 = __toESM(require_react());
+    init_button2();
+    init_alert();
+    init_table_info_form();
+    init_table_navigation();
+    init_client_api();
+    import_jsx_runtime62 = __toESM(require_jsx_runtime());
+    metadata8 = {
+      title: "Edit Table - Dynamic Tables",
+      description: "Edit table information and settings"
+    };
+  }
+});
+
+// src/app/dashboard/tables/[id]/columns/page.tsx
+var page_exports17 = {};
+__export(page_exports17, {
+  default: () => TableColumnsPage
+});
+function TableColumnsPage({ tableSchema = null, tableId }) {
+  const [isLoading, setIsLoading] = (0, import_react135.useState)(!tableSchema);
+  const [schema, setSchema] = (0, import_react135.useState)(tableSchema);
+  const [columnsData, setColumnsData] = (0, import_react135.useState)(null);
+  const [error2, setError] = (0, import_react135.useState)(null);
+  (0, import_react135.useEffect)(() => {
+    if (!tableSchema && tableId) {
+      loadTableData();
+    }
+  }, [tableId, tableSchema]);
+  (0, import_react135.useEffect)(() => {
+    if (schema?.columns) {
+      const sortedColumns = [...schema.columns].sort((a27, b11) => a27.position - b11.position);
+      setColumnsData({
+        data: sortedColumns,
+        current_page: 1,
+        last_page: 1,
+        per_page: sortedColumns.length,
+        total: sortedColumns.length,
+        from: 1,
+        to: sortedColumns.length,
+        links: [],
+        prev_page_url: null,
+        next_page_url: null,
+        last_page_url: null
+      });
+    }
+  }, [schema]);
+  const loadTableData = async () => {
+    if (!tableId) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await clientApiRequest(`/api/tables/${tableId}`);
+      if (response.ok) {
+        const result = await response.json();
+        setSchema(result.table);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "Failed to load table data");
+      }
+    } catch (error3) {
+      setError(error3 instanceof Error ? error3.message : "Failed to load table data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const moveColumn = async (column, direction) => {
+    if (!tableId || !schema) return;
+    const currentPosition = column.position;
+    const targetPosition = direction === "up" ? currentPosition - 1 : currentPosition + 1;
+    const targetColumn = schema.columns.find((col) => col.position === targetPosition);
+    if (!targetColumn) return;
+    try {
+      const tempPosition = Math.max(...schema.columns.map((c18) => c18.position)) + 1e3;
+      const tempResponse = await clientApiRequest(`/api/tables/${tableId}/columns/${column.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ position: tempPosition })
+      });
+      if (!tempResponse.ok) {
+        const errorData = await tempResponse.json();
+        console.error("\u274C Failed to move column to temp position:", errorData);
+        alert("Failed to reorder columns. Please try again.");
+        return;
+      }
+      const targetResponse = await clientApiRequest(`/api/tables/${tableId}/columns/${targetColumn.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ position: currentPosition })
+      });
+      if (!targetResponse.ok) {
+        const errorData = await targetResponse.json();
+        console.error("\u274C Failed to move target column:", errorData);
+        alert("Failed to reorder columns. Please try again.");
+        return;
+      }
+      const finalResponse = await clientApiRequest(`/api/tables/${tableId}/columns/${column.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ position: targetPosition })
+      });
+      if (!finalResponse.ok) {
+        const errorData = await finalResponse.json();
+        console.error("\u274C Failed to move column to final position:", errorData);
+        alert("Failed to reorder columns. Please try again.");
+        return;
+      }
+      await loadTableData();
+      console.log(`\u2705 Column moved ${direction} successfully`);
+    } catch (error3) {
+      console.error("\u274C Error moving column:", error3);
+      alert(`Error moving column: ${error3 instanceof Error ? error3.message : "Unknown error"}`);
+    }
+  };
+  const columnDefinitions = [
+    {
+      key: "order",
+      label: "Order",
+      sortable: false,
+      className: "w-16 sm:w-20 md:w-24 text-center",
+      render: (column) => {
+        const sortedColumns = schema?.columns ? [...schema.columns].sort((a27, b11) => a27.position - b11.position) : [];
+        const isFirst = sortedColumns.length > 0 && sortedColumns[0].id === column.id;
+        const isLast = sortedColumns.length > 0 && sortedColumns[sortedColumns.length - 1].id === column.id;
+        return /* @__PURE__ */ (0, import_jsx_runtime63.jsxs)("div", { className: "flex items-center justify-center gap-0.5 sm:gap-1", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime63.jsx)(
+            Button,
+            {
+              type: "button",
+              onClick: () => moveColumn(column, "up"),
+              disabled: isFirst,
+              title: "Move up",
+              style: "ghost",
+              size: "icon",
+              icon: IconArrowUp
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime63.jsx)(
+            Button,
+            {
+              type: "button",
+              onClick: () => moveColumn(column, "down"),
+              disabled: isLast,
+              title: "Move down",
+              style: "ghost",
+              size: "icon",
+              icon: IconArrowDown
+            }
+          )
+        ] });
+      }
+    },
+    {
+      key: "name",
+      label: "Name",
+      sortable: true,
+      filterable: true,
+      filterType: "text",
+      className: "min-w-0 w-auto",
+      render: (column) => /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("span", { className: "truncate block max-w-[120px] sm:max-w-none", title: column.name, children: column.name }),
+      editableInline: true,
+      editType: "text",
+      editValidation: {
+        required: true,
+        minLength: 1,
+        maxLength: 100
+      }
+    },
+    {
+      key: "type",
+      label: "Type",
+      sortable: true,
+      filterable: true,
+      filterType: "select",
+      className: "w-20 sm:w-24",
+      filterOptions: COLUMN_TYPE_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label })),
+      render: (column) => /* @__PURE__ */ (0, import_jsx_runtime63.jsx)(Badge, { color: "primary", size: "sm", className: "text-xs", children: getColumnTypeLabel(column.type) }),
+      editableInline: true,
+      editType: "select",
+      editOptions: COLUMN_TYPE_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
+    },
+    {
+      key: "is_required",
+      label: "Req",
+      sortable: true,
+      filterable: true,
+      filterType: "select",
+      className: "w-16 sm:w-20 text-center",
+      filterOptions: [
+        { value: "true", label: "Required" },
+        { value: "false", label: "Optional" }
+      ],
+      render: (column) => /* @__PURE__ */ (0, import_jsx_runtime63.jsxs)("span", { className: `badge badge-xs sm:badge-sm ${column.is_required ? "badge-warning" : "badge-success"}`, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("span", { className: "hidden sm:inline", children: column.is_required ? "Required" : "Optional" }),
+        /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("span", { className: "sm:hidden", children: column.is_required ? "Req" : "Opt" })
+      ] }),
+      editableInline: true,
+      editType: "toggle",
+      editOptions: [
+        { value: "false", label: "No" },
+        { value: "true", label: "Yes" }
+      ]
+    },
+    {
+      key: "default_value",
+      label: "Default",
+      sortable: false,
+      filterable: true,
+      filterType: "text",
+      className: "hidden md:table-cell w-24 lg:w-32",
+      render: (column) => /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("span", { className: "text-xs text-gray-600 font-mono truncate block max-w-[100px]", title: column.default_value || "none", children: column.default_value || /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("em", { className: "text-gray-400", children: "none" }) }),
+      editableInline: true,
+      editType: "text"
+    },
+    {
+      key: "created_at",
+      label: "Created",
+      sortable: true,
+      filterable: true,
+      filterType: "date",
+      className: "hidden lg:table-cell w-28",
+      render: (column) => /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("span", { className: "text-xs text-gray-500", children: formatApiDate(column.created_at) })
+    }
+  ];
+  const massActions = [
+    {
+      name: "make_required",
+      label: "Make Required",
+      confirmMessage: "Are you sure you want to make the selected columns required?"
+    },
+    {
+      name: "make_optional",
+      label: "Make Optional",
+      confirmMessage: "Are you sure you want to make the selected columns optional?"
+    },
+    {
+      name: "delete",
+      label: "Delete Columns",
+      confirmMessage: "Are you sure you want to delete the selected columns? This action cannot be undone."
+    }
+  ];
+  const generateCloneName = (baseName, existingColumns) => {
+    const existingNames = existingColumns.map((col) => col.name.toLowerCase());
+    const simpleCopyName = `${baseName} Copy`;
+    if (!existingNames.includes(simpleCopyName.toLowerCase())) {
+      return simpleCopyName;
+    }
+    let counter = 2;
+    let candidateName = `${baseName} Copy ${counter}`;
+    while (existingNames.includes(candidateName.toLowerCase())) {
+      counter++;
+      candidateName = `${baseName} Copy ${counter}`;
+    }
+    return candidateName;
+  };
+  const cloneColumn = async (sourceColumn) => {
+    if (!tableId || !schema) return;
+    try {
+      const uniqueName = generateCloneName(sourceColumn.name, schema.columns);
+      const clonedColumnData = {
+        name: uniqueName,
+        type: sourceColumn.type,
+        is_required: sourceColumn.is_required,
+        default_value: sourceColumn.default_value,
+        position: sourceColumn.position + 1
+        // Position after the source column
+      };
+      const response = await clientApiRequest(`/api/tables/${tableId}/columns`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(clonedColumnData)
+      });
+      if (response.ok) {
+        await loadTableData();
+        console.log("\u2705 Column cloned successfully");
+      } else {
+        const errorData = await response.json();
+        console.error("\u274C Failed to clone column:", errorData);
+        alert(`Failed to clone column: ${errorData.message || "Unknown error"}`);
+      }
+    } catch (error3) {
+      console.error("\u274C Error cloning column:", error3);
+      alert(`Error cloning column: ${error3 instanceof Error ? error3.message : "Unknown error"}`);
+    }
+  };
+  const generateNewColumnName = (existingColumns) => {
+    const existingNames = existingColumns.map((col) => col.name.toLowerCase());
+    if (!existingNames.includes("new column")) {
+      return "New Column";
+    }
+    let counter = 2;
+    let candidateName = `New Column ${counter}`;
+    while (existingNames.includes(candidateName.toLowerCase())) {
+      counter++;
+      candidateName = `New Column ${counter}`;
+    }
+    return candidateName;
+  };
+  const addColumnAfter = async (sourceColumn) => {
+    if (!tableId || !schema) return;
+    try {
+      const uniqueName = generateNewColumnName(schema.columns);
+      const newColumnData = {
+        name: uniqueName,
+        type: "text",
+        is_required: false,
+        default_value: null,
+        position: sourceColumn.position + 1
+        // Position after the source column
+      };
+      const response = await clientApiRequest(`/api/tables/${tableId}/columns`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newColumnData)
+      });
+      if (response.ok) {
+        await loadTableData();
+        console.log("\u2705 Column added successfully");
+      } else {
+        const errorData = await response.json();
+        console.error("\u274C Failed to add column:", errorData);
+        alert(`Failed to add column: ${errorData.message || "Unknown error"}`);
+      }
+    } catch (error3) {
+      console.error("\u274C Error adding column:", error3);
+      alert(`Error adding column: ${error3 instanceof Error ? error3.message : "Unknown error"}`);
+    }
+  };
+  const rowActions = [
+    {
+      icon: IconPlus,
+      title: "+ After",
+      color: "accent",
+      style: "soft",
+      onClick: addColumnAfter
+    },
+    {
+      icon: IconCopy,
+      title: "Clone",
+      color: "info",
+      style: "soft",
+      onClick: cloneColumn
+    }
+  ];
+  if (isLoading) {
+    return /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("div", { className: "container mx-auto p-4", children: /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("div", { className: "flex justify-center items-center h-64", children: /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("span", { className: "loading loading-spinner loading-lg" }) }) });
+  }
+  if (error2) {
+    return /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("div", { className: "container mx-auto p-4", children: /* @__PURE__ */ (0, import_jsx_runtime63.jsx)(Alert, { color: "error", children: error2 }) });
+  }
+  if (!schema) {
+    return /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("div", { className: "container mx-auto p-4", children: /* @__PURE__ */ (0, import_jsx_runtime63.jsx)(Alert, { color: "error", children: "Failed to load table schema. Please try again." }) });
+  }
+  return /* @__PURE__ */ (0, import_jsx_runtime63.jsxs)("div", { className: "container mx-auto p-2 sm:p-4", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ (0, import_jsx_runtime63.jsxs)("div", { className: "flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-4", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime63.jsxs)("div", { className: "min-w-0", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("h1", { className: "text-2xl sm:text-3xl font-bold text-gray-800", children: "Table Columns" }),
+        /* @__PURE__ */ (0, import_jsx_runtime63.jsxs)("p", { className: "text-gray-600 mt-2 text-sm sm:text-base", children: [
+          "Column structure for ",
+          /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("strong", { className: "truncate", children: schema.table.name })
+        ] }),
+        schema.table.description && /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("p", { className: "text-gray-500 text-xs sm:text-sm mt-1 line-clamp-2", children: schema.table.description })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime63.jsx)(
+        TableNavigation,
+        {
+          tableId: tableId || "",
+          activePage: "columns"
+        }
+      )
+    ] }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime63.jsx)(
+      ModelList,
+      {
+        title: "Column Management",
+        items: columnsData,
+        columns: columnDefinitions,
+        massActions,
+        rowActions,
+        createRoute: void 0,
+        editRoute: (id) => `/api/tables/${tableId}/columns/${id}`,
+        deleteRoute: (id) => `/api/tables/${tableId}/columns/${id}`,
+        inlineEditRoute: (id) => `/api/tables/${tableId}/columns/${id}`,
+        massActionRoute: `/api/tables/${tableId}/columns/mass-action`,
+        filters: {
+          sort: "position",
+          direction: "asc"
+        }
+      }
+    )
+  ] });
+}
+var import_react135, import_jsx_runtime63;
+var init_page17 = __esm({
+  "src/app/dashboard/tables/[id]/columns/page.tsx"() {
+    "use strict";
+    "use client";
+    import_react135 = __toESM(require_react());
+    init_model_list();
+    init_alert();
+    init_badge();
+    init_tabler_icons_react();
+    init_dynamic_tables();
+    init_date_utils();
+    init_client_api();
+    init_button2();
+    init_table_navigation();
+    import_jsx_runtime63 = __toESM(require_jsx_runtime());
+  }
+});
+
+// src/app/dashboard/tables/[id]/data/edit/[rowId]/page.tsx
+var page_exports18 = {};
+__export(page_exports18, {
+  default: () => TableDataEditPage,
+  metadata: () => metadata9
+});
+function TableDataEditPage({
+  tableId,
+  rowId,
+  initialTableSchema = null,
+  initialRowData = null
+}) {
+  const [isLoading, setIsLoading] = (0, import_react136.useState)(!initialTableSchema || !initialRowData);
+  const [isSubmitting, setIsSubmitting] = (0, import_react136.useState)(false);
+  const [errors, setErrors] = (0, import_react136.useState)({});
+  const [tableSchema, setTableSchema] = (0, import_react136.useState)(initialTableSchema);
+  const [rowData, setRowData] = (0, import_react136.useState)(initialRowData);
+  const [formData, setFormData] = (0, import_react136.useState)(initialRowData?.data || {});
+  (0, import_react136.useEffect)(() => {
+    if (!tableSchema || !rowData) {
+      if (tableId && rowId) {
+        loadData();
+      }
+    }
+  }, [tableId, rowId, tableSchema, rowData]);
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [schemaResponse, rowResponse] = await Promise.all([
+        clientApiRequest(`/api/tables/${tableId}`),
+        clientApiRequest(`/api/tables/${tableId}/data/${rowId}`)
+      ]);
+      if (!schemaResponse.ok) {
+        const errorData = await schemaResponse.json();
+        setErrors({ general: errorData.message || "Failed to load table schema" });
+        return;
+      }
+      if (!rowResponse.ok) {
+        const errorData = await rowResponse.json();
+        setErrors({ general: errorData.message || "Failed to load row data" });
+        return;
+      }
+      const schemaResult = await schemaResponse.json();
+      const rowResult = await rowResponse.json();
+      setTableSchema(schemaResult.table);
+      setRowData(rowResult.row);
+      setFormData(rowResult.row.data || {});
+    } catch (error2) {
+      setErrors({
+        general: error2 instanceof Error ? error2.message : "Failed to load data"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const handleInputChange = (columnName, value) => {
+    setFormData((prev) => ({ ...prev, [columnName]: value }));
+    setErrors((prev) => ({ ...prev, [columnName]: void 0, general: void 0 }));
+  };
+  const validateForm = () => {
+    if (!tableSchema) return false;
+    const newErrors = {};
+    for (const column of tableSchema.columns) {
+      const value = formData[column.name];
+      const validation = validateColumnValue(value, column);
+      if (!validation.valid && validation.error) {
+        newErrors[column.name] = validation.error;
+      }
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  const handleSubmit = async (e8) => {
+    e8.preventDefault();
+    if (!validateForm() || !tableId || !rowId) {
+      return;
+    }
+    setIsSubmitting(true);
+    setErrors({});
+    try {
+      const requestData = {
+        data: formData
+      };
+      const response = await clientApiRequest(`/api/tables/${tableId}/data/${rowId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData)
+      });
+      if (response.ok) {
+        window.location.href = `/dashboard/tables/${tableId}/data`;
+      } else {
+        const errorData = await response.json();
+        setErrors({
+          general: errorData.message || "Failed to update row"
+        });
+      }
+    } catch (error2) {
+      setErrors({
+        general: error2 instanceof Error ? error2.message : "An unexpected error occurred"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  const handleCancel = () => {
+    window.location.href = `/dashboard/tables/${tableId}/data`;
+  };
+  const renderField = (column) => {
+    const value = formData[column.name] ?? (column.default_value || "");
+    const error2 = errors[column.name];
+    switch (column.type) {
+      case "textarea":
+        return /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(
+          Textarea,
+          {
+            value,
+            onChange: (e8) => handleInputChange(column.name, e8.target.value),
+            placeholder: `Enter ${column.name}...`,
+            rows: 4,
+            className: error2 ? "textarea-error" : "",
+            required: column.is_required
+          }
+        );
+      case "number":
+        return /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(
+          Input,
+          {
+            type: "number",
+            value,
+            onChange: (e8) => handleInputChange(column.name, e8.target.value),
+            placeholder: `Enter ${column.name}...`,
+            className: error2 ? "input-error" : "",
+            required: column.is_required
+          }
+        );
+      case "date":
+        return /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(
+          Input,
+          {
+            type: "date",
+            value: value ? new Date(value).toISOString().split("T")[0] : "",
+            onChange: (e8) => handleInputChange(column.name, e8.target.value),
+            className: error2 ? "input-error" : "",
+            required: column.is_required
+          }
+        );
+      case "boolean":
+        return /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(
+          Checkbox,
+          {
+            checked: Boolean(value),
+            onChange: (e8) => handleInputChange(column.name, e8.target.checked)
+          }
+        );
+      case "email":
+        return /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(
+          Input,
+          {
+            type: "email",
+            value,
+            onChange: (e8) => handleInputChange(column.name, e8.target.value),
+            placeholder: `Enter ${column.name}...`,
+            className: error2 ? "input-error" : "",
+            required: column.is_required
+          }
+        );
+      case "url":
+        return /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(
+          Input,
+          {
+            type: "url",
+            value,
+            onChange: (e8) => handleInputChange(column.name, e8.target.value),
+            placeholder: `Enter ${column.name}...`,
+            className: error2 ? "input-error" : "",
+            required: column.is_required
+          }
+        );
+      case "text":
+      default:
+        return /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(
+          Input,
+          {
+            type: "text",
+            value,
+            onChange: (e8) => handleInputChange(column.name, e8.target.value),
+            placeholder: `Enter ${column.name}...`,
+            className: error2 ? "input-error" : "",
+            required: column.is_required
+          }
+        );
+    }
+  };
+  if (isLoading) {
+    return /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("div", { className: "container mx-auto p-4 max-w-2xl", children: /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("div", { className: "flex justify-center items-center h-64", children: /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("span", { className: "loading loading-spinner loading-lg" }) }) });
+  }
+  if (!tableSchema || !rowData) {
+    return /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("div", { className: "container mx-auto p-4 max-w-2xl", children: /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(Alert, { color: "error", children: "Failed to load table data. Please try again." }) });
+  }
+  return /* @__PURE__ */ (0, import_jsx_runtime64.jsxs)("div", { className: "container mx-auto p-4 max-w-2xl", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime64.jsxs)("div", { className: "mb-6", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime64.jsxs)("div", { className: "flex items-center gap-2 text-sm breadcrumbs mb-2", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("a", { href: "/dashboard/tables", className: "text-primary hover:text-primary-focus", children: "Dynamic Tables" }),
+        /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("span", { children: "/" }),
+        /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(
+          "a",
+          {
+            href: `/dashboard/tables/${tableId}/data`,
+            className: "text-primary hover:text-primary-focus",
+            children: tableSchema.table.name
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("span", { children: "/" }),
+        /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("span", { className: "text-gray-600", children: "Edit Row" })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("h1", { className: "text-3xl font-bold text-gray-800", children: "Edit Row" }),
+      /* @__PURE__ */ (0, import_jsx_runtime64.jsxs)("p", { className: "text-gray-600 mt-2", children: [
+        "Update data for this row in ",
+        tableSchema.table.name,
+        "."
+      ] })
+    ] }),
+    errors.general && /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(Alert, { color: "error", className: "mb-6", children: errors.general }),
+    /* @__PURE__ */ (0, import_jsx_runtime64.jsxs)("form", { onSubmit: handleSubmit, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(Card, { children: /* @__PURE__ */ (0, import_jsx_runtime64.jsxs)(CardBody, { className: "space-y-4", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(CardTitle, { children: "Row Data" }),
+        tableSchema.columns.map((column) => /* @__PURE__ */ (0, import_jsx_runtime64.jsxs)("div", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime64.jsxs)("label", { className: "label", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime64.jsxs)("span", { className: "label-text font-medium", children: [
+              column.name,
+              column.is_required && /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("span", { className: "text-error ml-1", children: "*" })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("span", { className: "label-text-alt text-gray-500 capitalize", children: column.type })
+          ] }),
+          renderField(column),
+          errors[column.name] && /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("p", { className: "text-error text-sm mt-1", children: errors[column.name] }),
+          column.default_value && /* @__PURE__ */ (0, import_jsx_runtime64.jsxs)("p", { className: "text-gray-500 text-xs mt-1", children: [
+            "Default: ",
+            column.default_value
+          ] })
+        ] }, column.id))
+      ] }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime64.jsxs)("div", { className: "flex justify-between items-center mt-6", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(
+          Button,
+          {
+            type: "button",
+            style: "ghost",
+            onClick: handleCancel,
+            children: "Cancel"
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime64.jsx)(
+          Button,
+          {
+            type: "submit",
+            color: "primary",
+            disabled: isSubmitting,
+            children: isSubmitting ? /* @__PURE__ */ (0, import_jsx_runtime64.jsxs)(import_jsx_runtime64.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime64.jsx)("span", { className: "loading loading-spinner loading-sm mr-2" }),
+              "Saving Changes..."
+            ] }) : "Save Changes"
+          }
+        )
+      ] })
+    ] })
+  ] });
+}
+var import_react136, import_jsx_runtime64, metadata9;
+var init_page18 = __esm({
+  "src/app/dashboard/tables/[id]/data/edit/[rowId]/page.tsx"() {
+    "use strict";
+    "use client";
+    import_react136 = __toESM(require_react());
+    init_button2();
+    init_card();
+    init_input2();
+    init_textarea2();
+    init_checkbox2();
+    init_alert();
+    init_dynamic_tables();
+    init_client_api();
+    import_jsx_runtime64 = __toESM(require_jsx_runtime());
+    metadata9 = {
+      title: "Edit Row - Dynamic Tables",
+      description: "Edit table row data"
     };
   }
 });
@@ -45066,10 +47741,18 @@ var pageComponents = {
   "/dashboard/users": async () => (await Promise.resolve().then(() => (init_page4(), page_exports4))).default,
   "/dashboard/users/create": async () => (await Promise.resolve().then(() => (init_page5(), page_exports5))).default,
   "/dashboard/users/edit/[id]": async () => (await Promise.resolve().then(() => (init_page6(), page_exports6))).default,
-  "/dashboard/tokens": async () => (await Promise.resolve().then(() => (init_page7(), page_exports7))).default,
-  "/dashboard/allowed-emails": async () => (await Promise.resolve().then(() => (init_page8(), page_exports8))).default,
-  "/dashboard/allowed-emails/create": async () => (await Promise.resolve().then(() => (init_page9(), page_exports9))).default,
-  "/dashboard/allowed-emails/edit/[id]": async () => (await Promise.resolve().then(() => (init_page10(), page_exports10))).default
+  "/dashboard/items/create": async () => (await Promise.resolve().then(() => (init_page7(), page_exports7))).default,
+  "/dashboard/items/edit/[id]": async () => (await Promise.resolve().then(() => (init_page8(), page_exports8))).default,
+  "/dashboard/tokens": async () => (await Promise.resolve().then(() => (init_page9(), page_exports9))).default,
+  "/dashboard/allowed-emails": async () => (await Promise.resolve().then(() => (init_page10(), page_exports10))).default,
+  "/dashboard/allowed-emails/create": async () => (await Promise.resolve().then(() => (init_page11(), page_exports11))).default,
+  "/dashboard/allowed-emails/edit/[id]": async () => (await Promise.resolve().then(() => (init_page12(), page_exports12))).default,
+  "/dashboard/tables": async () => (await Promise.resolve().then(() => (init_page13(), page_exports13))).default,
+  "/dashboard/tables/create": async () => (await Promise.resolve().then(() => (init_page14(), page_exports14))).default,
+  "/dashboard/tables/[id]/data": async () => (await Promise.resolve().then(() => (init_page15(), page_exports15))).default,
+  "/dashboard/tables/[id]/edit": async () => (await Promise.resolve().then(() => (init_page16(), page_exports16))).default,
+  "/dashboard/tables/[id]/columns": async () => (await Promise.resolve().then(() => (init_page17(), page_exports17))).default,
+  "/dashboard/tables/[id]/data/edit/[rowId]": async () => (await Promise.resolve().then(() => (init_page18(), page_exports18))).default
 };
 
 // src/lib/layout-setup.ts
@@ -45103,7 +47786,7 @@ async function initializeLayoutSystem() {
 }
 
 // src/client.tsx
-var import_jsx_runtime53 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime65 = __toESM(require_jsx_runtime(), 1);
 await initializeLayoutSystem();
 var initTheme = () => {
   if (typeof window !== "undefined") {
@@ -45122,14 +47805,14 @@ if (appElement) {
   const searchParams = Object.fromEntries(
     new URLSearchParams(window.location.search).entries()
   );
-  const content = /* @__PURE__ */ (0, import_jsx_runtime53.jsx)(
+  const content = /* @__PURE__ */ (0, import_jsx_runtime65.jsx)(
     LayoutProvider,
     {
       layoutSystem,
       currentRoute: path,
       params,
       searchParams,
-      children: /* @__PURE__ */ (0, import_jsx_runtime53.jsx)(
+      children: /* @__PURE__ */ (0, import_jsx_runtime65.jsx)(
         LayoutRenderer,
         {
           route,
@@ -45206,7 +47889,9 @@ react/cjs/react-jsx-runtime.development.js:
 @tabler/icons-react/dist/esm/defaultAttributes.mjs:
 @tabler/icons-react/dist/esm/createReactComponent.mjs:
 @tabler/icons-react/dist/esm/icons/IconAlertTriangle.mjs:
+@tabler/icons-react/dist/esm/icons/IconArrowDown.mjs:
 @tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs:
+@tabler/icons-react/dist/esm/icons/IconArrowUp.mjs:
 @tabler/icons-react/dist/esm/icons/IconBox.mjs:
 @tabler/icons-react/dist/esm/icons/IconCalendar.mjs:
 @tabler/icons-react/dist/esm/icons/IconCancel.mjs:
@@ -45215,6 +47900,9 @@ react/cjs/react-jsx-runtime.development.js:
 @tabler/icons-react/dist/esm/icons/IconChevronLeft.mjs:
 @tabler/icons-react/dist/esm/icons/IconChevronRight.mjs:
 @tabler/icons-react/dist/esm/icons/IconChevronUp.mjs:
+@tabler/icons-react/dist/esm/icons/IconColumns3.mjs:
+@tabler/icons-react/dist/esm/icons/IconCopy.mjs:
+@tabler/icons-react/dist/esm/icons/IconDatabase.mjs:
 @tabler/icons-react/dist/esm/icons/IconDeviceFloppy.mjs:
 @tabler/icons-react/dist/esm/icons/IconDots.mjs:
 @tabler/icons-react/dist/esm/icons/IconEdit.mjs:
@@ -45224,6 +47912,7 @@ react/cjs/react-jsx-runtime.development.js:
 @tabler/icons-react/dist/esm/icons/IconLogout.mjs:
 @tabler/icons-react/dist/esm/icons/IconMail.mjs:
 @tabler/icons-react/dist/esm/icons/IconPlus.mjs:
+@tabler/icons-react/dist/esm/icons/IconTable.mjs:
 @tabler/icons-react/dist/esm/icons/IconTrash.mjs:
 @tabler/icons-react/dist/esm/icons/IconUserCheck.mjs:
 @tabler/icons-react/dist/esm/icons/IconUserX.mjs:

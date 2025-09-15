@@ -12,12 +12,12 @@ import { createMiddleware } from 'hono/factory'
 export function createAuthMiddleware() {
   return createMiddleware(async (c: Context, next) => {
     // Import auth config when needed (lazy loading)
-    const { createAuthConfig } = await import('../lib/auth.js')
+    const { createAuthConfig } = await import('@/lib/auth')
     const authConfig = createAuthConfig(c.env)
     
     // Check if user is authenticated via session cookie
     const { getCookie } = await import('hono/cookie')
-    const { parseSessionCookie } = await import('../lib/middleware.js')
+    const { parseSessionCookie } = await import('@/lib/middleware')
     
     const sessionCookie = getCookie(c, authConfig.session.cookieName)
     console.log('🔒 Auth middleware check:', {

@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Important! NEVER HARDCODE!
+
 ## Architecture
 
 This is a full-stack store CRUD application built with:
@@ -99,12 +101,16 @@ FRONTEND_ACCESS_TOKEN
 **⚠️ MANDATORY:** After ANY database schema or migration changes, you MUST reset ALL databases:
 
 ```bash
-# Individual environment resets
-node scripts/db-reset-local.js      # Local D1 + 10 items (if needed)
-node scripts/db-reset-preview.js    # D1 preview + 100 items  
-node scripts/db-reset-production.js # D1 production + 200 items (requires confirmation)
+# Individual environment resets using TypeScript script
+tsx scripts/db-reset.ts local        # Local D1 + 10 items (clears .wrangler/state/)
+tsx scripts/db-reset.ts preview      # D1 preview + 100 items (remote Cloudflare D1)
+tsx scripts/db-reset.ts production   # D1 production + 200 items (requires confirmation)
 
-# Note: Local D1 starts empty and creates schema/data as needed during development
+# The script automatically:
+# 1. Discovers and drops existing tables
+# 2. Applies all Prisma migrations in sequence
+# 3. Seeds with environment-specific tokens
+# 4. Seeds with faker-generated items
 ```
 
 ### Execute SQL Commands
@@ -123,7 +129,9 @@ wrangler d1 execute store-database --env production --remote --file=schema.sql
 - `sessions`: User session management
 - `tokens`: API authentication with permissions and IP/domain whitelist
 - `items`: Store inventory (main CRUD operations)
-- `tables`: Metadata for user-created custom tables
+- `user_tables`: Metadata for user-created dynamic tables
+- `table_columns`: Column definitions for user-created tables
+- `table_data`: Actual data storage for user-created tables (JSON format)
 - `allowed_emails`: Access control whitelist
 
 ## Port Management
@@ -158,7 +166,7 @@ If ports are busy, the scripts will kill existing processes and restart cleanly.
 - **DRY (Don't Repeat Yourself)**: Extract common functionality into reusable utilities and components
 - **SOLID Principles**: Follow single responsibility, open/closed, Liskov substitution, interface segregation, and dependency inversion principles
 - **Type Organization**: All TypeScript types must be extracted to the `types/` folder (backend) or `frontend/src/types/` (frontend)
-- **Database Migrations**: Any database structure changes must be implemented as migration files in the `migrations/` folder
+- **Database Migrations**: Any database structure changes must be implemented as migration files in the `prisma/migrations/` folder
 - **Complexity First**: Never downgrade to simpler approaches unless explicitly requested - maintain sophisticated, production-ready patterns
 
 ### Task Management (MANDATORY)
@@ -230,10 +238,14 @@ frontend/src/types/      # Frontend types
 ### Database Schema Evolution
 All database changes must follow migration pattern:
 ```
-migrations/
-├── 001_initial_schema.sql
-├── 002_add_tokens_table.sql
-└── 003_add_user_preferences.sql
+prisma/migrations/
+├── 001_users/migration.sql
+├── 002_sessions/migration.sql
+├── 003_tokens/migration.sql
+├── 004_dynamic_tables/migration.sql
+├── 005_allowed_emails/migration.sql
+├── 006_items/migration.sql
+└── 007_user_id_column/migration.sql
 ```
 
 ## Troubleshooting
@@ -259,3 +271,4 @@ wrangler d1 execute store-database-preview --env dev --command="SELECT name FROM
 rm -rf node_modules frontend/node_modules
 npm install && cd frontend && npm install
 ```
+- Use commands to restart enviroment, we have npm run dev:fullstack:local and ...:preview, these commands already kill everything on chosen ports, no need to do it manually

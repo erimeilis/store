@@ -4,12 +4,12 @@
  */
 
 import React, { useEffect } from 'react'
-import { LayoutProps } from '../../types/layout.js'
-import { Navbar, NavbarBrand } from '../../components/ui/navbar.js'
-import { Button } from '../../components/ui/button.js'
-import { HorizontalMenu, MenuItem, MenuDetails } from '../../components/ui/menu.js'
-import { IconLogout, IconLayoutDashboard, IconUsers, IconKey, IconMail, IconBox, IconUser } from '@tabler/icons-react'
-import { useThemeStore } from '../../stores/useThemeStore.js'
+import { LayoutProps } from '@/types/layout'
+import { Navbar, NavbarBrand } from '@/components/ui/navbar'
+import { Button } from '@/components/ui/button'
+import { HorizontalMenu, MenuItem, MenuDetails } from '@/components/ui/menu'
+import { IconLogout, IconLayoutDashboard, IconUsers, IconKey, IconMail, IconBox, IconUser, IconTable } from '@tabler/icons-react'
+import { useThemeStore } from '@/stores/useThemeStore'
 
 interface DashboardLayoutProps extends LayoutProps {
   user?: {
@@ -57,6 +57,12 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                       href="/dashboard"
                   >
                       Dashboard
+                  </MenuItem>
+                  <MenuItem
+                      icon={IconTable}
+                      href="/dashboard/tables"
+                  >
+                      Dynamic Tables
                   </MenuItem>
                   <MenuItem
                       icon={IconUsers}
