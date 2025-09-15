@@ -9,3 +9,5 @@
 /.junie/
 /.idea/
 /.claude/
+/frontend/dist/
+/frontend/node_modules/
