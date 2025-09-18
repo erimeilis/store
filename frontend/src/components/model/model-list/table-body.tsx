@@ -405,7 +405,7 @@ function ModelTableRow<T extends IModel>({
                         />
                     ))}
                     {/* Standard actions */}
-                    <Button size="icon" color="primary" style="soft" icon={IconEdit} title="Edit" onClick={() => window.location.href = (editRoute as any)(item.id)} />
+                    {editRoute && editRoute(item.id) !== '#' && <Button size="icon" color="primary" style="soft" icon={IconEdit} title="Edit" onClick={() => window.location.href = (editRoute as any)(item.id)} />}
                     <Button size="icon" color="error" style="soft" icon={IconTrash} title="Delete" onClick={() => onDeleteItem(item)} />
                 </div>
             </TableHeaderCell>

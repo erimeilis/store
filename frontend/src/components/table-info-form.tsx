@@ -8,11 +8,13 @@ import { Card, CardBody, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
+import { ForSaleToggle } from '@/components/for-sale-toggle'
 
 interface TableInfoData {
   name: string
   description: string
   is_public: boolean
+  for_sale?: boolean
 }
 
 interface ValidationErrors {
@@ -60,6 +62,15 @@ export function TableInfoForm({ data, errors = {}, onChange }: TableInfoFormProp
           labelPosition="right"
           checked={data.is_public}
           onChange={(e) => onChange('is_public', e.target.checked)}
+        />
+
+        <div className="divider text-sm">E-commerce Settings</div>
+
+        <ForSaleToggle
+          value={data.for_sale || false}
+          onChange={(value) => onChange('for_sale' as keyof TableInfoData, value)}
+          showHelp={true}
+          className="mt-2"
         />
       </CardBody>
     </Card>

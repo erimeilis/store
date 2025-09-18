@@ -6,7 +6,7 @@
 import React from 'react'
 import {Button} from '@/components/ui/button'
 
-export type TableNavigationPage = 'list' | 'edit' | 'columns' | 'data'
+export type TableNavigationPage = 'list' | 'edit' | 'columns' | 'data' | 'import'
 
 interface TableNavigationProps {
     tableId: string
@@ -39,6 +39,12 @@ export function TableNavigation({tableId, activePage, className = ''}: TableNavi
             label: 'Edit Data',
             shortLabel: 'Data',
             href: `/dashboard/tables/${tableId}/data`
+        },
+        {
+            key: 'import',
+            label: 'Import Data',
+            shortLabel: 'Import',
+            href: `/dashboard/tables/${tableId}/import`
         }
     ]
 

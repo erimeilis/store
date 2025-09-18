@@ -10,6 +10,7 @@ import {Button} from '@/components/ui/button'
 import {Alert} from '@/components/ui/alert'
 import {TableInfoForm} from '@/components/table-info-form'
 import {TableNavigation} from '@/components/table-navigation'
+import {ForSaleConversionDialog} from '@/components/for-sale-conversion-dialog'
 import {TableSchema, UpdateTableRequest} from '@/types/dynamic-tables'
 import {clientApiRequest} from '@/lib/client-api'
 
@@ -29,11 +30,22 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
     const [isLoading, setIsLoading] = useState(!tableSchema)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [errors, setErrors] = useState<ValidationErrors>({})
+    const [showConversionDialog, setShowConversionDialog] = useState(false)
+    const [pendingForSaleValue, setPendingForSaleValue] = useState<boolean | null>(null)
+    const [currentSchema, setCurrentSchema] = useState<TableSchema | null>(tableSchema)
 
     const [formData, setFormData] = useState({
         name: tableSchema?.table.name || '',
         description: tableSchema?.table.description || '',
-        is_public: tableSchema?.table.is_public || false
+        is_public: Boolean(tableSchema?.table.is_public),
+        for_sale: Boolean(tableSchema?.table.for_sale)
+    })
+
+    console.log('🔍 Initial form data from props:', {
+        tableSchema,
+        tableName: tableSchema?.table.name,
+        forSale: tableSchema?.table.for_sale,
+        formDataForSale: formData.for_sale
     })
 
     // Load table data if not provided
@@ -51,11 +63,22 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
             const response = await clientApiRequest(`/api/tables/${tableId}`)
             if (response.ok) {
                 const result = await response.json() as any
-                const schema = result.table
+                const schema = result.table  // This is the TableSchema object
+                setCurrentSchema(schema)
                 setFormData({
                     name: schema.table.name,
                     description: schema.table.description || '',
-                    is_public: schema.table.is_public
+                    is_public: Boolean(schema.table.is_public),
+                    for_sale: Boolean(schema.table.for_sale)
+                })
+
+                console.log('🔍 Loaded table data via API:', {
+                    result,
+                    schema,
+                    tableInfo: schema.table,
+                    tableName: schema.table.name,
+                    forSale: schema.table.for_sale,
+                    isPublic: schema.table.is_public
                 })
             } else {
                 const errorData = await response.json() as any
@@ -69,9 +92,29 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
     }
 
     const handleInputChange = (field: string, value: any) => {
+        // Special handling for for_sale changes - show confirmation dialog
+        if (field === 'for_sale' && value !== formData.for_sale) {
+            setPendingForSaleValue(value)
+            setShowConversionDialog(true)
+            return
+        }
+
         setFormData(prev => ({...prev, [field]: value}))
         // Clear related errors
         setErrors(prev => ({...prev, [field]: undefined, general: undefined}))
+    }
+
+    const handleForSaleConversion = () => {
+        if (pendingForSaleValue !== null) {
+            setFormData(prev => ({...prev, for_sale: pendingForSaleValue}))
+            setShowConversionDialog(false)
+            setPendingForSaleValue(null)
+        }
+    }
+
+    const handleCancelConversion = () => {
+        setShowConversionDialog(false)
+        setPendingForSaleValue(null)
     }
 
     const validateForm = (): boolean => {
@@ -102,7 +145,8 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
             const requestData: UpdateTableRequest = {
                 name: formData.name.trim(),
                 description: formData.description.trim() || undefined,
-                is_public: formData.is_public
+                is_public: formData.is_public,
+                for_sale: formData.for_sale
             }
 
             const response = await clientApiRequest(`/api/tables/${tableId}`, {
@@ -200,6 +244,20 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
                     </Button>
                 </div>
             </form>
+
+            {/* Conversion Confirmation Dialog */}
+            {showConversionDialog && pendingForSaleValue !== null && (
+                <ForSaleConversionDialog
+                    isOpen={showConversionDialog}
+                    onClose={handleCancelConversion}
+                    onConfirm={handleForSaleConversion}
+                    isLoading={false}
+                    conversionType={pendingForSaleValue ? 'to_sale' : 'from_sale'}
+                    tableName={formData.name}
+                    hasExistingPriceColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'price') || false}
+                    hasExistingQtyColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'qty') || false}
+                />
+            )}
         </div>
     )
 }

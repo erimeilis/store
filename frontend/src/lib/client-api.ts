@@ -46,23 +46,26 @@ export function getAccessToken(): string | null {
 export async function clientApiRequest(path: string, options: RequestInit = {}) {
   const apiUrl = getApiUrl();
   const token = getAccessToken();
-  
+
   const url = `${apiUrl}${path}`;
-  
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
+
+  // Don't set Content-Type for FormData uploads (browser will set it automatically with boundary)
+  const isFormData = options.body instanceof FormData;
+
+  const headers: Record<string, string> = {
+    ...(!isFormData && { 'Content-Type': 'application/json' }),
+    ...(options.headers as Record<string, string> || {}),
   };
-  
+
   // Add authorization if token is available
   if (token) {
-    (headers as any)['Authorization'] = `Bearer ${token}`;
+    headers['Authorization'] = `Bearer ${token}`;
   }
-  
+
   const response = await fetch(url, {
     ...options,
     headers,
   });
-  
+
   return response;
 }
