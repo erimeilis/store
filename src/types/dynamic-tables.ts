@@ -17,6 +17,7 @@ export interface UserTable {
   created_by: string // User email or token ID
   user_id: string // Session user ID (OAuth user ID from users table)
   is_public: boolean
+  for_sale: boolean // Whether table is configured for e-commerce with protected price/qty columns
   created_at: Date
   updated_at: Date
 }
@@ -80,6 +81,7 @@ export interface CreateTableRequest {
   name: string
   description?: string
   is_public: boolean
+  for_sale?: boolean // Whether to create table as "for sale" with auto price/qty columns
   user_id?: string  // Optional user ID for session-based creation
   columns: CreateColumnRequest[]
 }
@@ -102,6 +104,7 @@ export interface UpdateTableRequest {
   name?: string
   description?: string
   is_public?: boolean
+  for_sale?: boolean // Whether to convert table to/from "for sale" mode
 }
 
 /**
@@ -212,3 +215,40 @@ export interface MassActionResult {
   count: number
   data?: TableDataRow[]
 }
+
+/**
+ * Special column names that are protected when table is for_sale
+ */
+export const PROTECTED_SALE_COLUMNS = ['price', 'qty'] as const
+
+/**
+ * Type for protected column names
+ */
+export type ProtectedSaleColumn = typeof PROTECTED_SALE_COLUMNS[number]
+
+/**
+ * Check if a column is protected based on table for_sale status
+ */
+export function isProtectedSaleColumn(columnName: string, tableForSale: boolean): boolean {
+  return tableForSale && PROTECTED_SALE_COLUMNS.includes(columnName as ProtectedSaleColumn)
+}
+
+/**
+ * Default column definitions for "for sale" tables
+ */
+export const DEFAULT_SALE_COLUMNS: CreateColumnRequest[] = [
+  {
+    name: 'price',
+    type: 'number',
+    is_required: true,
+    // no default_value for price (undefined, not null)
+    position: 999
+  },
+  {
+    name: 'qty',
+    type: 'number',
+    is_required: true,
+    default_value: '1',
+    position: 1000
+  }
+]

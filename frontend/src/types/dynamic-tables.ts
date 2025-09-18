@@ -13,6 +13,7 @@ export interface UserTable extends BaseModel {
   description?: string | null
   created_by: string
   is_public: boolean
+  for_sale: boolean // Whether table is configured for e-commerce with protected price/qty columns
   created_at: string
   updated_at: string
   owner_display_name?: string // Friendly display name for the owner
@@ -76,6 +77,7 @@ export interface UpdateTableRequest {
   name?: string
   description?: string
   is_public?: boolean
+  for_sale?: boolean
 }
 
 export interface AddTableDataRequest {
@@ -126,6 +128,7 @@ export interface TableFormData {
   name: string
   description: string
   is_public: boolean
+  for_sale: boolean
   columns: ColumnFormData[]
 }
 
@@ -188,6 +191,11 @@ export function isValidColumnType(type: string): type is ColumnType {
 export function getColumnTypeLabel(type: ColumnType): string {
   const option = COLUMN_TYPE_OPTIONS.find(opt => opt.value === type)
   return option?.label || type
+}
+
+export function isProtectedSaleColumn(columnName: string, tableForSale: boolean): boolean {
+  const PROTECTED_SALE_COLUMNS = ['price', 'qty'];
+  return tableForSale && PROTECTED_SALE_COLUMNS.includes(columnName.toLowerCase());
 }
 
 export function validateColumnValue(value: any, column: TableColumn): { valid: boolean; error?: string } {

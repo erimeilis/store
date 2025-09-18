@@ -109,40 +109,63 @@ export function registerApiProxyRoutes(app: Hono<{ Bindings: Env; Variables: Var
       const backendUrl = `${apiUrl}${path}${queryParams}`
       console.log('🚀 Forwarding request to backend:', backendUrl)
 
-      // Get request body if it exists and modify it for table creation
+      // Get request body and handle different content types
       let body = undefined
+      let isFormData = false
+      let contentType = 'application/json'
+
       if (method !== 'GET' && method !== 'HEAD') {
         try {
-          const originalBody = await c.req.text()
+          // Check if this is a multipart/form-data request (file upload)
+          const originalContentType = c.req.header('Content-Type') || ''
+          isFormData = originalContentType.includes('multipart/form-data')
 
-          // For table creation, inject user_id into the request body
-          if (path === '/api/tables' && method === 'POST' && user) {
-            const requestData = JSON.parse(originalBody)
-            requestData.user_id = user.id // Add session user ID
-            body = JSON.stringify(requestData)
-            console.log('🔧 Modified table creation request with user_id:', user.id)
+          if (isFormData) {
+            // For FormData, pass the raw body and let browser set Content-Type with boundary
+            body = await c.req.arrayBuffer()
+            contentType = originalContentType
           } else {
-            body = originalBody
+            // For JSON requests, handle as before
+            const originalBody = await c.req.text()
+
+            // For table creation, inject user_id into the request body
+            if (path === '/api/tables' && method === 'POST' && user) {
+              const requestData = JSON.parse(originalBody)
+              requestData.user_id = user.id // Add session user ID
+              body = JSON.stringify(requestData)
+              console.log('🔧 Modified table creation request with user_id:', user.id)
+            } else {
+              body = originalBody
+            }
           }
         } catch {
           // No body or body already consumed
         }
       }
 
+      const headers: Record<string, string> = {
+        ...(apiToken && { 'Authorization': `Bearer ${apiToken}` }),
+        // Pass OAuth user information to backend for all requests
+        ...(user && {
+          'X-User-Id': user.id,
+          'X-User-Email': user.email || '',
+          'X-User-Name': user.name || ''
+        }),
+        // Forward other important headers
+        ...(c.req.header('User-Agent') && { 'User-Agent': c.req.header('User-Agent') }),
+      }
+
+      // Only set Content-Type for non-FormData requests
+      if (!isFormData) {
+        headers['Content-Type'] = contentType
+      } else {
+        // For FormData, forward the original Content-Type with boundary
+        headers['Content-Type'] = contentType
+      }
+
       const response = await fetch(backendUrl, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(apiToken && { 'Authorization': `Bearer ${apiToken}` }),
-          // Pass OAuth user information to backend for all requests
-          ...(user && {
-            'X-User-Id': user.id,
-            'X-User-Email': user.email || '',
-            'X-User-Name': user.name || ''
-          }),
-          // Forward other important headers
-          ...(c.req.header('User-Agent') && { 'User-Agent': c.req.header('User-Agent') }),
-        },
+        headers,
         ...(body && { body }),
       })
 

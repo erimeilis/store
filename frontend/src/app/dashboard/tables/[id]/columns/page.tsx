@@ -10,12 +10,13 @@ import {IColumnDefinition, IRowAction, ModelList} from '@/components/model/model
 import {Alert} from '@/components/ui/alert'
 import {Badge} from '@/components/ui/badge'
 import {IconArrowDown, IconArrowUp, IconCopy, IconPlus} from '@tabler/icons-react'
-import {COLUMN_TYPE_OPTIONS, getColumnTypeLabel, TableColumn, TableSchema} from '@/types/dynamic-tables'
+import {COLUMN_TYPE_OPTIONS, getColumnTypeLabel, TableColumn, TableSchema, isProtectedSaleColumn} from '@/types/dynamic-tables'
 import {IMassAction, IPaginatedResponse} from '@/types/models'
 import {formatApiDate} from '@/lib/date-utils'
 import {clientApiRequest} from '@/lib/client-api'
 import {Button} from '@/components/ui/button'
 import {TableNavigation} from '@/components/table-navigation'
+import {ProtectedColumnBadge} from '@/components/protected-column-indicator'
 
 interface TableColumnsPageProps {
     tableSchema?: TableSchema | null;
@@ -191,12 +192,23 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             filterable: true,
             filterType: 'text',
             className: 'min-w-0 w-auto',
-            render: (column) => (
-                <span className="truncate block max-w-[120px] sm:max-w-none" title={column.name}>
-          {column.name}
-        </span>
-            ),
-            editableInline: true,
+            render: (column) => {
+                const isProtected = isProtectedSaleColumn(column.name, schema?.table.for_sale || false);
+                return (
+                    <div className="flex items-center gap-2">
+                        <span className="truncate block max-w-[120px] sm:max-w-none" title={column.name}>
+                            {column.name}
+                        </span>
+                        <ProtectedColumnBadge
+                            columnName={column.name}
+                            isProtected={isProtected}
+                            protectionReason="for_sale"
+                            variant="icon"
+                        />
+                    </div>
+                );
+            },
+            editableInline: false,
             editType: 'text',
             editValidation: {
                 required: true,
@@ -217,7 +229,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                     {getColumnTypeLabel(column.type)}
                 </Badge>
             ),
-            editableInline: true,
+            editableInline: false,
             editType: 'select',
             editOptions: COLUMN_TYPE_OPTIONS.map(opt => ({value: opt.value, label: opt.label}))
         },
@@ -238,7 +250,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
           <span className="sm:hidden">{column.is_required ? 'Req' : 'Opt'}</span>
         </span>
             ),
-            editableInline: true,
+            editableInline: false,
             editType: 'toggle',
             editOptions: [
                 {value: 'false', label: 'No'},
@@ -257,7 +269,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
           {column.default_value || <em className="text-gray-400">none</em>}
         </span>
             ),
-            editableInline: true,
+            editableInline: false,
             editType: 'text'
         },
         {
@@ -486,9 +498,9 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 massActions={massActions}
                 rowActions={rowActions}
                 createRoute={undefined}
-                editRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
+                editRoute={() => '#'}
                 deleteRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
-                inlineEditRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
+                inlineEditRoute={undefined}
                 massActionRoute={`/api/tables/${tableId}/columns/mass-action`}
                 filters={{
                     sort: 'position',

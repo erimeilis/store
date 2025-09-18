@@ -1,5 +1,5 @@
 import { getPrismaClient } from '@/lib/database.js'
-import type { Bindings } from '../../types/bindings.js'
+import type { Bindings } from '@/types/bindings.js'
 import type { UserTable, TableColumn, TableSchema, CreateTableRequest, UpdateTableRequest, TableMassAction } from '@/types/dynamic-tables.js'
 import { Prisma, type PrismaClient } from '@prisma/client'
 import { sanitizeForSQL, validateSortColumn, validateSortDirection } from '@/utils/common.js'
@@ -31,7 +31,7 @@ export class TableRepository {
     sort: { column: string; direction: string },
     pagination: { page: number; limit: number; offset: number }
   ): Promise<{ tables: UserTable[]; totalCount: number }> {
-    const allowedSortColumns = ['name', 'description', 'created_by', 'is_public', 'created_at', 'updated_at']
+    const allowedSortColumns = ['name', 'description', 'created_by', 'is_public', 'for_sale', 'created_at', 'updated_at']
     const safeSortColumn = validateSortColumn(sort.column, allowedSortColumns)
     const safeSortDirection = validateSortDirection(sort.direction)
 
@@ -74,8 +74,8 @@ export class TableRepository {
         ut.name,
         ut.description,
         ut.created_by,
-        ut.user_id,
         ut.is_public,
+        ut.for_sale,
         ut.created_at,
         ut.updated_at,
         CASE
@@ -104,7 +104,7 @@ export class TableRepository {
    */
   async findTableById(tableId: string, userId: string): Promise<UserTable | null> {
     const [table] = await this.prisma.$queryRaw<UserTable[]>`
-      SELECT id, name, description, created_by, is_public, created_at, updated_at
+      SELECT id, name, description, created_by, user_id, is_public, for_sale, created_at, updated_at
       FROM user_tables
       WHERE id = ${tableId} AND (user_id = ${userId} OR is_public = true)
     `
@@ -116,7 +116,7 @@ export class TableRepository {
    */
   async findTableByIdInternal(tableId: string): Promise<UserTable | null> {
     const [table] = await this.prisma.$queryRaw<UserTable[]>`
-      SELECT id, name, description, created_by, user_id, is_public, created_at, updated_at
+      SELECT id, name, description, created_by, user_id, is_public, for_sale, created_at, updated_at
       FROM user_tables
       WHERE id = ${tableId}
     `
@@ -142,6 +142,30 @@ export class TableRepository {
   }
 
   /**
+   * Get individual column
+   */
+  async getColumn(tableId: string, columnId: string): Promise<TableColumn | null> {
+    const columns = await this.prisma.$queryRaw<any[]>`
+      SELECT id, table_id, name, type, is_required, default_value, position, created_at
+      FROM table_columns
+      WHERE table_id = ${tableId} AND id = ${columnId}
+      LIMIT 1
+    `
+
+    if (columns.length === 0) {
+      return null
+    }
+
+    const column = columns[0]
+
+    // Convert SQLite integers/strings to proper booleans
+    return {
+      ...column,
+      is_required: column.is_required === true || column.is_required === 1 || column.is_required === '1' || column.is_required === 'true'
+    } as TableColumn
+  }
+
+  /**
    * Create new table with columns
    */
   async createTable(tableData: CreateTableRequest, userId: string, userEmail: string): Promise<TableSchema> {
@@ -161,8 +185,8 @@ export class TableRepository {
 
     // Create table
     await this.prisma.$queryRaw`
-      INSERT INTO user_tables (id, name, description, created_by, user_id, is_public)
-      VALUES (${tableId}, ${tableData.name.trim()}, ${tableData.description || null}, ${userEmail}, ${finalUserId}, ${tableData.is_public})
+      INSERT INTO user_tables (id, name, description, created_by, user_id, is_public, for_sale)
+      VALUES (${tableId}, ${tableData.name.trim()}, ${tableData.description || null}, ${userEmail}, ${finalUserId}, ${tableData.is_public}, ${tableData.for_sale || false})
     `
 
     // Create columns
@@ -215,6 +239,11 @@ export class TableRepository {
     if (updates.is_public !== undefined) {
       setClauses.push('is_public = ?')
       setValues.push(updates.is_public)
+    }
+
+    if (updates.for_sale !== undefined) {
+      setClauses.push('for_sale = ?')
+      setValues.push(updates.for_sale)
     }
 
     // Always update the timestamp
@@ -494,5 +523,80 @@ export class TableRepository {
       ...column,
       is_required: column.is_required === true || column.is_required === 1 || column.is_required === '1' || column.is_required === 'true'
     } as TableColumn
+  }
+
+  /**
+   * Get table by ID with user access check
+   */
+  async getTable(tableId: string, userId: string): Promise<UserTable | null> {
+    return this.findTableById(tableId, userId)
+  }
+
+  /**
+   * Clear all data from table
+   */
+  async clearTableData(tableId: string): Promise<void> {
+    await this.prisma.$executeRaw`
+      DELETE FROM table_data WHERE table_id = ${tableId}
+    `
+  }
+
+  /**
+   * Insert data into table
+   */
+  async insertTableData(tableId: string, data: any, userId: string): Promise<void> {
+    const rowId = crypto.randomUUID()
+    const dataJson = JSON.stringify(data)
+    const createdBy = `token:admin-token` // This should be replaced with proper user identification
+
+    await this.prisma.$executeRaw`
+      INSERT INTO table_data (id, table_id, data, created_by, created_at, updated_at)
+      VALUES (${rowId}, ${tableId}, ${dataJson}, ${createdBy}, datetime('now'), datetime('now'))
+    `
+  }
+
+  /**
+   * Check if required sale columns (price, qty) exist in table
+   */
+  async checkSaleColumnsExist(tableId: string): Promise<{ hasPrice: boolean; hasQty: boolean }> {
+    const columns = await this.getTableColumns(tableId)
+    const hasPrice = columns.some(col => col.name === 'price')
+    const hasQty = columns.some(col => col.name === 'qty')
+    return { hasPrice, hasQty }
+  }
+
+  /**
+   * Create missing sale columns for a table
+   */
+  async createMissingSaleColumns(tableId: string): Promise<void> {
+    const { hasPrice, hasQty } = await this.checkSaleColumnsExist(tableId)
+
+    if (!hasPrice) {
+      const priceColumnId = crypto.randomUUID()
+      await this.prisma.$queryRaw`
+        INSERT INTO table_columns (id, table_id, name, type, is_required, default_value, position)
+        VALUES (${priceColumnId}, ${tableId}, 'price', 'number', ${true}, ${null}, ${999})
+      `
+    }
+
+    if (!hasQty) {
+      const qtyColumnId = crypto.randomUUID()
+      await this.prisma.$queryRaw`
+        INSERT INTO table_columns (id, table_id, name, type, is_required, default_value, position)
+        VALUES (${qtyColumnId}, ${tableId}, 'qty', 'number', ${true}, ${'1'}, ${1000})
+      `
+    }
+  }
+
+  /**
+   * Check if a column is protected (price/qty for for_sale tables)
+   */
+  async isColumnProtected(tableId: string, columnName: string): Promise<boolean> {
+    const table = await this.findTableByIdInternal(tableId)
+    if (!table || !table.for_sale) {
+      return false
+    }
+
+    return columnName === 'price' || columnName === 'qty'
   }
 }

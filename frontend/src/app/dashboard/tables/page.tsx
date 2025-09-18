@@ -8,7 +8,7 @@ import { ModelList, IColumnDefinition, IRowAction } from '@/components/model/mod
 import { IPaginatedResponse } from '@/types/models';
 import { UserTable } from '@/types/dynamic-tables';
 import { formatApiDate } from '@/lib/date-utils';
-import { IconDatabase, IconColumns3 } from '@tabler/icons-react';
+import { IconDatabase, IconColumns3, IconShoppingCart } from '@tabler/icons-react';
 
 // Column definitions for Tables management
 const tableColumns: IColumnDefinition<UserTable>[] = [
@@ -72,9 +72,34 @@ const tableColumns: IColumnDefinition<UserTable>[] = [
       </span>
     )
   },
-  { 
-    key: 'created_at', 
-    label: 'Created', 
+  {
+    key: 'for_sale',
+    label: 'Type',
+    sortable: true,
+    filterable: true,
+    filterType: 'select',
+    filterOptions: [
+      { value: 'true', label: 'For Sale' },
+      { value: 'false', label: 'Regular' }
+    ],
+    editableInline: true,
+    editType: 'toggle',
+    render: (table) => (
+      <div className="flex items-center gap-2">
+        {table.for_sale ? (
+          <>
+            <IconShoppingCart className="h-4 w-4 text-success" />
+            <span className="badge badge-success badge-sm">For Sale</span>
+          </>
+        ) : (
+          <span className="badge badge-ghost badge-sm">Regular</span>
+        )}
+      </div>
+    )
+  },
+  {
+    key: 'created_at',
+    label: 'Created',
     sortable: true,
     filterable: true,
     filterType: 'date',
