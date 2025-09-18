@@ -4,7 +4,7 @@
  */
 
 import type { Context, Next } from 'hono'
-import type { Bindings } from '../../types/bindings.js'
+import type { Bindings } from '@/types/bindings.js'
 import type { HonoVariables } from '@/types/hono.js'
 import { getPrismaClient } from '@/lib/database.js'
 

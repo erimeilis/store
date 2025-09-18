@@ -46375,6 +46375,12 @@ function TableNavigation({ tableId, activePage, className = "" }) {
       label: "Edit Data",
       shortLabel: "Data",
       href: `/dashboard/tables/${tableId}/data`
+    },
+    {
+      key: "import",
+      label: "Import Data",
+      shortLabel: "Import",
+      href: `/dashboard/tables/${tableId}/import`
     }
   ];
   return /* @__PURE__ */ (0, import_jsx_runtime63.jsx)("div", { className: `flex flex-col sm:flex-row gap-2 shrink-0 ${className}`, children: buttons.map((button) => {

@@ -42,6 +42,13 @@ export const routes: RouteConfig[] = [
     requiresAuth: true
   },
   {
+    path: '/dashboard/docs',
+    handler: async (c) => (await import('@/handlers/docs')).handleDocsPage(c),
+    layout: 'dashboard',
+    segment: 'docs',
+    requiresAuth: true
+  },
+  {
     path: '/dashboard/users',
     handler: async (c) => (await import('@/handlers/users')).handleUsersPage(c),
     layout: 'dashboard',
@@ -140,6 +147,13 @@ export const routes: RouteConfig[] = [
     requiresAuth: true
   },
   {
+    path: '/dashboard/tables/:id/import',
+    handler: async (c) => (await import('@/handlers/tables')).handleTableImportPage(c),
+    layout: 'dashboard',
+    segment: 'import',
+    requiresAuth: true
+  },
+  {
     path: '/dashboard/tables/:id/data/edit/:rowId',
     handler: async (c) => (await import('@/handlers/tables')).handleTableDataEditPage(c),
     layout: 'dashboard',
@@ -169,6 +183,7 @@ export const pageComponents = {
   '/': async () => (await import('@/app/login/page')).default,
   '/error': async () => (await import('@/app/error/page')).default,
   '/dashboard': async () => (await import('@/app/dashboard/page')).default,
+  '/dashboard/docs': async () => (await import('@/app/dashboard/docs/page')).default,
   '/dashboard/users': async () => (await import('@/app/dashboard/users/page')).default,
   '/dashboard/users/create': async () => (await import('@/app/dashboard/users/create/page')).default,
   '/dashboard/users/edit/[id]': async () => (await import('@/app/dashboard/users/edit/[id]/page')).default,
@@ -183,5 +198,6 @@ export const pageComponents = {
   '/dashboard/tables/[id]/data': async () => (await import('@/app/dashboard/tables/[id]/data/page')).default,
   '/dashboard/tables/[id]/edit': async () => (await import('@/app/dashboard/tables/[id]/edit/page')).default,
   '/dashboard/tables/[id]/columns': async () => (await import('@/app/dashboard/tables/[id]/columns/page')).default,
+  '/dashboard/tables/[id]/import': async () => (await import('@/app/dashboard/tables/[id]/import/page')).default,
   '/dashboard/tables/[id]/data/edit/[rowId]': async () => (await import('@/app/dashboard/tables/[id]/data/edit/[rowId]/page')).default
 }

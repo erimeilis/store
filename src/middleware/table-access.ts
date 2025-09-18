@@ -1,5 +1,5 @@
 import type { Context, Next } from 'hono'
-import type { Bindings } from '../../types/bindings.js'
+import type { Bindings } from '@/types/bindings.js'
 import { getPrismaClient } from '@/lib/database.js'
 import type { UserContext } from '@/types/database.js'
 import type { UserTable, TableAccessLevel } from '@/types/dynamic-tables.js'

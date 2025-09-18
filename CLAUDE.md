@@ -165,7 +165,14 @@ If ports are busy, the scripts will kill existing processes and restart cleanly.
 ### Development Principles
 - **DRY (Don't Repeat Yourself)**: Extract common functionality into reusable utilities and components
 - **SOLID Principles**: Follow single responsibility, open/closed, Liskov substitution, interface segregation, and dependency inversion principles
-- **Type Organization**: All TypeScript types must be extracted to the `types/` folder (backend) or `frontend/src/types/` (frontend)
+- **Type Organization**: All TypeScript types must be extracted to the `src/types/` folder for consistent @/ path aliasing
+- **Import Path Standards**: ALWAYS use @/ path aliases instead of relative paths (../../). All imports must follow the pattern:
+  - `@/types/*` for types in `src/types/`
+  - `@/services/*` for services in `src/services/`
+  - `@/repositories/*` for repositories in `src/repositories/`
+  - `@/middleware/*` for middleware in `src/middleware/`
+  - `@/utils/*` for utilities in `src/utils/`
+  - `@/routes/*` for routes in `src/routes/`
 - **Database Migrations**: Any database structure changes must be implemented as migration files in the `prisma/migrations/` folder
 - **Complexity First**: Never downgrade to simpler approaches unless explicitly requested - maintain sophisticated, production-ready patterns
 

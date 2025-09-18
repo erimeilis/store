@@ -14,7 +14,7 @@ import {Checkbox} from '@/components/ui/checkbox'
 import {Alert} from '@/components/ui/alert'
 import {TableInfoForm} from '@/components/table-info-form'
 import {COLUMN_TYPE_OPTIONS, ColumnFormData, ColumnType, TableFormData} from '@/types/dynamic-tables'
-import {IconArrowDown, IconArrowUp, IconPlus, IconTrash} from '@tabler/icons-react'
+import {IconArrowDown, IconArrowUp, IconPlus, IconTrash, IconShoppingCart, IconCurrencyDollar, IconPackage, IconInfoCircle} from '@tabler/icons-react'
 
 interface ValidationErrors {
     general?: string;
@@ -32,6 +32,7 @@ export default function CreateTablePage() {
         name: '',
         description: '',
         is_public: false,
+        for_sale: false,
         columns: [
             {
                 name: '',
@@ -187,6 +188,7 @@ export default function CreateTablePage() {
                     name: formData.name.trim(),
                     description: formData.description.trim() || undefined,
                     is_public: formData.is_public,
+                    for_sale: formData.for_sale,
                     columns: formData.columns.map(col => ({
                         name: col.name.trim(),
                         type: col.type,
@@ -200,17 +202,62 @@ export default function CreateTablePage() {
                     data={{
                         name: formData.name,
                         description: formData.description,
-                        is_public: formData.is_public
+                        is_public: formData.is_public,
+                        for_sale: formData.for_sale
                     }}
                     errors={errors}
                     onChange={handleInputChange}
                 />
 
+                {/* Auto-Column Preview for For Sale Tables */}
+                {formData.for_sale && (
+                    <Card color="info" style="soft">
+                        <CardBody>
+                            <CardTitle className="flex items-center gap-2">
+                                <IconShoppingCart className="h-5 w-5" />
+                                <span>E-commerce Columns</span>
+                                <span className="badge badge-info badge-sm">Auto-created</span>
+                            </CardTitle>
+                            <p className="text-sm mb-3">
+                                These columns will be automatically added to your table for e-commerce functionality:
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="p-3 rounded-lg border">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <IconCurrencyDollar className="h-4 w-4" />
+                                        <span className="font-medium">price</span>
+                                        <span className="badge badge-warning badge-xs">Protected</span>
+                                    </div>
+                                    <p className="text-xs">Number • Required • No default</p>
+                                    <p className="text-xs mt-1">Item price for selling</p>
+                                </div>
+                                <div className="p-3 rounded-lg border">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <IconPackage className="h-4 w-4" />
+                                        <span className="font-medium">qty</span>
+                                        <span className="badge badge-warning badge-xs">Protected</span>
+                                    </div>
+                                    <p className="text-xs">Number • Required • Default: 1</p>
+                                    <p className="text-xs mt-1">Available quantity</p>
+                                </div>
+                            </div>
+                            <div className="alert alert-warning mt-3">
+                                <div className="flex items-center gap-2 text-sm">
+                                    <IconInfoCircle className="h-4 w-4 flex-shrink-0" />
+                                    <span>These columns cannot be deleted or renamed while the table is "for sale"</span>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+                )}
+
                 {/* Column Definition */}
                 <Card>
                     <CardBody>
                         <div className="flex flex-row items-center justify-between mb-4">
-                            <CardTitle>Column Configuration</CardTitle>
+                            <CardTitle>
+                                {formData.for_sale ? 'Additional Columns' : 'Column Configuration'}
+                            </CardTitle>
                             <Button
                                 type="button"
                                 onClick={addColumn}

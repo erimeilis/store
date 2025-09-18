@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { readAuthMiddleware, writeAuthMiddleware } from '@/middleware/auth.js'
-import { TableDataService } from '@/services/tableDataService.js'
-import type { Bindings } from '../../types/bindings.js'
+import { TableDataService } from '@/services/tableDataService/index.js'
+import type { Bindings } from '@/types/bindings.js'
 import type { UserContext } from '@/types/database.js'
 
 /**
@@ -72,6 +72,22 @@ tableDataRoutes.post('/api/tables/:tableId/data', writeAuthMiddleware, async (c)
  * PUT /api/tables/:tableId/data/:rowId
  */
 tableDataRoutes.put('/api/tables/:tableId/data/:rowId', writeAuthMiddleware, async (c) => {
+  const service = new TableDataService(c.env)
+  const user = c.get('user')
+  const tableId = c.req.param('tableId')
+  const rowId = c.req.param('rowId')
+  const body = await c.req.json()
+
+  const result = await service.updateDataRow(c, user, tableId, rowId, body)
+
+  return c.json(result.response, result.status as ContentfulStatusCode)
+})
+
+/**
+ * Update existing data row (for inline editing)
+ * PATCH /api/tables/:tableId/data/:rowId
+ */
+tableDataRoutes.patch('/api/tables/:tableId/data/:rowId', writeAuthMiddleware, async (c) => {
   const service = new TableDataService(c.env)
   const user = c.get('user')
   const tableId = c.req.param('tableId')

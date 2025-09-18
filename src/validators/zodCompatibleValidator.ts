@@ -35,7 +35,8 @@ const CreateTableRequestSchema = z.object({
 const UpdateTableRequestSchema = z.object({
   name: z.string().min(1, 'Table name is required').optional(),
   description: z.string().optional(),
-  is_public: z.boolean().optional()
+  is_public: z.boolean().optional(),
+  for_sale: z.boolean().optional()
 }).refine(
   (data) => Object.keys(data).length > 0,
   { message: 'At least one field must be provided for update' }

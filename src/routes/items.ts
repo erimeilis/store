@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { readAuthMiddleware, writeAuthMiddleware } from '@/middleware/auth.js'
 import { getPrismaClient } from '@/lib/database.js'
-import type { Bindings } from '../../types/bindings.js'
+import type { Bindings } from '@/types/bindings.js'
 import type { UserContext } from '@/types/database.js'
 
 /**

@@ -6,7 +6,7 @@ import type {
   IpCheckResult, 
   DomainCheckResult,
   TokenPermissions 
-} from '../types/database.js'
+} from '@/types/database.js'
 
 /**
  * Token Service

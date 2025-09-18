@@ -10,7 +10,7 @@
     "build": "npm run version && npm run build:css && npm run build:client && wrangler deploy",
     "deploy": "npm run build",
     "version": "echo \"export default `date +'%s'`\" > ./src/config/build_time.ts && echo \"export default true\" > ./src/config/is_prod.ts",
-    "build:css": "postcss src/styles/globals.css -o dist/styles.css",
+    "build:css": "postcss src/styles/globals.css -o dist/styles.css && cp src/styles/swagger-ui.css dist/swagger-ui.css",
     "build:css:watch": "postcss src/styles/globals.css -o dist/styles.css --watch",
     "build:client": "node esbuild.config.js",
     "type-check": "tsc --noEmit",
@@ -33,6 +33,7 @@
     "react-day-picker": "^9.9.0",
     "react-dom": "^19.1.1",
     "tailwind-merge": "^3.3.1",
+    "xlsx": "^0.18.5",
     "zod": "^4.1.5",
     "zustand": "^5.0.8"
   },

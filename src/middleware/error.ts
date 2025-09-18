@@ -1,5 +1,5 @@
 import type { Context, ErrorHandler, NotFoundHandler } from 'hono'
-import type { Bindings } from '../../types/bindings.js'
+import type { Bindings } from '@/types/bindings.js'
 
 /**
  * 404 Not Found Handler
