@@ -120,8 +120,9 @@ export async function handleTableDataPage(c: Context<{ Bindings: Env; Variables:
     // No transformation needed - api-utils handles standard pagination format
   })
   
-  const dataProps = buildPageProps(user, c, { 
+  const dataProps = buildPageProps(user, c, {
     initialData: tableData,
+    tableId,
     page,
     limit
   })
@@ -135,9 +136,17 @@ export async function handleTableDataPage(c: Context<{ Bindings: Env; Variables:
 export async function handleTableEditPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
   const user = c.get('user')
   const tableId = c.req.param('id')
-  
-  if (!tableId) {
-    throw new Error('Table ID is required')
+
+  console.log('🔍 Edit page debug:', {
+    tableId,
+    type: typeof tableId,
+    url: c.req.url,
+    path: c.req.path
+  })
+
+  if (!tableId || tableId === 'undefined' || tableId === 'null') {
+    console.error('❌ Invalid table ID:', { tableId, type: typeof tableId })
+    throw new Error(`Table ID is invalid: ${tableId}`)
   }
   
   // Fetch table schema (table + columns)
@@ -221,4 +230,29 @@ export async function handleTableDataEditPage(c: Context<{ Bindings: Env; Variab
 
     return renderDashboardPage(c, `/dashboard/tables/${tableId}/data/edit/${rowId}`, editProps)
   }
+}
+
+/**
+ * Handler for table import page (/dashboard/tables/[id]/import)
+ */
+export async function handleTableImportPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
+  const user = c.get('user')
+  const tableId = c.req.param('id')
+
+  if (!tableId) {
+    throw new Error('Table ID is required')
+  }
+
+  // Fetch table schema for import context
+  const tableSchema = await fetchHandlerData(`/api/tables/${tableId}`, c, {
+    transformer: (data: any) => data.table
+  })
+
+  const importProps = buildPageProps(user, c, {
+    tableSchema,
+    tableId,
+    params: { id: tableId }  // Add params object for page component
+  })
+
+  return renderDashboardPage(c, `/dashboard/tables/${tableId}/import`, importProps)
 }

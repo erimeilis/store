@@ -1,5 +1,5 @@
 import { getPrismaClient } from '@/lib/database.js'
-import type { Bindings } from '../../types/bindings.js'
+import type { Bindings } from '@/types/bindings.js'
 import type { TableDataRow, ParsedTableData, AddTableDataRequest, UpdateTableDataRequest, TableDataMassAction } from '@/types/dynamic-tables.js'
 import { Prisma, type PrismaClient } from '@prisma/client'
 import { sanitizeForSQL } from '@/utils/common.js'
@@ -204,5 +204,17 @@ export class TableDataRepository {
       FROM table_columns
       WHERE table_id = ${tableId}
     `
+  }
+
+  /**
+   * Get table info including for_sale status
+   */
+  async getTableInfo(tableId: string): Promise<{ for_sale: boolean } | null> {
+    const [table] = await this.prisma.$queryRaw<{ for_sale: boolean }[]>`
+      SELECT for_sale
+      FROM user_tables
+      WHERE id = ${tableId}
+    `
+    return table || null
   }
 }

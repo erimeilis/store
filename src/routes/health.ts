@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { getPrismaClient, checkDatabaseHealth } from '@/lib/database.js'
-import type { Bindings } from '../../types/bindings.js'
+import type { Bindings } from '@/types/bindings.js'
 
 /**
  * Health Check Routes

@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
 import { writeAuthMiddleware } from '@/middleware/auth.js'
-import { parseGoogleSheetsData } from '../../utils/sheets-parser.js'
-import { bulkInsertItems } from '../../utils/database.js'
-import type { Bindings } from '../../types/bindings.js'
-import type { GoogleSheetsResponse } from '../../types/google-sheets.js'
+import { parseGoogleSheetsData } from '@/utils/sheets-parser.js'
+import { bulkInsertItems } from '@/utils/database.js'
+import type { Bindings } from '@/types/bindings.js'
+import type { GoogleSheetsResponse } from '@/types/google-sheets.js'
 
 /**
  * Data Import Routes
