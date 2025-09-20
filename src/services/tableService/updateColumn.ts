@@ -51,7 +51,24 @@ export async function updateColumn(
       }
     }
 
-    // Update column
+    // Handle position updates separately to avoid constraint violations
+    if (data.position !== undefined) {
+      console.log(`🔧 Using safe position update: tableId=${tableId}, columnId=${columnId}, newPosition=${data.position}`)
+      // Use safe position update method
+      await repository.updateColumnPositionSafe(tableId, columnId, data.position)
+      console.log(`✅ Safe position update completed`)
+
+      // Run recount immediately instead of setTimeout (Cloudflare Workers limitation)
+      console.log(`🔄 Running immediate recount for table ${tableId}`)
+      try {
+        await repository.recountColumnPositions(tableId)
+        console.log(`✅ Immediate recount completed for table ${tableId}`)
+      } catch (error) {
+        console.error(`❌ Immediate recount failed for table ${tableId}:`, error)
+      }
+    }
+
+    // Update other fields if provided
     const updateData: any = {}
     if (data.name !== undefined) updateData.name = data.name
     if (data.type !== undefined) updateData.type = data.type
@@ -60,7 +77,14 @@ export async function updateColumn(
       updateData.default_value = data.default_value
     }
 
-    const result = await repository.updateColumn(tableId, columnId, updateData)
+    // Only update non-position fields if there are any
+    let result
+    if (Object.keys(updateData).length > 0) {
+      result = await repository.updateColumn(tableId, columnId, updateData)
+    } else {
+      // If only position was updated, get the updated column
+      result = await repository.getColumn(tableId, columnId)
+    }
 
     return createSuccessResponse(
       { column: result },

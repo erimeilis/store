@@ -58,7 +58,7 @@ export function loadOrGenerateTokens(environment: string): TokenSet {
     writeFileSync(tokenFilePath, JSON.stringify(tokenSet, null, 2));
     console.log(`🔑 Generated new tokens for ${environment} and saved to ${tokenFilePath}`);
   } catch (error) {
-    console.log(`⚠️  Failed to save tokens to ${tokenFilePath}:`, error.message);
+    console.log(`⚠️  Failed to save tokens to ${tokenFilePath}:`, error instanceof Error ? error.message : String(error));
   }
 
   return tokenSet;

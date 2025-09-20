@@ -7,7 +7,17 @@ import React, {useEffect, useRef} from 'react'
 
 export default function DocsPage() {
     const swaggerUIRef = useRef<HTMLDivElement>(null)
-    const baseApiUrl = 'http://localhost:8787'
+
+    // Get API URL from initial props (passed from server environment), fallback for development
+    const getApiUrl = () => {
+        if (typeof window !== 'undefined' && (window as any).__INITIAL_PROPS__?.apiUrl) {
+            return (window as any).__INITIAL_PROPS__.apiUrl
+        }
+        // Fallback for development
+        return 'http://localhost:8787'
+    }
+
+    const baseApiUrl = getApiUrl()
 
     useEffect(() => {
         console.log('DocsPage useEffect running...')

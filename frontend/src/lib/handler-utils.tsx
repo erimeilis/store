@@ -10,9 +10,10 @@ export const PAGINATION_CONFIG = {
 // API endpoint configurations
 export const API_ENDPOINTS = {
   users: '/api/users',
-  tokens: '/api/tokens', 
+  tokens: '/api/tokens',
   allowedEmails: '/api/allowed-emails',
   items: '/api/items',
+  tables: '/api/tables',
 } as const
 
 // Generic API fetcher for handlers

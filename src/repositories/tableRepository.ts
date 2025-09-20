@@ -27,6 +27,7 @@ export class TableRepository {
       visibility?: string
       createdAt?: string
       updatedAt?: string
+      forSale?: string
     },
     sort: { column: string; direction: string },
     pagination: { page: number; limit: number; offset: number }
@@ -65,6 +66,12 @@ export class TableRepository {
 
     if (filters.updatedAt) {
       additionalFilters += ` AND DATE(ut.updated_at) = '${sanitizeForSQL(filters.updatedAt)}'`
+    }
+
+    if (filters.forSale === 'true') {
+      additionalFilters += ` AND ut.for_sale = 1`
+    } else if (filters.forSale === 'false') {
+      additionalFilters += ` AND ut.for_sale = 0`
     }
 
     // Get tables
@@ -571,19 +578,28 @@ export class TableRepository {
   async createMissingSaleColumns(tableId: string): Promise<void> {
     const { hasPrice, hasQty } = await this.checkSaleColumnsExist(tableId)
 
+    // Get the current max position to add sale columns at the end following 10, 20, 30, 40... pattern
+    const maxPositionResult = await this.prisma.$queryRaw<[{ maxPosition: number | null }]>`
+      SELECT MAX(position) as maxPosition FROM table_columns WHERE table_id = ${tableId}
+    `
+    const currentMaxPosition = maxPositionResult[0]?.maxPosition ?? 0
+    const nextPosition = currentMaxPosition + 10
+
     if (!hasPrice) {
       const priceColumnId = crypto.randomUUID()
       await this.prisma.$queryRaw`
         INSERT INTO table_columns (id, table_id, name, type, is_required, default_value, position)
-        VALUES (${priceColumnId}, ${tableId}, 'price', 'number', ${true}, ${null}, ${999})
+        VALUES (${priceColumnId}, ${tableId}, 'price', 'number', ${true}, ${null}, ${nextPosition})
       `
     }
 
     if (!hasQty) {
       const qtyColumnId = crypto.randomUUID()
+      // If price was just added, qty position should be nextPosition + 10, otherwise nextPosition
+      const qtyPosition = !hasPrice ? nextPosition + 10 : nextPosition
       await this.prisma.$queryRaw`
         INSERT INTO table_columns (id, table_id, name, type, is_required, default_value, position)
-        VALUES (${qtyColumnId}, ${tableId}, 'qty', 'number', ${true}, ${'1'}, ${1000})
+        VALUES (${qtyColumnId}, ${tableId}, 'qty', 'number', ${true}, ${'1'}, ${qtyPosition})
       `
     }
   }
@@ -598,5 +614,141 @@ export class TableRepository {
     }
 
     return columnName === 'price' || columnName === 'qty'
+  }
+
+  /**
+   * Find public tables that are for sale (for public API endpoints)
+   */
+  async findPublicSaleTables(limit: number = 1000): Promise<{ tables: UserTable[]; totalCount: number }> {
+    const tables = await this.prisma.$queryRaw<UserTable[]>`
+      SELECT id, name, description, created_by, user_id, is_public, for_sale, created_at, updated_at
+      FROM user_tables
+      WHERE is_public = true AND for_sale = true
+      ORDER BY created_at DESC
+      LIMIT ${limit}
+    `
+
+    const [countResult] = await this.prisma.$queryRaw<[{ count: number }]>`
+      SELECT COUNT(*) as count
+      FROM user_tables
+      WHERE is_public = true AND for_sale = true
+    `
+
+    return {
+      tables: tables.map(table => ({
+        ...table,
+        is_public: Boolean(table.is_public),
+        for_sale: Boolean(table.for_sale)
+      })),
+      totalCount: countResult?.count || 0
+    }
+  }
+
+  /**
+   * Recount column positions to ensure proper spaced ordering (0, 10, 20, 30, 40...)
+   * This provides room for position swapping in arrow buttons
+   */
+  async recountColumnPositions(tableId: string): Promise<void> {
+    // Get all columns sorted by current position
+    const columns = await this.prisma.$queryRaw<{ id: string; position: number }[]>`
+      SELECT id, position
+      FROM table_columns
+      WHERE table_id = ${tableId}
+      ORDER BY position ASC
+    `
+
+    // First, assign all columns temporary unique negative positions to avoid conflicts
+    for (let i = 0; i < columns.length; i++) {
+      const column = columns[i]
+      if (!column) continue
+
+      const tempPosition = -1000 - i  // Use unique negative positions
+      await this.prisma.$executeRaw`
+        UPDATE table_columns
+        SET position = ${tempPosition}
+        WHERE id = ${column.id} AND table_id = ${tableId}
+      `
+    }
+
+    // Then, assign proper spaced positions (10, 20, 30, 40, 50...)
+    for (let i = 0; i < columns.length; i++) {
+      const column = columns[i]
+      if (!column) continue
+
+      const spacedPosition = (i + 1) * 10  // Start from 10, not 0
+      await this.prisma.$executeRaw`
+        UPDATE table_columns
+        SET position = ${spacedPosition}
+        WHERE id = ${column.id} AND table_id = ${tableId}
+      `
+    }
+  }
+
+  /**
+   * Safely update a column's position using intermediate values in spaced gaps
+   */
+  async updateColumnPositionSafe(tableId: string, columnId: string, newPosition: number): Promise<void> {
+    console.log(`🔧 Safe position update: columnId=${columnId}, targetPosition=${newPosition}`)
+
+    // Calculate simple intermediate value based on spacing pattern (10, 20, 30, 40...)
+    // Use a small offset that won't conflict with existing positions
+    const intermediatePosition = newPosition - 1
+
+    console.log(`📍 Using intermediate position ${intermediatePosition} to avoid conflicts`)
+
+    // Step 1: Move to intermediate position to avoid conflicts
+    await this.prisma.$executeRaw`
+      UPDATE table_columns
+      SET position = ${intermediatePosition}
+      WHERE id = ${columnId} AND table_id = ${tableId}
+    `
+
+    console.log(`✅ Column moved to intermediate position ${intermediatePosition}`)
+
+    // Step 2: Move to final target position
+    await this.prisma.$executeRaw`
+      UPDATE table_columns
+      SET position = ${newPosition}
+      WHERE id = ${columnId} AND table_id = ${tableId}
+    `
+
+    console.log(`✅ Column moved to final position ${newPosition}`)
+  }
+
+  /**
+   * Swap positions between two columns
+   * With non-unique positions, this is now a simple operation
+   */
+  async swapColumnPositions(tableId: string, columnId1: string, columnId2: string): Promise<void> {
+    // Get current positions of both columns
+    const columns = await this.prisma.$queryRaw<{ id: string; position: number }[]>`
+      SELECT id, position
+      FROM table_columns
+      WHERE table_id = ${tableId} AND (id = ${columnId1} OR id = ${columnId2})
+    `
+
+    if (columns.length !== 2) {
+      throw new Error('One or both columns not found')
+    }
+
+    const column1 = columns.find(col => col.id === columnId1)
+    const column2 = columns.find(col => col.id === columnId2)
+
+    if (!column1 || !column2) {
+      throw new Error('One or both columns not found')
+    }
+
+    // Simply swap the position values - no intermediate steps needed with non-unique positions
+    await this.prisma.$executeRaw`
+      UPDATE table_columns
+      SET position = ${column2.position}
+      WHERE id = ${columnId1} AND table_id = ${tableId}
+    `
+
+    await this.prisma.$executeRaw`
+      UPDATE table_columns
+      SET position = ${column1.position}
+      WHERE id = ${columnId2} AND table_id = ${tableId}
+    `
   }
 }

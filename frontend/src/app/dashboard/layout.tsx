@@ -8,7 +8,7 @@ import { LayoutProps } from '@/types/layout'
 import { Navbar, NavbarBrand } from '@/components/ui/navbar'
 import { Button } from '@/components/ui/button'
 import { HorizontalMenu, MenuItem, MenuDetails } from '@/components/ui/menu'
-import { IconLogout, IconLayoutDashboard, IconUsers, IconKey, IconMail, IconBox, IconUser, IconTable, IconApi, IconMenu2, IconX } from '@tabler/icons-react'
+import { IconLogout, IconLayoutDashboard, IconUsers, IconKey, IconMail, IconBox, IconUser, IconTable, IconApi, IconMenu2, IconX, IconShoppingCart } from '@tabler/icons-react'
 import { useThemeStore } from '@/stores/useThemeStore'
 
 interface DashboardLayoutProps extends LayoutProps {
@@ -79,6 +79,23 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
               >
                 Dynamic Tables
               </MenuItem>
+              <MenuDetails
+                summary="Sales"
+                icon={IconShoppingCart}
+              >
+                <MenuItem
+                  icon={IconShoppingCart}
+                  href="/dashboard/sales"
+                >
+                  Sales Transactions
+                </MenuItem>
+                <MenuItem
+                  icon={IconTable}
+                  href="/dashboard/sales/inventory"
+                >
+                  Inventory Tracking
+                </MenuItem>
+              </MenuDetails>
               <MenuItem
                 icon={IconApi}
                 href="/dashboard/docs"
@@ -232,6 +249,30 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                   <IconTable size={20} />
                   <span>Dynamic Tables</span>
                 </a>
+
+                {/* Sales Section */}
+                <div className="pt-2">
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">
+                    Sales
+                  </div>
+                  <a
+                    href="/dashboard/sales"
+                    onClick={closeMobileMenu}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300 transition-colors"
+                  >
+                    <IconShoppingCart size={20} />
+                    <span>Sales Transactions</span>
+                  </a>
+                  <a
+                    href="/dashboard/sales/inventory"
+                    onClick={closeMobileMenu}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300 transition-colors"
+                  >
+                    <IconTable size={20} />
+                    <span>Inventory Tracking</span>
+                  </a>
+                </div>
+
                 <a
                   href="/dashboard/docs"
                   onClick={closeMobileMenu}
