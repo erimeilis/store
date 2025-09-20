@@ -20,6 +20,8 @@ import { addColumn } from './addColumn.js'
 import { updateColumn } from './updateColumn.js'
 import { deleteColumn } from './deleteColumn.js'
 import { executeColumnMassAction } from './executeColumnMassAction.js'
+import { recountPositions } from './recountPositions.js'
+import { swapColumnPositions } from './swapColumnPositions.js'
 
 /**
  * Refactored Table service - delegates to individual function modules
@@ -88,5 +90,13 @@ export class TableService {
 
   async executeColumnMassAction(c: Context, user: UserContext, tableId: string, action: string, ids: string[]) {
     return executeColumnMassAction(this.repository, this.validator, c, user, tableId, action, ids)
+  }
+
+  async recountPositions(c: Context, user: UserContext, tableId: string) {
+    return recountPositions(this.repository, this.validator, c, user, tableId)
+  }
+
+  async swapColumnPositions(c: Context, user: UserContext, tableId: string, columnId1: string, columnId2: string) {
+    return swapColumnPositions(this.repository, this.validator, c, user, tableId, columnId1, columnId2)
   }
 }

@@ -5,7 +5,7 @@
 
 import React from 'react'
 import { MenuItem, MenuDetails } from '@/components/ui/menu'
-import { IconLayoutDashboard, IconUsers, IconKey, IconMail, IconTable, IconApi, IconLogout, IconUser } from '@tabler/icons-react'
+import { IconLayoutDashboard, IconUsers, IconKey, IconMail, IconTable, IconApi, IconLogout, IconUser, IconShoppingCart, IconTestPipe } from '@tabler/icons-react'
 
 interface NavigationMenuProps {
   className?: string
@@ -26,6 +26,18 @@ export function MainNavigationMenu({ className, isMobile }: NavigationMenuProps)
         href="/dashboard/tables"
       >
         Dynamic Tables
+      </MenuItem>
+      <MenuItem
+        icon={IconShoppingCart}
+        href="/dashboard/sales"
+      >
+        Sales
+      </MenuItem>
+      <MenuItem
+        icon={IconTestPipe}
+        href="/demo"
+      >
+        Demo Items
       </MenuItem>
       <MenuItem
         icon={IconApi}

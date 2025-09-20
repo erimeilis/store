@@ -9,9 +9,16 @@ import { readFileSync } from 'fs';
 import { loadOrGenerateTokens } from './token-manager';
 import * as toml from '@iarna/toml';
 
+interface TomlConfig {
+  env?: Record<string, any>;
+  d1_databases?: any;
+  vars?: Record<string, string>;
+  [key: string]: any;
+}
+
 interface WranglerConfig {
-  backendConfig: any;
-  frontendConfig: any;
+  backendConfig: TomlConfig;
+  frontendConfig: TomlConfig;
 }
 
 interface EnvironmentConfig {
@@ -52,8 +59,8 @@ export function getEnvironmentConfig(environment: string): EnvironmentConfig {
   const { backendConfig, frontendConfig } = configs;
 
   // Determine the environment section to use
-  let envSection: any;
-  let frontendEnvSection: any;
+  let envSection: Record<string, any>;
+  let frontendEnvSection: Record<string, any>;
 
   if (environment === 'local') {
     envSection = backendConfig.env?.local || {};
