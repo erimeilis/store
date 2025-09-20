@@ -13,6 +13,7 @@ export interface ListTablesQuery {
   filter_visibility?: string
   filter_created_at?: string
   filter_updated_at?: string
+  for_sale?: string
 }
 
 export interface TableFilters {
@@ -22,6 +23,7 @@ export interface TableFilters {
   visibility?: string
   createdAt?: string
   updatedAt?: string
+  forSale?: string
 }
 
 export interface TableSort {
@@ -69,4 +71,5 @@ export interface UpdateColumnRequest {
   type?: string
   is_required?: boolean
   default_value?: string | null
+  position?: number
 }

@@ -45,6 +45,14 @@ export function convertValueToColumnType(value: any, columnType: string): any {
             }
             return date
 
+        case 'country':
+            // Country should be a valid ISO 2-letter or 3-letter code
+            const countryCode = stringValue.toUpperCase()
+            if (countryCode.length !== 2 && countryCode.length !== 3) {
+                throw new Error(`Invalid country code: "${stringValue}". Use ISO 2-letter (US) or 3-letter (USA) format`)
+            }
+            return countryCode
+
         default:
             return stringValue
     }

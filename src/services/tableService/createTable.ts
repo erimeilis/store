@@ -30,12 +30,22 @@ export async function createTable(
       const existingPriceCol = data.columns.find(col => col.name === 'price')
       const existingQtyCol = data.columns.find(col => col.name === 'qty')
 
-      // Add missing sale columns
+      // Calculate next available positions following 10, 20, 30, 40... pattern
+      const maxPosition = Math.max(...data.columns.map(col => col.position || 0))
+      const nextPosition = maxPosition + 10
+
+      // Add missing sale columns with proper positions
       if (!existingPriceCol) {
-        data.columns.push(DEFAULT_SALE_COLUMNS[0]!) // price column
+        data.columns.push({
+          ...DEFAULT_SALE_COLUMNS[0]!,
+          position: nextPosition
+        })
       }
       if (!existingQtyCol) {
-        data.columns.push(DEFAULT_SALE_COLUMNS[1]!) // qty column
+        data.columns.push({
+          ...DEFAULT_SALE_COLUMNS[1]!,
+          position: nextPosition + 10
+        })
       }
     }
 

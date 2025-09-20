@@ -8,6 +8,16 @@ import { IconFilter, IconPlus, IconTrash, IconX } from '@tabler/icons-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { formatDateForInput } from '@/lib/date-utils';
 import { clientApiRequest } from '@/lib/client-api';
+import {
+    DragState,
+    OrderingContext,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    handleDrop,
+    moveItem,
+    getItemPositionInfo
+} from '@/lib/ordering-utils';
 
 // Import our extracted components
 import { DateFilterCalendar } from './model-list/date-filter-calendar';
@@ -75,6 +85,7 @@ export function ModelList<T extends IModel>({
     columns,
     massActions,
     rowActions,
+    orderingConfig,
     renderItem,
     renderHeader,
 }: ModelListComponentProps<T>) {
@@ -121,6 +132,9 @@ export function ModelList<T extends IModel>({
     const [newRowData, setNewRowData] = useState<Record<string, string>>({});
     const [newRowError, setNewRowError] = useState<string>('');
     const [isSavingNewRow, setIsSavingNewRow] = useState<boolean>(false);
+
+    // Ordering state
+    const [dragState, setDragState] = useState<DragState<T>>({ draggedItem: null, isDragging: false });
 
     // Debounce ref for text filters
     const debounceTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
@@ -745,6 +759,34 @@ export function ModelList<T extends IModel>({
         });
     };
 
+    // Create ordering context and handlers if ordering is enabled
+    const orderingContext: OrderingContext<T> | null = orderingConfig?.enabled ? {
+        items: items?.data || [],
+        positionField: orderingConfig.positionField,
+        idField: orderingConfig.idField,
+        swapEndpoint: orderingConfig.swapEndpoint,
+        recountEndpoint: orderingConfig.recountEndpoint,
+        recountDelay: orderingConfig.recountDelay,
+        onReload: orderingConfig.onReorder || (async () => {
+            // Fallback to page reload if no custom reload function provided
+            window.location.reload();
+        })
+    } : null;
+
+    const orderingHandlers = orderingContext ? {
+        onDragStart: (e: React.DragEvent, item: T) =>
+            handleDragStart(e, item, setDragState, orderingContext.idField),
+        onDragOver: handleDragOver,
+        onDragEnd: (e: React.DragEvent) =>
+            handleDragEnd(e, setDragState),
+        onDrop: (e: React.DragEvent, targetItem: T) =>
+            handleDrop(e, targetItem, dragState, orderingContext, setDragState),
+        onMoveItem: (item: T, direction: 'up' | 'down') =>
+            moveItem(item, direction, orderingContext),
+        getPositionInfo: (item: T) =>
+            getItemPositionInfo(item, orderingContext.items, orderingContext.positionField, orderingContext.idField)
+    } : undefined;
+
     // Determine if we should use legacy rendering or new column-based rendering
     const useLegacyRendering = !columns || columns.length === 0;
     const hasFilterableColumns = columns?.some((col) => col.filterable) || false;
@@ -754,11 +796,15 @@ export function ModelList<T extends IModel>({
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <Heading title={title} />
-                    {createRoute && createRoute !== null ? (
+                    {typeof createRoute === 'string' && createRoute.length > 0 ? (
                         <Button icon={IconPlus} onClick={() => window.location.href = createRoute}>
                             Create New
                         </Button>
-                    ) : (
+                    ) : createRoute === '' ? (
+                        <Button icon={IconPlus} onClick={() => startAddingNewRow()}>
+                            Add Row
+                        </Button>
+                    ) : createRoute === null ? null : (
                         <Button icon={IconPlus} onClick={() => startAddingNewRow()}>
                             Add Row
                         </Button>
@@ -858,6 +904,8 @@ export function ModelList<T extends IModel>({
                                     onUpdateNewRowData={updateNewRowData}
                                     onSaveNewRow={saveNewRow}
                                     onCancelAddingNewRow={cancelAddingNewRow}
+                                    // Ordering functionality
+                                    orderingHandlers={orderingHandlers}
                                 />
                             </Table>
                         </TableWrapper>

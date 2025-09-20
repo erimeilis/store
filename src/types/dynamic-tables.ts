@@ -4,7 +4,7 @@
 /**
  * Supported column types for user-created tables
  */
-export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'email' | 'url' | 'textarea'
+export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'email' | 'url' | 'textarea' | 'country'
 
 /**
  * User-created table metadata
@@ -236,19 +236,17 @@ export function isProtectedSaleColumn(columnName: string, tableForSale: boolean)
 /**
  * Default column definitions for "for sale" tables
  */
-export const DEFAULT_SALE_COLUMNS: CreateColumnRequest[] = [
+export const DEFAULT_SALE_COLUMNS: Omit<CreateColumnRequest, 'position'>[] = [
   {
     name: 'price',
     type: 'number',
     is_required: true,
     // no default_value for price (undefined, not null)
-    position: 999
   },
   {
     name: 'qty',
     type: 'number',
     is_required: true,
     default_value: '1',
-    position: 1000
   }
 ]

@@ -1,7 +1,8 @@
 import { BaseModel } from './models'
+import { isValidCountryCode } from '@/lib/country-utils'
 
 // Column type definitions matching backend
-export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'email' | 'url' | 'textarea'
+export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'email' | 'url' | 'textarea' | 'country'
 
 // Access level definitions matching backend
 export type TableAccessLevel = 'none' | 'read' | 'write' | 'admin'
@@ -180,12 +181,13 @@ export const COLUMN_TYPE_OPTIONS: ColumnTypeOption[] = [
   { value: 'date', label: 'Date', description: 'Date picker input' },
   { value: 'boolean', label: 'Boolean', description: 'True/false checkbox' },
   { value: 'email', label: 'Email', description: 'Email address with validation' },
-  { value: 'url', label: 'URL', description: 'Web address with validation' }
+  { value: 'url', label: 'URL', description: 'Web address with validation' },
+  { value: 'country', label: 'Country', description: 'Country selector with name, ISO codes, and phone prefix' }
 ]
 
 // Helper functions for type checking
 export function isValidColumnType(type: string): type is ColumnType {
-  return ['text', 'number', 'date', 'boolean', 'email', 'url', 'textarea'].includes(type)
+  return ['text', 'number', 'date', 'boolean', 'email', 'url', 'textarea', 'country'].includes(type)
 }
 
 export function getColumnTypeLabel(type: ColumnType): string {
@@ -245,6 +247,12 @@ export function validateColumnValue(value: any, column: TableColumn): { valid: b
 
     case 'boolean':
       // Boolean values are typically handled by form components
+      break
+
+    case 'country':
+      if (!isValidCountryCode(String(value))) {
+        return { valid: false, error: `${column.name} must be a valid country code (ISO2 or ISO3)` }
+      }
       break
 
     case 'text':

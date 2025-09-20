@@ -37,7 +37,7 @@ try {
   console.log(`   Remote: ${config.useRemote}`);
   console.log(`   API URL: ${config.apiUrl}`);
 } catch (error) {
-  console.error('❌ Failed to load configuration:', error.message);
+  console.error('❌ Failed to load configuration:', error instanceof Error ? error.message : String(error));
   process.exit(1);
 }
 
@@ -130,7 +130,7 @@ async function dropAllTables(tables: string[]): Promise<void> {
       execSync(buildWranglerCommand(`DROP TABLE IF EXISTS "${table}";`), { stdio: 'pipe' });
       successCount++;
     } catch (error) {
-      console.log(`   ⚠️  Failed to drop table ${table}: ${error.message}`);
+      console.log(`   ⚠️  Failed to drop table ${table}: ${error instanceof Error ? error.message : String(error)}`);
       // Continue with other tables
     }
   }
@@ -246,7 +246,7 @@ async function main(): Promise<void> {
     console.log('   - Access control whitelist configured');
 
   } catch (error) {
-    console.error(`❌ ${config.description} reset failed:`, error.message);
+    console.error(`❌ ${config.description} reset failed:`, error instanceof Error ? error.message : String(error));
     if (config.requiresConfirmation) {
       console.error('💡 Make sure you have proper Cloudflare credentials configured');
     }

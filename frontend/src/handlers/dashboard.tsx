@@ -14,33 +14,25 @@ export async function handleDashboardPage(c: Context<{ Bindings: Env; Variables:
   const sort = c.req.query('sort') || 'created_at'
   const direction = c.req.query('direction') || 'desc'
   
-  // Extract all filter parameters for Items
+  // Extract all filter parameters for For Sale Tables
   const filterName = c.req.query('filter_name')
   const filterDescription = c.req.query('filter_description')
-  const filterPrice = c.req.query('filter_price')
-  const filterQuantity = c.req.query('filter_quantity')
-  const filterCategory = c.req.query('filter_category')
+  const filterVisibility = c.req.query('filter_visibility')
   const filterUpdatedAt = c.req.query('filter_updated_at')
-  
-  // Build additional parameters including all filters
-  const additionalParams: Record<string, string> = { sort, direction }
+
+  // Build additional parameters including all filters and for_sale=true filter
+  const additionalParams: Record<string, string> = { sort, direction, for_sale: 'true' }
   if (filterName) additionalParams.filter_name = filterName
   if (filterDescription) additionalParams.filter_description = filterDescription
-  if (filterPrice) additionalParams.filter_price = filterPrice
-  if (filterQuantity) additionalParams.filter_quantity = filterQuantity
-  if (filterCategory) additionalParams.filter_category = filterCategory
+  if (filterVisibility) additionalParams.filter_visibility = filterVisibility
   if (filterUpdatedAt) additionalParams.filter_updated_at = filterUpdatedAt
-  
-  // Import transformer for dashboard items
-  const { transformDashboardItem } = await import('@/lib/api-utils')
-  
-  const items = await fetchHandlerData(API_ENDPOINTS.items, c, {
+
+  const tables = await fetchHandlerData(API_ENDPOINTS.tables, c, {
     page,
-    additionalParams,
-    transformer: transformDashboardItem
+    additionalParams
   })
-  
-  const dashboardProps = buildPageProps(user, c, { items })
+
+  const dashboardProps = buildPageProps(user, c, { tables })
   
   return renderDashboardPage(c, '/dashboard', dashboardProps)
 }

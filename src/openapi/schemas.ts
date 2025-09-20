@@ -137,7 +137,7 @@ export const ItemsResponseSchema = z.object({
 // DYNAMIC TABLES SCHEMAS
 // =============================================================================
 
-export const ColumnTypeEnum = z.enum(['text', 'number', 'boolean', 'date']).openapi({
+export const ColumnTypeEnum = z.enum(['text', 'number', 'boolean', 'date', 'email', 'url', 'textarea', 'country']).openapi({
   description: 'Column data type'
 })
 

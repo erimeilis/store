@@ -85,14 +85,11 @@ const tableColumns: IColumnDefinition<UserTable>[] = [
     editableInline: true,
     editType: 'toggle',
     render: (table) => (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-center">
         {table.for_sale ? (
-          <>
-            <IconShoppingCart className="h-4 w-4 text-success" />
-            <span className="badge badge-success badge-sm">For Sale</span>
-          </>
+          <IconShoppingCart className="h-5 w-5 text-success" title="For Sale" />
         ) : (
-          <span className="badge badge-ghost badge-sm">Regular</span>
+          <div className="h-5 w-5" title="Regular"></div>
         )}
       </div>
     )

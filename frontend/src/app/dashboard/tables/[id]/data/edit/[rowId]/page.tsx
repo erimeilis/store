@@ -13,6 +13,7 @@ import {Textarea} from '@/components/ui/textarea'
 import {Checkbox} from '@/components/ui/checkbox'
 import {Alert} from '@/components/ui/alert'
 import {Breadcrumbs} from '@/components/ui/breadcrumbs'
+import {CountrySelect} from '@/components/ui/country-select'
 import {ParsedTableData, TableColumn, TableDataRow, TableSchema, UpdateTableDataRequest, validateColumnValue} from '@/types/dynamic-tables'
 import {clientApiRequest} from '@/lib/client-api'
 
@@ -231,6 +232,18 @@ export default function TableDataEditPage({
                         onChange={(e) => handleInputChange(column.name, e.target.value)}
                         label={column.name}
                         placeholder={`Type ${column.type}`}
+                        color={error ? 'error' : 'default'}
+                        required={column.is_required}
+                    />
+                )
+
+            case 'country':
+                return (
+                    <CountrySelect
+                        value={value}
+                        onChange={(value) => handleInputChange(column.name, value)}
+                        label={column.name}
+                        placeholder="Select a country..."
                         color={error ? 'error' : 'default'}
                         required={column.is_required}
                     />

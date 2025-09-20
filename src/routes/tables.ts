@@ -35,7 +35,8 @@ tablesRoutes.get('/api/tables', readAuthMiddleware, async (c) => {
     filter_owner: c.req.query('filter_owner') || '',
     filter_visibility: c.req.query('filter_visibility') || '',
     filter_created_at: c.req.query('filter_created_at') || '',
-    filter_updated_at: c.req.query('filter_updated_at') || ''
+    filter_updated_at: c.req.query('filter_updated_at') || '',
+    for_sale: c.req.query('for_sale') || ''
   }
 
   const result = await service.listTables(c, user, query)
@@ -201,6 +202,31 @@ tablesRoutes.post('/api/tables/:id/columns/mass-action', writeAuthMiddleware, as
   // Expected body format: { action: 'make_required' | 'make_optional' | 'delete', columnIds: string[] }
   const result = await service.executeColumnMassAction(c, user, tableId, body.action, body.ids)
 
+  return c.json(result.response, result.status as ContentfulStatusCode)
+})
+
+/**
+ * Recount column positions to ensure proper sequential ordering (0, 1, 2, 3...)
+ * POST /api/tables/:id/columns/recount
+ */
+tablesRoutes.post('/api/tables/:id/columns/recount', writeAuthMiddleware, async (c) => {
+  const service = new TableService(c.env)
+  const user = c.get('user')
+  const tableId = c.req.param('id')
+  const result = await service.recountPositions(c, user, tableId)
+  return c.json(result.response, result.status as ContentfulStatusCode)
+})
+
+/**
+ * Swap positions of two columns
+ * POST /api/tables/:id/columns/swap
+ */
+tablesRoutes.post('/api/tables/:id/columns/swap', writeAuthMiddleware, async (c) => {
+  const service = new TableService(c.env)
+  const user = c.get('user')
+  const tableId = c.req.param('id')
+  const body = await c.req.json()
+  const result = await service.swapColumnPositions(c, user, tableId, body.columnId1, body.columnId2)
   return c.json(result.response, result.status as ContentfulStatusCode)
 })
 

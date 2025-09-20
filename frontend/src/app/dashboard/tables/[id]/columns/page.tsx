@@ -9,12 +9,11 @@ import React, {useEffect, useState} from 'react'
 import {IColumnDefinition, IRowAction, ModelList} from '@/components/model/model-list'
 import {Alert} from '@/components/ui/alert'
 import {Badge} from '@/components/ui/badge'
-import {IconArrowDown, IconArrowUp, IconCopy, IconPlus} from '@tabler/icons-react'
-import {COLUMN_TYPE_OPTIONS, getColumnTypeLabel, TableColumn, TableSchema, isProtectedSaleColumn} from '@/types/dynamic-tables'
+import {IconCopy, IconPlus} from '@tabler/icons-react'
+import {COLUMN_TYPE_OPTIONS, getColumnTypeLabel, isProtectedSaleColumn, TableColumn, TableSchema} from '@/types/dynamic-tables'
 import {IMassAction, IPaginatedResponse} from '@/types/models'
 import {formatApiDate} from '@/lib/date-utils'
 import {clientApiRequest} from '@/lib/client-api'
-import {Button} from '@/components/ui/button'
 import {TableNavigation} from '@/components/table-navigation'
 import {ProtectedColumnBadge} from '@/components/protected-column-indicator'
 
@@ -82,72 +81,6 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
         }
     }
 
-    // Move column up or down in position
-    const moveColumn = async (column: ColumnModel, direction: 'up' | 'down') => {
-        if (!tableId || !schema) return
-
-        const currentPosition = column.position
-        const targetPosition = direction === 'up' ? currentPosition - 1 : currentPosition + 1
-
-        // Find the column that needs to swap positions
-        const targetColumn = schema.columns.find(col => col.position === targetPosition)
-        if (!targetColumn) return
-
-        try {
-            // Use a 3-step process to avoid unique constraint violation:
-            // 1. Move current column to a temporary high position
-            const tempPosition = Math.max(...schema.columns.map(c => c.position)) + 1000
-
-            // Step 1: Move current column to temp position
-            const tempResponse = await clientApiRequest(`/api/tables/${tableId}/columns/${column.id}`, {
-                method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({position: tempPosition})
-            })
-
-            if (!tempResponse.ok) {
-                const errorData = await tempResponse.json()
-                console.error('❌ Failed to move column to temp position:', errorData)
-                alert('Failed to reorder columns. Please try again.')
-                return
-            }
-
-            // Step 2: Move target column to current position
-            const targetResponse = await clientApiRequest(`/api/tables/${tableId}/columns/${targetColumn.id}`, {
-                method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({position: currentPosition})
-            })
-
-            if (!targetResponse.ok) {
-                const errorData = await targetResponse.json()
-                console.error('❌ Failed to move target column:', errorData)
-                alert('Failed to reorder columns. Please try again.')
-                return
-            }
-
-            // Step 3: Move current column from temp to target position
-            const finalResponse = await clientApiRequest(`/api/tables/${tableId}/columns/${column.id}`, {
-                method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({position: targetPosition})
-            })
-
-            if (!finalResponse.ok) {
-                const errorData = await finalResponse.json()
-                console.error('❌ Failed to move column to final position:', errorData)
-                alert('Failed to reorder columns. Please try again.')
-                return
-            }
-
-            // All steps successful - reload data
-            await loadTableData()
-            console.log(`✅ Column moved ${direction} successfully`)
-        } catch (error) {
-            console.error('❌ Error moving column:', error)
-            alert(`Error moving column: ${error instanceof Error ? error.message : 'Unknown error'}`)
-        }
-    }
 
     // Column definitions for the ModelList
     const columnDefinitions: IColumnDefinition<ColumnModel>[] = [
@@ -155,36 +88,19 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             key: 'order',
             label: 'Order',
             sortable: false,
-            className: 'w-16 sm:w-20 md:w-24 text-center',
-            render: (column) => {
-                const sortedColumns = schema?.columns ? [...schema.columns].sort((a, b) => a.position - b.position) : []
-                const isFirst = sortedColumns.length > 0 && sortedColumns[0].id === column.id
-                const isLast = sortedColumns.length > 0 && sortedColumns[sortedColumns.length - 1].id === column.id
-
-                return (
-                    <div className="flex items-center justify-center gap-0.5 sm:gap-1">
-                        <Button
-                            type="button"
-                            onClick={() => moveColumn(column, 'up')}
-                            disabled={isFirst}
-                            title="Move up"
-                            style="ghost"
-                            size="icon"
-                            icon={IconArrowUp}
-                        />
-                        <Button
-                            type="button"
-                            onClick={() => moveColumn(column, 'down')}
-                            disabled={isLast}
-                            title="Move down"
-                            style="ghost"
-                            size="icon"
-                            icon={IconArrowDown}
-                        />
-                    </div>
-                )
-            }
+            className: 'w-16 sm:w-20 md:w-24 text-center'
         },
+        /*{
+            key: 'position',
+            label: 'Position',
+            sortable: true,
+            className: 'w-20 text-center',
+            render: (column) => (
+                <span className="text-sm font-mono px-2 py-1 rounded">
+                    {column.position}
+                </span>
+            )
+        },*/
         {
             key: 'name',
             label: 'Name',
@@ -193,7 +109,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             filterType: 'text',
             className: 'min-w-0 w-auto',
             render: (column) => {
-                const isProtected = isProtectedSaleColumn(column.name, schema?.table.for_sale || false);
+                const isProtected = isProtectedSaleColumn(column.name, schema?.table.for_sale || false)
                 return (
                     <div className="flex items-center gap-2">
                         <span className="truncate block max-w-[120px] sm:max-w-none" title={column.name}>
@@ -206,7 +122,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                             variant="icon"
                         />
                     </div>
-                );
+                )
             },
             editableInline: false,
             editType: 'text',
@@ -502,6 +418,17 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 deleteRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
                 inlineEditRoute={undefined}
                 massActionRoute={`/api/tables/${tableId}/columns/mass-action`}
+                orderingConfig={{
+                    enabled: true,
+                    swapEndpoint: `/api/tables/${tableId}/columns/swap`,
+                    positionField: 'position',
+                    idField: 'id',
+                    recountEndpoint: `/api/tables/${tableId}/columns/recount`,
+                    recountDelay: 2000,
+                    onReorder: async () => {
+                        await loadTableData()
+                    }
+                }}
                 filters={{
                     sort: 'position',
                     direction: 'asc'

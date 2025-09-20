@@ -15,6 +15,7 @@ import {
 import { formatApiDate } from '@/lib/date-utils';
 import { clientApiRequest } from '@/lib/client-api';
 import { TableNavigation } from '@/components/table-navigation';
+import { CountryDisplay, getCountryOptions } from '@/components/ui/country-select';
 
 interface TableDataPageProps {
   initialData?: IPaginatedResponse<ExtendedTableDataRow> | null;
@@ -129,6 +130,21 @@ export default function TableDataPage({
         columnDef.editType = 'toggle';
       }
 
+      // Add filter options and edit options for country columns
+      if (column.type === 'country') {
+        const countryOptions = getCountryOptions();
+        columnDef.filterType = 'select';
+        columnDef.filterOptions = countryOptions.map(option => ({
+          value: option.value,
+          label: option.country.name
+        }));
+        columnDef.editType = 'select';
+        columnDef.editOptions = countryOptions.map(option => ({
+          value: option.value,
+          label: option.label
+        }));
+      }
+
       return columnDef;
     });
   };
@@ -147,11 +163,21 @@ export default function TableDataPage({
       case 'number': return 'number';
       case 'date': return 'date';
       case 'boolean': return 'toggle';
+      case 'country': return 'select';
       default: return 'text';
     }
   };
 
   const renderCellValue = (column: TableColumn, value: any) => {
+    // Check if this is a price column in a for sale table
+    if (column.name.toLowerCase() === 'price' && table?.for_sale && column.type === 'number' && value != null) {
+      return (
+        <span className="font-mono">
+          ${Number(value).toFixed(2)}
+        </span>
+      );
+    }
+
     switch (column.type) {
       case 'boolean':
         return (
@@ -173,6 +199,8 @@ export default function TableDataPage({
             {value}
           </a>
         ) : '-';
+      case 'country':
+        return value ? <CountryDisplay countryCode={value} /> : '-';
       default:
         return value || '-';
     }
