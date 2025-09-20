@@ -19,11 +19,13 @@ export interface ImportResult {
 export interface ColumnInfo {
     type: string
     required: boolean
+    defaultValue?: string | null | undefined
 }
 
 export interface TableColumn {
     name: string
     type: string
     is_required: boolean
+    default_value?: string | null
     order_index: number
 }
