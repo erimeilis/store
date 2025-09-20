@@ -38,10 +38,11 @@ interface ColumnMapping {
 }
 
 interface TableColumn {
-    id: number
+    id: string
     name: string
     type: string
     is_required: boolean
+    default_value?: string | null
 }
 
 export function TableImportManager({tableId}: TableImportManagerProps) {

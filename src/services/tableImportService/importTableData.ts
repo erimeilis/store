@@ -26,12 +26,12 @@ export async function importTableData(
 
     // Get table columns for validation
     const columnsResult = await env.DB.prepare(
-        'SELECT name, type, is_required FROM table_columns WHERE table_id = ? ORDER BY order_index'
+        'SELECT name, type, is_required, default_value FROM table_columns WHERE table_id = ? ORDER BY order_index'
     ).bind(tableId).all()
 
     const tableColumns = (columnsResult.results || []) as unknown as TableColumn[]
     const columnMap = new Map<string, ColumnInfo>(
-        tableColumns.map((col) => [col.name, { type: col.type, required: !!col.is_required }])
+        tableColumns.map((col) => [col.name, { type: col.type, required: !!col.is_required, defaultValue: col.default_value }])
     )
 
     // Validate column mappings
@@ -84,14 +84,28 @@ export async function importTableData(
                     // Validate and convert the value
                     const convertedValue = convertValueToColumnType(cellValue, columnInfo.type)
 
-                    // Check required fields
-                    if (columnInfo.required && (convertedValue === null || convertedValue === undefined || convertedValue === '')) {
-                        throw new Error(`Required field '${targetColumn}' is empty`)
+                    // Check required fields (skip validation if field has a default value)
+                    const hasDefaultValue = columnInfo.defaultValue && columnInfo.defaultValue !== 'null'
+                    if (columnInfo.required && !hasDefaultValue && (convertedValue === null || convertedValue === undefined || convertedValue === '')) {
+                        throw new Error(`Required field '${targetColumn}' is missing or empty`)
                     }
 
                     if (convertedValue !== null && convertedValue !== undefined) {
                         hasValidData = true
                         rowData[targetColumn] = convertedValue
+                    }
+                }
+
+                // Apply default values for required fields that have defaults but are missing/empty
+                for (const [columnName, columnInfo] of columnMap.entries()) {
+                    const hasDefaultValue = columnInfo.defaultValue && columnInfo.defaultValue !== 'null'
+                    if (columnInfo.required && hasDefaultValue &&
+                        (rowData[columnName] === undefined || rowData[columnName] === null || rowData[columnName] === '')) {
+                        const convertedDefault = convertValueToColumnType(columnInfo.defaultValue, columnInfo.type)
+                        if (convertedDefault !== null && convertedDefault !== undefined) {
+                            rowData[columnName] = convertedDefault
+                            hasValidData = true
+                        }
                     }
                 }
 
