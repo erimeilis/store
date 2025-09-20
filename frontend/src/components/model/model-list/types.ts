@@ -33,6 +33,17 @@ export interface IColumnDefinition<T extends IModel> {
     onSave?: (item: T, newValue: string) => Promise<void> | void;
 }
 
+// Ordering configuration interface
+export interface IOrderingConfig<T extends IModel> {
+    enabled: boolean;
+    swapEndpoint: string;
+    positionField: keyof T;
+    idField: keyof T;
+    onReorder?: (item1: T, item2: T) => Promise<void>;
+    recountEndpoint?: string;
+    recountDelay?: number; // in milliseconds, default 2000
+}
+
 // Main component props interface
 export interface ModelListComponentProps<T extends IModel> extends IModelListProps<T> {
     title: string;
@@ -44,6 +55,7 @@ export interface ModelListComponentProps<T extends IModel> extends IModelListPro
     columns: IColumnDefinition<T>[];
     massActions?: IMassAction[];
     rowActions?: IRowAction<T>[];
+    orderingConfig?: IOrderingConfig<T>;
     // Legacy props for backward compatibility
     renderItem?: (item: T) => React.ReactNode;
     renderHeader?: () => React.ReactNode;
@@ -109,6 +121,16 @@ export interface TableHeaderProps<T extends IModel> {
     onToggleDateFilter?: (columnKey: string) => void;
 }
 
+// Ordering handlers interface
+export interface IOrderingHandlers<T extends IModel> {
+    onDragStart: (e: React.DragEvent, item: T) => void;
+    onDragOver: (e: React.DragEvent) => void;
+    onDragEnd: (e: React.DragEvent) => void;
+    onDrop: (e: React.DragEvent, targetItem: T) => void;
+    onMoveItem: (item: T, direction: 'up' | 'down') => void;
+    getPositionInfo: (item: T) => { isFirst: boolean; isLast: boolean; sortedIndex: number };
+}
+
 export interface TableBodyProps<T extends IModel> {
     items: { data?: T[]; last_page?: number } | null;
     columns: IColumnDefinition<T>[];
@@ -138,6 +160,8 @@ export interface TableBodyProps<T extends IModel> {
     onUpdateNewRowData?: (columnKey: string, value: string) => void;
     onSaveNewRow?: () => Promise<void>;
     onCancelAddingNewRow?: () => void;
+    // Ordering functionality
+    orderingHandlers?: IOrderingHandlers<T>;
 }
 
 export interface FiltersRowProps<T extends IModel> {

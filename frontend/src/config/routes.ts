@@ -159,6 +159,34 @@ export const routes: RouteConfig[] = [
     layout: 'dashboard',
     segment: 'edit',
     requiresAuth: true
+  },
+  {
+    path: '/dashboard/sales',
+    handler: async (c) => (await import('@/handlers/sales')).handleSalesListPage(c),
+    layout: 'dashboard',
+    segment: 'sales',
+    requiresAuth: true
+  },
+  {
+    path: '/dashboard/sales/analytics',
+    handler: async (c) => (await import('@/handlers/sales')).handleSalesAnalyticsPage(c),
+    layout: 'dashboard',
+    segment: 'analytics',
+    requiresAuth: true
+  },
+  {
+    path: '/dashboard/sales/inventory',
+    handler: async (c) => (await import('@/handlers/sales')).handleInventoryPage(c),
+    layout: 'dashboard',
+    segment: 'inventory',
+    requiresAuth: true
+  },
+  {
+    path: '/demo',
+    handler: async (c) => (await import('@/handlers/demo')).handleDemoPage(c),
+    layout: 'dashboard',
+    segment: 'demo',
+    requiresAuth: true
   }
 ]
 
@@ -199,5 +227,9 @@ export const pageComponents = {
   '/dashboard/tables/[id]/edit': async () => (await import('@/app/dashboard/tables/[id]/edit/page')).default,
   '/dashboard/tables/[id]/columns': async () => (await import('@/app/dashboard/tables/[id]/columns/page')).default,
   '/dashboard/tables/[id]/import': async () => (await import('@/app/dashboard/tables/[id]/import/page')).default,
-  '/dashboard/tables/[id]/data/edit/[rowId]': async () => (await import('@/app/dashboard/tables/[id]/data/edit/[rowId]/page')).default
+  '/dashboard/tables/[id]/data/edit/[rowId]': async () => (await import('@/app/dashboard/tables/[id]/data/edit/[rowId]/page')).default,
+  '/dashboard/sales': async () => (await import('@/app/dashboard/sales/page')).default,
+  '/dashboard/sales/analytics': async () => (await import('@/app/dashboard/sales/analytics/page')).default,
+  '/dashboard/sales/inventory': async () => (await import('@/app/dashboard/sales/inventory/page')).default,
+  '/demo': async () => (await import('@/app/demo/page')).default
 }

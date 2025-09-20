@@ -28,6 +28,7 @@ export async function listTables(
     if (query.filter_visibility !== undefined) filters.visibility = query.filter_visibility
     if (query.filter_created_at !== undefined) filters.createdAt = query.filter_created_at
     if (query.filter_updated_at !== undefined) filters.updatedAt = query.filter_updated_at
+    if (query.for_sale !== undefined) filters.forSale = query.for_sale
 
     const sort: TableSort = {
       column: query.sort || 'updated_at',

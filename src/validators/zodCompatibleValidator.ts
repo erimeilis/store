@@ -14,7 +14,7 @@ import type {
  */
 
 // Valid column types matching the existing enum
-const validColumnTypes = ['text', 'number', 'date', 'boolean', 'email', 'url', 'textarea'] as const
+const validColumnTypes = ['text', 'number', 'date', 'boolean', 'email', 'url', 'textarea', 'country'] as const
 
 const ColumnSchema = z.object({
   name: z.string().min(1, 'Column name is required'),
@@ -212,6 +212,9 @@ export class ZodCompatibleValidator {
             break
           case 'url':
             columnValidator = z.string().url('Must be a valid URL')
+            break
+          case 'country':
+            columnValidator = z.string().length(2).or(z.string().length(3))
             break
           default:
             columnValidator = z.any()

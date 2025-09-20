@@ -90,3 +90,22 @@ export function parseDDMMYYYY(dateString: string): Date | null {
   
   return date;
 }
+
+/**
+ * Format a number as currency (USD)
+ * @param amount - The amount to format
+ * @param currency - Currency code (default: USD)
+ * @returns Formatted currency string
+ */
+export function formatCurrency(amount: number, currency: string = 'USD'): string {
+  if (typeof amount !== 'number' || isNaN(amount)) {
+    return '$0.00';
+  }
+
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+}

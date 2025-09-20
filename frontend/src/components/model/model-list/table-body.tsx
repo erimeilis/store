@@ -4,7 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { TableBody, TableCell, TableHeaderCell, TableRow } from '@/components/ui/table';
 import { IModel } from '@/types/models';
 import { formatApiDate } from '@/lib/date-utils';
-import { IconEdit, IconTrash, IconCheck, IconX } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconCheck, IconX, IconGripVertical, IconArrowUp, IconArrowDown } from '@tabler/icons-react';
 import React from 'react';
 import { InlineEditComponent } from './inline-edit';
 import { EditingCell, IColumnDefinition, IRowAction, TableBodyProps } from './types';
@@ -223,6 +223,7 @@ function TableCellContent<T extends IModel>({
     onEditKeyPress,
     onInputBlur,
     onSetIsClickingSaveButton,
+    orderingHandlers,
 }: {
     item: T;
     column: IColumnDefinition<T>;
@@ -237,6 +238,7 @@ function TableCellContent<T extends IModel>({
     onEditKeyPress: (e: React.KeyboardEvent) => void;
     onInputBlur: () => void;
     onSetIsClickingSaveButton: (value: boolean) => void;
+    orderingHandlers?: any;
 }) {
     const columnKey = String(column.key);
     const isCurrentlyEditing = editingCell?.itemId === item.id && editingCell?.columnKey === columnKey;
@@ -296,6 +298,44 @@ function TableCellContent<T extends IModel>({
         );
     }
 
+    // Check if this is an "order" column and ordering is enabled
+    if (String(column.key) === 'order' && orderingHandlers) {
+        const handlers = orderingHandlers;
+        const positionInfo = handlers.getPositionInfo(item);
+
+        return (
+            <div className="flex items-center justify-center gap-0.5 sm:gap-1">
+                <div
+                    draggable={true}
+                    onDragStart={(e) => handlers.onDragStart(e, item)}
+                    onDragEnd={handlers.onDragEnd}
+                    className="cursor-grab active:cursor-grabbing drag-handle"
+                    title="Drag to reorder"
+                >
+                    <IconGripVertical className="h-4 w-4 text-gray-500 hover:text-gray-700" />
+                </div>
+                <Button
+                    type="button"
+                    onClick={() => handlers.onMoveItem(item, 'up')}
+                    disabled={positionInfo.isFirst}
+                    title="Move up"
+                    style="ghost"
+                    size="icon"
+                    icon={IconArrowUp}
+                />
+                <Button
+                    type="button"
+                    onClick={() => handlers.onMoveItem(item, 'down')}
+                    disabled={positionInfo.isLast}
+                    title="Move down"
+                    style="ghost"
+                    size="icon"
+                    icon={IconArrowDown}
+                />
+            </div>
+        );
+    }
+
     // Default non-editable cell rendering
     if (column.render) {
         return column.render(item);
@@ -336,6 +376,7 @@ function ModelTableRow<T extends IModel>({
     onDeleteItem,
     renderItem,
     rowActions,
+    orderingHandlers,
 }: {
     item: T;
     columns: IColumnDefinition<T>[];
@@ -345,7 +386,7 @@ function ModelTableRow<T extends IModel>({
     editingError: string;
     isEditingSaving: boolean;
     editingSaveSuccess: boolean;
-    editRoute: (id: number) => string;
+    editRoute: (id: number | string) => string;
     useLegacyRendering: boolean;
     onItemSelect: (itemId: number, checked: boolean) => void;
     onStartEditing: (item: T, column: IColumnDefinition<T>) => void;
@@ -357,9 +398,18 @@ function ModelTableRow<T extends IModel>({
     onDeleteItem: (item: T) => void;
     renderItem?: (item: T) => React.ReactNode;
     rowActions?: IRowAction<T>[];
+    orderingHandlers?: any;
 }) {
     return (
-        <TableRow key={item.id} className="hover:bg-base-300">
+        <TableRow
+            key={item.id}
+            className="hover:bg-base-300"
+            draggable={!!orderingHandlers}
+            onDragStart={orderingHandlers ? (e) => orderingHandlers.onDragStart(e, item) : undefined}
+            onDragOver={orderingHandlers?.onDragOver}
+            onDragEnd={orderingHandlers?.onDragEnd}
+            onDrop={orderingHandlers ? (e) => orderingHandlers.onDrop(e, item) : undefined}
+        >
             <TableHeaderCell className="w-4 cursor-pointer">
                 <div className="flex items-center">
                     <Checkbox
@@ -387,6 +437,7 @@ function ModelTableRow<T extends IModel>({
                               onEditKeyPress={onEditKeyPress}
                               onInputBlur={onInputBlur}
                               onSetIsClickingSaveButton={onSetIsClickingSaveButton}
+                              orderingHandlers={orderingHandlers}
                           />
                       </TableCell>
                   ))}
@@ -443,6 +494,8 @@ export function ModelTableBody<T extends IModel>({
     onUpdateNewRowData,
     onSaveNewRow,
     onCancelAddingNewRow,
+    // Ordering functionality
+    orderingHandlers,
 }: TableBodyProps<T>) {
     return (
         <TableBody>
@@ -502,6 +555,7 @@ export function ModelTableBody<T extends IModel>({
                         onDeleteItem={onDeleteItem}
                         renderItem={renderItem}
                         rowActions={rowActions}
+                        orderingHandlers={orderingHandlers}
                     />
                 ))
             )}
