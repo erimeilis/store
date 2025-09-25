@@ -15,7 +15,7 @@ export async function updateSale(
   user: UserContext,
   saleId: string,
   updateData: UpdateSaleRequest
-): Promise<Sale> {
+): Promise<Sale | Response> {
   const salesRepo = new SalesRepository(env)
 
   try {
@@ -81,9 +81,9 @@ export async function getSale(
     // Parse item snapshot
     const saleWithSnapshot = {
       ...sale,
-      item_snapshot: typeof sale.item_snapshot === 'string'
-        ? JSON.parse(sale.item_snapshot)
-        : sale.item_snapshot
+      itemSnapshot: typeof sale.itemSnapshot === 'string'
+        ? JSON.parse(sale.itemSnapshot)
+        : sale.itemSnapshot
     }
 
     return c.json({ sale: saleWithSnapshot })

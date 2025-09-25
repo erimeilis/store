@@ -3,73 +3,74 @@
  */
 
 export interface ListTablesQuery {
-  page?: number
-  limit?: number
-  sort?: string
-  direction?: string
-  filter_name?: string
-  filter_description?: string
-  filter_owner?: string
-  filter_visibility?: string
-  filter_created_at?: string
-  filter_updated_at?: string
-  for_sale?: string
+    page?: number
+    limit?: number
+    sort?: string
+    direction?: string
+    filterName?: string
+    filterDescription?: string
+    filterOwner?: string
+    filterVisibility?: string
+    filterCreatedAt?: string
+    filterUpdatedAt?: string
+    forSale?: string
 }
 
 export interface TableFilters {
-  name?: string
-  description?: string
-  owner?: string
-  visibility?: string
-  createdAt?: string
-  updatedAt?: string
-  forSale?: string
+    name?: string
+    description?: string
+    owner?: string
+    visibility?: string
+    createdAt?: string
+    updatedAt?: string
+    forSale?: string
 }
 
 export interface TableSort {
-  column: string
-  direction: string
+    column: string
+    direction: string
 }
 
 export interface TablePagination {
-  page: number
-  limit: number
-  offset: number
+    page: number
+    limit: number
+    offset: number
 }
 
 export interface ImportTableDataRequest {
-  data: any[][]
-  columnMappings: { sourceColumn: string; targetColumn: string }[]
-  importMode: 'add' | 'replace'
-  hasHeaders: boolean
-  headers?: string[]
+    data: any[][]
+    columnMappings: { sourceColumn: string; targetColumn: string }[]
+    importMode: 'add' | 'replace'
+    hasHeaders: boolean
+    headers?: string[]
 }
 
 export interface ImportResult {
-  importedRows: number
-  errors: string[]
-  totalErrors: number
+    importedRows: number
+    errors: string[]
+    totalErrors: number
 }
 
 export interface ColumnData {
-  name: string
-  type: string
-  is_required: boolean
-  default_value: string | null
+    name: string
+    type: string
+    isRequired: boolean
+    defaultValue: string | null
 }
 
 export interface AddColumnRequest {
-  name: string
-  type: string
-  is_required?: boolean | string
-  default_value?: string | null
-  position?: number
+    name: string
+    type: string
+    isRequired?: boolean | string
+    defaultValue?: string | null
+    position?: number
 }
 
 export interface UpdateColumnRequest {
-  name?: string
-  type?: string
-  is_required?: boolean
-  default_value?: string | null
-  position?: number
+    name?: string
+    type?: string
+    isRequired?: boolean
+    allowDuplicates?: boolean
+    defaultValue?: string | null
+    position?: number
 }

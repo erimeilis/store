@@ -35,20 +35,24 @@ export default function TableDataPage({
 
   console.log('🔍 TableDataPage Props Structure:', JSON.stringify(initialData, null, 2));
   
-  console.log('🔍 TableDataPage Props Summary:', { 
-    hasInitialData: !!initialData, 
+  console.log('🔍 TableDataPage Props Summary:', {
+    hasInitialData: !!initialData,
     tableId,
     keys: initialData ? Object.keys(initialData) : null,
-    _meta: initialData?._meta,
-    current_page: initialData?.current_page,
+    meta: initialData?.meta,
+    currentPage: initialData?.currentPage,
     dataLength: initialData?.data?.length,
-    // Check if _meta is in a different location
+    // Check if meta is in a different location
     metaAlternatives: initialData ? {
-      rootMeta: initialData._meta,
-      dataMeta: initialData.data?.[0]?._meta,
-      hasColumns: !!initialData._meta?.columns
+      rootMeta: initialData.meta,
+      dataMeta: initialData.data?.[0]?.meta,
+      hasColumns: !!initialData.meta?.columns
     } : null
   });
+
+  // FORCE EXTRACTION DEBUG - This should show if the fix works
+  console.log('🚨 EXTRACTION DEBUG - _meta:', (initialData as any)?._meta);
+  console.log('🚨 EXTRACTION DEBUG - _meta.columns length:', (initialData as any)?._meta?.columns?.length || 0);
 
   // If we have initialData (server-side), use it directly
   // If not, we're in client-side mode and need to load data
@@ -107,14 +111,14 @@ export default function TableDataPage({
     return columns.map(column => {
       const columnDef: IColumnDefinition<ExtendedTableDataRow> = {
         key: column.name,
-        label: column.name + (column.is_required ? ' *' : ''),
+        label: column.name + (column.isRequired ? ' *' : '') + (!column.allowDuplicates ? ' ∃!' : ''),
         sortable: true,
         filterable: true,
         filterType: getFilterType(column.type),
         editableInline: true,
         editType: getEditType(column.type),
         editValidation: {
-          required: column.is_required,
+          required: column.isRequired && (column.defaultValue === null || column.defaultValue === undefined),
           ...(column.type === 'email' && { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ })
         },
         render: (row) => renderCellValue(column, row.data[column.name])
@@ -170,7 +174,7 @@ export default function TableDataPage({
 
   const renderCellValue = (column: TableColumn, value: any) => {
     // Check if this is a price column in a for sale table
-    if (column.name.toLowerCase() === 'price' && table?.for_sale && column.type === 'number' && value != null) {
+    if (column.name.toLowerCase() === 'price' && table?.forSale && column.type === 'number' && value != null) {
       return (
         <span className="font-mono">
           ${Number(value).toFixed(2)}
@@ -206,10 +210,13 @@ export default function TableDataPage({
     }
   };
 
-  // Extract table metadata from the response
-  const tableInfo = paginatedData?._meta || (paginatedData?.data?.[0]?._meta);
-  const table = tableInfo?.table;
-  const columns = tableInfo?.columns || [];
+  // Extract table metadata from the response - the data is at _meta, not meta
+  const metaData = (paginatedData as any)?._meta;
+  const table = metaData?.table;
+  const columns = metaData?.columns || [];
+
+  console.log('🔍 Fixed extraction - table:', table?.name);
+  console.log('🔍 Fixed extraction - columns.length:', columns.length);
 
   // Mass actions for table data
   const dataMassActions = [
@@ -268,9 +275,9 @@ export default function TableDataPage({
     table: table?.name,
     totalRows: transformedPaginatedData.total,
     paginatedData: {
-      current_page: transformedPaginatedData.current_page,
-      last_page: transformedPaginatedData.last_page,
-      per_page: transformedPaginatedData.per_page,
+      currentPage: transformedPaginatedData.currentPage,
+      lastPage: transformedPaginatedData.lastPage,
+      perPage: transformedPaginatedData.perPage,
       total: transformedPaginatedData.total,
       displayedRows: transformedPaginatedData.data.length
     }
@@ -288,8 +295,8 @@ export default function TableDataPage({
                 <p className="text-gray-600 mt-1">{table.description}</p>
               )}
               <div className="flex items-center gap-2 mt-2">
-                <span className={`badge ${table.is_public ? 'badge-success' : 'badge-warning'}`}>
-                  {table.is_public ? 'Public' : 'Private'}
+                <span className={`badge ${table.isPublic ? 'badge-success' : 'badge-warning'}`}>
+                  {table.isPublic ? 'Public' : 'Private'}
                 </span>
               </div>
             </div>

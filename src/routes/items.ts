@@ -26,7 +26,7 @@ itemsRoutes.get('/api/items', readAuthMiddleware, async (c) => {
     // Extract pagination parameters
     const page = parseInt(c.req.query('page') || '1', 10)
     const limit = parseInt(c.req.query('limit') || '10', 10)
-    const sort = c.req.query('sort') || 'updated_at'
+    const sort = c.req.query('sort') || 'updatedAt'
     const direction = c.req.query('direction') || 'desc'
     
     // Extract filter parameters
@@ -35,7 +35,7 @@ itemsRoutes.get('/api/items', readAuthMiddleware, async (c) => {
     const filterPrice = c.req.query('filter_price') || ''
     const filterQuantity = c.req.query('filter_quantity') || ''
     const filterCategory = c.req.query('filter_category') || ''
-    const filterUpdated = c.req.query('filter_updated_at') || ''
+    const filterUpdated = c.req.query('filter_updatedAt') || ''
     
     // Debug: Log all filter parameters
     console.log('🔍 Items API Debug - Filter parameters:', {
@@ -107,7 +107,7 @@ itemsRoutes.get('/api/items', readAuthMiddleware, async (c) => {
       }
     }
     
-    // Date filter for updated_at
+    // Date filter for updatedAt
     if (filterUpdated) {
       where.updatedAt = {
         gte: new Date(filterUpdated + 'T00:00:00.000Z'),
@@ -119,9 +119,9 @@ itemsRoutes.get('/api/items', readAuthMiddleware, async (c) => {
     
     // Determine sort field and direction
     const orderBy: any = {}
-    if (sort === 'updated_at' || sort === 'updatedAt') {
+    if (sort === 'updatedAt') {
       orderBy.updatedAt = direction === 'asc' ? 'asc' : 'desc'
-    } else if (sort === 'created_at' || sort === 'createdAt') {
+    } else if (sort === 'createdAt') {
       orderBy.createdAt = direction === 'asc' ? 'asc' : 'desc'
     } else if (sort === 'name') {
       orderBy.name = direction === 'asc' ? 'asc' : 'desc'

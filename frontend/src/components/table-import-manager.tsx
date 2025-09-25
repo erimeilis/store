@@ -19,7 +19,7 @@ interface TableImportManagerProps {
 }
 
 interface TableInfo {
-    for_sale: boolean
+    forSale: boolean
 }
 
 interface ParsedData {
@@ -41,8 +41,8 @@ interface TableColumn {
     id: string
     name: string
     type: string
-    is_required: boolean
-    default_value?: string | null
+    isRequired: boolean
+    defaultValue?: string | null
 }
 
 export function TableImportManager({tableId}: TableImportManagerProps) {
@@ -90,9 +90,9 @@ export function TableImportManager({tableId}: TableImportManagerProps) {
         try {
             const response = await clientApiRequest(`/api/tables/${tableId}`)
             if (response.ok) {
-                const data = await response.json() as { data?: { table: { for_sale: boolean } } }
+                const data = await response.json() as { data?: { table: { forSale: boolean } } }
                 if (data.data?.table) {
-                    setTableInfo({ for_sale: data.data.table.for_sale })
+                    setTableInfo({ forSale: data.data.table.forSale })
                 }
             }
         } catch (error) {
@@ -402,14 +402,6 @@ export function TableImportManager({tableId}: TableImportManagerProps) {
                 )}
             </div>
 
-            {/* Error Display */}
-            {error && (
-                <Alert className="alert-error">
-                    <IconX className="h-4 w-4"/>
-                    <span>{error}</span>
-                </Alert>
-            )}
-
             {/* Success Display */}
             {success && (
                 <Alert className="alert-success">
@@ -549,7 +541,7 @@ export function TableImportManager({tableId}: TableImportManagerProps) {
                                                     {value: '', label: 'Skip this column'},
                                                     ...tableColumns.map(col => ({
                                                         value: col.name,
-                                                        label: `${col.name} (${col.type})${col.is_required ? ' *' : ''}`
+                                                        label: `${col.name} (${col.type})${col.isRequired ? ' *' : ''}`
                                                     }))
                                                 ]}
                                             />
@@ -570,7 +562,7 @@ export function TableImportManager({tableId}: TableImportManagerProps) {
 
                             <div className="space-y-4">
                                 {/* For Sale Table Notice */}
-                                {tableInfo?.for_sale && (
+                                {tableInfo?.forSale && (
                                     <Alert className="alert-info">
                                         <IconCheck className="h-4 w-4"/>
                                         <span>
@@ -611,6 +603,7 @@ export function TableImportManager({tableId}: TableImportManagerProps) {
                                         disabled={isImporting}
                                         icon={isImporting ? IconRefresh : IconCheck}
                                         className={isImporting ? 'animate-pulse' : ''}
+                                        fail={!!error}
                                     >
                                         {isImporting ? 'Importing...' : 'Import Data'}
                                     </Button>
@@ -625,6 +618,14 @@ export function TableImportManager({tableId}: TableImportManagerProps) {
                                         Clear
                                     </Button>
                                 </div>
+
+                                {/* Error Display - positioned right after buttons */}
+                                {error && (
+                                    <Alert className="alert-error">
+                                        <IconX className="h-4 w-4"/>
+                                        <span>{error}</span>
+                                    </Alert>
+                                )}
                             </div>
                         </CardBody>
                     </Card>

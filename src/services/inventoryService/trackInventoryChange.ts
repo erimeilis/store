@@ -28,15 +28,25 @@ export async function trackInventoryChange(
   const inventoryRepo = new InventoryRepository(env)
 
   const request: CreateInventoryTransactionRequest = {
-    table_id: tableId,
-    table_name: tableName,
-    item_id: itemId,
-    transaction_type: transactionType,
-    quantity_change: options.quantityChange,
-    previous_data: options.previousData,
-    new_data: options.newData,
-    reference_id: options.referenceId,
-    created_by: createdBy
+    tableId: tableId,
+    tableName: tableName,
+    itemId: itemId,
+    transactionType: transactionType,
+    createdBy: createdBy
+  }
+
+  // Only add optional fields if they have values
+  if (options.quantityChange !== undefined) {
+    request.quantityChange = options.quantityChange
+  }
+  if (options.previousData !== undefined) {
+    request.previousData = options.previousData
+  }
+  if (options.newData !== undefined) {
+    request.newData = options.newData
+  }
+  if (options.referenceId !== undefined) {
+    request.referenceId = options.referenceId
   }
 
   return await inventoryRepo.createTransaction(request)
@@ -94,11 +104,16 @@ export async function trackItemUpdated(
     quantityChange = newData.qty - previousData.qty
   }
 
-  return trackInventoryChange(env, tableId, tableName, itemId, 'update', createdBy, {
-    quantityChange,
+  const options: any = {
     previousData,
     newData
-  })
+  }
+
+  if (quantityChange !== undefined) {
+    options.quantityChange = quantityChange
+  }
+
+  return trackInventoryChange(env, tableId, tableName, itemId, 'update', createdBy, options)
 }
 
 /**

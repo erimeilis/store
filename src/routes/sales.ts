@@ -31,17 +31,17 @@ salesRoutes.post('/api/sales', writeAuthMiddleware, async (c) => {
     const data: CreateSaleRequest = await c.req.json()
 
     // Validate required fields
-    if (!data.table_id || !data.item_id || !data.customer_id) {
+    if (!data.tableId || !data.itemId || !data.customerId) {
       return c.json({
-        error: 'Missing required fields: table_id, item_id, customer_id'
+        error: 'Missing required fields: tableId, itemId, customerId'
       }, 400)
     }
 
     const result = await service.createSale(c, user, data)
 
-    // Handle response based on result type
-    if (result && typeof result === 'object' && 'error' in result) {
-      return result // Service already returns proper Response
+    // Handle response based on result type - check if it's a Response object
+    if (result instanceof Response) {
+      return result
     }
 
     return c.json({
@@ -68,21 +68,34 @@ salesRoutes.get('/api/sales', readAuthMiddleware, async (c) => {
   const query: SaleListQuery = {
     page: parseInt(c.req.query('page') || '1', 10),
     limit: parseInt(c.req.query('limit') || '50', 10),
-    table_id: c.req.query('table_id') || undefined,
-    customer_id: c.req.query('customer_id') || undefined,
-    sale_status: c.req.query('sale_status') as any || undefined,
-    date_from: c.req.query('date_from') || undefined,
-    date_to: c.req.query('date_to') || undefined,
-    search: c.req.query('search') || undefined,
-    sort_by: c.req.query('sort_by') as any || 'created_at',
-    sort_order: c.req.query('sort_order') as any || 'desc'
+    sortBy: c.req.query('sort_by') as any || 'createdAt',
+    sortOrder: c.req.query('sort_order') as any || 'desc'
   }
+
+  // Only add optional fields if they have values
+  const tableIdParam = c.req.query('tableId')
+  if (tableIdParam) query.tableId = tableIdParam
+
+  const customerIdParam = c.req.query('customerId')
+  if (customerIdParam) query.customerId = customerIdParam
+
+  const saleStatusParam = c.req.query('saleStatus')
+  if (saleStatusParam) query.saleStatus = saleStatusParam as any
+
+  const dateFromParam = c.req.query('date_from')
+  if (dateFromParam) query.dateFrom = dateFromParam
+
+  const dateToParam = c.req.query('date_to')
+  if (dateToParam) query.dateTo = dateToParam
+
+  const searchParam = c.req.query('search')
+  if (searchParam) query.search = searchParam
 
   const result = await service.getSales(c, user, query)
 
-  // Handle response based on result type
-  if (result && typeof result === 'object' && 'error' in result) {
-    return result // Service already returns proper Response
+  // Handle response based on result type - check if it's a Response object
+  if (result instanceof Response) {
+    return result
   }
 
   return c.json(result)
@@ -125,9 +138,9 @@ salesRoutes.put('/api/sales/:id', writeAuthMiddleware, async (c) => {
 
     const result = await service.updateSale(c, user, saleId, data)
 
-    // Handle response based on result type
-    if (result && typeof result === 'object' && 'error' in result) {
-      return result // Service already returns proper Response
+    // Handle response based on result type - check if it's a Response object
+    if (result instanceof Response) {
+      return result
     }
 
     return c.json({
@@ -214,13 +227,13 @@ salesRoutes.get('/api/sales/analytics', readAuthMiddleware, async (c) => {
 
   const dateFrom = c.req.query('date_from') || undefined
   const dateTo = c.req.query('date_to') || undefined
-  const tableId = c.req.query('table_id') || undefined
+  const tableId = c.req.query('tableId') || undefined
 
   const result = await service.getSalesAnalytics(c, user, dateFrom, dateTo, tableId)
 
-  // Handle response based on result type
-  if (result && typeof result === 'object' && 'error' in result) {
-    return result // Service already returns proper Response
+  // Handle response based on result type - check if it's a Response object
+  if (result instanceof Response) {
+    return result
   }
 
   return c.json(result)

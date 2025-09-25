@@ -18,7 +18,6 @@ import type {
   StockLevelCheckResponse
 } from '@/types/inventory.js'
 import { Prisma, type PrismaClient } from '@prisma/client'
-import { sanitizeForSQL, validateSortColumn, validateSortDirection } from '@/utils/common.js'
 
 /**
  * Repository for inventory transaction operations
@@ -34,129 +33,186 @@ export class InventoryRepository {
    * Create a new inventory transaction
    */
   async createTransaction(request: CreateInventoryTransactionRequest): Promise<InventoryTransaction> {
-    const transactionId = crypto.randomUUID()
-    const now = new Date()
+    // Use Prisma create method instead of raw SQL
+    const createdTransaction = await this.prisma.inventoryTransaction.create({
+      data: {
+        tableId: request.tableId,
+        tableName: request.tableName,
+        itemId: request.itemId,
+        transactionType: request.transactionType,
+        quantityChange: request.quantityChange || null,
+        previousData: request.previousData ? JSON.stringify(request.previousData) : null,
+        newData: request.newData ? JSON.stringify(request.newData) : null,
+        referenceId: request.referenceId || null,
+        createdBy: request.createdBy
+      }
+    })
 
-    await this.prisma.$queryRaw`
-      INSERT INTO inventory_transactions (
-        id, table_id, table_name, item_id, transaction_type, quantity_change,
-        previous_data, new_data, reference_id, created_by, created_at
-      ) VALUES (
-        ${transactionId}, ${request.table_id}, ${request.table_name}, ${request.item_id},
-        ${request.transaction_type}, ${request.quantity_change || null},
-        ${request.previous_data ? JSON.stringify(request.previous_data) : null},
-        ${request.new_data ? JSON.stringify(request.new_data) : null},
-        ${request.reference_id || null}, ${request.created_by}, ${now}
-      )
-    `
-
-    const transaction = await this.findTransactionById(transactionId)
-    if (!transaction) {
-      throw new Error('Failed to create inventory transaction')
-    }
-
-    return transaction
+    // Return Prisma model directly since we now use camelCase throughout
+    return createdTransaction as InventoryTransaction
   }
 
   /**
    * Find transaction by ID
    */
   async findTransactionById(transactionId: string): Promise<InventoryTransaction | null> {
-    const [transaction] = await this.prisma.$queryRaw<InventoryTransaction[]>`
-      SELECT
-        id, table_id, table_name, item_id, transaction_type, quantity_change,
-        previous_data, new_data, reference_id, created_by, created_at
-      FROM inventory_transactions
-      WHERE id = ${transactionId}
-    `
+    const transaction = await this.prisma.inventoryTransaction.findUnique({
+      where: {
+        id: transactionId
+      }
+    })
 
-    return transaction || null
+    if (!transaction) {
+      return null
+    }
+
+    // Return Prisma model directly since we now use camelCase throughout
+    return transaction as InventoryTransaction
   }
 
   /**
    * List inventory transactions with filtering, sorting, and pagination
+   * Uses proper Prisma ORM patterns with dynamic JSON field searching
    */
   async findTransactions(query: InventoryTransactionListQuery): Promise<InventoryTransactionListResponse> {
     const page = query.page || 1
-    const limit = Math.min(query.limit || 50, 100) // Max 100 items per page
-    const offset = (page - 1) * limit
+    const limit = Math.min(query.limit || 20, 100) // Max 100 items per page
+    const skip = (page - 1) * limit
 
-    // Build WHERE conditions
-    let whereConditions = ''
-    const whereParams: any[] = []
+    // Build Prisma where clause using proper ORM patterns
+    const where: any = {}
 
-    if (query.table_id) {
-      whereConditions += ` AND it.table_id = ?`
-      whereParams.push(query.table_id)
+    // Basic filters
+    if (query.tableId) {
+      where.tableId = query.tableId
     }
 
-    if (query.item_id) {
-      whereConditions += ` AND it.item_id = ?`
-      whereParams.push(query.item_id)
+    if (query.itemId) {
+      where.itemId = query.itemId
     }
 
-    if (query.transaction_type) {
-      whereConditions += ` AND it.transaction_type = ?`
-      whereParams.push(query.transaction_type)
+    if (query.transactionType) {
+      where.transactionType = query.transactionType
     }
 
-    if (query.created_by) {
-      whereConditions += ` AND it.created_by = ?`
-      whereParams.push(query.created_by)
+    if (query.createdBy) {
+      where.createdBy = query.createdBy
     }
 
-    if (query.reference_id) {
-      whereConditions += ` AND it.reference_id = ?`
-      whereParams.push(query.reference_id)
+    if (query.referenceId) {
+      where.referenceId = query.referenceId
     }
 
-    if (query.date_from) {
-      whereConditions += ` AND DATE(it.created_at) >= ?`
-      whereParams.push(query.date_from)
+    // Date range filters
+    if (query.dateFrom || query.dateTo) {
+      where.createdAt = {}
+      if (query.dateFrom) {
+        where.createdAt.gte = new Date(query.dateFrom)
+      }
+      if (query.dateTo) {
+        where.createdAt.lte = new Date(query.dateTo)
+      }
     }
 
-    if (query.date_to) {
-      whereConditions += ` AND DATE(it.created_at) <= ?`
-      whereParams.push(query.date_to)
+    // Table name search
+    if (query.tableNameSearch) {
+      where.tableName = {
+        contains: query.tableNameSearch
+      }
     }
 
-    // Build ORDER BY clause
-    const allowedSortColumns = ['created_at', 'transaction_type', 'quantity_change']
-    const sortColumn = validateSortColumn(query.sort_by || 'created_at', allowedSortColumns)
-    const sortOrder = validateSortDirection(query.sort_order || 'desc')
+    // Dynamic JSON field search for any field in the data
+    // Since JSON fields are stored as String in SQLite, use string contains
+    // Note: SQLite doesn't support case-insensitive contains in Prisma
+    if (query.itemSearch) {
+      where.OR = [
+        // Search in newData string field (contains JSON)
+        {
+          newData: {
+            contains: query.itemSearch
+          }
+        },
+        // Search in previousData string field (contains JSON)
+        {
+          previousData: {
+            contains: query.itemSearch
+          }
+        }
+      ]
+    }
 
-    // Get transactions
-    const transactions = await this.prisma.$queryRawUnsafe<InventoryTransaction[]>(`
-      SELECT
-        it.id, it.table_id, it.table_name, it.item_id, it.transaction_type, it.quantity_change,
-        it.previous_data, it.new_data, it.reference_id, it.created_by, it.created_at
-      FROM inventory_transactions it
-      WHERE 1=1 ${whereConditions}
-      ORDER BY it.${sortColumn} ${sortOrder}
-      LIMIT ? OFFSET ?
-    `, ...whereParams, limit, offset)
+    // Quantity change filter
+    if (query.quantityChange) {
+      // Convert search term to number if possible, otherwise use string search
+      const numericValue = parseFloat(query.quantityChange)
+      if (!isNaN(numericValue)) {
+        where.quantityChange = numericValue
+      }
+    }
 
-    // Get total count
-    const [countResult] = await this.prisma.$queryRawUnsafe<[{ count: number }]>(`
-      SELECT COUNT(*) as count
-      FROM inventory_transactions it
-      WHERE 1=1 ${whereConditions}
-    `, ...whereParams)
+    // Build order by clause using camelCase
+    const orderBy: any = {}
+    const sortField = query.sortBy || 'createdAt'
+    const sortDirection = query.sortOrder || 'desc'
 
-    // Parse data fields
+    // Validate sort fields (now using camelCase)
+    const allowedSortFields = ['createdAt', 'transactionType', 'quantityChange', 'tableName']
+    if (allowedSortFields.includes(sortField)) {
+      orderBy[sortField] = sortDirection
+    } else {
+      orderBy.createdAt = 'desc' // Default fallback
+    }
+
+    // Debug logging
+    console.log('🔍 Prisma Query Debug:', {
+      where: JSON.stringify(where, null, 2),
+      orderBy: JSON.stringify(orderBy, null, 2),
+      skip,
+      limit,
+      sortField
+    })
+
+    // Execute queries using Prisma ORM
+    const [transactions, totalCount] = await Promise.all([
+      this.prisma.inventoryTransaction.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit
+      }),
+      this.prisma.inventoryTransaction.count({ where })
+    ])
+
+    // Parse JSON data fields and map to expected format
     const transactionsWithData: InventoryTransactionWithData[] = transactions.map(transaction => ({
-      ...transaction,
-      previous_data: transaction.previous_data ? JSON.parse(transaction.previous_data) as ParsedInventoryData : null,
-      new_data: transaction.new_data ? JSON.parse(transaction.new_data) as ParsedInventoryData : null
+      id: transaction.id,
+      tableId: transaction.tableId,
+      tableName: transaction.tableName,
+      itemId: transaction.itemId,
+      transactionType: transaction.transactionType as any,
+      quantityChange: transaction.quantityChange,
+      referenceId: transaction.referenceId,
+      createdBy: transaction.createdBy,
+      createdAt: transaction.createdAt,
+      previousData: transaction.previousData ?
+        (typeof transaction.previousData === 'string' ?
+          JSON.parse(transaction.previousData) :
+          transaction.previousData) as ParsedInventoryData : null,
+      newData: transaction.newData ?
+        (typeof transaction.newData === 'string' ?
+          JSON.parse(transaction.newData) :
+          transaction.newData) as ParsedInventoryData : null
     }))
 
     return {
       data: transactionsWithData,
-      meta: {
+      pagination: {
         page,
         limit,
-        total: countResult.count,
-        totalPages: Math.ceil(countResult.count / limit)
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        hasNextPage: page < Math.ceil(totalCount / limit),
+        hasPrevPage: page > 1
       }
     }
   }
@@ -169,132 +225,191 @@ export class InventoryRepository {
     dateTo?: string,
     tableId?: string
   ): Promise<InventoryAnalytics> {
-    let whereConditions = ''
-    const whereParams: any[] = []
+    // Build where clause using Prisma syntax
+    const where: any = {}
 
-    if (dateFrom) {
-      whereConditions += ` AND DATE(it.created_at) >= ?`
-      whereParams.push(dateFrom)
+    // Date filtering
+    if (dateFrom || dateTo) {
+      where.createdAt = {}
+      if (dateFrom) {
+        where.createdAt.gte = new Date(dateFrom)
+      }
+      if (dateTo) {
+        where.createdAt.lte = new Date(dateTo)
+      }
     }
 
-    if (dateTo) {
-      whereConditions += ` AND DATE(it.created_at) <= ?`
-      whereParams.push(dateTo)
-    }
-
+    // Table filtering
     if (tableId) {
-      whereConditions += ` AND it.table_id = ?`
-      whereParams.push(tableId)
+      where.tableId = tableId
     }
 
-    // Overall metrics
-    const [overallMetrics] = await this.prisma.$queryRawUnsafe<[{
-      total_transactions: number
-    }]>(`
-      SELECT COUNT(*) as total_transactions
-      FROM inventory_transactions it
-      WHERE 1=1 ${whereConditions}
-    `, ...whereParams)
-
-    // Transactions by type
-    const transactionsByType = await this.prisma.$queryRawUnsafe<Array<{
-      transaction_type: InventoryTransactionType
-      count: number
-      quantity_change: number
-    }>>(`
-      SELECT
-        transaction_type,
-        COUNT(*) as count,
-        COALESCE(SUM(quantity_change), 0) as quantity_change
-      FROM inventory_transactions it
-      WHERE 1=1 ${whereConditions}
-      GROUP BY transaction_type
-    `, ...whereParams)
-
-    // Convert to record format
-    const transactions_by_type: Record<InventoryTransactionType, number> = {
-      sale: 0,
-      add: 0,
-      remove: 0,
-      update: 0,
-      adjust: 0
-    }
-    const quantity_changes_by_type: Record<InventoryTransactionType, number> = {
-      sale: 0,
-      add: 0,
-      remove: 0,
-      update: 0,
-      adjust: 0
-    }
-
-    transactionsByType.forEach(row => {
-      transactions_by_type[row.transaction_type] = row.count
-      quantity_changes_by_type[row.transaction_type] = row.quantity_change
+    // Overall metrics using count
+    const totalTransactions = await this.prisma.inventoryTransaction.count({
+      where
     })
 
-    // Most active tables
-    const mostActiveTables = await this.prisma.$queryRawUnsafe<Array<{
-      table_id: string
-      table_name: string
-      transaction_count: number
-    }>>(`
-      SELECT
-        table_id,
-        table_name,
-        COUNT(*) as transaction_count
-      FROM inventory_transactions it
-      WHERE 1=1 ${whereConditions}
-      GROUP BY table_id, table_name
-      ORDER BY transaction_count DESC
-      LIMIT 10
-    `, ...whereParams)
+    // Transactions by type using groupBy
+    const transactionsByTypeResults = await this.prisma.inventoryTransaction.groupBy({
+      by: ['transactionType'],
+      where,
+      _count: {
+        _all: true
+      },
+      _sum: {
+        quantityChange: true
+      }
+    })
 
-    // Most active items
-    const mostActiveItems = await this.prisma.$queryRawUnsafe<Array<{
-      item_id: string
-      table_name: string
-      item_name: string
-      transaction_count: number
-    }>>(`
-      SELECT
-        it.item_id,
-        it.table_name,
-        COALESCE(JSON_EXTRACT(it.new_data, '$.name'), JSON_EXTRACT(it.previous_data, '$.name'), 'Unknown Item') as item_name,
-        COUNT(*) as transaction_count
-      FROM inventory_transactions it
-      WHERE 1=1 ${whereConditions}
-      GROUP BY it.item_id, it.table_name
-      ORDER BY transaction_count DESC
-      LIMIT 10
-    `, ...whereParams)
+    // Convert to record format
+    const transactionsByType: Record<InventoryTransactionType, number> = {
+      sale: 0,
+      add: 0,
+      remove: 0,
+      update: 0,
+      adjust: 0
+    }
+    const quantityChangesByType: Record<InventoryTransactionType, number> = {
+      sale: 0,
+      add: 0,
+      remove: 0,
+      update: 0,
+      adjust: 0
+    }
 
-    // Activity by date
-    const activityByDate = await this.prisma.$queryRawUnsafe<Array<{
-      date: string
-      transaction_count: number
-      quantity_change: number
-    }>>(`
-      SELECT
-        DATE(it.created_at) as date,
-        COUNT(*) as transaction_count,
-        COALESCE(SUM(it.quantity_change), 0) as quantity_change
-      FROM inventory_transactions it
-      WHERE 1=1 ${whereConditions}
-      GROUP BY DATE(it.created_at)
-      ORDER BY date DESC
-      LIMIT 30
-    `, ...whereParams)
+    transactionsByTypeResults.forEach(row => {
+      const type = row.transactionType as InventoryTransactionType
+      transactionsByType[type] = row._count._all
+      quantityChangesByType[type] = row._sum.quantityChange || 0
+    })
+
+    // Most active tables using groupBy
+    const mostActiveTables = await this.prisma.inventoryTransaction.groupBy({
+      by: ['tableId', 'tableName'],
+      where,
+      _count: {
+        _all: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      },
+      take: 10
+    })
+
+    // Most active items using groupBy
+    const mostActiveItems = await this.prisma.inventoryTransaction.groupBy({
+      by: ['itemId', 'tableName'],
+      where,
+      _count: {
+        _all: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      },
+      take: 10
+    })
+
+    // For item names, we need to extract from JSON data
+    const itemsWithNames = await Promise.all(
+      mostActiveItems.map(async (item) => {
+        // Get a sample transaction for this item to extract the name
+        const sampleTransaction = await this.prisma.inventoryTransaction.findFirst({
+          where: {
+            itemId: item.itemId,
+            OR: [
+              { newData: { not: null } },
+              { previousData: { not: null } }
+            ]
+          },
+          select: {
+            newData: true,
+            previousData: true
+          }
+        })
+
+        let itemName = 'Unknown Item'
+        if (sampleTransaction) {
+          // Try to extract name from JSON fields
+          try {
+            const newData = sampleTransaction.newData ? JSON.parse(sampleTransaction.newData) : null
+            const previousData = sampleTransaction.previousData ? JSON.parse(sampleTransaction.previousData) : null
+
+            // Look for common name fields
+            const nameFields = ['name', 'product_name', 'item_name', 'title']
+            for (const field of nameFields) {
+              if (newData?.[field]) {
+                itemName = newData[field]
+                break
+              }
+              if (previousData?.[field]) {
+                itemName = previousData[field]
+                break
+              }
+            }
+          } catch (e) {
+            // JSON parsing failed, keep default name
+          }
+        }
+
+        return {
+          itemId: item.itemId,
+          tableName: item.tableName,
+          itemName: itemName,
+          transactionCount: (item._count as any)?._all || (item._count as any)?.id || 0
+        }
+      })
+    )
+
+    // Activity by date - need to use date truncation
+    // For SQLite, we'll use a simplified approach with findMany and process in memory
+    const recentTransactions = await this.prisma.inventoryTransaction.findMany({
+      where,
+      select: {
+        createdAt: true,
+        quantityChange: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 1000 // Limit for performance
+    })
+
+    // Group by date in memory
+    const dateGroups: Record<string, { count: number; quantityChange: number }> = {}
+    recentTransactions.forEach(transaction => {
+      const date = transaction.createdAt.toISOString().split('T')[0] || transaction.createdAt.toISOString().substring(0, 10) // YYYY-MM-DD
+      if (!dateGroups[date]) {
+        dateGroups[date] = { count: 0, quantityChange: 0 }
+      }
+      dateGroups[date]!.count++
+      dateGroups[date]!.quantityChange += transaction.quantityChange || 0
+    })
+
+    // Convert to array and sort by date
+    const activityByDate = Object.entries(dateGroups)
+      .map(([date, data]) => ({
+        date,
+        transactionCount: data.count,
+        quantityChange: data.quantityChange
+      }))
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 30)
 
     return {
-      total_transactions: overallMetrics.total_transactions,
-      transactions_by_type,
-      quantity_changes_by_type,
-      most_active_tables: mostActiveTables,
-      most_active_items: mostActiveItems.map(item => ({
-        ...item,
-        item_name: item.item_name || 'Unknown Item'
+      totalTransactions: totalTransactions,
+      transactionsByType,
+      quantityChangesByType,
+      mostActiveTables: mostActiveTables.map(table => ({
+        tableId: table.tableId,
+        tableName: table.tableName,
+        transactionCount: (table._count as any)?._all || (table._count as any)?.id || 0
       })),
-      activity_by_date: activityByDate
+      mostActiveItems: itemsWithNames,
+      activityByDate
     }
   }
 
@@ -302,105 +417,193 @@ export class InventoryRepository {
    * Get inventory summary for an item
    */
   async getItemInventorySummary(tableId: string, itemId: string): Promise<ItemInventorySummary | null> {
-    const [summary] = await this.prisma.$queryRaw<Array<{
-      item_id: string
-      table_id: string
-      table_name: string
-      current_quantity: number
-      total_added: number
-      total_removed: number
-      total_sold: number
-      total_adjustments: number
-      last_transaction_date: Date
-      transaction_count: number
-    }>>`
-      SELECT
-        item_id,
-        table_id,
-        table_name,
-        COALESCE(SUM(CASE WHEN transaction_type IN ('add', 'adjust') AND quantity_change > 0 THEN quantity_change ELSE 0 END), 0) +
-        COALESCE(SUM(CASE WHEN transaction_type = 'sale' THEN -quantity_change ELSE 0 END), 0) +
-        COALESCE(SUM(CASE WHEN transaction_type IN ('remove', 'adjust') AND quantity_change < 0 THEN quantity_change ELSE 0 END), 0) as current_quantity,
-        COALESCE(SUM(CASE WHEN transaction_type = 'add' OR (transaction_type = 'adjust' AND quantity_change > 0) THEN quantity_change ELSE 0 END), 0) as total_added,
-        COALESCE(SUM(CASE WHEN transaction_type = 'remove' OR (transaction_type = 'adjust' AND quantity_change < 0) THEN ABS(quantity_change) ELSE 0 END), 0) as total_removed,
-        COALESCE(SUM(CASE WHEN transaction_type = 'sale' THEN quantity_sold ELSE 0 END), 0) as total_sold,
-        COALESCE(SUM(CASE WHEN transaction_type = 'adjust' THEN ABS(quantity_change) ELSE 0 END), 0) as total_adjustments,
-        MAX(created_at) as last_transaction_date,
-        COUNT(*) as transaction_count
-      FROM inventory_transactions
-      WHERE table_id = ${tableId} AND item_id = ${itemId}
-      GROUP BY item_id, table_id, table_name
-    `
+    // Get all transactions for the item
+    const transactions = await this.prisma.inventoryTransaction.findMany({
+      where: {
+        tableId,
+        itemId
+      },
+      select: {
+        transactionType: true,
+        quantityChange: true,
+        createdAt: true,
+        tableName: true
+      }
+    })
 
-    return summary || null
+    if (transactions.length === 0) {
+      return null
+    }
+
+    // Calculate aggregations in memory
+    let currentQuantity = 0
+    let totalAdded = 0
+    let totalRemoved = 0
+    let totalSold = 0
+    let totalAdjustments = 0
+    let lastTransactionDate = new Date(0)
+
+    transactions.forEach(tx => {
+      const qty = tx.quantityChange || 0
+
+      // Update last transaction date
+      if (tx.createdAt > lastTransactionDate) {
+        lastTransactionDate = tx.createdAt
+      }
+
+      // Calculate based on transaction type
+      switch (tx.transactionType) {
+        case 'add':
+          totalAdded += qty
+          currentQuantity += qty
+          break
+        case 'remove':
+          totalRemoved += Math.abs(qty)
+          currentQuantity += qty // qty is negative for remove
+          break
+        case 'sale':
+          totalSold += Math.abs(qty)
+          currentQuantity += qty // qty is negative for sale
+          break
+        case 'adjust':
+          totalAdjustments += Math.abs(qty)
+          if (qty > 0) {
+            totalAdded += qty
+          } else {
+            totalRemoved += Math.abs(qty)
+          }
+          currentQuantity += qty
+          break
+        case 'update':
+          // For updates, just track the quantity change
+          currentQuantity += qty
+          break
+      }
+    })
+
+    return {
+      itemId: itemId,
+      tableId: tableId,
+      tableName: transactions[0]?.tableName || 'Unknown Table',
+      currentQuantity: currentQuantity,
+      totalAdded: totalAdded,
+      totalRemoved: totalRemoved,
+      totalSold: totalSold,
+      totalAdjustments: totalAdjustments,
+      lastTransactionDate: lastTransactionDate,
+      transactionCount: transactions.length
+    }
   }
 
   /**
    * Get inventory summary for a table
    */
   async getTableInventorySummary(tableId: string): Promise<TableInventorySummary | null> {
-    // Get table overview
-    const [tableOverview] = await this.prisma.$queryRaw<Array<{
-      table_id: string
-      table_name: string
-      total_items: number
-      total_transactions: number
-    }>>`
-      SELECT
-        table_id,
-        table_name,
-        COUNT(DISTINCT item_id) as total_items,
-        COUNT(*) as total_transactions
-      FROM inventory_transactions
-      WHERE table_id = ${tableId}
-      GROUP BY table_id, table_name
-    `
+    // Get all transactions for the table
+    const transactions = await this.prisma.inventoryTransaction.findMany({
+      where: {
+        tableId
+      },
+      select: {
+        itemId: true,
+        tableName: true,
+        transactionType: true,
+        quantityChange: true,
+        createdAt: true
+      }
+    })
 
-    if (!tableOverview) {
+    if (transactions.length === 0) {
       return null
     }
 
-    // Get item-level summaries
-    const itemSummaries = await this.prisma.$queryRaw<Array<{
-      item_id: string
-      table_id: string
-      table_name: string
-      current_quantity: number
-      total_added: number
-      total_removed: number
-      total_sold: number
-      total_adjustments: number
-      last_transaction_date: Date
-      transaction_count: number
-    }>>`
-      SELECT
-        item_id,
-        table_id,
-        table_name,
-        COALESCE(SUM(CASE WHEN transaction_type IN ('add', 'adjust') AND quantity_change > 0 THEN quantity_change ELSE 0 END), 0) +
-        COALESCE(SUM(CASE WHEN transaction_type = 'sale' THEN -quantity_change ELSE 0 END), 0) +
-        COALESCE(SUM(CASE WHEN transaction_type IN ('remove', 'adjust') AND quantity_change < 0 THEN quantity_change ELSE 0 END), 0) as current_quantity,
-        COALESCE(SUM(CASE WHEN transaction_type = 'add' OR (transaction_type = 'adjust' AND quantity_change > 0) THEN quantity_change ELSE 0 END), 0) as total_added,
-        COALESCE(SUM(CASE WHEN transaction_type = 'remove' OR (transaction_type = 'adjust' AND quantity_change < 0) THEN ABS(quantity_change) ELSE 0 END), 0) as total_removed,
-        COALESCE(SUM(CASE WHEN transaction_type = 'sale' THEN quantity_sold ELSE 0 END), 0) as total_sold,
-        COALESCE(SUM(CASE WHEN transaction_type = 'adjust' THEN ABS(quantity_change) ELSE 0 END), 0) as total_adjustments,
-        MAX(created_at) as last_transaction_date,
-        COUNT(*) as transaction_count
-      FROM inventory_transactions
-      WHERE table_id = ${tableId}
-      GROUP BY item_id, table_id, table_name
-      ORDER BY transaction_count DESC
-    `
+    // Group transactions by item
+    const itemGroups: Record<string, typeof transactions> = {}
+    transactions.forEach(tx => {
+      if (!itemGroups[tx.itemId]) {
+        itemGroups[tx.itemId] = []
+      }
+      itemGroups[tx.itemId]!.push(tx)
+    })
 
-    const totalQuantity = itemSummaries.reduce((sum, item) => sum + item.current_quantity, 0)
+    // Calculate item summaries
+    const itemSummaries: ItemInventorySummary[] = []
+    let totalQuantity = 0
+
+    Object.entries(itemGroups).forEach(([itemId, itemTransactions]) => {
+      if (!itemTransactions) return
+
+      let currentQuantity = 0
+      let totalAdded = 0
+      let totalRemoved = 0
+      let totalSold = 0
+      let totalAdjustments = 0
+      let lastTransactionDate = new Date(0)
+
+      itemTransactions.forEach(tx => {
+        const qty = tx.quantityChange || 0
+
+        // Update last transaction date
+        if (tx.createdAt > lastTransactionDate) {
+          lastTransactionDate = tx.createdAt
+        }
+
+        // Calculate based on transaction type
+        switch (tx.transactionType) {
+          case 'add':
+            totalAdded += qty
+            currentQuantity += qty
+            break
+          case 'remove':
+            totalRemoved += Math.abs(qty)
+            currentQuantity += qty // qty is negative for remove
+            break
+          case 'sale':
+            totalSold += Math.abs(qty)
+            currentQuantity += qty // qty is negative for sale
+            break
+          case 'adjust':
+            totalAdjustments += Math.abs(qty)
+            if (qty > 0) {
+              totalAdded += qty
+            } else {
+              totalRemoved += Math.abs(qty)
+            }
+            currentQuantity += qty
+            break
+          case 'update':
+            // For updates, just track the quantity change
+            currentQuantity += qty
+            break
+        }
+      })
+
+      totalQuantity += currentQuantity
+
+      itemSummaries.push({
+        itemId: itemId,
+        tableId: tableId,
+        tableName: itemTransactions[0]?.tableName || 'Unknown Table',
+        currentQuantity: currentQuantity,
+        totalAdded: totalAdded,
+        totalRemoved: totalRemoved,
+        totalSold: totalSold,
+        totalAdjustments: totalAdjustments,
+        lastTransactionDate: lastTransactionDate,
+        transactionCount: itemTransactions.length
+      })
+    })
+
+    // Sort by transaction count descending
+    itemSummaries.sort((a, b) => b.transactionCount - a.transactionCount)
 
     return {
-      table_id: tableOverview.table_id,
-      table_name: tableOverview.table_name,
-      total_items: tableOverview.total_items,
-      total_quantity: totalQuantity,
-      total_transactions: tableOverview.total_transactions,
-      items: itemSummaries as ItemInventorySummary[]
+      tableId: tableId,
+      tableName: transactions[0]?.tableName || 'Unknown Table',
+      totalItems: Object.keys(itemGroups).length,
+      totalQuantity: totalQuantity,
+      totalTransactions: transactions.length,
+      items: itemSummaries
     }
   }
 
@@ -409,25 +612,25 @@ export class InventoryRepository {
    */
   async processBulkAdjustments(request: BulkInventoryAdjustmentRequest): Promise<InventoryAdjustmentResult> {
     const transactionIds: string[] = []
-    const errors: Array<{ item_id: string; error: string }> = []
+    const errors: Array<{ itemId: string; error: string }> = []
     let processedCount = 0
 
     for (const adjustment of request.adjustments) {
       try {
         const transaction = await this.createTransaction({
-          table_id: adjustment.table_id,
-          table_name: 'Bulk Adjustment', // This should be resolved from actual table
-          item_id: adjustment.item_id,
-          transaction_type: 'adjust',
-          quantity_change: adjustment.quantity_change,
-          created_by: request.created_by
+          tableId: adjustment.tableId,
+          tableName: 'Bulk Adjustment', // This should be resolved from actual table
+          itemId: adjustment.itemId,
+          transactionType: 'adjust',
+          quantityChange: adjustment.quantityChange,
+          createdBy: request.createdBy
         })
 
         transactionIds.push(transaction.id)
         processedCount++
       } catch (error) {
         errors.push({
-          item_id: adjustment.item_id,
+          itemId: adjustment.itemId,
           error: error instanceof Error ? error.message : 'Unknown error'
         })
       }
@@ -435,9 +638,9 @@ export class InventoryRepository {
 
     return {
       success: errors.length === 0,
-      processed_count: processedCount,
+      processedCount: processedCount,
       errors,
-      transaction_ids: transactionIds
+      transactionIds: transactionIds
     }
   }
 
@@ -445,64 +648,120 @@ export class InventoryRepository {
    * Check stock levels and generate alerts
    */
   async checkStockLevels(request: StockLevelCheckRequest): Promise<StockLevelCheckResponse> {
-    const lowStockThreshold = request.low_stock_threshold || 5
-    let whereConditions = ''
-    const whereParams: any[] = []
+    const lowStockThreshold = request.lowStockThreshold || 5
 
-    if (request.table_id) {
-      whereConditions += ` AND it.table_id = ?`
-      whereParams.push(request.table_id)
+    // Build where clause for Prisma
+    const where: any = {}
+    if (request.tableId) {
+      where.tableId = request.tableId
     }
 
-    // Get current stock levels grouped by item
-    const stockLevels = await this.prisma.$queryRawUnsafe<Array<{
-      item_id: string
-      table_id: string
-      table_name: string
-      item_name: string
-      current_quantity: number
-    }>>(`
-      SELECT
-        it.item_id,
-        it.table_id,
-        it.table_name,
-        COALESCE(JSON_EXTRACT(it.new_data, '$.name'), JSON_EXTRACT(it.previous_data, '$.name'), 'Unknown Item') as item_name,
-        COALESCE(SUM(CASE
-          WHEN transaction_type IN ('add', 'adjust') AND quantity_change > 0 THEN quantity_change
-          WHEN transaction_type = 'sale' THEN -quantity_change
-          WHEN transaction_type IN ('remove', 'adjust') AND quantity_change < 0 THEN quantity_change
-          ELSE 0
-        END), 0) as current_quantity
-      FROM inventory_transactions it
-      WHERE 1=1 ${whereConditions}
-      GROUP BY it.item_id, it.table_id, it.table_name
-      HAVING current_quantity <= ?
-      ORDER BY current_quantity ASC
-    `, ...whereParams, lowStockThreshold)
+    // Get all transactions grouped by item using Prisma
+    const transactionsByItem = await this.prisma.inventoryTransaction.groupBy({
+      by: ['itemId', 'tableId', 'tableName'],
+      where,
+      _sum: {
+        quantityChange: true
+      }
+    })
+
+    // Get sample data for each item to extract names
+    const itemDataPromises = transactionsByItem.map(async (group) => {
+      // Get the most recent transaction for this item that has data
+      const sampleTransaction = await this.prisma.inventoryTransaction.findFirst({
+        where: {
+          itemId: group.itemId,
+          tableId: group.tableId,
+          OR: [
+            { newData: { not: null } },
+            { previousData: { not: null } }
+          ]
+        },
+        select: {
+          newData: true,
+          previousData: true
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
+
+      let itemName = 'Unknown Item'
+      if (sampleTransaction) {
+        try {
+          const data = sampleTransaction.newData
+            ? JSON.parse(sampleTransaction.newData)
+            : sampleTransaction.previousData
+              ? JSON.parse(sampleTransaction.previousData)
+              : null
+
+          if (data) {
+            // Helper function to extract item name from data
+            const nameFields = ['name', 'product_name', 'item_name', 'title', 'description']
+            for (const field of nameFields) {
+              if (data[field] && typeof data[field] === 'string') {
+                itemName = data[field]
+                break
+              }
+            }
+
+            // If no common name field, use first string field
+            if (itemName === 'Unknown Item') {
+              for (const [key, value] of Object.entries(data)) {
+                if (typeof value === 'string' && value.trim() && key !== 'id') {
+                  itemName = value
+                  break
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error parsing item data:', error)
+        }
+      }
+
+      return {
+        itemId: group.itemId,
+        tableId: group.tableId,
+        tableName: group.tableName,
+        itemName: itemName,
+        currentQuantity: group._sum.quantityChange || 0
+      }
+    })
+
+    const itemsWithData = await Promise.all(itemDataPromises)
+
+    // Filter items that are at or below threshold
+    const lowStockItems = itemsWithData.filter(item =>
+      item.currentQuantity <= lowStockThreshold
+    )
 
     // Generate alerts
-    const alerts: InventoryAlert[] = stockLevels.map(item => ({
-      item_id: item.item_id,
-      table_id: item.table_id,
-      table_name: item.table_name,
-      item_name: item.item_name || 'Unknown Item',
-      current_quantity: item.current_quantity,
+    const alerts: InventoryAlert[] = lowStockItems.map(item => ({
+      itemId: item.itemId,
+      tableId: item.tableId,
+      tableName: item.tableName,
+      itemName: item.itemName,
+      currentQuantity: item.currentQuantity,
       threshold: lowStockThreshold,
-      alert_type: item.current_quantity <= 0 ? 'out_of_stock' :
-                 item.current_quantity < 0 ? 'negative_stock' : 'low_stock'
+      alertType: item.currentQuantity < 0 ? 'negative_stock' :
+                 item.currentQuantity === 0 ? 'out_of_stock' : 'low_stock'
     }))
 
+    // Sort by quantity ascending (most critical first)
+    alerts.sort((a, b) => a.currentQuantity - b.currentQuantity)
+
     // Count different types of alerts
-    const lowStockCount = alerts.filter(a => a.alert_type === 'low_stock').length
-    const outOfStockCount = alerts.filter(a => a.alert_type === 'out_of_stock').length
-    const negativeStockCount = alerts.filter(a => a.alert_type === 'negative_stock').length
+    const lowStockCount = alerts.filter(a => a.alertType === 'low_stock').length
+    const outOfStockCount = alerts.filter(a => a.alertType === 'out_of_stock').length
+    const negativeStockCount = alerts.filter(a => a.alertType === 'negative_stock').length
 
     return {
       alerts,
-      total_items_checked: stockLevels.length,
-      low_stock_count: lowStockCount,
-      out_of_stock_count: outOfStockCount,
-      negative_stock_count: negativeStockCount
+      totalItemsChecked: itemsWithData.length,
+      lowStockCount: lowStockCount,
+      outOfStockCount: outOfStockCount,
+      negativeStockCount: negativeStockCount
     }
   }
 
@@ -510,19 +769,27 @@ export class InventoryRepository {
    * Get transactions for a specific sale
    */
   async findTransactionsBySale(saleId: string): Promise<InventoryTransactionWithData[]> {
-    const transactions = await this.prisma.$queryRaw<InventoryTransaction[]>`
-      SELECT
-        id, table_id, table_name, item_id, transaction_type, quantity_change,
-        previous_data, new_data, reference_id, created_by, created_at
-      FROM inventory_transactions
-      WHERE reference_id = ${saleId}
-      ORDER BY created_at ASC
-    `
+    const transactions = await this.prisma.inventoryTransaction.findMany({
+      where: {
+        referenceId: saleId
+      },
+      orderBy: {
+        createdAt: 'asc'
+      }
+    })
 
     return transactions.map(transaction => ({
-      ...transaction,
-      previous_data: transaction.previous_data ? JSON.parse(transaction.previous_data) as ParsedInventoryData : null,
-      new_data: transaction.new_data ? JSON.parse(transaction.new_data) as ParsedInventoryData : null
+      id: transaction.id,
+      tableId: transaction.tableId,
+      tableName: transaction.tableName,
+      itemId: transaction.itemId,
+      transactionType: transaction.transactionType as any,
+      quantityChange: transaction.quantityChange,
+      referenceId: transaction.referenceId,
+      createdBy: transaction.createdBy,
+      createdAt: transaction.createdAt,
+      previousData: transaction.previousData ? JSON.parse(transaction.previousData) as ParsedInventoryData : null,
+      newData: transaction.newData ? JSON.parse(transaction.newData) as ParsedInventoryData : null
     }))
   }
 
@@ -530,9 +797,92 @@ export class InventoryRepository {
    * Delete transactions (for cleanup or testing)
    */
   async deleteTransactionsByReferenceId(referenceId: string): Promise<number> {
-    const result = await this.prisma.$executeRaw`
-      DELETE FROM inventory_transactions WHERE reference_id = ${referenceId}
-    `
-    return result
+    const result = await this.prisma.inventoryTransaction.deleteMany({
+      where: {
+        referenceId: referenceId
+      }
+    })
+    return result.count
+  }
+
+  /**
+   * Clear transactions based on query filters (same logic as findTransactions)
+   */
+  async clearTransactions(query: InventoryTransactionListQuery): Promise<number> {
+    // Build Prisma where clause using same logic as findTransactions
+    const where: any = {}
+
+    // Basic filters
+    if (query.tableId) {
+      where.tableId = query.tableId
+    }
+
+    if (query.itemId) {
+      where.itemId = query.itemId
+    }
+
+    if (query.transactionType) {
+      where.transactionType = query.transactionType
+    }
+
+    if (query.createdBy) {
+      where.createdBy = query.createdBy
+    }
+
+    if (query.referenceId) {
+      where.referenceId = query.referenceId
+    }
+
+    // Date range filters
+    if (query.dateFrom || query.dateTo) {
+      where.createdAt = {}
+      if (query.dateFrom) {
+        where.createdAt.gte = new Date(query.dateFrom)
+      }
+      if (query.dateTo) {
+        where.createdAt.lte = new Date(query.dateTo)
+      }
+    }
+
+    // Table name search
+    if (query.tableNameSearch) {
+      where.tableName = {
+        contains: query.tableNameSearch
+      }
+    }
+
+    // Dynamic JSON field search for any field in the data
+    if (query.itemSearch) {
+      where.OR = [
+        // Search in newData string field (contains JSON)
+        {
+          newData: {
+            contains: query.itemSearch
+          }
+        },
+        // Search in previousData string field (contains JSON)
+        {
+          previousData: {
+            contains: query.itemSearch
+          }
+        }
+      ]
+    }
+
+    // Quantity change filter
+    if (query.quantityChange) {
+      // Convert search term to number if possible, otherwise use string search
+      const numericValue = parseFloat(query.quantityChange)
+      if (!isNaN(numericValue)) {
+        where.quantityChange = numericValue
+      }
+    }
+
+    // Execute delete with the same filters
+    const result = await this.prisma.inventoryTransaction.deleteMany({
+      where
+    })
+
+    return result.count
   }
 }

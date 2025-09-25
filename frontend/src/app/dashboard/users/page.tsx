@@ -10,8 +10,8 @@ interface User {
   name: string | null;
   picture: string | null;
   role: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Column definitions for Users management
@@ -71,24 +71,24 @@ const userColumns: IColumnDefinition<User>[] = [
     )
   },
   { 
-    key: 'created_at', 
+    key: 'createdAt', 
     label: 'Created', 
     sortable: true,
     filterable: true,
     filterType: 'date',
-    render: (user) => formatApiDate(user.created_at)
+    render: (user) => formatApiDate(user.createdAt)
   }
 ];
 
 // Mass actions for users
 const userMassActions = [
   {
-    name: 'make_admin',
+    name: 'makeAdmin',
     label: 'Make Admin',
     confirmMessage: 'Are you sure you want to promote the selected users to admin?'
   },
   {
-    name: 'make_user',
+    name: 'makeUser',
     label: 'Make User',
     confirmMessage: 'Are you sure you want to demote the selected users to regular user?'
   },

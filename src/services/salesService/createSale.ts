@@ -26,17 +26,17 @@ export async function createSale(
 
   try {
     // 1. Validate that table exists and is for_sale
-    const table = await tableRepo.findTableByIdInternal(saleData.table_id)
+    const table = await tableRepo.findTableByIdInternal(saleData.tableId)
     if (!table) {
       throw new Error('Table not found')
     }
 
-    if (!table.for_sale) {
+    if (!table.forSale) {
       throw new Error('Table is not configured for sales')
     }
 
     // 2. Get the item data
-    const item = await tableDataRepo.getDataRow(saleData.table_id, saleData.item_id, user.id)
+    const item = await tableDataRepo.findDataRowById(saleData.itemId, saleData.tableId)
     if (!item) {
       throw new Error('Item not found')
     }
@@ -58,11 +58,11 @@ export async function createSale(
     }
 
     // 4. Check item availability
-    const requestedQuantity = saleData.quantity_sold || 1
+    const requestedQuantity = saleData.quantitySold || 1
     const availability = await checkItemAvailability(itemData, requestedQuantity)
 
     if (!availability.available) {
-      throw new Error(`Insufficient quantity available. Available: ${availability.current_quantity}, Requested: ${availability.requested_quantity}`)
+      throw new Error(`Insufficient quantity available. Available: ${availability.currentQuantity}, Requested: ${availability.requestedQuantity}`)
     }
 
     // 5. Calculate sale amounts
@@ -91,8 +91,8 @@ export async function createSale(
     }
 
     await tableDataRepo.updateDataRow(
-      saleData.item_id,
-      saleData.table_id,
+      saleData.itemId,
+      saleData.tableId,
       updatedItemData
     )
 
@@ -101,15 +101,15 @@ export async function createSale(
     const { userEmail } = getUserInfo(c, user)
 
     const inventoryTransaction: CreateInventoryTransactionRequest = {
-      table_id: table.id,
-      table_name: table.name,
-      item_id: item.id,
-      transaction_type: 'sale',
-      quantity_change: -requestedQuantity, // Negative for sale
-      previous_data: itemData,
-      new_data: updatedItemData,
-      reference_id: sale.id,
-      created_by: userEmail
+      tableId: table.id,
+      tableName: table.name,
+      itemId: item.id,
+      transactionType: 'sale',
+      quantityChange: -requestedQuantity, // Negative for sale
+      previousData: itemData,
+      newData: updatedItemData,
+      referenceId: sale.id,
+      createdBy: userEmail
     }
 
     await inventoryRepo.createTransaction(inventoryTransaction)
@@ -132,15 +132,15 @@ function checkItemAvailability(itemData: ItemSnapshot, requestedQuantity: number
   if (currentQuantity >= requestedQuantity) {
     return {
       available: true,
-      current_quantity: currentQuantity,
-      requested_quantity: requestedQuantity
+      currentQuantity: currentQuantity,
+      requestedQuantity: requestedQuantity
     }
   }
 
   return {
     available: false,
-    current_quantity: currentQuantity,
-    requested_quantity: requestedQuantity,
+    currentQuantity: currentQuantity,
+    requestedQuantity: requestedQuantity,
     shortage: requestedQuantity - currentQuantity
   }
 }

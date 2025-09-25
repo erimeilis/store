@@ -51,6 +51,7 @@ export function TableHeader<T extends IModel>({
     calendarTriggersRef,
     onColumnFilter,
     onToggleDateFilter,
+    hasMassActions = true, // Default to true for backward compatibility
 }: TableHeaderProps<T>) {
     const isAllSelected = items?.data ? selectedItems.size === items.data.length && items.data.length > 0 : false;
     const isIndeterminate = selectedItems.size > 0 && selectedItems.size < (items?.data?.length || 0);
@@ -58,20 +59,22 @@ export function TableHeader<T extends IModel>({
     return (
         <TableHead className="bg-muted text-xs uppercase">
             <TableRow>
-                <TableHeaderCell scope="col">
-                    <div className="flex items-center">
-                        <Checkbox
-                            id="select-all"
-                            checked={isAllSelected}
-                            ref={(checkbox) => {
-                                if (checkbox) {
-                                    checkbox.indeterminate = isIndeterminate;
-                                }
-                            }}
-                            onChange={(e) => onSelectAll(e.target.checked)}
-                        />
-                    </div>
-                </TableHeaderCell>
+                {hasMassActions && (
+                    <TableHeaderCell scope="col">
+                        <div className="flex items-center">
+                            <Checkbox
+                                id="select-all"
+                                checked={isAllSelected}
+                                ref={(checkbox) => {
+                                    if (checkbox) {
+                                        checkbox.indeterminate = isIndeterminate;
+                                    }
+                                }}
+                                onChange={(e) => onSelectAll(e.target.checked)}
+                            />
+                        </div>
+                    </TableHeaderCell>
+                )}
                 {useLegacyRendering
                     ? renderHeader && renderHeader()
                     : columns.map((column) => <ColumnHeaderCell key={String(column.key)} column={column} filters={filters} onSort={onSort} />)}
@@ -89,6 +92,7 @@ export function TableHeader<T extends IModel>({
                     calendarTriggersRef={calendarTriggersRef}
                     onColumnFilter={onColumnFilter}
                     onToggleDateFilter={onToggleDateFilter}
+                    hasMassActions={hasMassActions}
                 />
             )}
         </TableHead>

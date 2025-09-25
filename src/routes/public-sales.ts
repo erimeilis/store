@@ -52,8 +52,8 @@ publicSalesRoutes.get('/api/public/tables/:tableId/items', async (c) => {
   try {
     const result = await service.getTableItems(c, tableId)
 
-    if (result.error) {
-      return c.json({ error: result.error }, result.status || 404)
+    if ('error' in result) {
+      return c.json({ error: result.error }, (result.status || 404) as any)
     }
 
     return c.json(result)
@@ -78,8 +78,8 @@ publicSalesRoutes.get('/api/public/tables/:tableId/items/:itemId', async (c) => 
   try {
     const result = await service.getItem(c, tableId, itemId)
 
-    if (result.error) {
-      return c.json({ error: result.error }, result.status || 404)
+    if ('error' in result) {
+      return c.json({ error: result.error }, (result.status || 404) as any)
     }
 
     return c.json(result)
@@ -105,31 +105,31 @@ publicSalesRoutes.post('/api/public/buy', readAuthMiddleware, async (c) => {
     const data = await c.req.json()
 
     // Validate required fields
-    if (!data.table_id || !data.item_id || !data.customer_id) {
+    if (!data.tableId || !data.itemId || !data.customerId) {
       return c.json({
-        error: 'Missing required fields: table_id, item_id, customer_id'
+        error: 'Missing required fields: tableId, itemId, customerId'
       }, 400)
     }
 
-    if (!data.quantity_sold || data.quantity_sold < 1) {
+    if (!data.quantitySold || data.quantitySold < 1) {
       return c.json({
-        error: 'quantity_sold must be a positive number'
+        error: 'quantitySold must be a positive number'
       }, 400)
     }
 
     const purchaseRequest: CreateSaleRequest = {
-      table_id: data.table_id,
-      item_id: data.item_id,
-      customer_id: data.customer_id,
-      quantity_sold: data.quantity_sold,
-      payment_method: data.payment_method,
+      tableId: data.tableId,
+      itemId: data.itemId,
+      customerId: data.customerId,
+      quantitySold: data.quantitySold,
+      paymentMethod: data.paymentMethod,
       notes: data.notes
     }
 
     const result = await service.purchaseItem(c, user!, purchaseRequest)
 
-    if (result.error) {
-      return c.json({ error: result.error }, result.status || 400)
+    if ('error' in result) {
+      return c.json({ error: result.error }, (result.status || 400) as any)
     }
 
     return c.json({
@@ -158,8 +158,8 @@ publicSalesRoutes.get('/api/public/tables/:tableId/items/:itemId/availability', 
   try {
     const result = await service.checkAvailability(c, tableId, itemId, quantity)
 
-    if (result.error) {
-      return c.json({ error: result.error }, result.status || 404)
+    if ('error' in result) {
+      return c.json({ error: result.error }, (result.status || 404) as any)
     }
 
     return c.json(result)

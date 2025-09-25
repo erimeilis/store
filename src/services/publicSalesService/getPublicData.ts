@@ -15,8 +15,8 @@ export interface PublicItem {
   qty: number
   available: boolean
   data: ParsedTableData
-  created_at: Date
-  updated_at: Date
+  createdAt: Date
+  updatedAt: Date
 }
 
 /**
@@ -26,9 +26,9 @@ export interface PublicTable {
   id: string
   name: string
   description: string | null
-  item_count: number
-  created_at: Date
-  updated_at: Date
+  itemCount: number
+  createdAt: Date
+  updatedAt: Date
 }
 
 /**
@@ -54,9 +54,9 @@ export async function getForSaleTables(
         id: table.id,
         name: table.name,
         description: table.description,
-        item_count: itemCount,
-        created_at: table.created_at,
-        updated_at: table.updated_at
+        itemCount: itemCount,
+        createdAt: table.createdAt,
+        updatedAt: table.updatedAt
       })
     }
 
@@ -86,7 +86,7 @@ export async function getTableItems(
       return { error: 'Table not found', status: 404 }
     }
 
-    if (!table.is_public || !table.for_sale) {
+    if (!table.isPublic || !table.forSale) {
       return { error: 'Table is not available for public sales', status: 403 }
     }
 
@@ -130,8 +130,8 @@ export async function getTableItems(
           qty,
           available: qty > 0,
           data: parsedData,
-          created_at: row.created_at,
-          updated_at: row.updated_at
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt
         })
       }
     }
@@ -140,9 +140,9 @@ export async function getTableItems(
       id: table.id,
       name: table.name,
       description: table.description,
-      item_count: publicItems.length,
-      created_at: table.created_at,
-      updated_at: table.updated_at
+      itemCount: publicItems.length,
+      createdAt: table.createdAt,
+      updatedAt: table.updatedAt
     }
 
     return {
@@ -158,9 +158,9 @@ export async function getTableItems(
       id: tableId,
       name: 'Unknown Table',
       description: 'Unable to fetch table details',
-      item_count: 0,
-      created_at: new Date(),
-      updated_at: new Date()
+      itemCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
 
     return {
@@ -189,7 +189,7 @@ export async function getItem(
       return { error: 'Table not found', status: 404 }
     }
 
-    if (!table.is_public || !table.for_sale) {
+    if (!table.isPublic || !table.forSale) {
       return { error: 'Table is not available for public sales', status: 403 }
     }
 
@@ -220,17 +220,17 @@ export async function getItem(
       qty,
       available: qty > 0,
       data: parsedData,
-      created_at: row.created_at,
-      updated_at: row.updated_at
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt
     }
 
     const publicTable: PublicTable = {
       id: table.id,
       name: table.name,
       description: table.description,
-      item_count: 0, // Not calculating for single item request
-      created_at: table.created_at,
-      updated_at: table.updated_at
+      itemCount: 0, // Not calculating for single item request
+      createdAt: table.createdAt,
+      updatedAt: table.updatedAt
     }
 
     return {

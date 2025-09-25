@@ -3,365 +3,507 @@
  * Admin interface for viewing inventory transactions and audit trails
  */
 
-import React from 'react';
-import { ModelList, IColumnDefinition } from '@/components/model/model-list';
-import { IPaginatedResponse } from '@/types/models';
-import { formatApiDate } from '@/lib/date-utils';
+import React from 'react'
+import {IColumnDefinition, ModelList} from '@/components/model/model-list'
+import {IPaginatedResponse} from '@/types/models'
+import {formatApiDate} from '@/lib/date-utils'
+import {IconAdjustments, IconEdit, IconMinus, IconPlus, IconShoppingCart} from '@tabler/icons-react'
+import {Alert} from '@/components/ui/alert'
+import {Button} from '@/components/ui/button'
+import {Card, CardBody} from '@/components/ui/card'
+import {Modal, ModalBox, ModalAction, ModalBackdrop} from '@/components/ui/modal'
 
 // Inventory transaction interface
 interface InventoryTransaction {
-  id: string;
-  table_id: string;
-  table_name: string;
-  item_id: string;
-  transaction_type: 'sale' | 'add' | 'remove' | 'update' | 'adjust';
-  quantity_change: number | null;
-  previous_data: any;
-  new_data: any;
-  reference_id: string | null; // sale_id for sales
-  created_by: string;
-  created_at: string;
+    id: string;
+    tableId: string;
+    tableName: string;
+    itemId: string;
+    transactionType: 'sale' | 'add' | 'remove' | 'update' | 'adjust';
+    quantityChange: number | null;
+    previousData: any;
+    newData: any;
+    referenceId: string | null; // saleId for sales
+    createdBy: string;
+    createdAt: string;
 }
 
 // Transaction type display configuration
 const TRANSACTION_TYPE_CONFIG = {
-  sale: { label: 'Sale', icon: '🛍️', badgeClass: 'badge-success' },
-  add: { label: 'Added', icon: '➕', badgeClass: 'badge-info' },
-  remove: { label: 'Removed', icon: '➖', badgeClass: 'badge-warning' },
-  update: { label: 'Updated', icon: '✏️', badgeClass: 'badge-primary' },
-  adjust: { label: 'Adjustment', icon: '⚖️', badgeClass: 'badge-secondary' }
-};
+    sale: {label: 'Sale', icon: IconShoppingCart, colorClass: 'text-success', bgClass: 'bg-success/20'},
+    add: {label: 'Added', icon: IconPlus, colorClass: 'text-info', bgClass: 'bg-info/20'},
+    remove: {label: 'Removed', icon: IconMinus, colorClass: 'text-warning', bgClass: 'bg-warning/20'},
+    update: {label: 'Updated', icon: IconEdit, colorClass: 'text-primary', bgClass: 'bg-primary/20'},
+    adjust: {label: 'Adjustment', icon: IconAdjustments, colorClass: 'text-secondary', bgClass: 'bg-secondary/20'}
+}
 
 // Column definitions for Inventory Transactions
 const inventoryColumns: IColumnDefinition<InventoryTransaction>[] = [
-  {
-    key: 'transaction_type',
-    label: 'Type',
-    sortable: true,
-    filterable: true,
-    filterType: 'select',
-    filterOptions: Object.entries(TRANSACTION_TYPE_CONFIG).map(([value, config]) => ({
-      value,
-      label: config.label
-    })),
-    render: (transaction) => {
-      const config = TRANSACTION_TYPE_CONFIG[transaction.transaction_type];
-      return (
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{config.icon}</span>
-          <span className={`badge ${config.badgeClass}`}>
-            {config.label}
-          </span>
-        </div>
-      );
-    }
-  },
-  {
-    key: 'table_name',
-    label: 'Table',
-    sortable: true,
-    filterable: true,
-    filterType: 'text',
-    render: (transaction) => (
-      <span className="badge badge-outline">
-        {transaction.table_name}
+    {
+        key: 'transactionType',
+        label: 'Type',
+        sortable: true,
+        filterable: true,
+        filterType: 'select',
+        filterOptions: Object.entries(TRANSACTION_TYPE_CONFIG).map(([value, config]) => ({
+            value,
+            label: config.label
+        })),
+        render: (transaction) => {
+            const config = TRANSACTION_TYPE_CONFIG[transaction.transactionType]
+            const IconComponent = config.icon
+            return (
+                <div className="flex items-center justify-center">
+                    <div
+                        className={`tooltip tooltip-right`}
+                        data-tip={config.label}
+                    >
+                        <div className={`
+              flex items-center justify-center w-8 h-8 rounded-full
+              ${config.bgClass} ${config.colorClass}
+              hover:scale-110 transition-transform duration-200
+            `}>
+                            <IconComponent size={16}/>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+    },
+    {
+        key: 'tableName',
+        label: 'Table',
+        sortable: true,
+        filterable: true,
+        filterType: 'text',
+        render: (transaction) => (
+            <span className="text-sm">
+        {transaction.tableName}
       </span>
-    )
-  },
-  {
-    key: 'item_name',
-    label: 'Item',
-    sortable: false,
-    filterable: true,
-    filterType: 'text',
-    render: (transaction) => {
-      const itemName = transaction.new_data?.name || transaction.previous_data?.name || 'Unknown Item';
-      return (
-        <div className="flex flex-col">
+        )
+    },
+    {
+        key: 'itemName',
+        label: 'Item',
+        sortable: false,
+        filterable: true,
+        filterType: 'text',
+        render: (transaction) => {
+            // Helper function to extract item name from first text-like field
+            const extractItemName = (data: any) => {
+                if (!data) return null
+
+                // Common name fields to try first
+                const nameFields = ['name', 'productName', 'itemName', 'title', 'description']
+                for (const field of nameFields) {
+                    if (data[field] && typeof data[field] === 'string') {
+                        return data[field]
+                    }
+                }
+
+                // If no common name field, use first string field
+                for (const [key, value] of Object.entries(data)) {
+                    if (typeof value === 'string' && value.trim() && key !== 'id') {
+                        return value
+                    }
+                }
+
+                return null
+            }
+
+            const itemName = extractItemName(transaction.newData) ||
+                extractItemName(transaction.previousData) ||
+                'Unknown Item'
+
+            return (
+                <div className="flex flex-col">
           <span className="font-medium truncate max-w-[150px]" title={itemName}>
             {itemName}
           </span>
-          <span className="text-xs text-base-content/60 font-mono">
-            ID: {transaction.item_id.substring(0, 8)}...
+                    <span className="text-xs text-base-content/60 font-mono">
+            ID: {transaction.itemId.substring(0, 8)}...
           </span>
-        </div>
-      );
-    }
-  },
-  {
-    key: 'quantity_change',
-    label: 'Qty Change',
-    sortable: true,
-    filterable: true,
-    filterType: 'text',
-    render: (transaction) => {
-      if (transaction.quantity_change === null) {
-        return <span className="text-base-content/40">-</span>;
-      }
+                </div>
+            )
+        }
+    },
+    {
+        key: 'quantityChange',
+        label: 'Qty Change',
+        sortable: true,
+        filterable: true,
+        filterType: 'text',
+        render: (transaction) => {
+            if (transaction.quantityChange === null) {
+                return <span className="text-base-content/40">-</span>
+            }
 
-      const change = transaction.quantity_change;
-      const isPositive = change > 0;
-      const isNegative = change < 0;
+            const change = transaction.quantityChange
+            const isPositive = change > 0
+            const isNegative = change < 0
 
-      return (
-        <div className="text-center">
+            return (
+                <div className="text-center">
           <span className={`font-mono font-semibold ${
-            isPositive ? 'text-success' : isNegative ? 'text-error' : 'text-base-content'
+              isPositive ? 'text-success' : isNegative ? 'text-error' : 'text-base-content'
           }`}>
             {change > 0 ? '+' : ''}{change}
           </span>
-        </div>
-      );
-    }
-  },
-  {
-    key: 'stock_levels',
-    label: 'Stock',
-    sortable: false,
-    filterable: false,
-    render: (transaction) => {
-      const prevQty = transaction.previous_data?.qty;
-      const newQty = transaction.new_data?.qty;
+                </div>
+            )
+        }
+    },
+    {
+        key: 'stockLevels',
+        label: 'Stock',
+        sortable: false,
+        filterable: false,
+        render: (transaction) => {
+            const prevQty = transaction.previousData?.qty
+            const newQty = transaction.newData?.qty
 
-      if (prevQty === undefined && newQty === undefined) {
-        return <span className="text-base-content/40">-</span>;
-      }
+            if (prevQty === undefined && newQty === undefined) {
+                return <span className="text-base-content/40">-</span>
+            }
 
-      return (
-        <div className="text-center text-sm">
-          {prevQty !== undefined && (
-            <div className="text-base-content/60">
-              From: {prevQty}
-            </div>
-          )}
-          {newQty !== undefined && (
-            <div className="font-semibold">
-              To: {newQty}
-            </div>
-          )}
-        </div>
-      );
-    }
-  },
-  {
-    key: 'reference_id',
-    label: 'Reference',
-    sortable: true,
-    filterable: true,
-    filterType: 'text',
-    render: (transaction) => {
-      if (!transaction.reference_id) {
-        return <span className="text-base-content/40">-</span>;
-      }
+            return (
+                <div className="text-center text-sm">
+                    {prevQty !== undefined && (
+                        <div className="text-base-content/60">
+                            From: {prevQty}
+                        </div>
+                    )}
+                    {newQty !== undefined && (
+                        <div className="font-semibold">
+                            To: {newQty}
+                        </div>
+                    )}
+                </div>
+            )
+        }
+    },
+    {
+        key: 'referenceId',
+        label: 'Reference',
+        sortable: true,
+        filterable: true,
+        filterType: 'text',
+        render: (transaction) => {
+            if (!transaction.referenceId) {
+                return <span className="text-base-content/40">-</span>
+            }
 
-      return (
-        <a
-          href={`/dashboard/sales/edit/${transaction.reference_id}`}
-          className="link link-primary font-mono text-xs"
-          title="View related sale"
-        >
-          {transaction.reference_id.substring(0, 8)}...
-        </a>
-      );
-    }
-  },
-  {
-    key: 'created_by',
-    label: 'Created By',
-    sortable: true,
-    filterable: true,
-    filterType: 'text',
-    render: (transaction) => (
-      <span className="text-sm truncate max-w-[100px]" title={transaction.created_by}>
-        {transaction.created_by.replace(/^(token:|user:)/, '')}
+            return (
+                <Button
+                    size="sm"
+                    style="ghost"
+                    color="primary"
+                    onClick={() => window.location.href = `/dashboard/sales/edit/${transaction.referenceId}`}
+                >
+                    {transaction.referenceId.substring(0, 8)}...
+                </Button>
+            )
+        }
+    },
+    {
+        key: 'createdBy',
+        label: 'Created By',
+        sortable: true,
+        filterable: true,
+        filterType: 'text',
+        render: (transaction) => (
+            <span className="text-sm truncate max-w-[100px]" title={transaction.createdBy}>
+        {transaction.createdBy.replace(/^(token:|user:)/, '')}
       </span>
-    )
-  },
-  {
-    key: 'created_at',
-    label: 'Date',
-    sortable: true,
-    filterable: true,
-    filterType: 'date',
-    render: (transaction) => formatApiDate(transaction.created_at, true)
-  }
-];
+        )
+    },
+    {
+        key: 'createdAt',
+        label: 'Date',
+        sortable: true,
+        filterable: true,
+        filterType: 'date',
+        render: (transaction) => formatApiDate(transaction.createdAt, true)
+    }
+]
 
-// Mass actions for inventory transactions
-const inventoryMassActions = [
-  {
-    name: 'export_csv',
-    label: 'Export to CSV',
-    confirmMessage: 'Export the selected inventory transactions to CSV format?'
-  },
-  {
-    name: 'generate_report',
-    label: 'Generate Report',
-    confirmMessage: 'Generate an inventory report for the selected transactions?'
-  }
-];
+// Remove unused mass actions variable
 
 interface InventoryPageProps {
-  transactions?: IPaginatedResponse<InventoryTransaction> | null;
-  filters?: {
-    sort?: string;
-    direction?: 'asc' | 'desc';
-    transaction_type?: string;
-    table_id?: string;
-    date_from?: string;
-    date_to?: string;
-    created_by?: string;
-  };
-  stockAlerts?: Array<{
-    item_id: string;
-    table_name: string;
-    item_name: string;
-    current_quantity: number;
-    alert_type: 'low_stock' | 'out_of_stock' | 'negative_stock';
-  }> | null;
+    transactions?: IPaginatedResponse<InventoryTransaction> | null;
+    filters?: {
+        sort?: string;
+        direction?: 'asc' | 'desc';
+        transactionType?: string;
+        tableId?: string;
+        dateFrom?: string;
+        dateTo?: string;
+        createdBy?: string;
+    };
+    stockAlerts?: Array<{
+        itemId: string;
+        tableName: string;
+        itemName: string;
+        currentQuantity: number;
+        alertType: 'low_stock' | 'out_of_stock' | 'negative_stock';
+    }> | null;
 }
 
-export default function InventoryPage({ transactions, filters, stockAlerts }: InventoryPageProps) {
-  // Mock stock alerts for demonstration
-  const mockStockAlerts = stockAlerts || [
-    { item_id: '1', table_name: 'Electronics', item_name: 'Wireless Mouse', current_quantity: 2, alert_type: 'low_stock' as const },
-    { item_id: '2', table_name: 'Books', item_name: 'React Handbook', current_quantity: 0, alert_type: 'out_of_stock' as const },
-    { item_id: '3', table_name: 'Clothing', item_name: 'Summer Dress', current_quantity: -1, alert_type: 'negative_stock' as const }
-  ];
+export default function InventoryPage({transactions, filters, stockAlerts}: InventoryPageProps) {
+    // Helper function to extract item name from transaction data
+    const extractItemNameFromTransaction = (transaction: InventoryTransaction) => {
+        const data = transaction.newData || transaction.previousData
+        if (!data) return null
 
-  return (
-    <div className="space-y-6">
-      {/* Stock Alerts */}
-      {mockStockAlerts.length > 0 && (
-        <div className="alert alert-warning">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">⚠️</span>
-              <div>
-                <h3 className="font-semibold">Stock Alerts</h3>
-                <div className="text-sm mt-1">
-                  {mockStockAlerts.length} items require attention
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="flex-none">
-            <button className="btn btn-sm btn-ghost">
-              View All Alerts
-            </button>
-          </div>
-        </div>
-      )}
+        // Common name fields to try first
+        const nameFields = ['name', 'productName', 'itemName', 'title', 'description']
+        for (const field of nameFields) {
+            if (data[field] && typeof data[field] === 'string') {
+                return data[field]
+            }
+        }
 
-      {/* Quick Stock Alerts Grid */}
-      {mockStockAlerts.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {mockStockAlerts.slice(0, 3).map((alert) => (
-            <div key={alert.item_id} className={`card shadow-lg ${
-              alert.alert_type === 'out_of_stock' ? 'bg-error text-error-content' :
-              alert.alert_type === 'negative_stock' ? 'bg-warning text-warning-content' :
-              'bg-orange-100 border border-orange-300'
-            }`}>
-              <div className="card-body p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-semibold text-sm truncate" title={alert.item_name}>
-                      {alert.item_name}
-                    </h4>
-                    <p className="text-xs opacity-80">{alert.table_name}</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold">
-                      {alert.current_quantity}
+        // If no common name field, use first string field
+        for (const [key, value] of Object.entries(data)) {
+            if (typeof value === 'string' && value.trim() && key !== 'id') {
+                return value
+            }
+        }
+
+        return null
+    }
+
+    // Calculate stock alerts from actual transaction data if not provided
+    const calculateStockAlerts = () => {
+        if (stockAlerts) return stockAlerts
+        if (!transactions?.data?.length) return []
+
+        // Group transactions by table and item to calculate current stock levels
+        const stockLevels = new Map<string, {
+            tableName: string;
+            itemName: string;
+            currentQuantity: number;
+            tableId: string;
+            itemId: string;
+        }>()
+
+        // Process transactions to calculate current stock
+        transactions.data.forEach(transaction => {
+            const key = `${transaction.tableId}-${transaction.itemId}`
+            const existing = stockLevels.get(key)
+
+            if (!existing) {
+                const itemName = extractItemNameFromTransaction(transaction) || 'Unknown Item'
+                stockLevels.set(key, {
+                    tableName: transaction.tableName,
+                    itemName: itemName,
+                    currentQuantity: transaction.newData?.qty || 0,
+                    tableId: transaction.tableId,
+                    itemId: transaction.itemId
+                })
+            } else {
+                // Update quantity based on transaction type
+                if (transaction.quantityChange) {
+                    existing.currentQuantity += transaction.quantityChange
+                }
+            }
+        })
+
+        // Generate alerts based on stock levels
+        const alerts: Array<{
+            itemId: string;
+            tableName: string;
+            itemName: string;
+            currentQuantity: number;
+            alertType: 'low_stock' | 'out_of_stock' | 'negative_stock';
+        }> = []
+
+        stockLevels.forEach((stock) => {
+            if (stock.currentQuantity < 0) {
+                alerts.push({
+                    itemId: stock.itemId,
+                    tableName: stock.tableName,
+                    itemName: stock.itemName,
+                    currentQuantity: stock.currentQuantity,
+                    alertType: 'negative_stock'
+                })
+            } else if (stock.currentQuantity === 0) {
+                alerts.push({
+                    itemId: stock.itemId,
+                    tableName: stock.tableName,
+                    itemName: stock.itemName,
+                    currentQuantity: stock.currentQuantity,
+                    alertType: 'out_of_stock'
+                })
+            } else if (stock.currentQuantity <= 5) { // Low stock threshold
+                alerts.push({
+                    itemId: stock.itemId,
+                    tableName: stock.tableName,
+                    itemName: stock.itemName,
+                    currentQuantity: stock.currentQuantity,
+                    alertType: 'low_stock'
+                })
+            }
+        })
+
+        return alerts
+    }
+
+    const currentStockAlerts = calculateStockAlerts()
+
+    return (
+        <div className="space-y-6">
+            {/* Stock Alerts */}
+            {currentStockAlerts.length > 0 && (
+                <Alert
+                    color="warning"
+                    style="soft"
+                    className="mb-4 flex justify-between items-center gap-2"
+                >
+                    <div className="flex flex-col">
+                        <h3 className="font-semibold">Stock Alerts</h3>
+                        <div className="text-sm mt-1">
+                            {currentStockAlerts.length} items require attention
+                        </div>
                     </div>
-                    <div className="text-xs">
-                      {alert.alert_type === 'out_of_stock' ? 'Out of Stock' :
-                       alert.alert_type === 'negative_stock' ? 'Negative Stock' :
-                       'Low Stock'}
-                    </div>
-                  </div>
-                </div>
-              </div>
+                    <Button
+                        size="sm"
+                        color="warning"
+                        style="soft"
+                        onClick={() => window.location.href = '/dashboard/sales/inventory/alerts'}
+                    >
+                        View All Alerts
+                    </Button>
+                </Alert>
+            )}
+
+            {/* Inventory Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card>
+                    <CardBody className="text-center">
+                        <div className="text-sm font-medium text-base-content/70">Total Transactions</div>
+                        <div className="text-3xl font-bold text-primary mt-2">
+                            {transactions?.total || 0}
+                        </div>
+                        <div className="text-xs text-base-content/50 mt-1">All inventory changes</div>
+                    </CardBody>
+                </Card>
+
+                <Card>
+                    <CardBody className="text-center">
+                        <div className="text-sm font-medium text-base-content/70">Sales Today</div>
+                        <div className="text-3xl font-bold text-success mt-2">
+                            {transactions?.data.filter(t =>
+                                t.transactionType === 'sale' &&
+                                new Date(t.createdAt).toDateString() === new Date().toDateString()
+                            ).length || 0}
+                        </div>
+                        <div className="text-xs text-base-content/50 mt-1">Items sold today</div>
+                    </CardBody>
+                </Card>
+
+                <Card className="hover:bg-base-300 transition-colors cursor-pointer" onClick={() => window.location.href = '/dashboard/sales/inventory/alerts'}>
+                    <CardBody className="text-center">
+                        <div className="text-sm font-medium text-base-content/70">Stock Alerts</div>
+                        <div className="text-3xl font-bold text-warning mt-2">
+                            {currentStockAlerts.length}
+                        </div>
+                        <div className="text-xs text-base-content/50 mt-1">Click to view all alerts</div>
+                    </CardBody>
+                </Card>
+
+                <Card>
+                    <CardBody className="text-center">
+                        <div className="text-sm font-medium text-base-content/70">Tables Tracked</div>
+                        <div className="text-3xl font-bold text-info mt-2">
+                            {new Set(transactions?.data.map(t => t.tableId) || []).size}
+                        </div>
+                        <div className="text-xs text-base-content/50 mt-1">Active tables</div>
+                    </CardBody>
+                </Card>
             </div>
-          ))}
-        </div>
-      )}
 
-      {/* Inventory Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="stat bg-base-200 rounded-lg">
-          <div className="stat-title">Total Transactions</div>
-          <div className="stat-value text-primary">
-            {transactions?.meta.total || 0}
-          </div>
-          <div className="stat-desc">All inventory changes</div>
-        </div>
 
-        <div className="stat bg-base-200 rounded-lg">
-          <div className="stat-title">Sales Today</div>
-          <div className="stat-value text-success">
-            {transactions?.data.filter(t =>
-              t.transaction_type === 'sale' &&
-              new Date(t.created_at).toDateString() === new Date().toDateString()
-            ).length || 0}
-          </div>
-          <div className="stat-desc">Items sold today</div>
-        </div>
+            {/* Inventory Transactions Table */}
+            <ModelList<InventoryTransaction>
+                title="Inventory Transactions"
+                items={transactions || null}
+                filters={filters || {}}
+                columns={inventoryColumns}
+                createRoute={null} // No creation for audit trail
+                editRoute={() => '#'} // No edit for transactions
+                deleteRoute={() => '#'} // No individual delete for audit trail
+                massActionRoute=""
+                massActions={[]}
+            />
 
-        <div className="stat bg-base-200 rounded-lg">
-          <div className="stat-title">Stock Alerts</div>
-          <div className="stat-value text-warning">
-            {mockStockAlerts.length}
-          </div>
-          <div className="stat-desc">Require attention</div>
-        </div>
+            {/* Clear All Confirmation Modal */}
+            <Modal id="clear-all-modal">
+                <ModalBox>
+                    <h3 className="font-bold text-lg">Clear All Inventory Transactions</h3>
+                    <p className="py-4">
+                        Are you sure you want to clear all inventory transactions? This will delete{' '}
+                        <span className="font-semibold text-error">
+                            {transactions?.total || transactions?.data?.length || 0} transactions
+                        </span>
+                        {Object.keys(filters || {}).some(key => filters![key as keyof typeof filters]) && (
+                            <span className="text-warning"> matching the current filters</span>
+                        )}.
+                    </p>
+                    <p className="text-sm text-base-content/70">
+                        <strong>This action cannot be undone.</strong>
+                    </p>
+                    <ModalAction>
+                        <Button
+                            color="error"
+                            onClick={() => {
+                                // Build query params from current filters
+                                const queryParams = new URLSearchParams();
+                                if (filters) {
+                                    Object.entries(filters).forEach(([key, value]) => {
+                                        if (value) queryParams.append(key, value as string);
+                                    });
+                                }
 
-        <div className="stat bg-base-200 rounded-lg">
-          <div className="stat-title">Tables Tracked</div>
-          <div className="stat-value text-info">
-            {new Set(transactions?.data.map(t => t.table_id) || []).size}
-          </div>
-          <div className="stat-desc">Active tables</div>
+                                // Call clear all endpoint
+                                fetch(`/api/inventory/clear-all?${queryParams.toString()}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
+                                })
+                                .then(response => {
+                                    if (response.ok) {
+                                        window.location.reload();
+                                    } else {
+                                        // Close modal and show error (could be improved with better error handling)
+                                        const modal = document.getElementById('clear-all-modal') as HTMLDialogElement;
+                                        modal?.close();
+                                        alert('Failed to clear transactions. Please try again.');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Clear all error:', error);
+                                    const modal = document.getElementById('clear-all-modal') as HTMLDialogElement;
+                                    modal?.close();
+                                    alert('Failed to clear transactions. Please try again.');
+                                });
+                            }}
+                        >
+                            Clear All
+                        </Button>
+                        <form method="dialog">
+                            <Button style="ghost">Cancel</Button>
+                        </form>
+                    </ModalAction>
+                </ModalBox>
+                <ModalBackdrop />
+            </Modal>
         </div>
-      </div>
-
-      {/* Inventory Transactions Table */}
-      <ModelList<InventoryTransaction>
-        title="Inventory Transactions"
-        items={transactions || null}
-        filters={filters || {}}
-        columns={inventoryColumns}
-        editRoute={() => '#'} // No edit for transactions
-        deleteRoute={() => '#'} // No delete for audit trail
-        massActionRoute="/api/inventory/mass-action"
-        massActions={inventoryMassActions}
-        defaultSort="created_at"
-        defaultDirection="desc"
-        enableExport={true}
-        exportFormats={['csv', 'xlsx']}
-        customActions={[
-          {
-            name: 'stock_check',
-            label: 'Stock Check',
-            icon: '📊',
-            href: '/api/inventory/stock-check'
-          },
-          {
-            name: 'analytics',
-            label: 'Inventory Analytics',
-            icon: '📈',
-            href: '/dashboard/sales/inventory/analytics'
-          }
-        ]}
-        disableInlineEdit={true} // No inline editing for audit trail
-        disableDelete={true} // No deletion for audit compliance
-        disableCreate={true} // No manual creation - inventory is tracked automatically
-      />
-    </div>
-  );
+    )
 }
 
 export const metadata = {
-  title: 'Inventory Tracking',
-  description: 'Monitor inventory changes, track stock levels, and view transaction audit trail'
-};
+    title: 'Inventory Tracking',
+    description: 'Monitor inventory changes, track stock levels, and view transaction audit trail'
+}

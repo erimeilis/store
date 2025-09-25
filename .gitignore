@@ -12,3 +12,6 @@
 /frontend/dist/
 /frontend/node_modules/
 /frontend/.wrangler/
+
+*storybook.log
+storybook-static

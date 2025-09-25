@@ -6,6 +6,32 @@
 import type { Context } from 'hono'
 import { clientApiRequest } from '@/lib/client-api'
 
+// Item interface to match demo page component
+interface Item {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  quantity: number;
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface IPaginatedResponse<T> {
+  data: T[];
+  currentPage: number;
+  lastPage: number;
+  perPage: number;
+  total: number;
+  from: number | null;
+  to: number | null;
+  links: any[];
+  prevPageUrl: string | null;
+  nextPageUrl: string | null;
+  lastPageUrl: string | null;
+}
+
 export async function handleDemoPage(c: Context) {
   try {
     // Get query parameters for pagination, filtering, sorting
@@ -16,8 +42,8 @@ export async function handleDemoPage(c: Context) {
     const apiUrl = c.env?.API_URL || 'http://localhost:8787'
     const accessToken = c.env?.ADMIN_ACCESS_TOKEN
 
-    let itemsData = null
-    let filters = {}
+    let itemsData: IPaginatedResponse<Item> | null | undefined = null
+    let filters: Record<string, any> = {}
 
     if (accessToken) {
       try {

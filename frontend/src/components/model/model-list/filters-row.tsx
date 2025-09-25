@@ -50,10 +50,11 @@ export function FiltersRow<T extends IModel>({
     calendarTriggersRef,
     onColumnFilter,
     onToggleDateFilter,
+    hasMassActions = true,
 }: FiltersRowProps<T>) {
     return (
         <TableRow>
-            <TableHeaderCell>{/* Empty cell for the checkbox column */}</TableHeaderCell>
+            {hasMassActions && <TableHeaderCell>{/* Empty cell for the checkbox column */}</TableHeaderCell>}
             {columns.map((column) => {
                 const filterValue = columnFilters[String(column.key)] || '';
                 return (

@@ -33,19 +33,19 @@ const forSaleTableColumns: IColumnDefinition<UserTable>[] = [
     )
   },
   {
-    key: 'created_by',
+    key: 'createdBy',
     label: 'Owner',
     sortable: true,
     filterable: true,
     filterType: 'text',
     render: (table) => (
       <span className="text-sm">
-        {table.owner_display_name || table.created_by}
+        {table.ownerDisplayName || table.createdBy}
       </span>
     )
   },
   {
-    key: 'is_public',
+    key: 'isPublic',
     label: 'Visibility',
     sortable: true,
     filterable: true,
@@ -56,21 +56,21 @@ const forSaleTableColumns: IColumnDefinition<UserTable>[] = [
     ],
     render: (table) => (
       <span className={`badge ${
-        table.is_public
+        table.isPublic
           ? 'badge-success'
           : 'badge-warning'
       }`}>
-        {table.is_public ? 'Public' : 'Private'}
+        {table.isPublic ? 'Public' : 'Private'}
       </span>
     )
   },
   {
-    key: 'updated_at',
+    key: 'updatedAt',
     label: 'Updated',
     sortable: true,
     filterable: true,
     filterType: 'date',
-    render: (table) => formatApiDate(table.updated_at)
+    render: (table) => formatApiDate(table.updatedAt)
   }
 ];
 
@@ -97,12 +97,12 @@ export default function DashboardPage({
   filters
 }: {
   tables?: IPaginatedResponse<UserTable> | null,
-  filters?: { sort?: string, direction?: 'asc' | 'desc', for_sale?: string }
+  filters?: { sort?: string, direction?: 'asc' | 'desc', forSale?: string }
 }) {
   // Filter to show only "for sale" tables
   const forSaleFilters = {
     ...filters,
-    for_sale: 'true'
+    forSale: 'true'
   };
 
   return (
@@ -128,7 +128,6 @@ export default function DashboardPage({
         inlineEditRoute={(id) => `/api/tables/${id}`}
         massActionRoute="/api/tables/mass-action"
         rowActions={forSaleTableRowActions}
-        emptyStateMessage="No for sale tables found. Create a table and mark it as 'for sale' to see it here."
       />
     </div>
   );

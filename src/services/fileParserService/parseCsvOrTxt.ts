@@ -79,13 +79,23 @@ function detectDelimiter(content: string): string {
   const sample = content.split('\n').slice(0, 5).join('\n')
 
   const delimiters = [',', '\t', ';', '|']
-  const counts = delimiters.map(delimiter => ({
-    delimiter,
-    count: (sample.match(new RegExp(delimiter, 'g')) || []).length
-  }))
+  const counts = delimiters.map(delimiter => {
+    // Escape special regex characters like pipe |
+    const escapedDelimiter = delimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return {
+      delimiter,
+      count: (sample.match(new RegExp(escapedDelimiter, 'g')) || []).length
+    }
+  })
 
   // Sort by count and return the most common delimiter
   counts.sort((a, b) => b.count - a.count)
+
+  console.log('🔍 CSV Delimiter Detection:', {
+    sample: sample.substring(0, 200),
+    counts,
+    selectedDelimiter: counts[0]!.count > 0 ? counts[0]!.delimiter : ','
+  })
 
   return counts[0]!.count > 0 ? counts[0]!.delimiter : ','
 }

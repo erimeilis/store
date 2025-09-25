@@ -11,20 +11,20 @@ export type SaleStatus = 'pending' | 'completed' | 'cancelled' | 'refunded'
  */
 export interface Sale {
   id: string
-  sale_number: string // Format: SALE-YYYY-NNN
-  table_id: string
-  table_name: string
-  item_id: string
-  item_snapshot: ItemSnapshot
-  customer_id: string
-  quantity_sold: number
-  unit_price: number
-  total_amount: number
-  sale_status: SaleStatus
-  payment_method: string | null
+  saleNumber: string // Format: SALE-YYYY-NNN
+  tableId: string
+  tableName: string
+  itemId: string
+  itemSnapshot: ItemSnapshot
+  customerId: string
+  quantitySold: number
+  unitPrice: number
+  totalAmount: number
+  saleStatus: SaleStatus
+  paymentMethod: string | null
   notes: string | null
-  created_at: string // ISO date string
-  updated_at: string // ISO date string
+  createdAt: string // ISO date string
+  updatedAt: string // ISO date string
 }
 
 /**
@@ -41,11 +41,11 @@ export interface ItemSnapshot {
  * Create sale request payload
  */
 export interface CreateSaleRequest {
-  table_id: string
-  item_id: string
-  customer_id: string
-  quantity_sold?: number
-  payment_method?: string
+  tableId: string
+  itemId: string
+  customerId: string
+  quantitySold?: number
+  paymentMethod?: string
   notes?: string
 }
 
@@ -53,8 +53,8 @@ export interface CreateSaleRequest {
  * Update sale request payload (Admin only)
  */
 export interface UpdateSaleRequest {
-  sale_status?: SaleStatus
-  payment_method?: string
+  saleStatus?: SaleStatus
+  paymentMethod?: string
   notes?: string
 }
 
@@ -64,39 +64,39 @@ export interface UpdateSaleRequest {
 export interface SaleListQuery {
   page?: number
   limit?: number
-  table_id?: string
-  customer_id?: string
-  sale_status?: SaleStatus
-  date_from?: string // YYYY-MM-DD
-  date_to?: string // YYYY-MM-DD
+  tableId?: string
+  customerId?: string
+  saleStatus?: SaleStatus
+  dateFrom?: string // YYYY-MM-DD
+  dateTo?: string // YYYY-MM-DD
   search?: string
-  sort_by?: 'created_at' | 'updated_at' | 'total_amount' | 'sale_number'
-  sort_order?: 'asc' | 'desc'
+  sortBy?: 'createdAt' | 'updatedAt' | 'totalAmount' | 'saleNumber'
+  sortOrder?: 'asc' | 'desc'
 }
 
 /**
  * Sales analytics data (frontend representation)
  */
 export interface SalesAnalytics {
-  total_sales: number
-  total_revenue: number
-  total_items_sold: number
-  average_sale_amount: number
-  sales_by_status: Record<SaleStatus, number>
-  revenue_by_status: Record<SaleStatus, number>
-  top_selling_items: TopSellingItem[]
-  sales_by_date: SalesByDate[]
+  totalSales: number
+  totalRevenue: number
+  totalItemsSold: number
+  averageSaleAmount: number
+  salesByStatus: Record<SaleStatus, number>
+  revenueByStatus: Record<SaleStatus, number>
+  topSellingItems: TopSellingItem[]
+  salesByDate: SalesByDate[]
 }
 
 /**
  * Top selling item data
  */
 export interface TopSellingItem {
-  item_id: string
-  table_name: string
-  item_name: string
-  quantity_sold: number
-  total_revenue: number
+  itemId: string
+  tableName: string
+  itemName: string
+  quantitySold: number
+  totalRevenue: number
 }
 
 /**
@@ -104,7 +104,7 @@ export interface TopSellingItem {
  */
 export interface SalesByDate {
   date: string // YYYY-MM-DD
-  sales_count: number
+  salesCount: number
   revenue: number
 }
 
@@ -113,27 +113,27 @@ export interface SalesByDate {
  */
 export interface SalesSummary {
   today: PeriodSummary
-  this_week: PeriodSummary
-  this_month: PeriodSummary
-  all_time: AllTimeSummary
-  top_selling_items: TopSellingItem[]
-  recent_sales_by_date: SalesByDate[]
+  thisWeek: PeriodSummary
+  thisMonth: PeriodSummary
+  allTime: AllTimeSummary
+  topSellingItems: TopSellingItem[]
+  recentSalesByDate: SalesByDate[]
 }
 
 /**
  * Period summary data
  */
 export interface PeriodSummary {
-  total_sales: number
-  total_revenue: number
-  total_items_sold: number
+  totalSales: number
+  totalRevenue: number
+  totalItemsSold: number
 }
 
 /**
  * All-time summary data
  */
 export interface AllTimeSummary extends PeriodSummary {
-  average_sale_amount: number
+  averageSaleAmount: number
 }
 
 /**
@@ -171,11 +171,11 @@ export const SALE_STATUS_CONFIG: Record<SaleStatus, {
  */
 export const PAYMENT_METHODS = [
   'cash',
-  'credit_card',
-  'debit_card',
+  'creditCard',
+  'debitCard',
   'paypal',
   'stripe',
-  'bank_transfer',
+  'bankTransfer',
   'other'
 ] as const
 
@@ -186,11 +186,11 @@ export type PaymentMethod = typeof PAYMENT_METHODS[number]
  */
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   cash: 'Cash',
-  credit_card: 'Credit Card',
-  debit_card: 'Debit Card',
+  creditCard: 'Credit Card',
+  debitCard: 'Debit Card',
   paypal: 'PayPal',
   stripe: 'Stripe',
-  bank_transfer: 'Bank Transfer',
+  bankTransfer: 'Bank Transfer',
   other: 'Other'
 }
 

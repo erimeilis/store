@@ -64,7 +64,7 @@ export function generateSQL(items: Item[], environment: string): string {
 -- Generated with faker.js - ${items.length} items
 
 -- Insert ${items.length} dynamically generated items
-INSERT OR IGNORE INTO items (id, name, description, data, created_at, updated_at) VALUES `;
+INSERT OR IGNORE INTO items (id, name, description, data, createdAt, updatedAt) VALUES `;
 
   const values = items.map(item => 
     `('${item.id}', '${item.name.replace(/'/g, "''")}', '${item.description.replace(/'/g, "''")}', '${JSON.stringify(item.data).replace(/'/g, "''")}', datetime('now'), datetime('now'))`

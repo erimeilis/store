@@ -182,6 +182,13 @@ export const routes: RouteConfig[] = [
     requiresAuth: true
   },
   {
+    path: '/dashboard/sales/inventory/alerts',
+    handler: async (c) => (await import('@/handlers/sales')).handleInventoryAlertsPage(c),
+    layout: 'dashboard',
+    segment: 'alerts',
+    requiresAuth: true
+  },
+  {
     path: '/demo',
     handler: async (c) => (await import('@/handlers/demo')).handleDemoPage(c),
     layout: 'dashboard',
@@ -231,5 +238,6 @@ export const pageComponents = {
   '/dashboard/sales': async () => (await import('@/app/dashboard/sales/page')).default,
   '/dashboard/sales/analytics': async () => (await import('@/app/dashboard/sales/analytics/page')).default,
   '/dashboard/sales/inventory': async () => (await import('@/app/dashboard/sales/inventory/page')).default,
+  '/dashboard/sales/inventory/alerts': async () => (await import('@/app/dashboard/sales/inventory/alerts/page')).default,
   '/demo': async () => (await import('@/app/demo/page')).default
 }

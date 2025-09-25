@@ -7,6 +7,7 @@ import type { UserContext } from '@/types/database.js'
 import type { TableDataRepository } from '@/repositories/tableDataRepository.js'
 import type { ZodCompatibleValidator } from '@/validators/zodCompatibleValidator.js'
 import { getUserInfo, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
+import { InventoryTrackingService } from '@/services/inventoryTrackingService/index.js'
 
 export async function deleteDataRow(
   repository: TableDataRepository,
@@ -35,8 +36,38 @@ export async function deleteDataRow(
       )
     }
 
+    // Get row data before deletion for inventory tracking
+    const existingRow = await repository.findDataRowById(rowId, tableId)
+    if (!existingRow) {
+      return createErrorResponse(
+        'Row not found',
+        `Row with ID ${rowId} does not exist in this table`,
+        404
+      )
+    }
+
+    // Get table info to check for_sale status
+    const tableInfo = await repository.getTableInfo(tableId)
+
     // Delete data row
     const deletedRow = await repository.deleteDataRow(rowId, tableId)
+
+    // Track inventory for for_sale tables
+    if (tableInfo?.forSale && existingRow) {
+      try {
+        const inventoryService = new InventoryTrackingService(c.env.DB)
+        await inventoryService.trackItemDeletion(
+          tableId,
+          tableInfo.name,
+          rowId,
+          existingRow.data,
+          getUserInfo(c, user).userEmail
+        )
+      } catch (inventoryError) {
+        console.error('⚠️ Failed to track item deletion in inventory:', inventoryError)
+        // Continue without failing the main operation
+      }
+    }
 
     return createSuccessResponse(
       { row: deletedRow },

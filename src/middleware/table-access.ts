@@ -20,14 +20,14 @@ type Variables = {
  * Determines user's access level for a table
  */
 function determineAccessLevel(table: UserTable, userId: string): TableAccessLevel {
-  // Owner has admin access - check both created_by and user_id fields
-  // created_by might be "token:admin-token" while user_id is the actual user ID
-  if (table.created_by === userId || table.user_id === userId) {
+  // Owner has admin access - check both createdBy and userId fields
+  // createdBy might be "token:admin-token" while userId is the actual user ID
+  if (table.createdBy === userId || table.userId === userId) {
     return 'admin'
   }
 
   // Public tables allow write access to authenticated users
-  if (table.is_public) {
+  if (table.isPublic) {
     return 'write'
   }
 

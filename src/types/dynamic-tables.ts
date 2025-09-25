@@ -14,12 +14,12 @@ export interface UserTable {
   id: string
   name: string
   description: string | null
-  created_by: string // User email or token ID
-  user_id: string // Session user ID (OAuth user ID from users table)
-  is_public: boolean
-  for_sale: boolean // Whether table is configured for e-commerce with protected price/qty columns
-  created_at: Date
-  updated_at: Date
+  createdBy: string // User email or token ID
+  userId: string | null // Session user ID (OAuth user ID from users table) - nullable for API token users
+  isPublic: boolean
+  forSale: boolean // Whether table is configured for e-commerce with protected price/qty columns
+  createdAt: Date
+  updatedAt: Date
 }
 
 /**
@@ -28,13 +28,14 @@ export interface UserTable {
  */
 export interface TableColumn {
   id: string
-  table_id: string
+  tableId: string
   name: string
   type: ColumnType
-  is_required: boolean
-  default_value: string | null
+  isRequired: boolean
+  allowDuplicates: boolean
+  defaultValue: string | null
   position: number
-  created_at: Date
+  createdAt: Date
 }
 
 /**
@@ -43,11 +44,11 @@ export interface TableColumn {
  */
 export interface TableDataRow {
   id: string
-  table_id: string
+  tableId: string
   data: string // JSON blob with column data
-  created_by: string | null // User email
-  created_at: Date
-  updated_at: Date
+  createdBy: string | null // User email
+  createdAt: Date
+  updatedAt: Date
 }
 
 /**
@@ -80,9 +81,9 @@ export interface TableWithData {
 export interface CreateTableRequest {
   name: string
   description?: string
-  is_public: boolean
-  for_sale?: boolean // Whether to create table as "for sale" with auto price/qty columns
-  user_id?: string  // Optional user ID for session-based creation
+  isPublic: boolean
+  forSale?: boolean // Whether to create table as "for sale" with auto price/qty columns
+  userId?: string  // Optional user ID for session-based creation
   columns: CreateColumnRequest[]
 }
 
@@ -92,8 +93,9 @@ export interface CreateTableRequest {
 export interface CreateColumnRequest {
   name: string
   type: ColumnType
-  is_required: boolean
-  default_value?: string
+  isRequired: boolean
+  allowDuplicates?: boolean
+  defaultValue?: string
   position: number
 }
 
@@ -103,8 +105,8 @@ export interface CreateColumnRequest {
 export interface UpdateTableRequest {
   name?: string
   description?: string
-  is_public?: boolean
-  for_sale?: boolean // Whether to convert table to/from "for sale" mode
+  isPublic?: boolean
+  forSale?: boolean // Whether to convert table to/from "for sale" mode
 }
 
 /**
@@ -113,8 +115,9 @@ export interface UpdateTableRequest {
 export interface UpdateColumnRequest {
   name?: string
   type?: ColumnType
-  is_required?: boolean
-  default_value?: string
+  isRequired?: boolean
+  allowDuplicates?: boolean
+  defaultValue?: string
   position?: number
 }
 
@@ -136,12 +139,12 @@ export interface UpdateTableDataRequest {
  * Import data request payload
  */
 export interface ImportDataRequest {
-  table_id: string
-  import_type: 'csv' | 'xls' | 'xlsx' | 'google_sheets' | 'text'
-  file_data?: string // Base64 encoded file data
-  google_sheets_url?: string
-  column_mapping: { [importColumn: string]: string } // Maps import columns to table columns
-  skip_header?: boolean
+  tableId: string
+  importType: 'csv' | 'xls' | 'xlsx' | 'google_sheets' | 'text'
+  fileData?: string // Base64 encoded file data
+  googleSheetsUrl?: string
+  columnMapping: { [importColumn: string]: string } // Maps import columns to table columns
+  skipHeader?: boolean
 }
 
 /**
@@ -149,9 +152,9 @@ export interface ImportDataRequest {
  */
 export interface ImportPreview {
   headers: string[]
-  sample_rows: any[][]
-  total_rows: number
-  suggested_mapping: { [importColumn: string]: string }
+  sampleRows: any[][]
+  totalRows: number
+  suggestedMapping: { [importColumn: string]: string }
 }
 
 /**
@@ -159,9 +162,9 @@ export interface ImportPreview {
  */
 export interface ImportResult {
   success: boolean
-  imported_rows: number
+  importedRows: number
   errors: string[]
-  skipped_rows: number
+  skippedRows: number
 }
 
 /**
@@ -173,11 +176,11 @@ export type TableAccessLevel = 'none' | 'read' | 'write' | 'admin'
  * Table access check result
  */
 export interface TableAccess {
-  can_read: boolean
-  can_write: boolean
-  can_delete: boolean
-  can_manage: boolean // Modify schema, permissions, etc.
-  access_level: TableAccessLevel
+  canRead: boolean
+  canWrite: boolean
+  canDelete: boolean
+  canManage: boolean // Modify schema, permissions, etc.
+  accessLevel: TableAccessLevel
 }
 
 /**
@@ -186,7 +189,7 @@ export interface TableAccess {
 export interface ColumnValidationResult {
   valid: boolean
   error?: string
-  converted_value?: any
+  convertedValue?: any
 }
 
 /**
@@ -195,7 +198,7 @@ export interface ColumnValidationResult {
 export interface TableDataValidationResult {
   valid: boolean
   errors: { [columnName: string]: string }
-  validated_data: ParsedTableData
+  validatedData: ParsedTableData
 }
 
 /**
@@ -227,7 +230,7 @@ export const PROTECTED_SALE_COLUMNS = ['price', 'qty'] as const
 export type ProtectedSaleColumn = typeof PROTECTED_SALE_COLUMNS[number]
 
 /**
- * Check if a column is protected based on table for_sale status
+ * Check if a column is protected based on table forSale status
  */
 export function isProtectedSaleColumn(columnName: string, tableForSale: boolean): boolean {
   return tableForSale && PROTECTED_SALE_COLUMNS.includes(columnName as ProtectedSaleColumn)
@@ -240,13 +243,15 @@ export const DEFAULT_SALE_COLUMNS: Omit<CreateColumnRequest, 'position'>[] = [
   {
     name: 'price',
     type: 'number',
-    is_required: true,
-    // no default_value for price (undefined, not null)
+    isRequired: true,
+    allowDuplicates: true,
+    // no defaultValue for price (undefined, not null)
   },
   {
     name: 'qty',
     type: 'number',
-    is_required: true,
-    default_value: '1',
+    isRequired: true,
+    allowDuplicates: true,
+    defaultValue: '1',
   }
 ]

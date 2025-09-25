@@ -175,12 +175,12 @@ const tokenMassActions = [
     confirmMessage: 'Are you sure you want to revoke the selected tokens? This action cannot be undone.'
   },
   {
-    name: 'update_permissions',
+    name: 'updatePermissions',
     label: 'Update Permissions',
     confirmMessage: 'Are you sure you want to update permissions for the selected tokens?'
   },
   {
-    name: 'extend_expiry',
+    name: 'extendExpiry',
     label: 'Extend Expiry',
     confirmMessage: 'Are you sure you want to extend the expiry date for the selected tokens?'
   },

@@ -111,7 +111,7 @@ export async function handleOAuthCallback(c: Context) {
       })
       
       // Look up user by exact email match
-      const userResponse = await fetch(`${apiUrl}/api/users?filter_email=${encodeURIComponent(userInfo.email)}&exact=true`, {
+      const userResponse = await fetch(`${apiUrl}/api/users?filterEmail=${encodeURIComponent(userInfo.email)}&exact=true`, {
         headers: {
           'Authorization': `Bearer ${adminToken}`,
           'Content-Type': 'application/json'

@@ -46,16 +46,16 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             const sortedColumns = [...schema.columns].sort((a, b) => a.position - b.position)
             setColumnsData({
                 data: sortedColumns,
-                current_page: 1,
-                last_page: 1,
-                per_page: sortedColumns.length,
+                currentPage: 1,
+                lastPage: 1,
+                perPage: sortedColumns.length,
                 total: sortedColumns.length,
                 from: 1,
                 to: sortedColumns.length,
                 links: [],
-                prev_page_url: null,
-                next_page_url: null,
-                last_page_url: null
+                prevPageUrl: null,
+                nextPageUrl: null,
+                lastPageUrl: null
             })
         }
     }, [schema])
@@ -109,7 +109,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             filterType: 'text',
             className: 'min-w-0 w-auto',
             render: (column) => {
-                const isProtected = isProtectedSaleColumn(column.name, schema?.table.for_sale || false)
+                const isProtected = isProtectedSaleColumn(column.name, schema?.table.forSale || false)
                 return (
                     <div className="flex items-center gap-2">
                         <span className="truncate block max-w-[120px] sm:max-w-none" title={column.name}>
@@ -118,13 +118,13 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                         <ProtectedColumnBadge
                             columnName={column.name}
                             isProtected={isProtected}
-                            protectionReason="for_sale"
+                            protectionReason="forSale"
                             variant="icon"
                         />
                     </div>
                 )
             },
-            editableInline: false,
+            editableInline: true,
             editType: 'text',
             editValidation: {
                 required: true,
@@ -145,12 +145,12 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                     {getColumnTypeLabel(column.type)}
                 </Badge>
             ),
-            editableInline: false,
+            editableInline: true,
             editType: 'select',
             editOptions: COLUMN_TYPE_OPTIONS.map(opt => ({value: opt.value, label: opt.label}))
         },
         {
-            key: 'is_required',
+            key: 'isRequired',
             label: 'Req',
             sortable: true,
             filterable: true,
@@ -161,12 +161,12 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 {value: 'false', label: 'Optional'}
             ],
             render: (column) => (
-                <span className={`badge badge-xs sm:badge-sm ${column.is_required ? 'badge-warning' : 'badge-success'}`}>
-          <span className="hidden sm:inline">{column.is_required ? 'Required' : 'Optional'}</span>
-          <span className="sm:hidden">{column.is_required ? 'Req' : 'Opt'}</span>
+                <span className={`badge badge-xs sm:badge-sm ${column.isRequired ? 'badge-warning' : 'badge-success'}`}>
+          <span className="hidden sm:inline">{column.isRequired ? 'Required' : 'Optional'}</span>
+          <span className="sm:hidden">{column.isRequired ? 'Req' : 'Opt'}</span>
         </span>
             ),
-            editableInline: false,
+            editableInline: true,
             editType: 'toggle',
             editOptions: [
                 {value: 'false', label: 'No'},
@@ -174,18 +174,42 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             ]
         },
         {
-            key: 'default_value',
+            key: 'allowDuplicates',
+            label: 'Dupes',
+            sortable: true,
+            filterable: true,
+            filterType: 'select',
+            className: 'w-16 sm:w-20 text-center',
+            filterOptions: [
+                {value: 'true', label: 'Allow'},
+                {value: 'false', label: 'Block'}
+            ],
+            render: (column) => (
+                <span className={`badge badge-xs sm:badge-sm ${column.allowDuplicates ? 'badge-info' : 'badge-error'}`}>
+          <span className="hidden sm:inline">{column.allowDuplicates ? 'Allow' : 'Block'}</span>
+          <span className="sm:hidden">{column.allowDuplicates ? 'Yes' : 'No'}</span>
+        </span>
+            ),
+            editableInline: true,
+            editType: 'toggle',
+            editOptions: [
+                {value: 'false', label: 'No'},
+                {value: 'true', label: 'Yes'}
+            ]
+        },
+        {
+            key: 'defaultValue',
             label: 'Default',
             sortable: false,
             filterable: true,
             filterType: 'text',
             className: 'hidden md:table-cell w-24 lg:w-32',
             render: (column) => (
-                <span className="text-xs text-gray-600 font-mono truncate block max-w-[100px]" title={column.default_value || 'none'}>
-          {column.default_value || <em className="text-gray-400">none</em>}
+                <span className="text-xs text-gray-600 font-mono truncate block max-w-[100px]" title={column.defaultValue || 'none'}>
+          {column.defaultValue || <em className="text-gray-400">none</em>}
         </span>
             ),
-            editableInline: false,
+            editableInline: true,
             editType: 'text'
         },
         {
@@ -197,7 +221,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             className: 'hidden lg:table-cell w-28',
             render: (column) => (
                 <span className="text-xs text-gray-500">
-          {formatApiDate(column.created_at)}
+          {formatApiDate(column.createdAt)}
         </span>
             )
         }
@@ -254,8 +278,9 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             const clonedColumnData = {
                 name: uniqueName,
                 type: sourceColumn.type,
-                is_required: sourceColumn.is_required,
-                default_value: sourceColumn.default_value,
+                isRequired: sourceColumn.isRequired,
+                allowDuplicates: sourceColumn.allowDuplicates,
+                defaultValue: sourceColumn.defaultValue,
                 position: sourceColumn.position + 1 // Position after the source column
             }
 
@@ -311,8 +336,9 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             const newColumnData = {
                 name: uniqueName,
                 type: 'text' as const,
-                is_required: false,
-                default_value: null,
+                isRequired: false,
+                allowDuplicates: true,
+                defaultValue: null,
                 position: sourceColumn.position + 1 // Position after the source column
             }
 
@@ -416,7 +442,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 createRoute={undefined}
                 editRoute={() => '#'}
                 deleteRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
-                inlineEditRoute={undefined}
+                inlineEditRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
                 massActionRoute={`/api/tables/${tableId}/columns/mass-action`}
                 orderingConfig={{
                     enabled: true,

@@ -8,6 +8,9 @@ import type { UpdateTableDataRequest } from '@/types/dynamic-tables.js'
 import type { TableDataRepository } from '@/repositories/tableDataRepository.js'
 import type { ZodCompatibleValidator } from '@/validators/zodCompatibleValidator.js'
 import { getUserInfo, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
+import { applyDefaultValues } from '@/utils/applyDefaultValues.js'
+import { validateDuplicates } from '@/utils/validateDuplicates.js'
+import { InventoryTrackingService } from '@/services/inventoryTrackingService/index.js'
 
 export async function updateDataRow(
   repository: TableDataRepository,
@@ -56,8 +59,33 @@ export async function updateDataRow(
     // Get table columns for validation
     const tableColumns = await repository.getTableColumns(tableId)
 
+    // Get table info to check for_sale status
+    const tableInfo = await repository.getTableInfo(tableId)
+
+    // Apply default values from column definitions
+    const processedData = applyDefaultValues(data.data, tableColumns)
+
+    // Check for duplicate values in columns that don't allow duplicates
+    const duplicateValidation = await validateDuplicates(
+      tableId,
+      tableColumns,
+      processedData,
+      repository,
+      rowId // Exclude the current row from duplicate check
+    )
+
+    if (!duplicateValidation.valid) {
+      console.log('🔍 Update Data Row - DUPLICATE VALIDATION FAILED:', duplicateValidation.errors)
+      return createErrorResponse(
+        'Duplicate value not allowed',
+        duplicateValidation.errors.join('. '),
+        400,
+        duplicateValidation.errors
+      )
+    }
+
     // Validate data against schema
-    const dataValidation = await validator.validateTableData(tableColumns, data.data)
+    const dataValidation = await validator.validateTableData(tableColumns, processedData)
     if (!dataValidation.valid) {
       return createErrorResponse(
         'Validation failed',
@@ -73,6 +101,24 @@ export async function updateDataRow(
       tableId,
       dataValidation.validatedData!
     )
+
+    // Track inventory for for_sale tables
+    if (tableInfo?.forSale) {
+      try {
+        const inventoryService = new InventoryTrackingService(c.env.DB)
+        await inventoryService.trackItemUpdate(
+          tableId,
+          tableInfo.name,
+          rowId,
+          existingRow.data,
+          updatedRow.data,
+          getUserInfo(c, user).userEmail
+        )
+      } catch (inventoryError) {
+        console.error('⚠️ Failed to track item update in inventory:', inventoryError)
+        // Continue without failing the main operation
+      }
+    }
 
     return createSuccessResponse(
       { row: updatedRow },

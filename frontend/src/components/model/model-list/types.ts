@@ -119,6 +119,8 @@ export interface TableHeaderProps<T extends IModel> {
     calendarTriggersRef?: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
     onColumnFilter?: (columnKey: string, value: string, filterType?: 'text' | 'select' | 'date') => void;
     onToggleDateFilter?: (columnKey: string) => void;
+    // Mass actions props for checkbox column visibility
+    hasMassActions?: boolean;
 }
 
 // Ordering handlers interface
@@ -141,6 +143,7 @@ export interface TableBodyProps<T extends IModel> {
     isEditingSaving: boolean;
     editingSaveSuccess: boolean;
     editRoute: (id: number | string) => string;
+    deleteRoute: (id: number | string) => string;
     useLegacyRendering: boolean;
     onItemSelect: (itemId: number | string, checked: boolean) => void;
     onStartEditing: (item: T, column: IColumnDefinition<T>) => void;
@@ -162,6 +165,8 @@ export interface TableBodyProps<T extends IModel> {
     onCancelAddingNewRow?: () => void;
     // Ordering functionality
     orderingHandlers?: IOrderingHandlers<T>;
+    // Mass actions props for checkbox column visibility
+    hasMassActions?: boolean;
 }
 
 export interface FiltersRowProps<T extends IModel> {
@@ -171,6 +176,7 @@ export interface FiltersRowProps<T extends IModel> {
     calendarTriggersRef: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
     onColumnFilter: (columnKey: string, value: string, filterType?: 'text' | 'select' | 'date') => void;
     onToggleDateFilter: (columnKey: string) => void;
+    hasMassActions?: boolean;
 }
 
 export interface InlineEditComponentProps<T extends IModel> {
