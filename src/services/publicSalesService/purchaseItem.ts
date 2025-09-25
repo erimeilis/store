@@ -16,7 +16,7 @@ export async function checkAvailability(
   tableId: string,
   itemId: string,
   quantity: number = 1
-): Promise<{ available: boolean; current_qty: number; max_available: number } | { error: string; status?: number }> {
+): Promise<{ available: boolean; currentQty: number; maxAvailable: number } | { error: string; status?: number }> {
   const tableRepo = new TableRepository(env)
   const dataRepo = new TableDataRepository(env)
 
@@ -27,7 +27,7 @@ export async function checkAvailability(
       return { error: 'Table not found', status: 404 }
     }
 
-    if (!table.is_public || !table.for_sale) {
+    if (!table.isPublic || !table.forSale) {
       return { error: 'Table is not available for public sales', status: 403 }
     }
 
@@ -52,8 +52,8 @@ export async function checkAvailability(
 
     return {
       available: currentQty >= quantity,
-      current_qty: currentQty,
-      max_available: currentQty
+      currentQty: currentQty,
+      maxAvailable: currentQty
     }
 
   } catch (error) {
@@ -77,17 +77,17 @@ export async function purchaseItem(
 
   try {
     // Verify table exists and is public for sale
-    const table = await tableRepo.findTableByIdInternal(data.table_id)
+    const table = await tableRepo.findTableByIdInternal(data.tableId)
     if (!table) {
       return { error: 'Table not found', status: 404 }
     }
 
-    if (!table.is_public || !table.for_sale) {
+    if (!table.isPublic || !table.forSale) {
       return { error: 'Table is not available for public sales', status: 403 }
     }
 
     // Get the specific item and check availability
-    const row = await dataRepo.findDataRowById(data.item_id, data.table_id)
+    const row = await dataRepo.findDataRowById(data.itemId, data.tableId)
     if (!row) {
       return { error: 'Item not found', status: 404 }
     }
@@ -105,18 +105,17 @@ export async function purchaseItem(
       return { error: 'Item is not available for sale', status: 403 }
     }
 
-    if (currentQty < data.quantity_sold) {
+    const quantitySold = data.quantitySold || 1
+    if (currentQty < quantitySold) {
       return {
-        error: `Insufficient quantity. Available: ${currentQty}, Requested: ${data.quantity_sold}`,
+        error: `Insufficient quantity. Available: ${currentQty}, Requested: ${quantitySold}`,
         status: 400
       }
     }
 
     // Calculate sale details
     const saleData: CreateSaleRequest = {
-      ...data,
-      unit_price: price,
-      total_amount: price * data.quantity_sold
+      ...data
     }
 
     // Create the sale using the existing sales service
@@ -128,16 +127,14 @@ export async function purchaseItem(
     }
 
     // Update item quantity (reduce by sold amount)
-    const newQty = currentQty - data.quantity_sold
+    const newQty = currentQty - quantitySold
     const updatedData = {
       ...parsedData,
       qty: newQty
     }
 
     try {
-      await dataRepo.updateTableData(data.table_id, data.item_id, {
-        data: updatedData
-      })
+      await dataRepo.updateDataRow(data.itemId, data.tableId, updatedData)
     } catch (updateError) {
       console.error('Error updating item quantity after sale:', updateError)
       // Sale was created but quantity update failed

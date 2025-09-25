@@ -22,27 +22,31 @@ export async function listTables(
 
     const filters: TableFilters = {}
 
-    if (query.filter_name !== undefined) filters.name = query.filter_name
-    if (query.filter_description !== undefined) filters.description = query.filter_description
-    if (query.filter_owner !== undefined) filters.owner = query.filter_owner
-    if (query.filter_visibility !== undefined) filters.visibility = query.filter_visibility
-    if (query.filter_created_at !== undefined) filters.createdAt = query.filter_created_at
-    if (query.filter_updated_at !== undefined) filters.updatedAt = query.filter_updated_at
-    if (query.for_sale !== undefined) filters.forSale = query.for_sale
+    if (query.filterName !== undefined) filters.name = query.filterName
+    if (query.filterDescription !== undefined) filters.description = query.filterDescription
+    if (query.filterOwner !== undefined) filters.owner = query.filterOwner
+    if (query.filterVisibility !== undefined) filters.visibility = query.filterVisibility
+    if (query.filterCreatedAt !== undefined) filters.createdAt = query.filterCreatedAt
+    if (query.filterUpdatedAt !== undefined) filters.updatedAt = query.filterUpdatedAt
+    if (query.forSale !== undefined) filters.forSale = query.forSale
 
     const sort: TableSort = {
-      column: query.sort || 'updated_at',
+      column: query.sort || 'updatedAt',
       direction: query.direction || 'desc'
     }
 
     const pagination: TablePagination = { page, limit, offset }
+
+    // Check if user has admin permissions
+    const isAdmin = user.permissions.includes('admin')
 
     const { tables, totalCount } = await repository.findTables(
       userId,
       userEmail,
       filters,
       sort,
-      pagination
+      pagination,
+      isAdmin
     )
 
     const paginationInfo = buildPaginationInfo(page, limit, totalCount)

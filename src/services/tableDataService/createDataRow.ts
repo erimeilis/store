@@ -8,6 +8,9 @@ import type { AddTableDataRequest } from '@/types/dynamic-tables.js'
 import type { TableDataRepository } from '@/repositories/tableDataRepository.js'
 import type { ZodCompatibleValidator } from '@/validators/zodCompatibleValidator.js'
 import { getUserInfo, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
+import { applyDefaultValues } from '@/utils/applyDefaultValues.js'
+import { validateDuplicates } from '@/utils/validateDuplicates.js'
+import { InventoryTrackingService } from '@/services/inventoryTrackingService/index.js'
 
 export async function createDataRow(
   repository: TableDataRepository,
@@ -49,23 +52,37 @@ export async function createDataRow(
     // Get table info to check for_sale status
     const tableInfo = await repository.getTableInfo(tableId)
 
-    // Apply default values for "for sale" tables
-    let processedData = { ...data.data }
-    if (tableInfo?.for_sale) {
-      // Set default price to 0 if not provided
-      if (processedData.price === undefined || processedData.price === null || processedData.price === '') {
-        processedData.price = 0
-      }
+    // Apply default values from column definitions
+    const processedData = applyDefaultValues(data.data, tableColumns)
 
-      // Set default qty to 1 if not provided
-      if (processedData.qty === undefined || processedData.qty === null || processedData.qty === '') {
-        processedData.qty = 1
-      }
+    // Check for duplicate values in columns that don't allow duplicates
+    const duplicateValidation = await validateDuplicates(
+      tableId,
+      tableColumns,
+      processedData,
+      repository
+    )
+
+    if (!duplicateValidation.valid) {
+      console.log('🔍 Create Data Row - DUPLICATE VALIDATION FAILED:', duplicateValidation.errors)
+      return createErrorResponse(
+        'Duplicate value not allowed',
+        duplicateValidation.errors.join('. '),
+        400,
+        duplicateValidation.errors
+      )
     }
 
     // Validate data against schema
     const dataValidation = await validator.validateTableData(tableColumns, processedData)
+    console.log('🔍 Create Data Row - Validation result:', JSON.stringify({
+      valid: dataValidation.valid,
+      errors: dataValidation.errors,
+      validatedData: dataValidation.validatedData
+    }, null, 2))
+
     if (!dataValidation.valid) {
+      console.log('🔍 Create Data Row - VALIDATION FAILED:', dataValidation.errors)
       return createErrorResponse(
         'Validation failed',
         'Data validation errors',
@@ -80,6 +97,23 @@ export async function createDataRow(
       dataValidation.validatedData!,
       userEmail
     )
+
+    // Track inventory for for_sale tables
+    if (tableInfo?.forSale) {
+      try {
+        const inventoryService = new InventoryTrackingService(c.env.DB)
+        await inventoryService.trackItemCreation(
+          tableId,
+          tableInfo.name,
+          createdRow.id,
+          createdRow.data,
+          userEmail
+        )
+      } catch (inventoryError) {
+        console.error('⚠️ Failed to track item creation in inventory:', inventoryError)
+        // Continue without failing the main operation
+      }
+    }
 
     return createSuccessResponse(
       { row: createdRow },

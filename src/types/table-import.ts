@@ -25,7 +25,7 @@ export interface ColumnInfo {
 export interface TableColumn {
     name: string
     type: string
-    is_required: boolean
-    default_value?: string | null
-    order_index: number
+    isRequired: boolean
+    defaultValue?: string | null
+    orderIndex: number
 }

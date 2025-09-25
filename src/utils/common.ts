@@ -110,6 +110,6 @@ export function validateSortColumn(sortColumn: string, allowedColumns: string[])
  * Validate sort direction
  */
 export function validateSortDirection(direction: string | undefined): string {
-  if (!direction) return 'DESC'
-  return direction.toLowerCase() === 'asc' ? 'ASC' : 'DESC'
+  if (!direction) return 'desc'
+  return direction.toLowerCase() === 'asc' ? 'asc' : 'desc'
 }

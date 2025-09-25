@@ -22,7 +22,7 @@ export async function getInventoryTransactions(
   c: Context,
   user: UserContext,
   query: InventoryTransactionListQuery
-): Promise<InventoryTransactionListResponse> {
+): Promise<InventoryTransactionListResponse | Response> {
   const inventoryRepo = new InventoryRepository(env)
 
   try {
@@ -50,7 +50,7 @@ export async function getInventoryAnalytics(
   dateFrom?: string,
   dateTo?: string,
   tableId?: string
-): Promise<InventoryAnalytics> {
+): Promise<InventoryAnalytics | Response> {
   const inventoryRepo = new InventoryRepository(env)
 
   try {
@@ -86,7 +86,7 @@ export async function getItemInventorySummary(
   user: UserContext,
   tableId: string,
   itemId: string
-) {
+): Promise<Response> {
   const inventoryRepo = new InventoryRepository(env)
 
   try {
@@ -116,7 +116,7 @@ export async function getTableInventorySummary(
   c: Context,
   user: UserContext,
   tableId: string
-) {
+): Promise<Response> {
   const inventoryRepo = new InventoryRepository(env)
 
   try {
@@ -146,7 +146,7 @@ export async function checkStockLevels(
   c: Context,
   user: UserContext,
   request: StockLevelCheckRequest
-): Promise<StockLevelCheckResponse> {
+): Promise<StockLevelCheckResponse | Response> {
   const inventoryRepo = new InventoryRepository(env)
 
   try {
@@ -172,7 +172,7 @@ export async function getTransactionsBySale(
   c: Context,
   user: UserContext,
   saleId: string
-) {
+): Promise<Response> {
   const inventoryRepo = new InventoryRepository(env)
 
   try {
@@ -187,6 +187,36 @@ export async function getTransactionsBySale(
   } catch (error) {
     console.error('Error fetching sale transactions:', error)
     return c.json({ error: 'Failed to fetch sale transactions' }, 500)
+  }
+}
+
+/**
+ * Clear all transactions with filtering
+ */
+export async function clearAllTransactions(
+  env: Bindings,
+  c: Context,
+  user: UserContext,
+  query: InventoryTransactionListQuery
+): Promise<Response> {
+  const inventoryRepo = new InventoryRepository(env)
+
+  try {
+    // Admin check
+    if (!isUserAdmin(user)) {
+      return c.json({ error: 'Admin access required' }, 403)
+    }
+
+    const deletedCount = await inventoryRepo.clearTransactions(query)
+
+    return c.json({
+      message: 'Transactions cleared successfully',
+      deletedCount
+    })
+
+  } catch (error) {
+    console.error('Error clearing inventory transactions:', error)
+    return c.json({ error: 'Failed to clear transactions. Please try again.' }, 500)
   }
 }
 

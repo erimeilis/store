@@ -55,9 +55,9 @@ export const AuthTokenSchema = z.object({
   }),
   user: z.object({
     id: z.string().openapi({ example: 'user_123' }),
-    email: z.string().email().openapi({ example: 'user@example.com' }),
+    email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).openapi({ example: 'user@example.com' }),
     name: z.string().openapi({ example: 'John Doe' }),
-    picture: z.string().url().optional().openapi({ example: 'https://example.com/avatar.jpg' })
+    picture: z.string().regex(/^https?:\/\/.+/).optional().openapi({ example: 'https://example.com/avatar.jpg' })
   })
 }).openapi('AuthToken')
 
@@ -82,7 +82,7 @@ export const ItemSchema = z.object({
     example: 29.99,
     description: 'Item price'
   }),
-  image_url: z.string().url().nullable().openapi({
+  image_url: z.string().regex(/^https?:\/\/.+/).nullable().openapi({
     example: 'https://example.com/image.jpg',
     description: 'Item image URL'
   }),
@@ -109,7 +109,7 @@ export const CreateItemRequestSchema = z.object({
     example: 19.99,
     description: 'Item price (required, must be >= 0)'
   }),
-  image_url: z.string().url().optional().openapi({
+  image_url: z.string().regex(/^https?:\/\/.+/).optional().openapi({
     example: 'https://example.com/image.jpg',
     description: 'Item image URL (optional)'
   })

@@ -22,7 +22,8 @@ import {
   getItemInventorySummary,
   getTableInventorySummary,
   checkStockLevels,
-  getTransactionsBySale
+  getTransactionsBySale,
+  clearAllTransactions
 } from './getTransactions.js'
 
 /**
@@ -65,6 +66,10 @@ export class InventoryService {
 
   async getTransactionsBySale(c: Context, user: UserContext, saleId: string) {
     return getTransactionsBySale(this.env, c, user, saleId)
+  }
+
+  async clearAllTransactions(c: Context, user: UserContext, query: InventoryTransactionListQuery) {
+    return clearAllTransactions(this.env, c, user, query)
   }
 
   // Inventory tracking operations (used internally by other services)

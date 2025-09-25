@@ -1,13 +1,13 @@
 // API service for backend communication
 
-// Backend database item structure 
+// Backend database item structure
 interface BackendItem {
   id: number
   name: string
   description?: string
   data?: string | null
-  created_at: string
-  updated_at: string
+  createdAt: string
+  updatedAt: string
 }
 
 // Frontend display structure
@@ -46,8 +46,8 @@ function adaptBackendItem(backendItem: BackendItem): StoreItem {
     price: parsedData.price,
     quantity: parsedData.quantity,
     category: parsedData.category,
-    createdAt: backendItem.created_at,
-    updatedAt: backendItem.updated_at
+    createdAt: backendItem.createdAt,
+    updatedAt: backendItem.updatedAt
   }
 }
 

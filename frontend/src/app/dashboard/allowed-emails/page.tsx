@@ -97,12 +97,12 @@ const allowedEmailColumns: IColumnDefinition<AllowedEmail>[] = [
 // Mass actions for allowed emails
 const allowedEmailMassActions = [
   {
-    name: 'convert_to_domain',
+    name: 'convertToDomain',
     label: 'Convert to Domain Rules',
     confirmMessage: 'Are you sure you want to convert the selected email addresses to domain patterns?'
   },
   {
-    name: 'export_list',
+    name: 'exportList',
     label: 'Export List',
     confirmMessage: 'Export the selected email rules to CSV?'
   },

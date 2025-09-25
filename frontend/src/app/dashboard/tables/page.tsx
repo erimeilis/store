@@ -39,19 +39,19 @@ const tableColumns: IColumnDefinition<UserTable>[] = [
     )
   },
   { 
-    key: 'created_by', 
+    key: 'createdBy', 
     label: 'Owner', 
     sortable: true,
     filterable: true,
     filterType: 'text',
     render: (table) => (
       <span className="text-sm">
-        {table.owner_display_name || table.created_by}
+        {table.ownerDisplayName || table.createdBy}
       </span>
     )
   },
   { 
-    key: 'is_public', 
+    key: 'isPublic', 
     label: 'Visibility', 
     sortable: true,
     filterable: true,
@@ -64,16 +64,16 @@ const tableColumns: IColumnDefinition<UserTable>[] = [
     editType: 'toggle',
     render: (table) => (
       <span className={`badge ${
-        table.is_public 
+        table.isPublic 
           ? 'badge-success' 
           : 'badge-warning'
       }`}>
-        {table.is_public ? 'Public' : 'Private'}
+        {table.isPublic ? 'Public' : 'Private'}
       </span>
     )
   },
   {
-    key: 'for_sale',
+    key: 'forSale',
     label: 'Type',
     sortable: true,
     filterable: true,
@@ -86,7 +86,7 @@ const tableColumns: IColumnDefinition<UserTable>[] = [
     editType: 'toggle',
     render: (table) => (
       <div className="flex items-center justify-center">
-        {table.for_sale ? (
+        {table.forSale ? (
           <IconShoppingCart className="h-5 w-5 text-success" title="For Sale" />
         ) : (
           <div className="h-5 w-5" title="Regular"></div>
@@ -95,20 +95,20 @@ const tableColumns: IColumnDefinition<UserTable>[] = [
     )
   },
   {
-    key: 'created_at',
+    key: 'createdAt',
     label: 'Created',
     sortable: true,
     filterable: true,
     filterType: 'date',
-    render: (table) => formatApiDate(table.created_at)
+    render: (table) => formatApiDate(table.createdAt)
   },
   {
-    key: 'updated_at',
+    key: 'updatedAt',
     label: 'Updated',
     sortable: true,
     filterable: true,
     filterType: 'date',
-    render: (table) => formatApiDate(table.updated_at)
+    render: (table) => formatApiDate(table.updatedAt)
   }
 ];
 
@@ -133,12 +133,12 @@ const tableRowActions: IRowAction<UserTable>[] = [
 // Mass actions for tables
 const tableMassActions = [
   {
-    name: 'make_public',
+    name: 'makePublic',
     label: 'Make Public',
     confirmMessage: 'Are you sure you want to make the selected tables public? This will allow all authenticated users to edit them.'
   },
   {
-    name: 'make_private',
+    name: 'makePrivate',
     label: 'Make Private',
     confirmMessage: 'Are you sure you want to make the selected tables private? Only you will be able to edit them.'
   },

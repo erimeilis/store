@@ -25,9 +25,9 @@ export async function executeMassAction(
           case 'delete':
             return deleteTable(repository, validator, c, user, id)
           case 'make_public':
-            return updateTable(repository, validator, c, user, id, { is_public: true })
+            return updateTable(repository, validator, c, user, id, { isPublic: true })
           case 'make_private':
-            return updateTable(repository, validator, c, user, id, { is_public: false })
+            return updateTable(repository, validator, c, user, id, { isPublic: false })
           default:
             return createErrorResponse('Invalid action', `Action ${action} is not supported`, 400)
         }

@@ -12,32 +12,33 @@ export interface UserTable extends BaseModel {
   id: string
   name: string
   description?: string | null
-  created_by: string
-  is_public: boolean
-  for_sale: boolean // Whether table is configured for e-commerce with protected price/qty columns
-  created_at: string
-  updated_at: string
-  owner_display_name?: string // Friendly display name for the owner
+  createdBy: string
+  isPublic: boolean
+  forSale: boolean // Whether table is configured for e-commerce with protected price/qty columns
+  createdAt: string
+  updatedAt: string
+  ownerDisplayName?: string // Friendly display name for the owner
 }
 
 export interface TableColumn extends BaseModel {
   id: string
-  table_id: string
+  tableId: string
   name: string
   type: ColumnType
-  is_required: boolean
-  default_value?: string | null
+  isRequired: boolean
+  allowDuplicates: boolean
+  defaultValue?: string | null
   position: number
-  created_at: string
+  createdAt: string
 }
 
 export interface TableDataRow extends BaseModel {
   id: string
-  table_id: string
+  tableId: string
   data: ParsedTableData // JSON object with column data
-  created_by?: string | null
-  created_at: string
-  updated_at: string
+  createdBy?: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 // Table schema combining table with columns
@@ -62,23 +63,24 @@ export interface ParsedTableData {
 export interface CreateTableRequest {
   name: string
   description?: string
-  is_public?: boolean
+  isPublic?: boolean
   columns: CreateColumnRequest[]
 }
 
 export interface CreateColumnRequest {
   name: string
   type: ColumnType
-  is_required?: boolean
-  default_value?: string
+  isRequired?: boolean
+  allowDuplicates?: boolean
+  defaultValue?: string
   position?: number
 }
 
 export interface UpdateTableRequest {
   name?: string
   description?: string
-  is_public?: boolean
-  for_sale?: boolean
+  isPublic?: boolean
+  forSale?: boolean
 }
 
 export interface AddTableDataRequest {
@@ -128,16 +130,17 @@ export interface TableAccess {
 export interface TableFormData {
   name: string
   description: string
-  is_public: boolean
-  for_sale: boolean
+  isPublic: boolean
+  forSale: boolean
   columns: ColumnFormData[]
 }
 
 export interface ColumnFormData {
   name: string
   type: ColumnType
-  is_required: boolean
-  default_value: string
+  isRequired: boolean
+  allowDuplicates: boolean
+  defaultValue: string
   position: number
 }
 
@@ -202,8 +205,10 @@ export function isProtectedSaleColumn(columnName: string, tableForSale: boolean)
 
 export function validateColumnValue(value: any, column: TableColumn): { valid: boolean; error?: string } {
   // Basic required validation
-  if (column.is_required && (value === null || value === undefined || value === '')) {
-    if (column.default_value) {
+  if (column.isRequired && (value === null || value === undefined || value === '')) {
+    // A column is effectively optional if it has a default value (since the system will use the default when no value is provided)
+    const hasDefaultValue = column.defaultValue !== null && column.defaultValue !== undefined;
+    if (hasDefaultValue) {
       return { valid: true }
     }
     return { valid: false, error: `${column.name} is required` }
