@@ -51,16 +51,16 @@ export function transformPaginatedResponse<T>(backendResponse: any, itemTransfor
   // Build standardized frontend response
   const result: any = {
     data: items,
-    current_page: page,
-    last_page: totalPages,
-    per_page: limit,
+    currentPage: page,
+    lastPage: totalPages,
+    perPage: limit,
     total: total,
     from: total > 0 ? (page - 1) * limit + 1 : null,
     to: total > 0 ? Math.min(page * limit, total) : null,
     links: generatePaginationLinks(page, totalPages),
-    prev_page_url: hasPrevPage ? `?page=${page - 1}` : null,
-    next_page_url: hasNextPage ? `?page=${page + 1}` : null,
-    last_page_url: totalPages > 1 ? `?page=${totalPages}` : null
+    prevPageUrl: hasPrevPage ? `?page=${page - 1}` : null,
+    nextPageUrl: hasNextPage ? `?page=${page + 1}` : null,
+    lastPageUrl: totalPages > 1 ? `?page=${totalPages}` : null
   }
 
   // Preserve _meta field for table data responses (contains column definitions)

@@ -37,15 +37,15 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
     const [formData, setFormData] = useState({
         name: tableSchema?.table.name || '',
         description: tableSchema?.table.description || '',
-        is_public: Boolean(tableSchema?.table.is_public),
-        for_sale: Boolean(tableSchema?.table.for_sale)
+        isPublic: Boolean(tableSchema?.table.isPublic),
+        forSale: Boolean(tableSchema?.table.forSale)
     })
 
     console.log('🔍 Initial form data from props:', {
         tableSchema,
         tableName: tableSchema?.table.name,
-        forSale: tableSchema?.table.for_sale,
-        formDataForSale: formData.for_sale
+        forSale: tableSchema?.table.forSale,
+        formDataForSale: formData.forSale
     })
 
     // Load table data if not provided
@@ -68,8 +68,8 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
                 setFormData({
                     name: schema.table.name,
                     description: schema.table.description || '',
-                    is_public: Boolean(schema.table.is_public),
-                    for_sale: Boolean(schema.table.for_sale)
+                    isPublic: Boolean(schema.table.isPublic),
+                    forSale: Boolean(schema.table.forSale)
                 })
 
                 console.log('🔍 Loaded table data via API:', {
@@ -77,8 +77,8 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
                     schema,
                     tableInfo: schema.table,
                     tableName: schema.table.name,
-                    forSale: schema.table.for_sale,
-                    isPublic: schema.table.is_public
+                    forSale: schema.table.forSale,
+                    isPublic: schema.table.isPublic
                 })
             } else {
                 const errorData = await response.json() as any
@@ -92,8 +92,8 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
     }
 
     const handleInputChange = (field: string, value: any) => {
-        // Special handling for for_sale changes - show confirmation dialog
-        if (field === 'for_sale' && value !== formData.for_sale) {
+        // Special handling for forSale changes - show confirmation dialog
+        if (field === 'forSale' && value !== formData.forSale) {
             setPendingForSaleValue(value)
             setShowConversionDialog(true)
             return
@@ -106,7 +106,7 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
 
     const handleForSaleConversion = () => {
         if (pendingForSaleValue !== null) {
-            setFormData(prev => ({...prev, for_sale: pendingForSaleValue}))
+            setFormData(prev => ({...prev, forSale: pendingForSaleValue}))
             setShowConversionDialog(false)
             setPendingForSaleValue(null)
         }
@@ -145,8 +145,8 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
             const requestData: UpdateTableRequest = {
                 name: formData.name.trim(),
                 description: formData.description.trim() || undefined,
-                is_public: formData.is_public,
-                for_sale: formData.for_sale
+                isPublic: formData.isPublic,
+                forSale: formData.forSale
             }
 
             const response = await clientApiRequest(`/api/tables/${tableId}`, {
@@ -252,7 +252,7 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
                     onClose={handleCancelConversion}
                     onConfirm={handleForSaleConversion}
                     isLoading={false}
-                    conversionType={pendingForSaleValue ? 'to_sale' : 'from_sale'}
+                    conversionType={pendingForSaleValue ? 'toSale' : 'fromSale'}
                     tableName={formData.name}
                     hasExistingPriceColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'price') || false}
                     hasExistingQtyColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'qty') || false}

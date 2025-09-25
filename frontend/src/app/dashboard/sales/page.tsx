@@ -8,64 +8,65 @@ import { ModelList, IColumnDefinition } from '@/components/model/model-list';
 import { IPaginatedResponse } from '@/types/models';
 import { Sale, SaleStatus, SALE_STATUS_CONFIG, PAYMENT_METHOD_LABELS } from '@/types/sales';
 import { formatApiDate, formatCurrency } from '@/lib/date-utils';
+import { Card, CardBody } from '@/components/ui/card';
 
 // Column definitions for Sales management
 const salesColumns: IColumnDefinition<Sale>[] = [
   {
-    key: 'sale_number',
+    key: 'saleNumber',
     label: 'Sale #',
     sortable: true,
     filterable: true,
     filterType: 'text',
     render: (sale) => (
       <span className="font-mono text-sm font-medium">
-        {sale.sale_number}
+        {sale.saleNumber}
       </span>
     )
   },
   {
-    key: 'customer_id',
+    key: 'customerId',
     label: 'Customer',
     sortable: true,
     filterable: true,
     filterType: 'text',
     render: (sale) => (
-      <span className="truncate max-w-[150px]" title={sale.customer_id}>
-        {sale.customer_id}
+      <span className="truncate max-w-[150px]" title={sale.customerId}>
+        {sale.customerId}
       </span>
     )
   },
   {
-    key: 'table_name',
+    key: 'tableName',
     label: 'Table',
     sortable: true,
     filterable: true,
     filterType: 'text',
     render: (sale) => (
       <span className="badge badge-outline">
-        {sale.table_name}
+        {sale.tableName}
       </span>
     )
   },
   {
-    key: 'item_snapshot.name',
+    key: 'itemSnapshot.name',
     label: 'Item',
     sortable: false,
     filterable: true,
     filterType: 'text',
     render: (sale) => (
       <div className="flex flex-col">
-        <span className="font-medium truncate max-w-[120px]" title={sale.item_snapshot.name}>
-          {sale.item_snapshot.name || 'Unknown Item'}
+        <span className="font-medium truncate max-w-[120px]" title={sale.itemSnapshot.name}>
+          {sale.itemSnapshot.name || 'Unknown Item'}
         </span>
         <span className="text-xs text-base-content/60">
-          Qty: {sale.quantity_sold}
+          Qty: {sale.quantitySold}
         </span>
       </div>
     )
   },
   {
-    key: 'total_amount',
+    key: 'totalAmount',
     label: 'Total',
     sortable: true,
     filterable: true,
@@ -73,10 +74,10 @@ const salesColumns: IColumnDefinition<Sale>[] = [
     render: (sale) => (
       <div className="text-right">
         <div className="font-mono font-semibold">
-          {formatCurrency(sale.total_amount)}
+          {formatCurrency(sale.totalAmount)}
         </div>
         <div className="text-xs text-base-content/60">
-          {formatCurrency(sale.unit_price)} × {sale.quantity_sold}
+          {formatCurrency(sale.unitPrice)} × {sale.quantitySold}
         </div>
       </div>
     )
@@ -98,7 +99,7 @@ const salesColumns: IColumnDefinition<Sale>[] = [
       label: config.label
     })),
     render: (sale) => {
-      const config = SALE_STATUS_CONFIG[sale.sale_status];
+      const config = SALE_STATUS_CONFIG[sale.saleStatus];
       return (
         <span className={`badge ${config.badgeClass}`}>
           {config.label}
@@ -122,7 +123,7 @@ const salesColumns: IColumnDefinition<Sale>[] = [
       value,
       label
     })),
-    render: (sale) => sale.payment_method ? PAYMENT_METHOD_LABELS[sale.payment_method as keyof typeof PAYMENT_METHOD_LABELS] || sale.payment_method : '-'
+    render: (sale) => sale.paymentMethod ? PAYMENT_METHOD_LABELS[sale.paymentMethod as keyof typeof PAYMENT_METHOD_LABELS] || sale.paymentMethod : '-'
   },
   {
     key: 'created_at',
@@ -130,7 +131,7 @@ const salesColumns: IColumnDefinition<Sale>[] = [
     sortable: true,
     filterable: true,
     filterType: 'date',
-    render: (sale) => formatApiDate(sale.created_at)
+    render: (sale) => formatApiDate(sale.createdAt)
   }
 ];
 
@@ -182,49 +183,57 @@ export default function SalesPage({ sales, filters }: SalesPageProps) {
     <div className="space-y-6">
       {/* Sales Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="stat bg-base-200 rounded-lg">
-          <div className="stat-title">Total Sales</div>
-          <div className="stat-value text-primary">
-            {salesData.meta.total}
-          </div>
-          <div className="stat-desc">All time transactions</div>
-        </div>
+        <Card>
+          <CardBody className="text-center">
+            <div className="text-sm font-medium text-base-content/70">Total Sales</div>
+            <div className="text-3xl font-bold text-primary mt-2">
+              {(salesData as any)?.total || salesData?.data?.length || 0}
+            </div>
+            <div className="text-xs text-base-content/50 mt-1">All time transactions</div>
+          </CardBody>
+        </Card>
 
-        <div className="stat bg-base-200 rounded-lg">
-          <div className="stat-title">Revenue</div>
-          <div className="stat-value text-success">
-            {formatCurrency(
-              salesData.data.reduce((sum, sale) => sum + sale.total_amount, 0)
-            )}
-          </div>
-          <div className="stat-desc">From current page</div>
-        </div>
+        <Card>
+          <CardBody className="text-center">
+            <div className="text-sm font-medium text-base-content/70">Revenue</div>
+            <div className="text-3xl font-bold text-success mt-2">
+              {formatCurrency(
+                salesData.data.reduce((sum, sale) => sum + sale.totalAmount, 0)
+              )}
+            </div>
+            <div className="text-xs text-base-content/50 mt-1">From current page</div>
+          </CardBody>
+        </Card>
 
-        <div className="stat bg-base-200 rounded-lg">
-          <div className="stat-title">Avg. Sale</div>
-          <div className="stat-value">
-            {salesData.data.length ?
-              formatCurrency(
-                salesData.data.reduce((sum, sale) => sum + sale.total_amount, 0) / salesData.data.length
-              ) : formatCurrency(0)
-            }
-          </div>
-          <div className="stat-desc">Average transaction</div>
-        </div>
+        <Card>
+          <CardBody className="text-center">
+            <div className="text-sm font-medium text-base-content/70">Avg. Sale</div>
+            <div className="text-3xl font-bold mt-2">
+              {salesData.data.length ?
+                formatCurrency(
+                  salesData.data.reduce((sum, sale) => sum + sale.totalAmount, 0) / salesData.data.length
+                ) : formatCurrency(0)
+              }
+            </div>
+            <div className="text-xs text-base-content/50 mt-1">Average transaction</div>
+          </CardBody>
+        </Card>
 
-        <div className="stat bg-base-200 rounded-lg">
-          <div className="stat-title">Items Sold</div>
-          <div className="stat-value text-info">
-            {salesData.data.reduce((sum, sale) => sum + sale.quantity_sold, 0)}
-          </div>
-          <div className="stat-desc">Total quantity</div>
-        </div>
+        <Card>
+          <CardBody className="text-center">
+            <div className="text-sm font-medium text-base-content/70">Items Sold</div>
+            <div className="text-3xl font-bold text-info mt-2">
+              {salesData.data.reduce((sum, sale) => sum + sale.quantitySold, 0)}
+            </div>
+            <div className="text-xs text-base-content/50 mt-1">Total quantity</div>
+          </CardBody>
+        </Card>
       </div>
 
       {/* Sales Management Table */}
       <ModelList<Sale>
         title="Sales Transactions"
-        items={salesData}
+        items={salesData as IPaginatedResponse<Sale> | null}
         filters={filters || {}}
         columns={salesColumns}
         editRoute={(id) => `/dashboard/sales/edit/${id}`}
@@ -232,25 +241,6 @@ export default function SalesPage({ sales, filters }: SalesPageProps) {
         deleteRoute={(id) => `/api/sales/${id}`}
         massActionRoute="/api/sales/mass-action"
         massActions={salesMassActions}
-        defaultSort="created_at"
-        defaultDirection="desc"
-        enableExport={true}
-        exportFormats={['csv', 'xlsx']}
-        customActions={[
-          {
-            name: 'analytics',
-            label: 'View Analytics',
-            icon: '📊',
-            href: '/dashboard/sales/analytics'
-          },
-          {
-            name: 'inventory',
-            label: 'Inventory Report',
-            icon: '📦',
-            href: '/dashboard/sales/inventory'
-          }
-        ]}
-        disableCreate={true} // Sales are created via API only
       />
     </div>
   );

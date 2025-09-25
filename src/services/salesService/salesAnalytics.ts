@@ -16,7 +16,7 @@ export async function getSalesAnalytics(
   dateFrom?: string,
   dateTo?: string,
   tableId?: string
-): Promise<SalesAnalytics> {
+): Promise<SalesAnalytics | Response> {
   const salesRepo = new SalesRepository(env)
 
   try {
@@ -75,28 +75,28 @@ export async function getSalesSummary(
 
     return c.json({
       today: {
-        total_sales: todayStats.total_sales,
-        total_revenue: todayStats.total_revenue,
-        total_items_sold: todayStats.total_items_sold
+        totalSales: todayStats.totalSales,
+        totalRevenue: todayStats.totalRevenue,
+        totalItemsSold: todayStats.totalItemsSold
       },
-      this_week: {
-        total_sales: weekStats.total_sales,
-        total_revenue: weekStats.total_revenue,
-        total_items_sold: weekStats.total_items_sold
+      thisWeek: {
+        totalSales: weekStats.totalSales,
+        totalRevenue: weekStats.totalRevenue,
+        totalItemsSold: weekStats.totalItemsSold
       },
-      this_month: {
-        total_sales: monthStats.total_sales,
-        total_revenue: monthStats.total_revenue,
-        total_items_sold: monthStats.total_items_sold
+      thisMonth: {
+        totalSales: monthStats.totalSales,
+        totalRevenue: monthStats.totalRevenue,
+        totalItemsSold: monthStats.totalItemsSold
       },
-      all_time: {
-        total_sales: allTimeStats.total_sales,
-        total_revenue: allTimeStats.total_revenue,
-        total_items_sold: allTimeStats.total_items_sold,
-        average_sale_amount: allTimeStats.average_sale_amount
+      allTime: {
+        totalSales: allTimeStats.totalSales,
+        totalRevenue: allTimeStats.totalRevenue,
+        totalItemsSold: allTimeStats.totalItemsSold,
+        averageSaleAmount: allTimeStats.averageSaleAmount
       },
-      top_selling_items: allTimeStats.top_selling_items.slice(0, 5),
-      recent_sales_by_date: allTimeStats.sales_by_date.slice(0, 7)
+      topSellingItems: allTimeStats.topSellingItems.slice(0, 5),
+      recentSalesByDate: allTimeStats.salesByDate.slice(0, 7)
     })
 
   } catch (error) {

@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS "users" (
     "name" TEXT,
     "picture" TEXT,
     "role" TEXT NOT NULL DEFAULT 'user',
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
 );
 
 -- CreateIndex: Unique email constraint

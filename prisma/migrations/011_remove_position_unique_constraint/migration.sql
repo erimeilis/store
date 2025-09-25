@@ -5,31 +5,31 @@
 -- We need to recreate the table without the unique constraint
 
 -- Create new table without the unique position constraint
-CREATE TABLE IF NOT EXISTS table_columns_new (
+CREATE TABLE IF NOT EXISTS tableColumnsNew (
     id TEXT PRIMARY KEY,
-    table_id TEXT NOT NULL,
+    tableId TEXT NOT NULL,
     name TEXT NOT NULL,
     type TEXT NOT NULL CHECK (type IN ('text', 'number', 'date', 'boolean', 'email', 'url', 'textarea', 'country')),
-    is_required BOOLEAN DEFAULT FALSE,
-    default_value TEXT,
+    isRequired BOOLEAN DEFAULT FALSE,
+    defaultValue TEXT,
     position INTEGER NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (table_id) REFERENCES user_tables(id) ON DELETE CASCADE,
-    UNIQUE(table_id, name) -- Keep column names unique within a table
-    -- REMOVED: UNIQUE(table_id, position) -- Allow non-unique positions
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tableId) REFERENCES userTables(id) ON DELETE CASCADE,
+    UNIQUE(tableId, name) -- Keep column names unique within a table
+    -- REMOVED: UNIQUE(tableId, position) -- Allow non-unique positions
 );
 
 -- Copy all data from old table to new table
-INSERT INTO table_columns_new (id, table_id, name, type, is_required, default_value, position, created_at)
-SELECT id, table_id, name, type, is_required, default_value, position, created_at
-FROM table_columns;
+INSERT INTO tableColumnsNew (id, tableId, name, type, isRequired, defaultValue, position, createdAt)
+SELECT id, tableId, name, type, isRequired, defaultValue, position, createdAt
+FROM tableColumns;
 
 -- Drop old table
-DROP TABLE table_columns;
+DROP TABLE tableColumns;
 
 -- Rename new table to original name
-ALTER TABLE table_columns_new RENAME TO table_columns;
+ALTER TABLE tableColumnsNew RENAME TO tableColumns;
 
 -- Recreate indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_table_columns_table_id ON table_columns(table_id);
-CREATE INDEX IF NOT EXISTS idx_table_columns_position ON table_columns(table_id, position);
+CREATE INDEX IF NOT EXISTS idx_tableColumns_tableId ON tableColumns(tableId);
+CREATE INDEX IF NOT EXISTS idx_tableColumns_position ON tableColumns(tableId, position);

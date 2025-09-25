@@ -25,11 +25,11 @@ export function Pagination<T extends IModel>({
     const [showInput, setShowInput] = useState(false)
     const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
-    const {current_page, last_page, links, prev_page_url, next_page_url} = items
+    const {currentPage, lastPage, links, prevPageUrl, nextPageUrl} = items
 
     useEffect(() => {
-        setPageInput(current_page.toString())
-    }, [current_page])
+        setPageInput(currentPage.toString())
+    }, [currentPage])
 
     // Cleanup debounce timeout on unmount
     useEffect(() => {
@@ -42,13 +42,13 @@ export function Pagination<T extends IModel>({
 
     const submitPageInput = useCallback((inputValue: string) => {
         const page = parseInt(inputValue)
-        if (page && page >= 1 && page <= last_page && page !== current_page) {
+        if (page && page >= 1 && page <= lastPage && page !== currentPage) {
             const url = new URL(window.location.href)
             url.searchParams.set('page', page.toString())
             window.location.href = url.toString()
         }
         setShowInput(false)
-    }, [current_page, last_page])
+    }, [currentPage, lastPage])
 
     const handlePageInputSubmit = (e: React.FormEvent) => {
         e.preventDefault()
@@ -66,7 +66,7 @@ export function Pagination<T extends IModel>({
 
         // Set new debounce timeout for mobile users (1.5 seconds after stop typing)
         debounceRef.current = setTimeout(() => {
-            if (value && value !== current_page.toString()) {
+            if (value && value !== currentPage.toString()) {
                 submitPageInput(value)
             }
         }, 1500)
@@ -79,7 +79,7 @@ export function Pagination<T extends IModel>({
         }
 
         // Submit the form if the value has changed
-        if (pageInput && pageInput !== current_page.toString()) {
+        if (pageInput && pageInput !== currentPage.toString()) {
             submitPageInput(pageInput)
         }
 
@@ -98,23 +98,23 @@ export function Pagination<T extends IModel>({
         const pages = []
         const halfVisible = Math.floor(maxVisiblePages / 2)
 
-        if (last_page <= maxVisiblePages) {
+        if (lastPage <= maxVisiblePages) {
             // Show all pages if total pages fit within maxVisiblePages
-            for (let i = 1; i <= last_page; i++) {
+            for (let i = 1; i <= lastPage; i++) {
                 pages.push(i)
             }
         } else {
             // Always show first page
             pages.push(1)
 
-            let start = Math.max(2, current_page - halfVisible)
-            let end = Math.min(last_page - 1, current_page + halfVisible)
+            let start = Math.max(2, currentPage - halfVisible)
+            let end = Math.min(lastPage - 1, currentPage + halfVisible)
 
             // Adjust start and end to maintain maxVisiblePages count
-            if (current_page <= halfVisible + 1) {
+            if (currentPage <= halfVisible + 1) {
                 end = maxVisiblePages - 1
-            } else if (current_page >= last_page - halfVisible) {
-                start = last_page - maxVisiblePages + 2
+            } else if (currentPage >= lastPage - halfVisible) {
+                start = lastPage - maxVisiblePages + 2
             }
 
             // Add ellipsis before middle pages if needed
@@ -124,19 +124,19 @@ export function Pagination<T extends IModel>({
 
             // Add middle pages
             for (let i = start; i <= end; i++) {
-                if (i > 1 && i < last_page) {
+                if (i > 1 && i < lastPage) {
                     pages.push(i)
                 }
             }
 
             // Add ellipsis after middle pages if needed
-            if (end < last_page - 1) {
+            if (end < lastPage - 1) {
                 pages.push('ellipsis-end')
             }
 
             // Always show last page
-            if (last_page > 1) {
-                pages.push(last_page)
+            if (lastPage > 1) {
+                pages.push(lastPage)
             }
         }
 
@@ -146,7 +146,7 @@ export function Pagination<T extends IModel>({
     const visiblePages = getVisiblePages()
 
     // Don't render if only one page
-    if (last_page <= 1) {
+    if (lastPage <= 1) {
         return null
     }
 
@@ -160,12 +160,12 @@ export function Pagination<T extends IModel>({
             <Input
                 type="number"
                 min="1"
-                max={last_page}
+                max={lastPage}
                 value={pageInput}
                 onChange={handlePageInputChange}
                 onBlur={() => handlePageInputBlur(onBlur)}
                 className="w-16 h-8 text-center"
-                placeholder={current_page.toString()}
+                placeholder={currentPage.toString()}
                 autoFocus={autoFocus}
             />
         </form>
@@ -194,12 +194,12 @@ export function Pagination<T extends IModel>({
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
                 <div className="join">
-                    {showPrevNext && prev_page_url && (
+                    {showPrevNext && prevPageUrl && (
                         <Button
                             key="prev-button"
                             size={size}
                             className="join-item"
-                            onClick={() => handlePageClick(prev_page_url)}
+                            onClick={() => handlePageClick(prevPageUrl)}
                             aria-label="Previous page"
                         >
                             <IconChevronLeft size={16}/>
@@ -209,68 +209,68 @@ export function Pagination<T extends IModel>({
                     {/* Mobile: Compact pagination */}
                     <div key="mobile-pagination" className="flex md:hidden">
                         {/* Show active_page-1 if it exists and is > 1 */}
-                        {current_page > 1 && (
+                        {currentPage > 1 && (
                             <Button
-                                key={current_page - 1}
+                                key={currentPage - 1}
                                 size={size}
                                 className="join-item"
                                 onClick={() => {
                                     const prevPageLink = links?.find(link => {
                                         const linkLabel = link.label.replace(/&.*?;/g, '')
-                                        return parseInt(linkLabel) === current_page - 1
+                                        return parseInt(linkLabel) === currentPage - 1
                                     })
                                     if (prevPageLink?.url) {
                                         handlePageClick(prevPageLink.url)
                                     }
                                 }}
                             >
-                                {current_page - 1}
+                                {currentPage - 1}
                             </Button>
                         )}
 
                         {/* Current active page */}
                         <Button
-                            key={current_page}
+                            key={currentPage}
                             size={size}
                             behaviour="active"
                             className="join-item"
                         >
-                            {current_page}
+                            {currentPage}
                         </Button>
 
                         {/* Ellipsis - show if there's a gap between current area and last area */}
-                        {!showInput && last_page > 1 && last_page > current_page + 1 && (
+                        {!showInput && lastPage > 1 && lastPage > currentPage + 1 && (
                             <EllipsisButton/>
                         )}
 
-                        {/* Show last_page-1 if it exists and is different from current_page and current_page-1 */}
-                        {last_page > 1 && last_page - 1 > current_page && last_page - 1 !== current_page - 1 && (
+                        {/* Show lastPage-1 if it exists and is different from currentPage and currentPage-1 */}
+                        {lastPage > 1 && lastPage - 1 > currentPage && lastPage - 1 !== currentPage - 1 && (
                             <Button
-                                key={last_page - 1}
+                                key={lastPage - 1}
                                 size={size}
                                 className="join-item"
                                 onClick={() => {
                                     const secondLastPageLink = links?.find(link => {
                                         const linkLabel = link.label.replace(/&.*?;/g, '')
-                                        return parseInt(linkLabel) === last_page - 1
+                                        return parseInt(linkLabel) === lastPage - 1
                                     })
                                     if (secondLastPageLink?.url) {
                                         handlePageClick(secondLastPageLink.url)
                                     }
                                 }}
                             >
-                                {last_page - 1}
+                                {lastPage - 1}
                             </Button>
                         )}
 
-                        {/* Last page - only show if it's different from current_page */}
-                        {last_page > 1 && last_page !== current_page && (
+                        {/* Last page - only show if it's different from currentPage */}
+                        {lastPage > 1 && lastPage !== currentPage && (
                             <Button
                                 size={size}
                                 className="join-item"
-                                onClick={() => handlePageClick(items.last_page_url || '')}
+                                onClick={() => handlePageClick(items.lastPageUrl || '')}
                             >
-                                {last_page}
+                                {lastPage}
                             </Button>
                         )}
                     </div>
@@ -283,7 +283,7 @@ export function Pagination<T extends IModel>({
                             }
 
                             const pageNumber = page as number
-                            const isActive = pageNumber === current_page
+                            const isActive = pageNumber === currentPage
 
                             // Find the corresponding link for this page
                             const pageLink = links?.find(link => {
@@ -306,12 +306,12 @@ export function Pagination<T extends IModel>({
                         })}
                     </div>
 
-                    {showPrevNext && next_page_url && (
+                    {showPrevNext && nextPageUrl && (
                         <Button
                             key="next-button"
                             size={size}
                             className="join-item"
-                            onClick={() => handlePageClick(next_page_url)}
+                            onClick={() => handlePageClick(nextPageUrl)}
                             aria-label="Next page"
                         >
                             <IconChevronRight size={16}/>

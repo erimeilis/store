@@ -8,8 +8,8 @@ interface User {
   name: string | null;
   picture: string | null;
   role: string;
-  created_at?: string;
-  updated_at?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Form rendering function for user creation/editing
@@ -111,7 +111,7 @@ const renderUserForm = (
         </label>
       </div>
 
-      {readonly && data.created_at && (
+      {readonly && data.createdAt && (
         <div className="form-control w-full">
           <label className="label">
             <span className="label-text">Created At</span>
@@ -119,7 +119,7 @@ const renderUserForm = (
           <input
             type="text"
             className="input input-bordered w-full"
-            value={new Date(data.created_at).toLocaleString()}
+            value={new Date(data.createdAt).toLocaleString()}
             disabled
           />
         </div>

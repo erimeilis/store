@@ -5,11 +5,11 @@ CREATE TABLE IF NOT EXISTS "tokens" (
     "token" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "permissions" TEXT NOT NULL DEFAULT 'read',
-    "allowed_ips" TEXT,
-    "allowed_domains" TEXT,
-    "expires_at" DATETIME,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "allowedIps" TEXT,
+    "allowedDomains" TEXT,
+    "expiresAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
 );
 
 -- CreateIndex: Unique token constraint

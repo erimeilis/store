@@ -12,16 +12,16 @@ const app = new Hono();
 
 // User validation schemas
 const CreateUserSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email address'),
   name: z.string().nullable().optional(),
-  picture: z.string().url().nullable().optional(),
+  picture: z.string().regex(/^https?:\/\/.+/, 'Invalid URL').nullable().optional(),
   role: z.enum(['user', 'admin']).default('user'),
 });
 
 const UpdateUserSchema = z.object({
-  email: z.string().email('Invalid email address').optional(),
+  email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email address').optional(),
   name: z.string().nullable().optional(),
-  picture: z.string().url().nullable().optional(),
+  picture: z.string().regex(/^https?:\/\/.+/, 'Invalid URL').nullable().optional(),
   role: z.enum(['user', 'admin']).optional(),
 });
 
@@ -59,7 +59,7 @@ app.get('/', writeAuthMiddleware, async (c) => {
           }
         } else if (column === 'role') {
           whereConditions.role = value;
-        } else if (column === 'created_at') {
+        } else if (column === 'createdAt') {
           // Handle date filtering
           const date = new Date(value as string);
           if (!isNaN(date.getTime())) {
@@ -78,9 +78,9 @@ app.get('/', writeAuthMiddleware, async (c) => {
     let orderBy: any = { createdAt: 'desc' }; // default
     if (sort) {
       const sortDirection = direction === 'desc' ? 'desc' : 'asc';
-      if (sort === 'created_at') {
+      if (sort === 'createdAt') {
         orderBy = { createdAt: sortDirection };
-      } else if (sort === 'updated_at') {
+      } else if (sort === 'updatedAt') {
         orderBy = { updatedAt: sortDirection };
       } else if (['email', 'name', 'role'].includes(sort)) {
         orderBy = { [sort]: sortDirection };
@@ -112,8 +112,8 @@ app.get('/', writeAuthMiddleware, async (c) => {
     const response = {
       data: users.map(user => ({
         ...user,
-        created_at: formatApiDate(user.createdAt),
-        updated_at: formatApiDate(user.updatedAt),
+        createdAt: formatApiDate(user.createdAt),
+        updatedAt: formatApiDate(user.updatedAt),
       })),
       pagination
     };
@@ -154,8 +154,8 @@ app.get('/:id', writeAuthMiddleware, async (c) => {
 
     const response = {
       ...user,
-      created_at: formatApiDate(user.createdAt),
-      updated_at: formatApiDate(user.updatedAt),
+      createdAt: formatApiDate(user.createdAt),
+      updatedAt: formatApiDate(user.updatedAt),
     };
 
     return c.json(response);
@@ -220,8 +220,8 @@ app.post('/', adminOnlyMiddleware, zValidator('json', CreateUserSchema), async (
 
     const response = {
       ...user,
-      created_at: formatApiDate(user.createdAt),
-      updated_at: formatApiDate(user.updatedAt),
+      createdAt: formatApiDate(user.createdAt),
+      updatedAt: formatApiDate(user.updatedAt),
     };
 
     return c.json(response, 201);
@@ -301,8 +301,8 @@ app.put('/:id', adminOnlyMiddleware, zValidator('json', UpdateUserSchema), async
 
     const response = {
       ...user,
-      created_at: formatApiDate(user.createdAt),
-      updated_at: formatApiDate(user.updatedAt),
+      createdAt: formatApiDate(user.createdAt),
+      updatedAt: formatApiDate(user.updatedAt),
     };
 
     return c.json(response);
@@ -393,8 +393,8 @@ app.patch('/:id', adminOnlyMiddleware, async (c) => {
 
     const response = {
       ...user,
-      created_at: formatApiDate(user.createdAt),
-      updated_at: formatApiDate(user.updatedAt),
+      createdAt: formatApiDate(user.createdAt),
+      updatedAt: formatApiDate(user.updatedAt),
     };
 
     return c.json(response);

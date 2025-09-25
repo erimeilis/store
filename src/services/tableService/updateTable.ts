@@ -26,8 +26,8 @@ export async function updateTable(
     console.log('  - dataType:', typeof data)
     console.log('  - dataKeys:', Object.keys(data || {}))
     console.log('  - data values:', Object.values(data || {}))
-    console.log('  - is_public value:', data?.is_public)
-    console.log('  - is_public type:', typeof data?.is_public)
+    console.log('  - isPublic value:', data?.isPublic)
+    console.log('  - isPublic type:', typeof data?.isPublic)
 
     // Validate request
     const validation = validator.validateTableId(tableId)
@@ -60,7 +60,7 @@ export async function updateTable(
     }
 
     // Handle conversion to "for sale" mode
-    if (data.for_sale === true && !currentTable.for_sale) {
+    if (data.forSale === true && !currentTable.forSale) {
       console.log('🔄 Converting table to "for sale" mode')
       // Create missing sale columns if needed
       await repository.createMissingSaleColumns(tableId)

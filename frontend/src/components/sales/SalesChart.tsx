@@ -29,7 +29,7 @@ export function SalesTrendsChart({ data, title = 'Sales Trends', height = 200 }:
   }
 
   const maxRevenue = Math.max(...data.map(d => d.revenue));
-  const maxSales = Math.max(...data.map(d => d.sales_count));
+  const maxSales = Math.max(...data.map(d => d.salesCount));
 
   return (
     <div className="w-full">
@@ -37,7 +37,7 @@ export function SalesTrendsChart({ data, title = 'Sales Trends', height = 200 }:
       <div className="space-y-2" style={{ height: `${height}px` }}>
         {data.slice(-7).map((item, index) => {
           const revenueHeight = (item.revenue / maxRevenue) * (height - 60);
-          const salesHeight = (item.sales_count / maxSales) * (height - 60);
+          const salesHeight = (item.salesCount / maxSales) * (height - 60);
 
           return (
             <div key={item.date} className="flex items-end space-x-2">
@@ -66,10 +66,10 @@ export function SalesTrendsChart({ data, title = 'Sales Trends', height = 200 }:
                   <div
                     className="w-full bg-secondary rounded-t-sm transition-all duration-300 hover:bg-secondary-focus"
                     style={{ height: `${Math.max(salesHeight, 4)}px` }}
-                    title={`Sales: ${item.sales_count}`}
+                    title={`Sales: ${item.salesCount}`}
                   />
                   <div className="text-xs text-center mt-1 text-base-content/60">
-                    {item.sales_count}
+                    {item.salesCount}
                   </div>
                 </div>
               </div>
@@ -113,17 +113,17 @@ export function TopItemsChart({ data, title = 'Top Selling Items' }: TopItemsCha
     );
   }
 
-  const maxRevenue = Math.max(...data.map(d => d.total_revenue));
+  const maxRevenue = Math.max(...data.map(d => d.totalRevenue));
 
   return (
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-4">{title}</h3>
       <div className="space-y-3">
         {data.slice(0, 5).map((item, index) => {
-          const widthPercentage = (item.total_revenue / maxRevenue) * 100;
+          const widthPercentage = (item.totalRevenue / maxRevenue) * 100;
 
           return (
-            <div key={item.item_id} className="flex items-center space-x-3">
+            <div key={item.itemId} className="flex items-center space-x-3">
               {/* Rank */}
               <div className="w-6 h-6 rounded-full bg-primary text-primary-content flex items-center justify-center text-xs font-bold flex-shrink-0">
                 {index + 1}
@@ -131,11 +131,11 @@ export function TopItemsChart({ data, title = 'Top Selling Items' }: TopItemsCha
 
               {/* Item Info */}
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm truncate" title={item.item_name}>
-                  {item.item_name}
+                <div className="font-medium text-sm truncate" title={item.itemName}>
+                  {item.itemName}
                 </div>
                 <div className="text-xs text-base-content/60">
-                  {item.table_name} • {item.quantity_sold} sold
+                  {item.tableName} • {item.quantitySold} sold
                 </div>
               </div>
 
@@ -151,7 +151,7 @@ export function TopItemsChart({ data, title = 'Top Selling Items' }: TopItemsCha
 
               {/* Revenue */}
               <div className="text-sm font-semibold text-right flex-shrink-0 w-20">
-                {formatCurrency(item.total_revenue)}
+                {formatCurrency(item.totalRevenue)}
               </div>
             </div>
           );
@@ -248,10 +248,10 @@ export function StatusDonutChart({
  */
 interface SummaryCardsProps {
   summary: {
-    total_sales: number;
-    total_revenue: number;
-    total_items_sold: number;
-    average_sale_amount?: number;
+    totalSales: number;
+    totalRevenue: number;
+    totalItemsSold: number;
+    averageSaleAmount?: number;
   };
 }
 
@@ -261,23 +261,23 @@ export function SalesSummaryCards({ summary }: SummaryCardsProps) {
       <div className="stat bg-gradient-to-br from-primary to-primary-focus text-primary-content rounded-lg">
         <div className="stat-figure text-4xl opacity-75">💰</div>
         <div className="stat-title text-primary-content/80">Total Revenue</div>
-        <div className="stat-value text-2xl">{formatCurrency(summary.total_revenue)}</div>
+        <div className="stat-value text-2xl">{formatCurrency(summary.totalRevenue)}</div>
         <div className="stat-desc text-primary-content/70">
-          {summary.average_sale_amount && `Avg: ${formatCurrency(summary.average_sale_amount)}`}
+          {summary.averageSaleAmount && `Avg: ${formatCurrency(summary.averageSaleAmount)}`}
         </div>
       </div>
 
       <div className="stat bg-gradient-to-br from-secondary to-secondary-focus text-secondary-content rounded-lg">
         <div className="stat-figure text-4xl opacity-75">🛍️</div>
         <div className="stat-title text-secondary-content/80">Total Sales</div>
-        <div className="stat-value text-2xl">{summary.total_sales.toLocaleString()}</div>
+        <div className="stat-value text-2xl">{summary.totalSales.toLocaleString()}</div>
         <div className="stat-desc text-secondary-content/70">Transactions</div>
       </div>
 
       <div className="stat bg-gradient-to-br from-accent to-accent-focus text-accent-content rounded-lg">
         <div className="stat-figure text-4xl opacity-75">📦</div>
         <div className="stat-title text-accent-content/80">Items Sold</div>
-        <div className="stat-value text-2xl">{summary.total_items_sold.toLocaleString()}</div>
+        <div className="stat-value text-2xl">{summary.totalItemsSold.toLocaleString()}</div>
         <div className="stat-desc text-accent-content/70">Total quantity</div>
       </div>
 
@@ -285,7 +285,7 @@ export function SalesSummaryCards({ summary }: SummaryCardsProps) {
         <div className="stat-figure text-4xl opacity-75">📊</div>
         <div className="stat-title text-neutral-content/80">Performance</div>
         <div className="stat-value text-lg">
-          {summary.average_sale_amount ? formatCurrency(summary.average_sale_amount) : '-'}
+          {summary.averageSaleAmount ? formatCurrency(summary.averageSaleAmount) : '-'}
         </div>
         <div className="stat-desc text-neutral-content/70">Average sale</div>
       </div>

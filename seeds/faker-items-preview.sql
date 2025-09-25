@@ -2,7 +2,7 @@
 -- Generated with faker.js - 100 items
 
 -- Insert 100 dynamically generated items
-INSERT OR IGNORE INTO items (id, name, description, data, created_at, updated_at) VALUES ('preview-item-001', 'Generic Granite Keyboard', 'Stylish Bike designed to make you stand out with beloved looks', '{"price":28.39,"category":"Books","quantity":18,"brand":"Raynor Inc","rating":4.1,"sku":"BOO-YJYVEVSE"}', datetime('now'), datetime('now')),
+INSERT OR IGNORE INTO items (id, name, description, data, createdAt, updatedAt) VALUES ('preview-item-001', 'Generic Granite Keyboard', 'Stylish Bike designed to make you stand out with beloved looks', '{"price":28.39,"category":"Books","quantity":18,"brand":"Raynor Inc","rating":4.1,"sku":"BOO-YJYVEVSE"}', datetime('now'), datetime('now')),
 ('preview-item-002', 'Awesome Plastic Cheese', 'The Progressive neutral intranet Towels offers reliable performance and trusty design', '{"price":13.55,"category":"Home","quantity":68,"brand":"Treutel - Ryan","rating":4.9,"sku":"HOM-DRJOB9AQ"}', datetime('now'), datetime('now')),
 ('preview-item-003', 'Incredible Metal Sausages', 'The sleek and apt Keyboard comes with grey LED lighting for smart functionality', '{"price":426.05,"category":"Electronics","quantity":79,"brand":"Hilpert Group","rating":4.9,"sku":"ELE-RHDKEKVS"}', datetime('now'), datetime('now')),
 ('preview-item-004', 'Incredible Steel Mouse', 'Introducing the Aruba-inspired Car, blending sophisticated style with local craftsmanship', '{"price":87.79,"category":"Office","quantity":66,"brand":"Kub Inc","rating":5,"sku":"OFF-RZCENQAG"}', datetime('now'), datetime('now')),

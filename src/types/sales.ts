@@ -11,182 +11,185 @@ export type SaleStatus = 'pending' | 'completed' | 'cancelled' | 'refunded'
  * Corresponds to sales table
  */
 export interface Sale {
-  id: string
-  sale_number: string // Format: SALE-YYYY-NNN
-  table_id: string // Reference to source table (no FK constraint)
-  table_name: string // Snapshot of table name
-  item_id: string // Reference to source item (no FK constraint)
-  item_snapshot: string // Complete item JSON at time of sale
-  customer_id: string // External customer identifier
-  quantity_sold: number
-  unit_price: number // Decimal(10,2)
-  total_amount: number // Decimal(10,2)
-  sale_status: SaleStatus
-  payment_method: string | null
-  notes: string | null
-  created_at: Date
-  updated_at: Date
+    id: string
+    saleNumber: string // Format: SALE-YYYY-NNN
+    tableId: string // Reference to source table (no FK constraint)
+    tableName: string // Snapshot of table name
+    itemId: string // Reference to source item (no FK constraint)
+    itemSnapshot: string // Complete item JSON at time of sale
+    customerId: string // External customer identifier
+    quantitySold: number
+    unitPrice: number // Decimal(10,2)
+    totalAmount: number // Decimal(10,2)
+    saleStatus: SaleStatus
+    paymentMethod: string | null
+    notes: string | null
+    createdAt: Date
+    updatedAt: Date
 }
 
 /**
  * Parsed item snapshot data structure
  */
 export interface ItemSnapshot {
-  [columnName: string]: any
-  price?: number // Should exist in for_sale items
-  qty?: number // Should exist in for_sale items
+    price?: number // Should exist in for_sale items
+    qty?: number // Should exist in for_sale items
+
+    [columnName: string]: any
 }
 
 /**
  * Sale with parsed item snapshot
  */
-export interface SaleWithSnapshot extends Omit<Sale, 'item_snapshot'> {
-  item_snapshot: ItemSnapshot
+export interface SaleWithSnapshot extends Omit<Sale, 'itemSnapshot'> {
+    itemSnapshot: ItemSnapshot
 }
 
 /**
  * Create sale request payload (API endpoint)
  */
 export interface CreateSaleRequest {
-  table_id: string
-  item_id: string
-  customer_id: string
-  quantity_sold?: number // Defaults to 1
-  payment_method?: string
-  notes?: string
+    tableId: string
+    itemId: string
+    customerId: string
+    quantitySold?: number // Defaults to 1
+    paymentMethod?: string
+    notes?: string
 }
 
 /**
  * Update sale request payload (Admin only)
  */
 export interface UpdateSaleRequest {
-  sale_status?: SaleStatus
-  payment_method?: string
-  notes?: string
-  // Note: Cannot update financial or item data for audit compliance
+    saleStatus?: SaleStatus
+    paymentMethod?: string
+    notes?: string
+    // Note: Cannot update financial or item data for audit compliance
 }
 
 /**
  * Sale list query parameters
  */
 export interface SaleListQuery {
-  page?: number
-  limit?: number
-  table_id?: string
-  customer_id?: string
-  sale_status?: SaleStatus
-  date_from?: string // ISO date string
-  date_to?: string // ISO date string
-  search?: string // Search in sale_number, customer_id, notes
-  sort_by?: 'created_at' | 'updated_at' | 'total_amount' | 'sale_number'
-  sort_order?: 'asc' | 'desc'
+    page?: number
+    limit?: number
+    tableId?: string
+    customerId?: string
+    saleStatus?: SaleStatus
+    dateFrom?: string // ISO date string
+    dateTo?: string // ISO date string
+    search?: string // Search in saleNumber, customerId, notes
+    sortBy?: 'createdAt' | 'updatedAt' | 'totalAmount' | 'saleNumber'
+    sortOrder?: 'asc' | 'desc'
 }
 
 /**
  * Sale list response
  */
 export interface SaleListResponse {
-  data: SaleWithSnapshot[]
-  meta: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
+    data: SaleWithSnapshot[]
+    pagination: {
+        page: number
+        limit: number
+        total: number
+        totalPages: number
+        hasNextPage: boolean
+        hasPrevPage: boolean
+    }
 }
 
 /**
  * Sales analytics data
  */
 export interface SalesAnalytics {
-  total_sales: number
-  total_revenue: number
-  total_items_sold: number
-  average_sale_amount: number
-  sales_by_status: Record<SaleStatus, number>
-  revenue_by_status: Record<SaleStatus, number>
-  top_selling_items: Array<{
-    item_id: string
-    table_name: string
-    item_name: string // From item snapshot
-    quantity_sold: number
-    total_revenue: number
-  }>
-  sales_by_date: Array<{
-    date: string // YYYY-MM-DD
-    sales_count: number
-    revenue: number
-  }>
+    totalSales: number
+    totalRevenue: number
+    totalItemsSold: number
+    averageSaleAmount: number
+    salesByStatus: Record<SaleStatus, number>
+    revenueByStatus: Record<SaleStatus, number>
+    topSellingItems: Array<{
+        itemId: string
+        tableName: string
+        itemName: string // From item snapshot
+        quantitySold: number
+        totalRevenue: number
+    }>
+    salesByDate: Array<{
+        date: string // YYYY-MM-DD
+        salesCount: number
+        revenue: number
+    }>
 }
 
 /**
  * Sale number generation helper
  */
 export interface SaleNumberGenerator {
-  year: number
-  sequence: number
-  sale_number: string
+    year: number
+    sequence: number
+    saleNumber: string
 }
 
 /**
  * Sale validation result
  */
 export interface SaleValidationResult {
-  valid: boolean
-  errors: string[]
-  warnings: string[]
+    valid: boolean
+    errors: string[]
+    warnings: string[]
 }
 
 /**
  * Refund request payload
  */
 export interface RefundSaleRequest {
-  reason?: string
-  partial_amount?: number // For partial refunds
+    reason?: string
+    partialAmount?: number // For partial refunds
 }
 
 /**
  * Sale export options
  */
 export interface SaleExportOptions {
-  format: 'csv' | 'xlsx' | 'json'
-  date_from?: string
-  date_to?: string
-  table_id?: string
-  sale_status?: SaleStatus[]
-  include_item_details: boolean
+    format: 'csv' | 'xlsx' | 'json'
+    dateFrom?: string
+    dateTo?: string
+    tableId?: string
+    saleStatus?: SaleStatus[]
+    includeItemDetails: boolean
 }
 
 /**
  * Inventory item availability check
  */
 export interface ItemAvailability {
-  available: boolean
-  current_quantity: number
-  requested_quantity: number
-  shortage?: number
+    available: boolean
+    currentQuantity: number
+    requestedQuantity: number
+    shortage?: number
 }
 
 /**
  * Generate sale number helper function
  */
 export function generateSaleNumber(year: number, sequence: number): string {
-  return `SALE-${year}-${sequence.toString().padStart(3, '0')}`
+    return `SALE-${year}-${sequence.toString().padStart(3, '0')}`
 }
 
 /**
  * Parse sale number helper function
  */
 export function parseSaleNumber(saleNumber: string): SaleNumberGenerator | null {
-  const match = saleNumber.match(/^SALE-(\d{4})-(\d{3})$/)
-  if (!match || !match[1] || !match[2]) return null
+    const match = saleNumber.match(/^SALE-(\d{4})-(\d{3})$/)
+    if (!match || !match[1] || !match[2]) return null
 
-  const year = parseInt(match[1])
-  const sequence = parseInt(match[2])
+    const year = parseInt(match[1])
+    const sequence = parseInt(match[2])
 
-  return {
-    year,
-    sequence,
-    sale_number: saleNumber
-  }
+    return {
+        year,
+        sequence,
+        saleNumber: saleNumber
+    }
 }

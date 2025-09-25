@@ -28,23 +28,47 @@ inventoryRoutes.get('/api/inventory/transactions', readAuthMiddleware, async (c)
 
   const query: InventoryTransactionListQuery = {
     page: parseInt(c.req.query('page') || '1', 10),
-    limit: parseInt(c.req.query('limit') || '50', 10),
-    ...(c.req.query('table_id') && { table_id: c.req.query('table_id') }),
-    ...(c.req.query('item_id') && { item_id: c.req.query('item_id') }),
-    ...(c.req.query('transaction_type') && { transaction_type: c.req.query('transaction_type') as any }),
-    ...(c.req.query('created_by') && { created_by: c.req.query('created_by') }),
-    ...(c.req.query('reference_id') && { reference_id: c.req.query('reference_id') }),
-    ...(c.req.query('date_from') && { date_from: c.req.query('date_from') }),
-    ...(c.req.query('date_to') && { date_to: c.req.query('date_to') }),
-    sort_by: (c.req.query('sort_by') as any) || 'created_at',
-    sort_order: (c.req.query('sort_order') as any) || 'desc'
+    limit: parseInt(c.req.query('limit') || '20', 10),
+    sortBy: (c.req.query('sortBy') as any) || 'createdAt',
+    sortOrder: (c.req.query('sortOrder') as any) || 'desc'
   }
+
+  // Add optional parameters only if they exist
+  const tableId = c.req.query('tableId')
+  if (tableId) query.tableId = tableId
+
+  const itemId = c.req.query('itemId')
+  if (itemId) query.itemId = itemId
+
+  const transactionType = c.req.query('transactionType')
+  if (transactionType) query.transactionType = transactionType as any
+
+  const createdBy = c.req.query('createdBy')
+  if (createdBy) query.createdBy = createdBy
+
+  const referenceId = c.req.query('referenceId')
+  if (referenceId) query.referenceId = referenceId
+
+  const dateFrom = c.req.query('dateFrom')
+  if (dateFrom) query.dateFrom = dateFrom
+
+  const dateTo = c.req.query('dateTo')
+  if (dateTo) query.dateTo = dateTo
+
+  const tableNameSearch = c.req.query('tableNameSearch')
+  if (tableNameSearch) query.tableNameSearch = tableNameSearch
+
+  const itemSearch = c.req.query('itemSearch')
+  if (itemSearch) query.itemSearch = itemSearch
+
+  const quantityChange = c.req.query('quantityChange')
+  if (quantityChange) query.quantityChange = quantityChange
 
   const result = await service.getInventoryTransactions(c, user, query)
 
-  // Handle response based on result type
-  if (result && typeof result === 'object' && 'error' in result) {
-    return result // Service already returns proper Response
+  // Handle response based on result type - check if it's a Response object
+  if (result instanceof Response) {
+    return result
   }
 
   return c.json(result)
@@ -60,15 +84,15 @@ inventoryRoutes.get('/api/inventory/analytics', readAuthMiddleware, async (c) =>
   const service = new InventoryService(c.env)
   const user = c.get('user')
 
-  const dateFrom = c.req.query('date_from') || undefined
-  const dateTo = c.req.query('date_to') || undefined
-  const tableId = c.req.query('table_id') || undefined
+  const dateFrom = c.req.query('dateFrom') || undefined
+  const dateTo = c.req.query('dateTo') || undefined
+  const tableId = c.req.query('tableId') || undefined
 
   const result = await service.getInventoryAnalytics(c, user, dateFrom, dateTo, tableId)
 
-  // Handle response based on result type
-  if (result && typeof result === 'object' && 'error' in result) {
-    return result // Service already returns proper Response
+  // Handle response based on result type - check if it's a Response object
+  if (result instanceof Response) {
+    return result
   }
 
   return c.json(result)
@@ -88,12 +112,12 @@ inventoryRoutes.get('/api/inventory/items/:tableId/:itemId', readAuthMiddleware,
 
   const result = await service.getItemInventorySummary(c, user, tableId, itemId)
 
-  // Handle response based on result type
-  if (result && typeof result === 'object' && 'error' in result) {
-    return result // Service already returns proper Response
+  // Handle response based on result type - check if it's a Response object
+  if (result instanceof Response) {
+    return result
   }
 
-  return result
+  return c.json(result)
 })
 
 /**
@@ -109,12 +133,12 @@ inventoryRoutes.get('/api/inventory/tables/:tableId', readAuthMiddleware, async 
 
   const result = await service.getTableInventorySummary(c, user, tableId)
 
-  // Handle response based on result type
-  if (result && typeof result === 'object' && 'error' in result) {
-    return result // Service already returns proper Response
+  // Handle response based on result type - check if it's a Response object
+  if (result instanceof Response) {
+    return result
   }
 
-  return result
+  return c.json(result)
 })
 
 /**
@@ -132,16 +156,21 @@ inventoryRoutes.post('/api/inventory/stock-check', readAuthMiddleware, async (c)
 
     // Provide defaults if no body is sent
     const request: StockLevelCheckRequest = {
-      table_id: data.table_id || c.req.query('table_id') || undefined,
-      low_stock_threshold: data.low_stock_threshold ||
-                          parseInt(c.req.query('low_stock_threshold') || '5', 10)
+      lowStockThreshold: data.lowStockThreshold ||
+                          parseInt(c.req.query('lowStockThreshold') || '5', 10)
+    }
+
+    // Only add tableId if it exists
+    const tableIdParam = data.tableId || c.req.query('tableId')
+    if (tableIdParam) {
+      request.tableId = tableIdParam
     }
 
     const result = await service.checkStockLevels(c, user, request)
 
-    // Handle response based on result type
-    if (result && typeof result === 'object' && 'error' in result) {
-      return result // Service already returns proper Response
+    // Handle response based on result type - check if it's a Response object
+    if (result instanceof Response) {
+      return result
     }
 
     return c.json(result)
@@ -161,15 +190,20 @@ inventoryRoutes.get('/api/inventory/stock-check', readAuthMiddleware, async (c) 
   const user = c.get('user')
 
   const request: StockLevelCheckRequest = {
-    table_id: c.req.query('table_id') || undefined,
-    low_stock_threshold: parseInt(c.req.query('low_stock_threshold') || '5', 10)
+    lowStockThreshold: parseInt(c.req.query('lowStockThreshold') || '5', 10)
+  }
+
+  // Only add tableId if it exists
+  const tableIdParam = c.req.query('tableId')
+  if (tableIdParam) {
+    request.tableId = tableIdParam
   }
 
   const result = await service.checkStockLevels(c, user, request)
 
-  // Handle response based on result type
-  if (result && typeof result === 'object' && 'error' in result) {
-    return result // Service already returns proper Response
+  // Handle response based on result type - check if it's a Response object
+  if (result instanceof Response) {
+    return result
   }
 
   return c.json(result)
@@ -188,12 +222,71 @@ inventoryRoutes.get('/api/inventory/sales/:saleId/transactions', readAuthMiddlew
 
   const result = await service.getTransactionsBySale(c, user, saleId)
 
-  // Handle response based on result type
-  if (result && typeof result === 'object' && 'error' in result) {
-    return result // Service already returns proper Response
+  // Handle response based on result type - check if it's a Response object
+  if (result instanceof Response) {
+    return result
   }
 
-  return result
+  return c.json(result)
+})
+
+/**
+ * Clear all inventory transactions
+ * DELETE /api/inventory/clear-all
+ *
+ * Admin-only endpoint for clearing transaction history
+ */
+inventoryRoutes.delete('/api/inventory/clear-all', writeAuthMiddleware, async (c) => {
+  const service = new InventoryService(c.env)
+  const user = c.get('user')
+
+  // Extract filter parameters to limit clearing to specific transactions
+  const query: InventoryTransactionListQuery = {
+    page: 1,
+    limit: 999999, // Large number to get all matching transactions
+    sortBy: 'createdAt',
+    sortOrder: 'desc'
+  }
+
+  // Add optional parameters only if they exist (same as GET endpoint)
+  const tableId = c.req.query('tableId')
+  if (tableId) query.tableId = tableId
+
+  const itemId = c.req.query('itemId')
+  if (itemId) query.itemId = itemId
+
+  const transactionType = c.req.query('transactionType')
+  if (transactionType) query.transactionType = transactionType as any
+
+  const createdBy = c.req.query('createdBy')
+  if (createdBy) query.createdBy = createdBy
+
+  const referenceId = c.req.query('referenceId')
+  if (referenceId) query.referenceId = referenceId
+
+  const dateFrom = c.req.query('dateFrom')
+  if (dateFrom) query.dateFrom = dateFrom
+
+  const dateTo = c.req.query('dateTo')
+  if (dateTo) query.dateTo = dateTo
+
+  const tableNameSearch = c.req.query('tableNameSearch')
+  if (tableNameSearch) query.tableNameSearch = tableNameSearch
+
+  const itemSearch = c.req.query('itemSearch')
+  if (itemSearch) query.itemSearch = itemSearch
+
+  const quantityChange = c.req.query('quantityChange')
+  if (quantityChange) query.quantityChange = quantityChange
+
+  const result = await service.clearAllTransactions(c, user, query)
+
+  // Handle response based on result type - check if it's a Response object
+  if (result instanceof Response) {
+    return result
+  }
+
+  return c.json(result)
 })
 
 export default inventoryRoutes

@@ -12,8 +12,8 @@ import type {
   SaleStatus,
   generateSaleNumber
 } from '@/types/sales.js'
-import { Prisma, type PrismaClient } from '@prisma/client'
-import { sanitizeForSQL, validateSortColumn, validateSortDirection } from '@/utils/common.js'
+import { type PrismaClient } from '@prisma/client'
+import { validateSortColumn, validateSortDirection } from '@/utils/common.js'
 
 /**
  * Repository for sales operations
@@ -24,6 +24,7 @@ export class SalesRepository {
   constructor(env: Bindings) {
     this.prisma = getPrismaClient(env)
   }
+
 
   /**
    * Create a new sale transaction
@@ -36,60 +37,40 @@ export class SalesRepository {
     unitPrice: number,
     totalAmount: number
   ): Promise<Sale> {
-    const saleId = crypto.randomUUID()
-    const now = new Date()
-
-    await this.prisma.$queryRaw`
-      INSERT INTO sales (
-        id, sale_number, table_id, table_name, item_id, item_snapshot,
-        customer_id, quantity_sold, unit_price, total_amount, sale_status,
-        payment_method, notes, created_at, updated_at
-      ) VALUES (
-        ${saleId}, ${saleNumber}, ${tableData.id}, ${tableData.name}, ${itemData.id},
-        ${JSON.stringify(itemData.data)}, ${saleData.customer_id}, ${saleData.quantity_sold || 1},
-        ${unitPrice}, ${totalAmount}, ${'completed'},
-        ${saleData.payment_method || null}, ${saleData.notes || null}, ${now}, ${now}
-      )
-    `
-
-    const sale = await this.findSaleById(saleId)
-    if (!sale) {
-      throw new Error('Failed to create sale')
-    }
-
-    return sale
+    return await this.prisma.sale.create({
+      data: {
+        saleNumber,
+        tableId: tableData.id,
+        tableName: tableData.name,
+        itemId: itemData.id,
+        itemSnapshot: JSON.stringify(itemData.data),
+        customerId: saleData.customerId,
+        quantitySold: saleData.quantitySold || 1,
+        unitPrice,
+        totalAmount,
+        saleStatus: 'completed',
+        paymentMethod: saleData.paymentMethod || null,
+        notes: saleData.notes || null
+      }
+    }) as Sale
   }
 
   /**
    * Find sale by ID
    */
   async findSaleById(saleId: string): Promise<Sale | null> {
-    const [sale] = await this.prisma.$queryRaw<Sale[]>`
-      SELECT
-        id, sale_number, table_id, table_name, item_id, item_snapshot,
-        customer_id, quantity_sold, unit_price, total_amount, sale_status,
-        payment_method, notes, created_at, updated_at
-      FROM sales
-      WHERE id = ${saleId}
-    `
-
-    return sale || null
+    return await this.prisma.sale.findUnique({
+      where: { id: saleId }
+    }) as Sale | null
   }
 
   /**
    * Find sale by sale number
    */
   async findSaleBySaleNumber(saleNumber: string): Promise<Sale | null> {
-    const [sale] = await this.prisma.$queryRaw<Sale[]>`
-      SELECT
-        id, sale_number, table_id, table_name, item_id, item_snapshot,
-        customer_id, quantity_sold, unit_price, total_amount, sale_status,
-        payment_method, notes, created_at, updated_at
-      FROM sales
-      WHERE sale_number = ${saleNumber}
-    `
-
-    return sale || null
+    return await this.prisma.sale.findUnique({
+      where: { saleNumber }
+    }) as Sale | null
   }
 
   /**
@@ -98,84 +79,75 @@ export class SalesRepository {
   async findSales(query: SaleListQuery): Promise<SaleListResponse> {
     const page = query.page || 1
     const limit = Math.min(query.limit || 50, 100) // Max 100 items per page
-    const offset = (page - 1) * limit
 
-    // Build WHERE conditions
-    let whereConditions = ''
-    const whereParams: any[] = []
+    // Build WHERE conditions using Prisma
+    const where: any = {}
 
-    if (query.table_id) {
-      whereConditions += ` AND s.table_id = ?`
-      whereParams.push(query.table_id)
+    if (query.tableId) {
+      where.tableId = query.tableId
     }
 
-    if (query.customer_id) {
-      whereConditions += ` AND s.customer_id = ?`
-      whereParams.push(query.customer_id)
+    if (query.customerId) {
+      where.customerId = query.customerId
     }
 
-    if (query.sale_status) {
-      whereConditions += ` AND s.sale_status = ?`
-      whereParams.push(query.sale_status)
+    if (query.saleStatus) {
+      where.saleStatus = query.saleStatus
     }
 
-    if (query.date_from) {
-      whereConditions += ` AND DATE(s.created_at) >= ?`
-      whereParams.push(query.date_from)
+    // Date filtering
+    if (query.dateFrom || query.dateTo) {
+      where.createdAt = {}
+      if (query.dateFrom) {
+        where.createdAt.gte = new Date(query.dateFrom)
+      }
+      if (query.dateTo) {
+        where.createdAt.lte = new Date(query.dateTo + 'T23:59:59.999Z')
+      }
     }
 
-    if (query.date_to) {
-      whereConditions += ` AND DATE(s.created_at) <= ?`
-      whereParams.push(query.date_to)
-    }
-
+    // Search across multiple fields
     if (query.search) {
-      whereConditions += ` AND (
-        s.sale_number LIKE ? OR
-        s.customer_id LIKE ? OR
-        s.notes LIKE ?
-      )`
-      const searchTerm = `%${sanitizeForSQL(query.search)}%`
-      whereParams.push(searchTerm, searchTerm, searchTerm)
+      where.OR = [
+        { saleNumber: { contains: query.search } },
+        { customerId: { contains: query.search } },
+        { notes: { contains: query.search } }
+      ]
     }
 
     // Build ORDER BY clause
-    const allowedSortColumns = ['created_at', 'updated_at', 'total_amount', 'sale_number']
-    const sortColumn = validateSortColumn(query.sort_by || 'created_at', allowedSortColumns)
-    const sortOrder = validateSortDirection(query.sort_order || 'desc')
+    const allowedSortColumns = ['createdAt', 'updatedAt', 'totalAmount', 'saleNumber']
+    const sortColumn = validateSortColumn(query.sortBy || 'createdAt', allowedSortColumns)
+    const sortOrder = validateSortDirection(query.sortOrder || 'desc')
 
-    // Get sales
-    const sales = await this.prisma.$queryRawUnsafe<Sale[]>(`
-      SELECT
-        s.id, s.sale_number, s.table_id, s.table_name, s.item_id, s.item_snapshot,
-        s.customer_id, s.quantity_sold, s.unit_price, s.total_amount, s.sale_status,
-        s.payment_method, s.notes, s.created_at, s.updated_at
-      FROM sales s
-      WHERE 1=1 ${whereConditions}
-      ORDER BY s.${sortColumn} ${sortOrder}
-      LIMIT ? OFFSET ?
-    `, ...whereParams, limit, offset)
+    const orderBy = { [sortColumn]: sortOrder }
 
-    // Get total count
-    const [countResult] = await this.prisma.$queryRawUnsafe<[{ count: number }]>(`
-      SELECT COUNT(*) as count
-      FROM sales s
-      WHERE 1=1 ${whereConditions}
-    `, ...whereParams)
+    // Get sales using Prisma
+    const [sales, total] = await Promise.all([
+      this.prisma.sale.findMany({
+        where,
+        orderBy,
+        skip: (page - 1) * limit,
+        take: limit
+      }),
+      this.prisma.sale.count({ where })
+    ])
 
     // Parse item snapshots
     const salesWithSnapshots: SaleWithSnapshot[] = sales.map(sale => ({
-      ...sale,
-      item_snapshot: JSON.parse(sale.item_snapshot) as ItemSnapshot
+      ...(sale as Sale),
+      itemSnapshot: JSON.parse(sale.itemSnapshot) as ItemSnapshot
     }))
 
     return {
       data: salesWithSnapshots,
-      meta: {
+      pagination: {
         page,
         limit,
-        total: countResult.count,
-        totalPages: Math.ceil(countResult.count / limit)
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1
       }
     }
   }
@@ -184,46 +156,31 @@ export class SalesRepository {
    * Update sale (admin only)
    */
   async updateSale(saleId: string, updates: UpdateSaleRequest): Promise<Sale> {
-    const setClauses: string[] = []
-    const setValues: any[] = []
+    const updateData: any = {}
 
-    if (updates.sale_status !== undefined) {
-      setClauses.push('sale_status = ?')
-      setValues.push(updates.sale_status)
+    if (updates.saleStatus !== undefined) {
+      updateData.saleStatus = updates.saleStatus
     }
 
-    if (updates.payment_method !== undefined) {
-      setClauses.push('payment_method = ?')
-      setValues.push(updates.payment_method)
+    if (updates.paymentMethod !== undefined) {
+      updateData.paymentMethod = updates.paymentMethod
     }
 
     if (updates.notes !== undefined) {
-      setClauses.push('notes = ?')
-      setValues.push(updates.notes)
+      updateData.notes = updates.notes
     }
 
-    // Always update timestamp
-    setClauses.push('updated_at = CURRENT_TIMESTAMP')
-
-    if (setClauses.length === 1) { // Only timestamp
+    if (Object.keys(updateData).length === 0) {
       throw new Error('No fields to update')
     }
 
-    const setClause = setClauses.join(', ')
-    setValues.push(saleId)
+    // Always update timestamp
+    updateData.updatedAt = new Date()
 
-    await this.prisma.$executeRawUnsafe(`
-      UPDATE sales
-      SET ${setClause}
-      WHERE id = ?
-    `, ...setValues)
-
-    const sale = await this.findSaleById(saleId)
-    if (!sale) {
-      throw new Error('Sale not found after update')
-    }
-
-    return sale
+    return await this.prisma.sale.update({
+      where: { id: saleId },
+      data: updateData
+    }) as Sale
   }
 
   /**
@@ -235,9 +192,9 @@ export class SalesRepository {
       throw new Error('Sale not found')
     }
 
-    await this.prisma.$executeRaw`
-      DELETE FROM sales WHERE id = ${saleId}
-    `
+    await this.prisma.sale.delete({
+      where: { id: saleId }
+    })
 
     return sale
   }
@@ -246,13 +203,31 @@ export class SalesRepository {
    * Get next sale number for a given year
    */
   async getNextSaleNumber(year: number): Promise<string> {
-    const [result] = await this.prisma.$queryRaw<[{ max_sequence: number | null }]>`
-      SELECT MAX(CAST(SUBSTR(sale_number, 11, 3) AS INTEGER)) as max_sequence
-      FROM sales
-      WHERE sale_number LIKE ${`SALE-${year}-%`}
-    `
+    // Get all sales for the year using Prisma
+    const salesForYear = await this.prisma.sale.findMany({
+      where: {
+        saleNumber: {
+          startsWith: `SALE-${year}-`
+        }
+      },
+      select: {
+        saleNumber: true
+      }
+    })
 
-    const nextSequence = (result?.max_sequence || 0) + 1
+    // Extract sequence numbers and find the maximum
+    let maxSequence = 0
+    for (const sale of salesForYear) {
+      const sequencePart = sale.saleNumber.split('-')[2]
+      if (sequencePart) {
+        const sequence = parseInt(sequencePart, 10)
+        if (!isNaN(sequence) && sequence > maxSequence) {
+          maxSequence = sequence
+        }
+      }
+    }
+
+    const nextSequence = maxSequence + 1
     return `SALE-${year}-${nextSequence.toString().padStart(3, '0')}`
   }
 
@@ -264,124 +239,131 @@ export class SalesRepository {
     dateTo?: string,
     tableId?: string
   ): Promise<SalesAnalytics> {
-    let whereConditions = ''
-    const whereParams: any[] = []
+    // Build WHERE conditions using Prisma
+    const where: any = {}
 
-    if (dateFrom) {
-      whereConditions += ` AND DATE(s.created_at) >= ?`
-      whereParams.push(dateFrom)
-    }
-
-    if (dateTo) {
-      whereConditions += ` AND DATE(s.created_at) <= ?`
-      whereParams.push(dateTo)
+    if (dateFrom || dateTo) {
+      where.createdAt = {}
+      if (dateFrom) {
+        where.createdAt.gte = new Date(dateFrom)
+      }
+      if (dateTo) {
+        where.createdAt.lte = new Date(dateTo + 'T23:59:59.999Z')
+      }
     }
 
     if (tableId) {
-      whereConditions += ` AND s.table_id = ?`
-      whereParams.push(tableId)
+      where.tableId = tableId
     }
 
-    // Overall metrics
-    const [overallMetrics] = await this.prisma.$queryRawUnsafe<[{
-      total_sales: number
-      total_revenue: number
-      total_items_sold: number
-      average_sale_amount: number
-    }]>(`
-      SELECT
-        COUNT(*) as total_sales,
-        COALESCE(SUM(total_amount), 0) as total_revenue,
-        COALESCE(SUM(quantity_sold), 0) as total_items_sold,
-        COALESCE(AVG(total_amount), 0) as average_sale_amount
-      FROM sales s
-      WHERE 1=1 ${whereConditions}
-    `, ...whereParams)
-
-    // Sales by status
-    const salesByStatus = await this.prisma.$queryRawUnsafe<Array<{
-      sale_status: SaleStatus
-      count: number
-      revenue: number
-    }>>(`
-      SELECT
-        sale_status,
-        COUNT(*) as count,
-        COALESCE(SUM(total_amount), 0) as revenue
-      FROM sales s
-      WHERE 1=1 ${whereConditions}
-      GROUP BY sale_status
-    `, ...whereParams)
-
-    // Convert to record format
-    const sales_by_status: Record<SaleStatus, number> = {
-      pending: 0,
-      completed: 0,
-      cancelled: 0,
-      refunded: 0
-    }
-    const revenue_by_status: Record<SaleStatus, number> = {
-      pending: 0,
-      completed: 0,
-      cancelled: 0,
-      refunded: 0
-    }
-
-    salesByStatus.forEach(row => {
-      sales_by_status[row.sale_status] = row.count
-      revenue_by_status[row.sale_status] = row.revenue
+    // Get all sales for analysis
+    const sales = await this.prisma.sale.findMany({
+      where
     })
 
-    // Top selling items
-    const topSellingItems = await this.prisma.$queryRawUnsafe<Array<{
-      item_id: string
-      table_name: string
-      item_name: string
-      quantity_sold: number
-      total_revenue: number
-    }>>(`
-      SELECT
-        s.item_id,
-        s.table_name,
-        JSON_EXTRACT(s.item_snapshot, '$.name') as item_name,
-        SUM(s.quantity_sold) as quantity_sold,
-        SUM(s.total_amount) as total_revenue
-      FROM sales s
-      WHERE 1=1 ${whereConditions}
-      GROUP BY s.item_id, s.table_name
-      ORDER BY quantity_sold DESC
-      LIMIT 10
-    `, ...whereParams)
+    // Calculate overall metrics
+    const totalSales = sales.length
+    const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0)
+    const totalItemsSold = sales.reduce((sum, sale) => sum + sale.quantitySold, 0)
+    const averageSaleAmount = totalSales > 0 ? totalRevenue / totalSales : 0
 
-    // Sales by date
-    const salesByDate = await this.prisma.$queryRawUnsafe<Array<{
+    // Calculate sales by status
+    const salesByStatus: Record<SaleStatus, number> = {
+      pending: 0,
+      completed: 0,
+      cancelled: 0,
+      refunded: 0
+    }
+    const revenueByStatus: Record<SaleStatus, number> = {
+      pending: 0,
+      completed: 0,
+      cancelled: 0,
+      refunded: 0
+    }
+
+    sales.forEach(sale => {
+      const status = sale.saleStatus as SaleStatus
+      salesByStatus[status]++
+      revenueByStatus[status] += sale.totalAmount
+    })
+
+    // Calculate top selling items
+    const itemStats = new Map<string, {
+      itemId: string
+      tableName: string
+      itemName: string
+      quantitySold: number
+      totalRevenue: number
+    }>()
+
+    sales.forEach(sale => {
+      const key = `${sale.itemId}-${sale.tableName}`
+      let itemName = 'Unknown Item'
+
+      try {
+        const snapshot = JSON.parse(sale.itemSnapshot)
+        itemName = snapshot.name || 'Unknown Item'
+      } catch {
+        // Use default name if parsing fails
+      }
+
+      if (itemStats.has(key)) {
+        const existing = itemStats.get(key)!
+        existing.quantitySold += sale.quantitySold
+        existing.totalRevenue += sale.totalAmount
+      } else {
+        itemStats.set(key, {
+          itemId: sale.itemId,
+          tableName: sale.tableName,
+          itemName: itemName,
+          quantitySold: sale.quantitySold,
+          totalRevenue: sale.totalAmount
+        })
+      }
+    })
+
+    const topSellingItems = Array.from(itemStats.values())
+      .sort((a, b) => b.quantitySold - a.quantitySold)
+      .slice(0, 10)
+
+    // Calculate sales by date
+    const dateStats = new Map<string, {
       date: string
-      sales_count: number
+      salesCount: number
       revenue: number
-    }>>(`
-      SELECT
-        DATE(s.created_at) as date,
-        COUNT(*) as sales_count,
-        COALESCE(SUM(s.total_amount), 0) as revenue
-      FROM sales s
-      WHERE 1=1 ${whereConditions}
-      GROUP BY DATE(s.created_at)
-      ORDER BY date DESC
-      LIMIT 30
-    `, ...whereParams)
+    }>()
+
+    sales.forEach(sale => {
+      if (!sale.createdAt) return
+
+      const date = sale.createdAt.toISOString().split('T')[0] as string
+
+      if (dateStats.has(date)) {
+        const existing = dateStats.get(date)!
+        existing.salesCount++
+        existing.revenue += sale.totalAmount
+      } else {
+        dateStats.set(date, {
+          date,
+          salesCount: 1,
+          revenue: sale.totalAmount
+        })
+      }
+    })
+
+    const salesByDate = Array.from(dateStats.values())
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 30)
 
     return {
-      total_sales: overallMetrics.total_sales,
-      total_revenue: overallMetrics.total_revenue,
-      total_items_sold: overallMetrics.total_items_sold,
-      average_sale_amount: overallMetrics.average_sale_amount,
-      sales_by_status,
-      revenue_by_status,
-      top_selling_items: topSellingItems.map(item => ({
-        ...item,
-        item_name: item.item_name || 'Unknown Item'
-      })),
-      sales_by_date: salesByDate
+      totalSales,
+      totalRevenue,
+      totalItemsSold,
+      averageSaleAmount,
+      salesByStatus,
+      revenueByStatus,
+      topSellingItems,
+      salesByDate
     }
   }
 
@@ -389,51 +371,51 @@ export class SalesRepository {
    * Get sales for a specific customer
    */
   async findSalesByCustomer(customerId: string, limit = 50): Promise<SaleWithSnapshot[]> {
-    const sales = await this.prisma.$queryRaw<Sale[]>`
-      SELECT
-        id, sale_number, table_id, table_name, item_id, item_snapshot,
-        customer_id, quantity_sold, unit_price, total_amount, sale_status,
-        payment_method, notes, created_at, updated_at
-      FROM sales
-      WHERE customer_id = ${customerId}
-      ORDER BY created_at DESC
-      LIMIT ${limit}
-    `
+    const sales = await this.prisma.sale.findMany({
+      where: {
+        customerId: customerId
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: limit
+    })
 
     return sales.map(sale => ({
-      ...sale,
-      item_snapshot: JSON.parse(sale.item_snapshot) as ItemSnapshot
-    }))
+      ...(sale as Sale),
+      itemSnapshot: JSON.parse(sale.itemSnapshot) as ItemSnapshot
+    })) as SaleWithSnapshot[]
   }
 
   /**
    * Get sales for a specific table
    */
   async findSalesByTable(tableId: string, limit = 50): Promise<SaleWithSnapshot[]> {
-    const sales = await this.prisma.$queryRaw<Sale[]>`
-      SELECT
-        id, sale_number, table_id, table_name, item_id, item_snapshot,
-        customer_id, quantity_sold, unit_price, total_amount, sale_status,
-        payment_method, notes, created_at, updated_at
-      FROM sales
-      WHERE table_id = ${tableId}
-      ORDER BY created_at DESC
-      LIMIT ${limit}
-    `
+    const sales = await this.prisma.sale.findMany({
+      where: {
+        tableId: tableId
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: limit
+    })
 
     return sales.map(sale => ({
-      ...sale,
-      item_snapshot: JSON.parse(sale.item_snapshot) as ItemSnapshot
-    }))
+      ...(sale as Sale),
+      itemSnapshot: JSON.parse(sale.itemSnapshot) as ItemSnapshot
+    })) as SaleWithSnapshot[]
   }
 
   /**
    * Check if sale exists by sale number
    */
   async saleNumberExists(saleNumber: string): Promise<boolean> {
-    const [result] = await this.prisma.$queryRaw<[{ count: number }]>`
-      SELECT COUNT(*) as count FROM sales WHERE sale_number = ${saleNumber}
-    `
-    return result.count > 0
+    const count = await this.prisma.sale.count({
+      where: {
+        saleNumber: saleNumber
+      }
+    })
+    return count > 0
   }
 }

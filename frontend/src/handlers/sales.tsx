@@ -1,142 +1,19 @@
 /**
  * Sales Handler - Server-side data fetching for sales management
- * Connects frontend components with backend sales API
  */
 
 import type { Context } from 'hono';
 import type { Env, Variables } from '@/types/hono';
-import { Sale, SalesAnalytics, SalesSummary, SaleListQuery } from '@/types/sales';
-import { IPaginatedResponse } from '@/types/models';
-import { renderDashboardPage, buildPageProps } from '@/lib/handler-utils';
+import { renderDashboardPage, buildPageProps, fetchHandlerData } from '@/lib/handler-utils';
 
-// Sales API base URL - will be retrieved from context environment
-
-/**
- * API client with authentication headers
- */
-class SalesAPIClient {
-  private baseUrl: string;
-  private authToken: string;
-
-  constructor(baseUrl: string, authToken: string) {
-    this.baseUrl = baseUrl;
-    this.authToken = authToken;
-  }
-
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Authorization': `Bearer ${this.authToken}`,
-        'Content-Type': 'application/json',
-        ...options.headers
-      }
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API Error ${response.status}: ${errorText}`);
-    }
-
-    return response.json();
-  }
-
-  async getSales(query: SaleListQuery = {}): Promise<IPaginatedResponse<Sale>> {
-    const searchParams = new URLSearchParams();
-
-    Object.entries(query).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        searchParams.append(key, String(value));
-      }
-    });
-
-    const endpoint = `/api/sales${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-    return this.request<IPaginatedResponse<Sale>>(endpoint);
-  }
-
-  async getSale(id: string): Promise<{ sale: Sale }> {
-    return this.request<{ sale: Sale }>(`/api/sales/${id}`);
-  }
-
-  async getSalesAnalytics(params: {
-    date_from?: string;
-    date_to?: string;
-    table_id?: string;
-  } = {}): Promise<SalesAnalytics> {
-    const searchParams = new URLSearchParams();
-
-    Object.entries(params).forEach(([key, value]) => {
-      if (value) {
-        searchParams.append(key, value);
-      }
-    });
-
-    const endpoint = `/api/sales/analytics${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-    return this.request<SalesAnalytics>(endpoint);
-  }
-
-  async getSalesSummary(): Promise<SalesSummary> {
-    return this.request<SalesSummary>('/api/sales/summary');
-  }
-
-  async getInventoryTransactions(query: any = {}): Promise<any> {
-    const searchParams = new URLSearchParams();
-
-    Object.entries(query).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        searchParams.append(key, String(value));
-      }
-    });
-
-    const endpoint = `/api/inventory/transactions${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-    return this.request<any>(endpoint);
-  }
-
-  async getStockAlerts(params: {
-    table_id?: string;
-    low_stock_threshold?: number;
-  } = {}): Promise<any> {
-    const searchParams = new URLSearchParams();
-
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        searchParams.append(key, String(value));
-      }
-    });
-
-    const endpoint = `/api/inventory/stock-check${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-    return this.request<any>(endpoint);
-  }
-}
-
-/**
- * Get authentication token from environment or headers
- */
-function getAuthToken(c: Context): string {
-  // For development, use the admin token from environment
-  const devToken = c.env?.ADMIN_ACCESS_TOKEN;
-
-  if (devToken) {
-    return devToken;
-  }
-
-  // In production, this would come from user session/cookies
-  const authHeader = c.req.header('Authorization');
-  if (authHeader?.startsWith('Bearer ')) {
-    return authHeader.substring(7);
-  }
-
-  // Fallback - this should be replaced with proper authentication
-  return 'default-admin-token';
-}
-
-/**
- * Get API base URL from context environment
- */
-function getApiBaseUrl(c: Context): string {
-  return c.env?.API_URL || 'http://localhost:8787';
-}
+// API endpoints for sales
+const SALES_API_ENDPOINTS = {
+  sales: '/api/sales',
+  salesAnalytics: '/api/sales/analytics',
+  salesSummary: '/api/sales/summary',
+  inventoryTransactions: '/api/inventory/transactions',
+  stockCheck: '/api/inventory/stock-check'
+};
 
 /**
  * Handler for sales list page
@@ -144,62 +21,43 @@ function getApiBaseUrl(c: Context): string {
 export async function handleSalesListPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
   const user = c.get('user');
 
-  try {
-    const authToken = getAuthToken(c);
-    const apiBaseUrl = getApiBaseUrl(c);
-    const apiClient = new SalesAPIClient(apiBaseUrl, authToken);
+  // Get pagination and filtering parameters
+  const page = parseInt(c.req.query('page') || '1');
+  const sort = c.req.query('sort') || 'createdAt';
+  const direction = c.req.query('direction') || 'desc';
 
-    // Extract query parameters
-    const query: SaleListQuery = {
-      page: parseInt(c.req.query('page') || '1'),
-      limit: parseInt(c.req.query('limit') || '50'),
-      sort_by: c.req.query('sort_by') as any || 'created_at',
-      sort_order: c.req.query('sort_order') as any || 'desc',
-      sale_status: c.req.query('sale_status') as any,
-      table_id: c.req.query('table_id'),
-      customer_id: c.req.query('customer_id'),
-      date_from: c.req.query('date_from'),
-      date_to: c.req.query('date_to'),
+  // Build additional parameters for filtering using camelCase
+  const additionalParams: Record<string, string> = {
+    sortBy: sort,
+    sortOrder: direction
+  };
+  if (c.req.query('saleStatus')) additionalParams.saleStatus = c.req.query('saleStatus')!;
+  if (c.req.query('tableId')) additionalParams.tableId = c.req.query('tableId')!;
+  if (c.req.query('customerId')) additionalParams.customerId = c.req.query('customerId')!;
+  if (c.req.query('dateFrom')) additionalParams.dateFrom = c.req.query('dateFrom')!;
+  if (c.req.query('dateTo')) additionalParams.dateTo = c.req.query('dateTo')!;
+  if (c.req.query('search')) additionalParams.search = c.req.query('search')!;
+
+  const sales = await fetchHandlerData('/api/sales', c, {
+    page,
+    additionalParams
+  });
+
+  const pageProps = buildPageProps(user, c, {
+    sales,
+    filters: {
+      sort,
+      direction,
+      saleStatus: c.req.query('saleStatus'),
+      tableId: c.req.query('tableId'),
+      customerId: c.req.query('customerId'),
+      dateFrom: c.req.query('dateFrom'),
+      dateTo: c.req.query('dateTo'),
       search: c.req.query('search')
-    };
+    }
+  });
 
-    // Fetch sales data
-    const sales = await apiClient.getSales(query);
-
-    // Build props and render page
-    const pageProps = buildPageProps(user, c, {
-      sales,
-      filters: {
-        sort: query.sort_by,
-        direction: query.sort_order,
-        sale_status: query.sale_status,
-        table_id: query.table_id,
-        customer_id: query.customer_id,
-        date_from: query.date_from,
-        date_to: query.date_to
-      }
-    });
-
-    return renderDashboardPage(c, '/dashboard/sales', pageProps);
-  } catch (error) {
-    console.error('Error fetching sales data:', error);
-
-    // Return mock data for development
-    const pageProps = buildPageProps(user, c, {
-      sales: {
-        data: [],
-        meta: {
-          page: 1,
-          limit: 50,
-          total: 0,
-          totalPages: 0
-        }
-      },
-      filters: {}
-    });
-
-    return renderDashboardPage(c, '/dashboard/sales', pageProps);
-  }
+  return renderDashboardPage(c, '/dashboard/sales', pageProps);
 }
 
 /**
@@ -208,45 +66,28 @@ export async function handleSalesListPage(c: Context<{ Bindings: Env; Variables:
 export async function handleSalesAnalyticsPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
   const user = c.get('user');
 
-  try {
-    const authToken = getAuthToken(c);
-    const apiBaseUrl = getApiBaseUrl(c);
-    const apiClient = new SalesAPIClient(apiBaseUrl, authToken);
+  // Build additional parameters for analytics using camelCase
+  const additionalParams: Record<string, string> = {};
+  if (c.req.query('dateFrom')) additionalParams.dateFrom = c.req.query('dateFrom')!;
+  if (c.req.query('dateTo')) additionalParams.dateTo = c.req.query('dateTo')!;
+  if (c.req.query('tableId')) additionalParams.tableId = c.req.query('tableId')!;
 
-    const params = {
-      date_from: c.req.query('date_from'),
-      date_to: c.req.query('date_to'),
-      table_id: c.req.query('table_id')
-    };
+  // Fetch analytics and summary data using universal utilities
+  const [analytics, summary] = await Promise.all([
+    fetchHandlerData('/api/sales/analytics', c, { additionalParams }),
+    fetchHandlerData('/api/sales/summary', c, {})
+  ]);
 
-    // Fetch analytics data
-    const [analytics, summary] = await Promise.all([
-      apiClient.getSalesAnalytics(params),
-      apiClient.getSalesSummary()
-    ]);
+  const pageProps = buildPageProps(user, c, {
+    analytics,
+    summary,
+    dateRange: {
+      from: c.req.query('dateFrom'),
+      to: c.req.query('dateTo')
+    }
+  });
 
-    const pageProps = buildPageProps(user, c, {
-      analytics,
-      summary,
-      dateRange: {
-        from: params.date_from,
-        to: params.date_to
-      }
-    });
-
-    return renderDashboardPage(c, '/dashboard/sales/analytics', pageProps);
-  } catch (error) {
-    console.error('Error fetching sales analytics:', error);
-
-    // Return null to use mock data in component
-    const pageProps = buildPageProps(user, c, {
-      analytics: null,
-      summary: null,
-      dateRange: {}
-    });
-
-    return renderDashboardPage(c, '/dashboard/sales/analytics', pageProps);
-  }
+  return renderDashboardPage(c, '/dashboard/sales/analytics', pageProps);
 }
 
 /**
@@ -256,62 +97,119 @@ export async function handleInventoryPage(c: Context<{ Bindings: Env; Variables:
   const user = c.get('user');
 
   try {
-    const authToken = getAuthToken(c);
-    const apiBaseUrl = getApiBaseUrl(c);
-    const apiClient = new SalesAPIClient(apiBaseUrl, authToken);
+    // Get pagination and filtering parameters using universal system
+    const page = parseInt(c.req.query('page') || '1')
+    const sort = c.req.query('sort') || 'createdAt'
+    const direction = c.req.query('direction') || 'desc'
 
-    const query = {
-      page: parseInt(c.req.query('page') || '1'),
-      limit: parseInt(c.req.query('limit') || '50'),
-      sort_by: c.req.query('sort_by') || 'created_at',
-      sort_order: c.req.query('sort_order') || 'desc',
-      transaction_type: c.req.query('transaction_type'),
-      table_id: c.req.query('table_id'),
-      date_from: c.req.query('date_from'),
-      date_to: c.req.query('date_to'),
-      created_by: c.req.query('created_by')
-    };
+    // Build additional parameters for filtering using camelCase
+    console.log('🚨 HANDLER DEBUG: Using camelCase parameters!', { sort, direction })
+    const additionalParams: Record<string, string> = {
+      sortBy: sort,
+      sortOrder: direction
+    }
 
-    // Fetch inventory data and stock alerts
-    const [transactions, stockAlerts] = await Promise.all([
-      apiClient.getInventoryTransactions(query),
-      apiClient.getStockAlerts({ low_stock_threshold: 10 })
-    ]);
+    // Map frontend filter parameters to backend API camelCase parameters
+    if (c.req.query('filterTransactionType')) additionalParams.transactionType = c.req.query('filterTransactionType')!
+    if (c.req.query('filterTableName')) additionalParams.tableNameSearch = c.req.query('filterTableName')!
+    if (c.req.query('filterItemName')) additionalParams.itemSearch = c.req.query('filterItemName')!
+    if (c.req.query('filterQuantityChange')) additionalParams.quantityChange = c.req.query('filterQuantityChange')!
+    if (c.req.query('filterReferenceId')) additionalParams.referenceId = c.req.query('filterReferenceId')!
+    if (c.req.query('filterCreatedBy')) additionalParams.createdBy = c.req.query('filterCreatedBy')!
+    if (c.req.query('filterCreatedAt')) additionalParams.dateFrom = c.req.query('filterCreatedAt')!
+
+    // Legacy parameter support (in case called directly) - convert to camelCase
+    if (c.req.query('transactionType')) additionalParams.transactionType = c.req.query('transactionType')!
+    if (c.req.query('tableId')) additionalParams.tableId = c.req.query('tableId')!
+    if (c.req.query('dateFrom')) additionalParams.dateFrom = c.req.query('dateFrom')!
+    if (c.req.query('dateTo')) additionalParams.dateTo = c.req.query('dateTo')!
+    if (c.req.query('createdBy')) additionalParams.createdBy = c.req.query('createdBy')!
+
+    // Use fetchHandlerData like other handlers
+    const transactions = await fetchHandlerData('/api/inventory/transactions', c, {
+      page,
+      additionalParams
+    });
+
+    // Fetch stock alerts directly since this endpoint has custom response format
+    const apiUrl = c.env?.API_URL || 'http://localhost:8787';
+    const { fetchAPI } = await import('@/lib/api-utils');
+
+    const stockUrl = new URL('/api/inventory/stock-check', apiUrl);
+    stockUrl.searchParams.set('lowStockThreshold', '10');
+
+    const stockAlertsData = await fetchAPI(
+      stockUrl.toString(),
+      c.env?.ADMIN_ACCESS_TOKEN || ''
+    );
+    const stockAlerts = (stockAlertsData as any)?.alerts || [];
 
     const pageProps = buildPageProps(user, c, {
       transactions,
-      stockAlerts: stockAlerts.alerts || [],
+      stockAlerts,
       filters: {
-        sort: query.sort_by,
-        direction: query.sort_order,
-        transaction_type: query.transaction_type,
-        table_id: query.table_id,
-        date_from: query.date_from,
-        date_to: query.date_to,
-        created_by: query.created_by
+        sort,
+        direction,
+        // Frontend filter parameters (for ModelList component state)
+        filterTransactionType: c.req.query('filterTransactionType'),
+        filterTableName: c.req.query('filterTableName'),
+        filterItemName: c.req.query('filterItemName'),
+        filterQuantityChange: c.req.query('filterQuantityChange'),
+        filterReferenceId: c.req.query('filterReferenceId'),
+        filterCreatedBy: c.req.query('filterCreatedBy'),
+        filterCreatedAt: c.req.query('filterCreatedAt'),
+        // Legacy parameters (backward compatibility)
+        transactionType: c.req.query('transactionType'),
+        tableId: c.req.query('tableId'),
+        dateFrom: c.req.query('dateFrom'),
+        dateTo: c.req.query('dateTo'),
+        createdBy: c.req.query('createdBy')
       }
     });
 
     return renderDashboardPage(c, '/dashboard/sales/inventory', pageProps);
   } catch (error) {
     console.error('Error fetching inventory data:', error);
+    throw error;
+  }
+}
 
-    // Return empty data for development
+/**
+ * Handler for inventory alerts page
+ */
+export async function handleInventoryAlertsPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
+  const user = c.get('user');
+
+  try {
+    // Fetch stock alerts directly since this endpoint has custom response format
+    const apiUrl = c.env?.API_URL || 'http://localhost:8787';
+    const { fetchAPI } = await import('@/lib/api-utils');
+
+    const url = new URL('/api/inventory/stock-check', apiUrl);
+    url.searchParams.set('lowStockThreshold', '10');
+    url.searchParams.set('includeDetails', 'true');
+
+    const stockAlertsData = await fetchAPI(
+      url.toString(),
+      c.env?.ADMIN_ACCESS_TOKEN || ''
+    );
+
+    const alerts = (stockAlertsData as any)?.alerts || [];
+
     const pageProps = buildPageProps(user, c, {
-      transactions: {
-        data: [],
-        meta: {
-          page: 1,
-          limit: 50,
-          total: 0,
-          totalPages: 0
-        }
-      },
-      stockAlerts: [],
-      filters: {}
+      alerts,
+      summary: {
+        total: alerts.length,
+        negativeStock: alerts.filter((a: any) => a.alertType === 'negative_stock').length,
+        outOfStock: alerts.filter((a: any) => a.alertType === 'out_of_stock').length,
+        lowStock: alerts.filter((a: any) => a.alertType === 'low_stock').length
+      }
     });
 
-    return renderDashboardPage(c, '/dashboard/sales/inventory', pageProps);
+    return renderDashboardPage(c, '/dashboard/sales/inventory/alerts', pageProps);
+  } catch (error) {
+    console.error('Error fetching inventory alerts:', error);
+    throw error;
   }
 }
 
@@ -322,11 +220,9 @@ export async function handleSaleDetailsPage(c: Context<{ Bindings: Env; Variable
   const user = c.get('user');
 
   try {
-    const authToken = getAuthToken(c);
-    const apiBaseUrl = getApiBaseUrl(c);
-    const apiClient = new SalesAPIClient(apiBaseUrl, authToken);
-
-    const { sale } = await apiClient.getSale(saleId);
+    // Fetch sale details using universal utilities
+    const saleResponse = await fetchHandlerData(`/api/sales/${saleId}`, c, {});
+    const sale = (saleResponse as any)?.sale || saleResponse;
 
     const pageProps = buildPageProps(user, c, { sale });
 

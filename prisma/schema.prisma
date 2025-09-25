@@ -17,10 +17,10 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  picture   String?  // Profile picture from Google
+  picture   String? // Profile picture from Google
   role      String   @default("user") // admin, user
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
 
   // Relationships
   sessions Session[]
@@ -32,11 +32,11 @@ model User {
 // Sessions - Simple post-OAuth session management
 model Session {
   id           String   @id @default(cuid())
-  userId       String   @map("user_id")
-  sessionToken String   @unique @map("session_token")
-  expiresAt    DateTime @map("expires_at")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  userId       String   @map("userId")
+  sessionToken String   @unique @map("sessionToken")
+  expiresAt    DateTime @map("expiresAt")
+  createdAt    DateTime @default(now()) @map("createdAt")
+  updatedAt    DateTime @updatedAt @map("updatedAt")
 
   // Relationships
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -50,11 +50,11 @@ model Token {
   token          String    @unique
   name           String
   permissions    String    @default("read") // comma-separated: read,write,delete,admin
-  allowedIps     String?   @map("allowed_ips")     // JSON array of IPs/CIDR ranges
-  allowedDomains String?   @map("allowed_domains") // JSON array of domain patterns
-  expiresAt      DateTime? @map("expires_at")
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  allowedIps     String?   @map("allowedIps") // JSON array of IPs/CIDR ranges
+  allowedDomains String?   @map("allowedDomains") // JSON array of domain patterns
+  expiresAt      DateTime? @map("expiresAt")
+  createdAt      DateTime  @default(now()) @map("createdAt")
+  updatedAt      DateTime  @updatedAt @map("updatedAt")
 
   @@map("tokens")
 }
@@ -63,11 +63,11 @@ model Token {
 model Table {
   id          String   @id @default(cuid())
   name        String
-  ownerId     String   @map("owner_id")
-  schema      String   // JSON - column definitions, types, constraints
-  permissions String?  // JSON - user permissions per table
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  ownerId     String   @map("ownerId")
+  schema      String // JSON - column definitions, types, constraints
+  permissions String? // JSON - user permissions per table
+  createdAt   DateTime @default(now()) @map("createdAt")
+  updatedAt   DateTime @updatedAt @map("updatedAt")
 
   // Relationships
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
@@ -80,12 +80,12 @@ model Table {
 // AllowedEmails - Access control whitelist
 model AllowedEmail {
   id        String   @id @default(cuid())
-  email     String?  // Specific email address
-  domain    String?  // Domain pattern (e.g., @company.com)
-  type      String   // "email" or "domain"
-  createdAt DateTime @default(now()) @map("created_at")
+  email     String? // Specific email address
+  domain    String? // Domain pattern (e.g., @company.com)
+  type      String // "email" or "domain"
+  createdAt DateTime @default(now()) @map("createdAt")
 
-  @@map("allowed_emails")
+  @@map("allowedEmails")
 }
 
 // Items - Test table for root user (example with 100 fake records)
@@ -93,9 +93,101 @@ model Item {
   id          String   @id @default(cuid())
   name        String
   description String?
-  data        String   // JSON - price, category, stock, etc.
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  data        String // JSON - price, category, stock, etc.
+  createdAt   DateTime @default(now()) @map("createdAt")
+  updatedAt   DateTime @updatedAt @map("updatedAt")
 
   @@map("items")
+}
+
+// Sales - Records sales from "for sale" tables with complete audit trail
+model Sale {
+  id            String   @id @default(cuid())
+  saleNumber    String   @unique @map("saleNumber")
+  tableId       String   @map("tableId")
+  tableName     String   @map("tableName")
+  itemId        String   @map("itemId")
+  itemSnapshot  String   @map("itemSnapshot") // JSON
+  customerId    String   @map("customerId")
+  quantitySold  Int      @default(1) @map("quantitySold")
+  unitPrice     Float    @map("unitPrice")
+  totalAmount   Float    @map("totalAmount")
+  saleStatus    String   @default("completed") @map("saleStatus")
+  paymentMethod String?  @map("paymentMethod")
+  notes         String?
+  createdAt     DateTime @default(now()) @map("createdAt")
+  updatedAt     DateTime @updatedAt @map("updatedAt")
+
+  @@map("sales")
+}
+
+// InventoryTransaction - Tracks all changes to "for sale" table items
+model InventoryTransaction {
+  id              String   @id @default(cuid())
+  tableId         String   @map("tableId")
+  tableName       String   @map("tableName")
+  itemId          String   @map("itemId")
+  transactionType String   @map("transactionType")
+  quantityChange  Int?     @map("quantityChange")
+  previousData    String?  @map("previousData") // JSON
+  newData         String?  @map("newData") // JSON
+  referenceId     String?  @map("referenceId")
+  createdBy       String   @map("createdBy")
+  createdAt       DateTime @default(now()) @map("createdAt")
+
+  @@map("inventoryTransactions")
+}
+
+// UserTable - Metadata for user-created dynamic tables
+model UserTable {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdBy   String
+  userId      String? // Optional user ID for session-based creation
+  isPublic    Boolean  @default(false)
+  forSale     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  columns TableColumn[]
+  data    TableData[]
+
+  @@map("userTables")
+}
+
+// TableColumn - Column definitions for user tables
+model TableColumn {
+  id              String   @id @default(cuid())
+  tableId         String
+  name            String
+  type            String
+  isRequired      Boolean  @default(false)
+  allowDuplicates Boolean  @default(true)
+  defaultValue    String?
+  position        Int
+  createdAt       DateTime @default(now())
+
+  // Relationships
+  table UserTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@unique([tableId, name])
+  @@unique([tableId, position])
+  @@map("tableColumns")
+}
+
+// TableData - Dynamic table data storage (JSON)
+model TableData {
+  id        String   @id @default(cuid())
+  tableId   String
+  data      String // JSON blob with column data
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  table UserTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@map("tableData")
 }
