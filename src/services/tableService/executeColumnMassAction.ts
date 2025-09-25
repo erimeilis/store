@@ -48,10 +48,10 @@ export async function executeColumnMassAction(
             return deleteColumn(repository, validator, c, user, tableId, id)
           case 'make_required':
             // Update column to be required
-            return repository.updateColumn(tableId, id, { is_required: true })
+            return repository.updateColumn(tableId, id, { isRequired: true })
           case 'make_optional':
             // Update column to be optional
-            return repository.updateColumn(tableId, id, { is_required: false })
+            return repository.updateColumn(tableId, id, { isRequired: false })
           default:
             return createErrorResponse('Invalid action', `Action ${action} is not supported`, 400)
         }

@@ -4,6 +4,7 @@
  */
 
 import { parseDate } from './parseDate.js'
+import { convertToCountryCode } from '@/utils/countryConverter.js'
 
 export function convertValueToColumnType(value: any, columnType: string): any {
     if (value === null || value === undefined || value === '') {
@@ -46,12 +47,19 @@ export function convertValueToColumnType(value: any, columnType: string): any {
             return date
 
         case 'country':
-            // Country should be a valid ISO 2-letter or 3-letter code
-            const countryCode = stringValue.toUpperCase()
-            if (countryCode.length !== 2 && countryCode.length !== 3) {
-                throw new Error(`Invalid country code: "${stringValue}". Use ISO 2-letter (US) or 3-letter (USA) format`)
+            // Allow common empty-like values to pass through as null
+            // This will be handled by the calling code based on whether the field is required
+            const upperValue = stringValue.toUpperCase()
+            if (['FALSE', 'NULL', 'UNDEFINED', 'NONE', 'N/A', 'NA'].includes(upperValue)) {
+                return null
             }
-            return countryCode
+
+            // Use the comprehensive country converter that handles names, ISO2, ISO3, and aliases
+            try {
+                return convertToCountryCode(stringValue)
+            } catch (error) {
+                throw new Error(`Invalid country: "${stringValue}". ${error instanceof Error ? error.message : 'Country not recognized'}`)
+            }
 
         default:
             return stringValue

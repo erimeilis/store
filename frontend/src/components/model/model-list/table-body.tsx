@@ -18,6 +18,7 @@ function AddNewRowComponent<T extends IModel>({
     onUpdateNewRowData,
     onSaveNewRow,
     onCancelAddingNewRow,
+    hasMassActions = true,
 }: {
     columns: IColumnDefinition<T>[];
     newRowData: Record<string, string>;
@@ -26,6 +27,7 @@ function AddNewRowComponent<T extends IModel>({
     onUpdateNewRowData: (columnKey: string, value: string) => void;
     onSaveNewRow: () => Promise<void>;
     onCancelAddingNewRow: () => void;
+    hasMassActions?: boolean;
 }) {
     const handleInputChange = (columnKey: string, value: string) => {
         onUpdateNewRowData(columnKey, value);
@@ -166,11 +168,13 @@ function AddNewRowComponent<T extends IModel>({
 
     return (
         <TableRow className="bg-base-100 border-2 border-dashed border-primary">
-            <TableHeaderCell className="w-4">
-                <div className="flex items-center">
-                    <span className="text-xs text-primary font-semibold">New</span>
-                </div>
-            </TableHeaderCell>
+            {hasMassActions && (
+                <TableHeaderCell className="w-4">
+                    <div className="flex items-center">
+                        <span className="text-xs text-primary font-semibold">New</span>
+                    </div>
+                </TableHeaderCell>
+            )}
             {columns.map((column) => (
                 <TableCell key={String(column.key)} className={column.className || ''}>
                     {renderInputForColumn(column)}
@@ -365,6 +369,7 @@ function ModelTableRow<T extends IModel>({
     isEditingSaving,
     editingSaveSuccess,
     editRoute,
+    deleteRoute,
     useLegacyRendering,
     onItemSelect,
     onStartEditing,
@@ -377,6 +382,7 @@ function ModelTableRow<T extends IModel>({
     renderItem,
     rowActions,
     orderingHandlers,
+    hasMassActions = true,
 }: {
     item: T;
     columns: IColumnDefinition<T>[];
@@ -387,6 +393,7 @@ function ModelTableRow<T extends IModel>({
     isEditingSaving: boolean;
     editingSaveSuccess: boolean;
     editRoute: (id: number | string) => string;
+    deleteRoute: (id: number | string) => string;
     useLegacyRendering: boolean;
     onItemSelect: (itemId: number, checked: boolean) => void;
     onStartEditing: (item: T, column: IColumnDefinition<T>) => void;
@@ -399,6 +406,7 @@ function ModelTableRow<T extends IModel>({
     renderItem?: (item: T) => React.ReactNode;
     rowActions?: IRowAction<T>[];
     orderingHandlers?: any;
+    hasMassActions?: boolean;
 }) {
     return (
         <TableRow
@@ -410,15 +418,17 @@ function ModelTableRow<T extends IModel>({
             onDragEnd={orderingHandlers?.onDragEnd}
             onDrop={orderingHandlers ? (e) => orderingHandlers.onDrop(e, item) : undefined}
         >
-            <TableHeaderCell className="w-4 cursor-pointer">
-                <div className="flex items-center">
-                    <Checkbox
-                        id={`select-item-${item.id}`}
-                        checked={(selectedItems as any).has(item.id)}
-                        onChange={(e) => (onItemSelect as any)(item.id, e.target.checked)}
-                    />
-                </div>
-            </TableHeaderCell>
+            {hasMassActions && (
+                <TableHeaderCell className="w-4 cursor-pointer">
+                    <div className="flex items-center">
+                        <Checkbox
+                            id={`select-item-${item.id}`}
+                            checked={(selectedItems as any).has(item.id)}
+                            onChange={(e) => (onItemSelect as any)(item.id, e.target.checked)}
+                        />
+                    </div>
+                </TableHeaderCell>
+            )}
             {useLegacyRendering
                 ? renderItem && renderItem(item)
                 : columns.map((column) => (
@@ -457,7 +467,7 @@ function ModelTableRow<T extends IModel>({
                     ))}
                     {/* Standard actions */}
                     {editRoute && editRoute(item.id) !== '#' && <Button size="icon" color="primary" style="soft" icon={IconEdit} title="Edit" onClick={() => window.location.href = (editRoute as any)(item.id)} />}
-                    <Button size="icon" color="error" style="soft" icon={IconTrash} title="Delete" onClick={() => onDeleteItem(item)} />
+                    {deleteRoute(item.id) !== '#' && <Button size="icon" color="error" style="soft" icon={IconTrash} title="Delete" onClick={() => onDeleteItem(item)} />}
                 </div>
             </TableHeaderCell>
         </TableRow>
@@ -475,6 +485,7 @@ export function ModelTableBody<T extends IModel>({
     isEditingSaving,
     editingSaveSuccess,
     editRoute,
+    deleteRoute,
     useLegacyRendering,
     onItemSelect,
     onStartEditing,
@@ -496,6 +507,8 @@ export function ModelTableBody<T extends IModel>({
     onCancelAddingNewRow,
     // Ordering functionality
     orderingHandlers,
+    // Mass actions props for checkbox column visibility
+    hasMassActions = true,
 }: TableBodyProps<T>) {
     return (
         <TableBody>
@@ -510,6 +523,7 @@ export function ModelTableBody<T extends IModel>({
                         onUpdateNewRowData={onUpdateNewRowData}
                         onSaveNewRow={onSaveNewRow}
                         onCancelAddingNewRow={onCancelAddingNewRow}
+                        hasMassActions={hasMassActions}
                     />
                     {/* Show error message below the add row if there is one */}
                     {newRowError && (
@@ -544,6 +558,7 @@ export function ModelTableBody<T extends IModel>({
                         isEditingSaving={isEditingSaving}
                         editingSaveSuccess={editingSaveSuccess}
                         editRoute={editRoute}
+                        deleteRoute={deleteRoute}
                         useLegacyRendering={useLegacyRendering}
                         onItemSelect={onItemSelect}
                         onStartEditing={onStartEditing}
@@ -556,6 +571,7 @@ export function ModelTableBody<T extends IModel>({
                         renderItem={renderItem}
                         rowActions={rowActions}
                         orderingHandlers={orderingHandlers}
+                        hasMassActions={hasMassActions}
                     />
                 ))
             )}

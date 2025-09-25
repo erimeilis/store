@@ -96,6 +96,9 @@ export function ModelList<T extends IModel>({
         massActionsLength: massActions?.length || 0,
         massActionRoute,
         createRoute,
+        createRouteType: typeof createRoute,
+        createRouteIsNull: createRoute === null,
+        createRouteIsUndefined: createRoute === undefined,
         hasRowActions: !!rowActions,
         rowActionsLength: rowActions?.length || 0,
         rowActions: rowActions
@@ -361,7 +364,7 @@ export function ModelList<T extends IModel>({
         if (filterType === 'text') {
             debounceTimeouts.current[columnKey] = setTimeout(() => {
                 updateUrlWithFilter(columnKey, value);
-            }, 300); // 300ms debounce
+            }, 1500); // 1500ms debounce for better UX
         } else {
             // For select and date filters, update immediately
             updateUrlWithFilter(columnKey, value);
@@ -517,7 +520,11 @@ export function ModelList<T extends IModel>({
         if (!column.editableInline) return;
 
         const columnKey = String(column.key);
-        const currentValue = item[column.key as keyof T];
+        // Check if this is a dynamic table data row (has nested data property)
+        const isDynamicTableData = 'data' in item && typeof (item as any).data === 'object';
+        const currentValue = isDynamicTableData
+            ? (item as any).data[columnKey]
+            : item[column.key as keyof T];
 
         setEditingCell({ itemId: item.id, columnKey });
 
@@ -600,8 +607,14 @@ export function ModelList<T extends IModel>({
         const item = items?.data?.find((i) => i.id === editingCell.itemId);
         const column = columns.find((c) => String(c.key) === editingCell.columnKey);
 
+        // Check if this is a dynamic table data row (has nested data property)
+        const isDynamicTableData = item && 'data' in item && typeof (item as any).data === 'object';
+        const currentItemValue = isDynamicTableData
+            ? (item as any).data[editingCell.columnKey]
+            : item ? item[editingCell.columnKey as keyof typeof item] : null;
+
         console.log('🔍 saveEditing item and column check:', {
-            item: item ? { id: item.id, [editingCell.columnKey]: item[editingCell.columnKey as keyof typeof item] } : null,
+            item: item ? { id: item.id, [editingCell.columnKey]: currentItemValue, isDynamicTableData } : null,
             column: column ? { key: column.key, editableInline: column.editableInline, editType: column.editType } : null
         });
 
@@ -670,7 +683,12 @@ export function ModelList<T extends IModel>({
                     // Check if this is a table data API endpoint and wrap data accordingly
                     const isTableDataEditApi = editUrl.includes('/tables/') && editUrl.includes('/data');
                     const editPayload = isTableDataEditApi
-                        ? { data: { [editingCell.columnKey]: convertedValue } }
+                        ? {
+                            data: {
+                                ...(isDynamicTableData ? (item as any).data : {}), // Preserve existing data
+                                [editingCell.columnKey]: convertedValue  // Override with new value
+                            }
+                        }
                         : { [editingCell.columnKey]: convertedValue };
 
                     const response = await clientApiRequest(editUrl, {
@@ -689,7 +707,14 @@ export function ModelList<T extends IModel>({
                         handleSaveSuccess();
                     } else {
                         console.error('❌ Save failed:', response.statusText);
-                        setEditingError('Failed to save changes');
+                        // Extract specific error message from backend response
+                        try {
+                            const errorData = await response.json();
+                            const errorMessage = (errorData as any)?.error || (errorData as any)?.message || 'Failed to save changes';
+                            setEditingError(errorMessage);
+                        } catch (e) {
+                            setEditingError('Failed to save changes');
+                        }
                         setIsEditingSaving(false);
                     }
                 } catch (error) {
@@ -767,10 +792,15 @@ export function ModelList<T extends IModel>({
         swapEndpoint: orderingConfig.swapEndpoint,
         recountEndpoint: orderingConfig.recountEndpoint,
         recountDelay: orderingConfig.recountDelay,
-        onReload: orderingConfig.onReorder || (async () => {
-            // Fallback to page reload if no custom reload function provided
-            window.location.reload();
-        })
+        onReload: async () => {
+            if (orderingConfig.onReorder) {
+                // Use custom reload function to avoid page reload
+                await orderingConfig.onReorder();
+            } else {
+                // Fallback to page reload if no custom reload function provided
+                window.location.reload();
+            }
+        }
     } : null;
 
     const orderingHandlers = orderingContext ? {
@@ -803,6 +833,23 @@ export function ModelList<T extends IModel>({
                     ) : createRoute === '' ? (
                         <Button icon={IconPlus} onClick={() => startAddingNewRow()}>
                             Add Row
+                        </Button>
+                    ) : createRoute === null && (!massActions || massActions.length === 0) ? (
+                        <Button
+                            icon={IconTrash}
+                            color="error"
+                            style="soft"
+                            onClick={() => {
+                                // Open the clear all modal that should be provided by the parent page
+                                const modal = document.getElementById('clear-all-modal') as HTMLDialogElement;
+                                if (modal) {
+                                    modal.showModal();
+                                } else {
+                                    console.warn('Clear all modal not found - parent page should implement clear-all-modal');
+                                }
+                            }}
+                        >
+                            Clear All
                         </Button>
                     ) : createRoute === null ? null : (
                         <Button icon={IconPlus} onClick={() => startAddingNewRow()}>
@@ -862,7 +909,7 @@ export function ModelList<T extends IModel>({
                                     columns={columns}
                                     filters={filters || {}}
                                     selectedItems={selectedItems}
-                                    items={items ? { data: items.data, last_page: items.last_page } : null}
+                                    items={items ? { data: items.data, last_page: items.lastPage } : null}
                                     onSort={handleSort}
                                     onSelectAll={handleSelectAll}
                                     useLegacyRendering={useLegacyRendering}
@@ -874,9 +921,10 @@ export function ModelList<T extends IModel>({
                                     calendarTriggersRef={calendarTriggersRef}
                                     onColumnFilter={handleColumnFilter}
                                     onToggleDateFilter={toggleDateFilter}
+                                    hasMassActions={massActions && massActions.length > 0}
                                 />
                                 <ModelTableBody
-                                    items={items ? { data: items.data, last_page: items.last_page } : null}
+                                    items={items ? { data: items.data, last_page: items.lastPage } : null}
                                     columns={columns}
                                     selectedItems={selectedItems}
                                     editingCell={editingCell}
@@ -885,6 +933,7 @@ export function ModelList<T extends IModel>({
                                     isEditingSaving={isEditingSaving}
                                     editingSaveSuccess={editingSaveSuccess}
                                     editRoute={editRoute}
+                                    deleteRoute={deleteRoute}
                                     useLegacyRendering={useLegacyRendering}
                                     onItemSelect={handleItemSelect}
                                     onStartEditing={startEditing}
@@ -906,11 +955,13 @@ export function ModelList<T extends IModel>({
                                     onCancelAddingNewRow={cancelAddingNewRow}
                                     // Ordering functionality
                                     orderingHandlers={orderingHandlers}
+                                    // Mass actions props for checkbox column visibility
+                                    hasMassActions={massActions && massActions.length > 0}
                                 />
                             </Table>
                         </TableWrapper>
 
-                        {items && items.last_page > 1 && (
+                        {items && items.lastPage > 1 && (
                             <Pagination 
                                 items={items} 
                                 showPrevNext={true} 

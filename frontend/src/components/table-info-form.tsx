@@ -13,8 +13,8 @@ import { ForSaleToggle } from '@/components/for-sale-toggle'
 interface TableInfoData {
   name: string
   description: string
-  is_public: boolean
-  for_sale?: boolean
+  isPublic: boolean
+  forSale?: boolean
 }
 
 interface ValidationErrors {
@@ -60,15 +60,15 @@ export function TableInfoForm({ data, errors = {}, onChange }: TableInfoFormProp
         <Checkbox
           label="Public Table"
           labelPosition="right"
-          checked={data.is_public}
-          onChange={(e) => onChange('is_public', e.target.checked)}
+          checked={data.isPublic}
+          onChange={(e) => onChange('isPublic', e.target.checked)}
         />
 
         <div className="divider text-sm">E-commerce Settings</div>
 
         <ForSaleToggle
-          value={data.for_sale || false}
-          onChange={(value) => onChange('for_sale' as keyof TableInfoData, value)}
+          value={data.forSale || false}
+          onChange={(value) => onChange('forSale' as keyof TableInfoData, value)}
           showHelp={true}
           className="mt-2"
         />

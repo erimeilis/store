@@ -2,24 +2,24 @@
 
 export interface BaseModel {
   id: string | number;
-  created_at?: string;
-  updated_at?: string;
+  createdAt?: string;
+  updatedAt?: string;
   [key: string]: any;
 }
 
 export interface PaginatedResponse<T> {
   data: T[]
-  current_page: number
-  last_page: number
-  per_page: number
+  currentPage: number
+  lastPage: number
+  perPage: number
   total: number
   from: number | null
   to: number | null
   links: PaginationLink[]
-  prev_page_url: string | null
-  next_page_url: string | null
-  last_page_url: string | null
-  _meta?: any // Optional metadata field for table data responses (contains column definitions)
+  prevPageUrl: string | null
+  nextPageUrl: string | null
+  lastPageUrl: string | null
+  meta?: any // Optional metadata field for table data responses (contains column definitions)
 }
 
 export interface PaginationLink {
@@ -67,7 +67,7 @@ export interface User extends BaseModel {
   email: string;
   name: string;
   role?: string;
-  google_id?: string;
+  googleId?: string;
   avatar?: string;
 }
 
@@ -75,9 +75,9 @@ export interface Token extends BaseModel {
   name: string;
   token: string;
   permissions: 'read' | 'full';
-  allowed_domains?: string[];
-  expires_at?: string;
-  last_used_at?: string;
+  allowedDomains?: string[];
+  expiresAt?: string;
+  lastUsedAt?: string;
 }
 
 export interface Item extends BaseModel {
@@ -86,12 +86,12 @@ export interface Item extends BaseModel {
   price?: number;
   category?: string;
   stock?: number;
-  image_url?: string;
+  imageUrl?: string;
 }
 
 export interface AllowedEmail extends BaseModel {
   email?: string;
   domain?: string;
   type: 'email' | 'domain';
-  created_by?: string;
+  createdBy?: string;
 }

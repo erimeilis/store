@@ -20,25 +20,25 @@ export async function handleTablesListPage(c: Context<{ Bindings: Env; Variables
   
   // Get pagination and filtering parameters
   const page = parseInt(c.req.query('page') || '1')
-  const sort = c.req.query('sort') || 'updated_at'
+  const sort = c.req.query('sort') || 'updatedAt'
   const direction = c.req.query('direction') || 'desc'
-  
+
   // Extract all filter parameters
-  const filterName = c.req.query('filter_name')
-  const filterDescription = c.req.query('filter_description') 
-  const filterOwner = c.req.query('filter_owner')
-  const filterVisibility = c.req.query('filter_visibility') || c.req.query('filter_is_public')
-  const filterCreatedAt = c.req.query('filter_created_at')
-  const filterUpdatedAt = c.req.query('filter_updated_at')
-  
+  const filterName = c.req.query('filterName')
+  const filterDescription = c.req.query('filterDescription')
+  const filterOwner = c.req.query('filterOwner')
+  const filterVisibility = c.req.query('filterVisibility') || c.req.query('filterIsPublic')
+  const filterCreatedAt = c.req.query('filterCreatedAt')
+  const filterUpdatedAt = c.req.query('filterUpdatedAt')
+
   // Build additional parameters including all filters
   const additionalParams: Record<string, string> = { sort, direction }
-  if (filterName) additionalParams.filter_name = filterName
-  if (filterDescription) additionalParams.filter_description = filterDescription
-  if (filterOwner) additionalParams.filter_owner = filterOwner
-  if (filterVisibility) additionalParams.filter_visibility = filterVisibility
-  if (filterCreatedAt) additionalParams.filter_created_at = filterCreatedAt
-  if (filterUpdatedAt) additionalParams.filter_updated_at = filterUpdatedAt
+  if (filterName) additionalParams.filterName = filterName
+  if (filterDescription) additionalParams.filterDescription = filterDescription
+  if (filterOwner) additionalParams.filterOwner = filterOwner
+  if (filterVisibility) additionalParams.filterVisibility = filterVisibility
+  if (filterCreatedAt) additionalParams.filterCreatedAt = filterCreatedAt
+  if (filterUpdatedAt) additionalParams.filterUpdatedAt = filterUpdatedAt
   
   const tables = await fetchHandlerData(TABLES_API_ENDPOINTS.tables, c, {
     page,
@@ -46,17 +46,17 @@ export async function handleTablesListPage(c: Context<{ Bindings: Env; Variables
     // No transformation needed - api-utils handles tables format automatically
   })
   
-  const tablesProps = buildPageProps(user, c, { 
+  const tablesProps = buildPageProps(user, c, {
     tables,
-    filters: { 
-      sort, 
+    filters: {
+      sort,
       direction,
-      filter_name: filterName,
-      filter_description: filterDescription,
-      filter_owner: filterOwner,
-      filter_visibility: filterVisibility,
-      filter_created_at: filterCreatedAt,
-      filter_updated_at: filterUpdatedAt
+      filterName: filterName,
+      filterDescription: filterDescription,
+      filterOwner: filterOwner,
+      filterVisibility: filterVisibility,
+      filterCreatedAt: filterCreatedAt,
+      filterUpdatedAt: filterUpdatedAt
     }
   })
   
@@ -92,10 +92,10 @@ export async function handleTableDataPage(c: Context<{ Bindings: Env; Variables:
   // Extract all filter parameters - dynamic filters for any column
   const url = new URL(c.req.url)
   const filterParams: Record<string, string> = {}
-  
-  // Look for any query parameter that starts with 'filter_'
+
+  // Look for any query parameter that starts with 'filter' (camelCase)
   for (const [key, value] of url.searchParams.entries()) {
-    if (key.startsWith('filter_') && value.trim()) {
+    if (key.startsWith('filter') && key !== 'filter' && value.trim()) {
       filterParams[key] = value.trim()
     }
   }

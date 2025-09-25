@@ -28,14 +28,14 @@ tablesRoutes.get('/api/tables', readAuthMiddleware, async (c) => {
   const query = {
     page: parseInt(c.req.query('page') || '1', 10),
     limit: parseInt(c.req.query('limit') || '10', 10),
-    sort: c.req.query('sort') || 'updated_at',
+    sort: c.req.query('sort') || 'updatedAt',
     direction: c.req.query('direction') || 'desc',
-    filter_name: c.req.query('filter_name') || '',
-    filter_description: c.req.query('filter_description') || '',
-    filter_owner: c.req.query('filter_owner') || '',
-    filter_visibility: c.req.query('filter_visibility') || '',
-    filter_created_at: c.req.query('filter_created_at') || '',
-    filter_updated_at: c.req.query('filter_updated_at') || '',
+    filterName: c.req.query('filter_name') || '',
+    filterDescription: c.req.query('filter_description') || '',
+    filterOwner: c.req.query('filter_owner') || '',
+    filterVisibility: c.req.query('filter_visibility') || '',
+    filterCreatedAt: c.req.query('filter_createdAt') || '',
+    filterUpdatedAt: c.req.query('filter_updatedAt') || '',
     for_sale: c.req.query('for_sale') || ''
   }
 
@@ -346,9 +346,12 @@ tablesRoutes.post('/api/tables/:id/parse-import-file', writeAuthMiddleware, asyn
 tablesRoutes.post('/api/tables/:id/import-data', writeAuthMiddleware, async (c) => {
   try {
     const tableId = c.req.param('id')
+    console.log('🔍 Import-data route called with tableId:', tableId)
     const { data, headers, columnMappings, importMode, hasHeaders } = await c.req.json()
+    console.log('🔍 Import-data received:', { dataLength: data?.length, columnMappingsLength: columnMappings?.length, importMode, hasHeaders })
 
     if (!data || !Array.isArray(data) || data.length === 0) {
+      console.log('🔍 Import-data FAILED: No data provided')
       return c.json({
         error: 'No data provided',
         message: 'Please provide data to import'
@@ -356,6 +359,7 @@ tablesRoutes.post('/api/tables/:id/import-data', writeAuthMiddleware, async (c) 
     }
 
     if (!columnMappings || !Array.isArray(columnMappings) || columnMappings.length === 0) {
+      console.log('🔍 Import-data FAILED: No column mappings')
       return c.json({
         error: 'No column mappings',
         message: 'Please map at least one column'

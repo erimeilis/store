@@ -48,7 +48,7 @@ export function getCountryOptions(): CountryOption[] {
  * Get country data by ISO2 code
  */
 export function getCountryByAlpha2(alpha2: string): CountryData | null {
-  const country = countries[alpha2.toUpperCase()];
+  const country = (countries as any)[alpha2.toUpperCase()];
   if (!country) return null;
 
   return {
@@ -86,7 +86,7 @@ export function isValidCountryCode(code: string): boolean {
 
   // Check if it's a valid ISO2 code
   if (code.length === 2) {
-    return !!countries[code];
+    return !!(countries as any)[code];
   }
 
   // Check if it's a valid ISO3 code

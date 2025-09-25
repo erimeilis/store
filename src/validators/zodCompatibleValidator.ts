@@ -183,7 +183,7 @@ export class ZodCompatibleValidator {
    * Validate table data against schema
    */
   async validateTableData(
-    tableColumns: Array<{ name: string; type: string; is_required: boolean; default_value: any }>,
+    tableColumns: Array<{ name: string; type: string; isRequired: boolean; defaultValue: any }>,
     data: ParsedTableData
   ): Promise<{ valid: boolean; errors: string[]; validatedData?: ParsedTableData }> {
     try {
@@ -208,26 +208,41 @@ export class ZodCompatibleValidator {
             columnValidator = z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/))
             break
           case 'email':
-            columnValidator = z.string().email('Must be a valid email address')
+            columnValidator = z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Must be a valid email address')
             break
           case 'url':
-            columnValidator = z.string().url('Must be a valid URL')
+            columnValidator = z.string().regex(/^https?:\/\/.+/, 'Must be a valid URL')
             break
           case 'country':
-            columnValidator = z.string().length(2).or(z.string().length(3))
+            // For country fields, only validate format when there's a meaningful value
+            // Allow empty-like values ("", "false", null, undefined) for non-required fields
+            columnValidator = z.string().refine(val => {
+              // If empty-like value, it's valid (will be handled by optional/nullable logic)
+              if (!val || val === '' || val === 'false' || val === 'null' || val === 'undefined') {
+                return true
+              }
+              // Otherwise, must be valid 2 or 3 character ISO code
+              return val.length === 2 || val.length === 3
+            }, { message: 'Must be a valid country code (2-3 characters)' })
             break
           default:
             columnValidator = z.any()
         }
 
-        if (!column.is_required) {
+        // A column is effectively optional if:
+        // 1. It's not required, OR
+        // 2. It has a default value (since the system will use the default when no value is provided)
+        const hasDefaultValue = column.defaultValue !== null && column.defaultValue !== undefined;
+        const isEffectivelyOptional = !column.isRequired || hasDefaultValue;
+
+        if (isEffectivelyOptional) {
           columnValidator = columnValidator.optional().nullable()
         }
 
         // Add default value transformation if specified
-        if (column.default_value !== null && column.default_value !== undefined) {
+        if (column.defaultValue !== null && column.defaultValue !== undefined) {
           columnValidator = columnValidator.transform(val =>
-            val === undefined || val === null ? column.default_value : val
+            val === undefined || val === null ? column.defaultValue : val
           )
         }
 

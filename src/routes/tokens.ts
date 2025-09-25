@@ -62,7 +62,7 @@ app.get('/', writeAuthMiddleware, async (c) => {
           whereConditions.permissions = {
             contains: value
           };
-        } else if (column === 'created_at') {
+        } else if (column === 'createdAt') {
           // Handle date filtering
           const date = new Date(value as string);
           if (!isNaN(date.getTime())) {
@@ -73,7 +73,7 @@ app.get('/', writeAuthMiddleware, async (c) => {
               lt: nextDay
             };
           }
-        } else if (column === 'expires_at') {
+        } else if (column === 'expiresAt') {
           // Handle expiry date filtering
           const date = new Date(value as string);
           if (!isNaN(date.getTime())) {
@@ -92,11 +92,11 @@ app.get('/', writeAuthMiddleware, async (c) => {
     let orderBy: any = { createdAt: 'desc' }; // default
     if (sort) {
       const sortDirection = direction === 'desc' ? 'desc' : 'asc';
-      if (sort === 'created_at') {
+      if (sort === 'createdAt') {
         orderBy = { createdAt: sortDirection };
-      } else if (sort === 'updated_at') {
+      } else if (sort === 'updatedAt') {
         orderBy = { updatedAt: sortDirection };
-      } else if (sort === 'expires_at') {
+      } else if (sort === 'expiresAt') {
         orderBy = { expiresAt: sortDirection };
       } else if (['name', 'permissions'].includes(sort)) {
         orderBy = { [sort]: sortDirection };
@@ -133,8 +133,8 @@ app.get('/', writeAuthMiddleware, async (c) => {
         allowed_ips: token.allowedIps,
         allowed_domains: token.allowedDomains,
         expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
-        created_at: formatApiDate(token.createdAt),
-        updated_at: formatApiDate(token.updatedAt),
+        createdAt: formatApiDate(token.createdAt),
+        updatedAt: formatApiDate(token.updatedAt),
       })),
       pagination
     };
@@ -180,8 +180,8 @@ app.get('/:id', writeAuthMiddleware, async (c) => {
       allowed_ips: token.allowedIps,
       allowed_domains: token.allowedDomains,
       expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
-      created_at: formatApiDate(token.createdAt),
-      updated_at: formatApiDate(token.updatedAt),
+      createdAt: formatApiDate(token.createdAt),
+      updatedAt: formatApiDate(token.updatedAt),
     };
 
     return c.json(response);
@@ -239,8 +239,8 @@ app.post('/', writeAuthMiddleware, zValidator('json', CreateTokenSchema), async 
       allowed_ips: token.allowedIps,
       allowed_domains: token.allowedDomains,
       expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
-      created_at: formatApiDate(token.createdAt),
-      updated_at: formatApiDate(token.updatedAt),
+      createdAt: formatApiDate(token.createdAt),
+      updatedAt: formatApiDate(token.updatedAt),
     };
 
     return c.json(response, 201);
@@ -313,8 +313,8 @@ app.put('/:id', writeAuthMiddleware, zValidator('json', UpdateTokenSchema), asyn
       allowed_ips: token.allowedIps,
       allowed_domains: token.allowedDomains,
       expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
-      created_at: formatApiDate(token.createdAt),
-      updated_at: formatApiDate(token.updatedAt),
+      createdAt: formatApiDate(token.createdAt),
+      updatedAt: formatApiDate(token.updatedAt),
     };
 
     return c.json(response);
@@ -396,8 +396,8 @@ app.patch('/:id', writeAuthMiddleware, async (c) => {
       allowed_ips: token.allowedIps,
       allowed_domains: token.allowedDomains,
       expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
-      created_at: formatApiDate(token.createdAt),
-      updated_at: formatApiDate(token.updatedAt),
+      createdAt: formatApiDate(token.createdAt),
+      updatedAt: formatApiDate(token.updatedAt),
     };
 
     return c.json(response);

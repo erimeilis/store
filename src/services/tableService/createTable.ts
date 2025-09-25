@@ -5,6 +5,7 @@ import type { TableRepository } from '@/repositories/tableRepository.js'
 import type { ZodCompatibleValidator } from '@/validators/zodCompatibleValidator.js'
 import { getUserInfo, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
 import { DEFAULT_SALE_COLUMNS } from '@/types/dynamic-tables.js'
+import { InventoryTrackingService } from '@/services/inventoryTrackingService/index.js'
 
 /**
  * Create new table
@@ -26,7 +27,7 @@ export async function createTable(
     const { userId, userEmail } = getUserInfo(c, user)
 
     // If table is marked for sale, automatically add price/qty columns if not present
-    if (data.for_sale) {
+    if (data.forSale) {
       const existingPriceCol = data.columns.find(col => col.name === 'price')
       const existingQtyCol = data.columns.find(col => col.name === 'qty')
 
@@ -51,6 +52,21 @@ export async function createTable(
 
     // Create table
     const tableSchema = await repository.createTable(data, userId, userEmail)
+
+    // Track inventory for for_sale tables
+    if (data.forSale) {
+      try {
+        const inventoryService = new InventoryTrackingService(c.env.DB)
+        await inventoryService.trackTableCreation(
+          tableSchema.table.id,
+          tableSchema.table.name,
+          userEmail
+        )
+      } catch (inventoryError) {
+        console.error('⚠️ Failed to track table creation in inventory:', inventoryError)
+        // Continue without failing the main operation
+      }
+    }
 
     return createSuccessResponse(
       { table: tableSchema },

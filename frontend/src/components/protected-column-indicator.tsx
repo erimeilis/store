@@ -5,7 +5,7 @@ import { IconLock, IconShoppingCart } from '@tabler/icons-react';
 export interface ProtectedColumnIndicatorProps {
   columnName: string;
   isProtected: boolean;
-  protectionReason?: 'for_sale' | 'system';
+  protectionReason?: 'forSale' | 'system';
   size?: 'sm' | 'md' | 'lg';
   showTooltip?: boolean;
   className?: string;
@@ -14,7 +14,7 @@ export interface ProtectedColumnIndicatorProps {
 export function ProtectedColumnIndicator({
   columnName,
   isProtected,
-  protectionReason = 'for_sale',
+  protectionReason = 'forSale',
   size = 'sm',
   showTooltip = true,
   className = ''
@@ -27,7 +27,7 @@ export function ProtectedColumnIndicator({
 
   const getProtectionInfo = () => {
     switch (protectionReason) {
-      case 'for_sale':
+      case 'forSale':
         return {
           icon: IconShoppingCart,
           color: 'text-warning',
@@ -60,7 +60,7 @@ export function ProtectedColumnIndicator({
         className={`${iconSize} ${color}`}
       />
       {size !== 'sm' && (
-        <span className={`badge badge-outline ${protectionReason === 'for_sale' ? 'badge-warning' : 'badge-info'} ${size === 'lg' ? 'badge-lg' : 'badge-sm'}`}>
+        <span className={`badge badge-outline ${protectionReason === 'forSale' ? 'badge-warning' : 'badge-info'} ${size === 'lg' ? 'badge-lg' : 'badge-sm'}`}>
           {badgeText}
         </span>
       )}
@@ -81,21 +81,21 @@ export function ProtectedColumnIndicator({
 export interface ProtectedColumnBadgeProps {
   columnName: string;
   isProtected: boolean;
-  protectionReason?: 'for_sale' | 'system';
+  protectionReason?: 'forSale' | 'system';
   variant?: 'icon' | 'badge' | 'full';
 }
 
 export function ProtectedColumnBadge({
   columnName,
   isProtected,
-  protectionReason = 'for_sale',
+  protectionReason = 'forSale',
   variant = 'icon'
 }: ProtectedColumnBadgeProps) {
   if (!isProtected) {
     return null;
   }
 
-  const isForSale = protectionReason === 'for_sale';
+  const isForSale = protectionReason === 'forSale';
   const isPriceOrQty = ['price', 'qty'].includes(columnName.toLowerCase());
 
   if (variant === 'icon') {

@@ -10,7 +10,7 @@ export interface ForSaleConversionDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   isLoading?: boolean;
-  conversionType: 'to_sale' | 'from_sale';
+  conversionType: 'toSale' | 'fromSale';
   tableName: string;
   hasExistingPriceColumn?: boolean;
   hasExistingQtyColumn?: boolean;
@@ -26,7 +26,7 @@ export function ForSaleConversionDialog({
   hasExistingPriceColumn = false,
   hasExistingQtyColumn = false
 }: ForSaleConversionDialogProps) {
-  const isToSale = conversionType === 'to_sale';
+  const isToSale = conversionType === 'toSale';
   const missingColumns = [];
 
   if (isToSale) {

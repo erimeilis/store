@@ -2,7 +2,7 @@
 -- Generated with faker.js - 200 items
 
 -- Insert 200 dynamically generated items
-INSERT OR IGNORE INTO items (id, name, description, data, created_at, updated_at) VALUES ('production-item-001', 'Recycled Bamboo Chair', 'Our golden-inspired Computer brings a taste of luxury to your dapper lifestyle', '{"price":109.65,"category":"Fashion","quantity":57,"brand":"Rice Group","rating":4.4,"sku":"FAS-GQJSUJI4"}', datetime('now'), datetime('now')),
+INSERT OR IGNORE INTO items (id, name, description, data, createdAt, updatedAt) VALUES ('production-item-001', 'Recycled Bamboo Chair', 'Our golden-inspired Computer brings a taste of luxury to your dapper lifestyle', '{"price":109.65,"category":"Fashion","quantity":57,"brand":"Rice Group","rating":4.4,"sku":"FAS-GQJSUJI4"}', datetime('now'), datetime('now')),
 ('production-item-002', 'Sleek Gold Salad', 'Discover the cow-like agility of our Hat, perfect for misguided users', '{"price":205.59,"category":"Garden","quantity":10,"brand":"Ruecker, Murray and Effertz","rating":3.9,"sku":"GAR-JGINLDX6"}', datetime('now'), datetime('now')),
 ('production-item-003', 'Handmade Cotton Tuna', 'Our moist-inspired Computer brings a taste of luxury to your happy-go-lucky lifestyle', '{"price":196.39,"category":"Garden","quantity":99,"brand":"Raynor, Homenick and Hammes","rating":3.7,"sku":"GAR-QFTZSO8W"}', datetime('now'), datetime('now')),
 ('production-item-004', 'Fresh Bamboo Computer', 'Experience the fuchsia brilliance of our Soap, perfect for bulky environments', '{"price":140.89,"category":"Office","quantity":22,"brand":"Purdy, Collins and Stiedemann","rating":4.8,"sku":"OFF-TFXW7UEL"}', datetime('now'), datetime('now')),

@@ -9,8 +9,8 @@ interface User {
   name: string | null;
   picture: string | null;
   role: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Form rendering function for user creation/editing (same as create page)
@@ -135,7 +135,7 @@ const renderUserForm = (
           <input
             type="text"
             className="input input-bordered w-full"
-            value={new Date(data.created_at).toLocaleString()}
+            value={new Date(data.createdAt).toLocaleString()}
             disabled
           />
         </div>
@@ -147,7 +147,7 @@ const renderUserForm = (
           <input
             type="text"
             className="input input-bordered w-full"
-            value={new Date(data.updated_at).toLocaleString()}
+            value={new Date(data.updatedAt).toLocaleString()}
             disabled
           />
         </div>

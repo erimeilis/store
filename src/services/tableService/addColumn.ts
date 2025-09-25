@@ -41,11 +41,11 @@ export async function addColumn(
     const columnData: any = {
       name: data.name,
       type: data.type,
-      is_required: data.is_required === true || data.is_required === 'true'
+      isRequired: data.isRequired === true || data.isRequired === 'true'
     }
 
-    if (data.default_value !== undefined && data.default_value !== null) {
-      columnData.default_value = data.default_value
+    if (data.defaultValue !== undefined && data.defaultValue !== null) {
+      columnData.defaultValue = data.defaultValue
     }
 
     if (data.position !== undefined) {

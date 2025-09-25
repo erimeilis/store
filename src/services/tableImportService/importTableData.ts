@@ -1,38 +1,65 @@
 /**
  * Import data into dynamic tables
  * Main import logic with transaction handling and validation
+ * Refactored to use Prisma ORM instead of raw SQL
  */
 
 import type { Bindings } from '@/types/bindings.js'
 import type { ImportOptions, ImportResult, ColumnInfo, TableColumn } from '@/types/table-import.js'
 import { convertValueToColumnType } from './convertValueToColumnType.js'
+import { applyDefaultValues } from '@/utils/applyDefaultValues.js'
+import { getPrismaClient } from '@/lib/database.js'
 
 export async function importTableData(
     env: Bindings,
     options: ImportOptions
 ): Promise<ImportResult> {
     const { tableId, data, columnMappings, importMode } = options
+    const prisma = getPrismaClient(env)
 
-    // Validate table exists and get for_sale status
-    const tableCheck = await env.DB.prepare(
-        'SELECT id, for_sale FROM user_tables WHERE id = ?'
-    ).bind(tableId).first()
+    // Validate table exists and get forSale status using Prisma
+    const tableCheck = await prisma.userTable.findUnique({
+        where: { id: tableId },
+        select: { id: true, forSale: true }
+    })
 
     if (!tableCheck) {
         throw new Error('Table not found')
     }
 
-    const isForSaleTable = !!tableCheck.for_sale
+    const isForSaleTable = !!tableCheck.forSale
 
-    // Get table columns for validation
-    const columnsResult = await env.DB.prepare(
-        'SELECT name, type, is_required, default_value FROM table_columns WHERE table_id = ? ORDER BY order_index'
-    ).bind(tableId).all()
+    // Get table columns for validation using Prisma
+    const rawColumns = await prisma.tableColumn.findMany({
+        where: { tableId },
+        select: {
+            name: true,
+            type: true,
+            isRequired: true,
+            defaultValue: true,
+            position: true
+        },
+        orderBy: { position: 'asc' }
+    })
 
-    const tableColumns = (columnsResult.results || []) as unknown as TableColumn[]
+    const tableColumns: TableColumn[] = rawColumns.map(col => ({
+        name: col.name,
+        type: col.type,
+        isRequired: col.isRequired,
+        defaultValue: col.defaultValue,
+        orderIndex: col.position
+    }))
+
     const columnMap = new Map<string, ColumnInfo>(
-        tableColumns.map((col) => [col.name, { type: col.type, required: !!col.is_required, defaultValue: col.default_value }])
+        tableColumns.map((col) => [col.name, { type: col.type, required: !!col.isRequired, defaultValue: col.defaultValue }])
     )
+
+    console.log('🔍 Import Column Map:', Array.from(columnMap.entries()).map(([name, info]) => ({
+        name,
+        required: info.required,
+        defaultValue: info.defaultValue,
+        hasDefaultValue: info.defaultValue !== null && info.defaultValue !== undefined
+    })))
 
     // Validate column mappings
     const validMappings = columnMappings.filter(mapping => {
@@ -52,117 +79,123 @@ export async function importTableData(
     const errors: string[] = []
 
     try {
-        // Start transaction
-        await env.DB.exec('BEGIN TRANSACTION')
+        // Use Prisma transaction instead of raw SQL
+        await prisma.$transaction(async (tx) => {
+            // If replace mode, clear existing data using Prisma
+            if (importMode === 'replace') {
+                await tx.tableData.deleteMany({
+                    where: { tableId }
+                })
+            }
 
-        // If replace mode, clear existing data
-        if (importMode === 'replace') {
-            await env.DB.prepare('DELETE FROM table_data WHERE table_id = ?')
-                .bind(tableId)
-                .run()
-        }
+            // Process each data row
+            for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
+                const row = data[rowIndex]
 
-        // Process each data row
-        for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
-            const row = data[rowIndex]
+                try {
+                    // Build the row data object
+                    const rowData: Record<string, any> = {}
+                    let hasValidData = false
 
-            try {
-                // Build the row data object
-                const rowData: Record<string, any> = {}
-                let hasValidData = false
+                    for (const mapping of validMappings) {
+                        const sourceIndex = columnMappings.findIndex(m => m.sourceColumn === mapping.sourceColumn)
+                        if (sourceIndex === -1) continue
 
-                for (const mapping of validMappings) {
-                    const sourceIndex = columnMappings.findIndex(m => m.sourceColumn === mapping.sourceColumn)
-                    if (sourceIndex === -1) continue
+                        const cellValue = row?.[sourceIndex]
+                        const targetColumn = mapping.targetColumn
+                        const columnInfo = columnMap.get(targetColumn)
 
-                    const cellValue = row?.[sourceIndex]
-                    const targetColumn = mapping.targetColumn
-                    const columnInfo = columnMap.get(targetColumn)
+                        if (!columnInfo) continue
 
-                    if (!columnInfo) continue
+                        // Validate and convert the value
+                        const convertedValue = convertValueToColumnType(cellValue, columnInfo.type)
 
-                    // Validate and convert the value
-                    const convertedValue = convertValueToColumnType(cellValue, columnInfo.type)
+                        // For non-required country fields, allow null values (which come from empty-like input)
+                        if (columnInfo.type === 'country' && !columnInfo.required && convertedValue === null) {
+                            // Skip adding null country values to rowData for non-required fields
+                            continue
+                        }
 
-                    // Check required fields (skip validation if field has a default value)
-                    const hasDefaultValue = columnInfo.defaultValue && columnInfo.defaultValue !== 'null'
-                    if (columnInfo.required && !hasDefaultValue && (convertedValue === null || convertedValue === undefined || convertedValue === '')) {
-                        throw new Error(`Required field '${targetColumn}' is missing or empty`)
-                    }
-
-                    if (convertedValue !== null && convertedValue !== undefined) {
-                        hasValidData = true
-                        rowData[targetColumn] = convertedValue
-                    }
-                }
-
-                // Apply default values for required fields that have defaults but are missing/empty
-                for (const [columnName, columnInfo] of columnMap.entries()) {
-                    const hasDefaultValue = columnInfo.defaultValue && columnInfo.defaultValue !== 'null'
-                    if (columnInfo.required && hasDefaultValue &&
-                        (rowData[columnName] === undefined || rowData[columnName] === null || rowData[columnName] === '')) {
-                        const convertedDefault = convertValueToColumnType(columnInfo.defaultValue, columnInfo.type)
-                        if (convertedDefault !== null && convertedDefault !== undefined) {
-                            rowData[columnName] = convertedDefault
+                        if (convertedValue !== null && convertedValue !== undefined) {
                             hasValidData = true
+                            rowData[targetColumn] = convertedValue
                         }
                     }
-                }
 
-                // Skip rows with no valid data
-                if (!hasValidData) {
+                    // Apply default values using shared utility
+                    console.log('🔍 Import Row Data BEFORE defaults:', JSON.stringify(rowData, null, 2))
+                    // Map tableColumns to the format expected by applyDefaultValues
+                    const mappedColumns = tableColumns.map(col => ({
+                        name: col.name,
+                        type: col.type,
+                        isRequired: col.isRequired,
+                        defaultValue: col.defaultValue ?? null
+                    }))
+                    const processedRowData = applyDefaultValues(rowData, mappedColumns)
+                    console.log('🔍 Import Row Data AFTER defaults:', JSON.stringify(processedRowData, null, 2))
+
+                    // Check if we have valid data after applying defaults
+                    if (Object.keys(processedRowData).length > 0) {
+                        hasValidData = true
+                    }
+
+                    // Now validate required fields after defaults have been applied
+                    for (const [columnName, columnInfo] of columnMap.entries()) {
+                        const hasDefaultValue = columnInfo.defaultValue !== null && columnInfo.defaultValue !== undefined
+                        const finalValue = processedRowData[columnName]
+
+                        if (columnInfo.required && !hasDefaultValue && (finalValue === null || finalValue === undefined || finalValue === '')) {
+                            throw new Error(`Required field '${columnName}' is missing or empty`)
+                        }
+                    }
+
+                    // Skip rows with no valid data
+                    if (!hasValidData) {
+                        skippedRows++
+                        continue
+                    }
+
+                    // Add default values for "for sale" tables if price/qty columns exist but weren't mapped
+                    if (isForSaleTable) {
+                        const hasPriceColumn = tableColumns.some(col => col.name.toLowerCase() === 'price')
+                        const hasQtyColumn = tableColumns.some(col => col.name.toLowerCase() === 'qty')
+                        const priceIsMapped = validMappings.some(m => m.targetColumn.toLowerCase() === 'price')
+                        const qtyIsMapped = validMappings.some(m => m.targetColumn.toLowerCase() === 'qty')
+
+                        // Set default price = 0 if price column exists but wasn't mapped
+                        if (hasPriceColumn && !priceIsMapped && processedRowData.price === undefined) {
+                            processedRowData.price = 0
+                        }
+
+                        // Set default qty = 1 if qty column exists but wasn't mapped
+                        if (hasQtyColumn && !qtyIsMapped && processedRowData.qty === undefined) {
+                            processedRowData.qty = 1
+                        }
+                    }
+
+                    // Insert the row using Prisma instead of raw SQL
+                    await tx.tableData.create({
+                        data: {
+                            tableId,
+                            data: JSON.stringify(processedRowData)
+                        }
+                    })
+
+                    importedRows++
+
+                } catch (error) {
+                    const errorMsg = `Row ${rowIndex + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`
+                    errors.push(errorMsg)
                     skippedRows++
-                    continue
+
+                    // Continue processing other rows instead of failing completely
+                    console.warn(errorMsg)
                 }
-
-                // Add default values for "for sale" tables if price/qty columns exist but weren't mapped
-                if (isForSaleTable) {
-                    const hasPriceColumn = tableColumns.some(col => col.name.toLowerCase() === 'price')
-                    const hasQtyColumn = tableColumns.some(col => col.name.toLowerCase() === 'qty')
-                    const priceIsMapped = validMappings.some(m => m.targetColumn.toLowerCase() === 'price')
-                    const qtyIsMapped = validMappings.some(m => m.targetColumn.toLowerCase() === 'qty')
-
-                    // Set default price = 0 if price column exists but wasn't mapped
-                    if (hasPriceColumn && !priceIsMapped && rowData.price === undefined) {
-                        rowData.price = 0
-                    }
-
-                    // Set default qty = 1 if qty column exists but wasn't mapped
-                    if (hasQtyColumn && !qtyIsMapped && rowData.qty === undefined) {
-                        rowData.qty = 1
-                    }
-                }
-
-                // Generate UUID for the row
-                const rowId = crypto.randomUUID()
-
-                // Insert the row
-                await env.DB.prepare(
-                    'INSERT INTO table_data (id, table_id, data, created_at) VALUES (?, ?, ?, datetime("now"))'
-                ).bind(
-                    rowId,
-                    tableId,
-                    JSON.stringify(rowData)
-                ).run()
-
-                importedRows++
-
-            } catch (error) {
-                const errorMsg = `Row ${rowIndex + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`
-                errors.push(errorMsg)
-                skippedRows++
-
-                // Continue processing other rows instead of failing completely
-                console.warn(errorMsg)
             }
-        }
-
-        // Commit transaction
-        await env.DB.exec('COMMIT')
+        })
 
     } catch (error) {
-        // Rollback on any critical error
-        await env.DB.exec('ROLLBACK')
+        // Transaction will auto-rollback on error in Prisma
         throw error
     }
 

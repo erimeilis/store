@@ -7,7 +7,7 @@ interface AllowedEmail {
   email: string | null;
   domain: string | null;
   type: string;
-  created_at?: string;
+  createdAt?: string;
 }
 
 // Form rendering function for allowed email creation/editing
@@ -109,7 +109,7 @@ const renderAllowedEmailForm = (
         </div>
       )}
 
-      {readonly && data.created_at && (
+      {readonly && data.createdAt && (
         <div className="form-control w-full">
           <label className="label">
             <span className="label-text">Created At</span>
@@ -117,7 +117,7 @@ const renderAllowedEmailForm = (
           <input
             type="text"
             className="input input-bordered w-full"
-            value={new Date(data.created_at).toLocaleString()}
+            value={new Date(data.createdAt).toLocaleString()}
             disabled
           />
         </div>

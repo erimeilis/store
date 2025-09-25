@@ -31,14 +31,15 @@ export default function CreateTablePage() {
     const [formData, setFormData] = useState<TableFormData>({
         name: '',
         description: '',
-        is_public: false,
-        for_sale: false,
+        isPublic: false,
+        forSale: false,
         columns: [
             {
                 name: '',
                 type: 'text',
-                is_required: false,
-                default_value: '',
+                isRequired: false,
+                allowDuplicates: true,
+                defaultValue: '',
                 position: 0
             }
         ]
@@ -62,8 +63,9 @@ export default function CreateTablePage() {
         const newColumn: ColumnFormData = {
             name: '',
             type: 'text',
-            is_required: false,
-            default_value: '',
+            isRequired: false,
+            allowDuplicates: true,
+            defaultValue: '',
             position: formData.columns.length
         }
         setFormData(prev => ({...prev, columns: [...prev.columns, newColumn]}))
@@ -187,13 +189,13 @@ export default function CreateTablePage() {
                 <input type="hidden" name="tableData" value={JSON.stringify({
                     name: formData.name.trim(),
                     description: formData.description.trim() || undefined,
-                    is_public: formData.is_public,
-                    for_sale: formData.for_sale,
+                    isPublic: formData.isPublic,
+                    forSale: formData.forSale,
                     columns: formData.columns.map(col => ({
                         name: col.name.trim(),
                         type: col.type,
-                        is_required: col.is_required,
-                        default_value: col.default_value.trim() || undefined,
+                        isRequired: col.isRequired,
+                        defaultValue: col.defaultValue.trim() || undefined,
                         position: col.position
                     }))
                 })}/>
@@ -202,15 +204,15 @@ export default function CreateTablePage() {
                     data={{
                         name: formData.name,
                         description: formData.description,
-                        is_public: formData.is_public,
-                        for_sale: formData.for_sale
+                        isPublic: formData.isPublic,
+                        forSale: formData.forSale
                     }}
                     errors={errors}
                     onChange={handleInputChange}
                 />
 
                 {/* Auto-Column Preview for For Sale Tables */}
-                {formData.for_sale && (
+                {formData.forSale && (
                     <Card color="info" style="soft">
                         <CardBody>
                             <CardTitle className="flex items-center gap-2">
@@ -256,7 +258,7 @@ export default function CreateTablePage() {
                     <CardBody>
                         <div className="flex flex-row items-center justify-between mb-4">
                             <CardTitle>
-                                {formData.for_sale ? 'Additional Columns' : 'Column Configuration'}
+                                {formData.forSale ? 'Additional Columns' : 'Column Configuration'}
                             </CardTitle>
                             <Button
                                 type="button"
@@ -348,18 +350,24 @@ export default function CreateTablePage() {
                                             <div>
                                                 <Input
                                                     type="text"
-                                                    value={column.default_value}
-                                                    onChange={(e) => handleColumnChange(index, 'default_value', e.target.value)}
+                                                    value={column.defaultValue}
+                                                    onChange={(e) => handleColumnChange(index, 'defaultValue', e.target.value)}
                                                     label="Default Value"
                                                     placeholder="Optional default value..."
                                                 />
                                             </div>
 
-                                            <div className="flex items-start pt-6">
+                                            <div className="flex items-start pt-6 gap-6">
                                                 <Checkbox
-                                                    checked={column.is_required}
-                                                    onChange={(e) => handleColumnChange(index, 'is_required', e.target.checked)}
+                                                    checked={column.isRequired}
+                                                    onChange={(e) => handleColumnChange(index, 'isRequired', e.target.checked)}
                                                     label="Required Field"
+                                                    labelPosition="right"
+                                                />
+                                                <Checkbox
+                                                    checked={column.allowDuplicates}
+                                                    onChange={(e) => handleColumnChange(index, 'allowDuplicates', e.target.checked)}
+                                                    label="Allow Duplicates"
                                                     labelPosition="right"
                                                 />
                                             </div>

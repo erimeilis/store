@@ -72,9 +72,10 @@ export async function updateColumn(
     const updateData: any = {}
     if (data.name !== undefined) updateData.name = data.name
     if (data.type !== undefined) updateData.type = data.type
-    if (data.is_required !== undefined) updateData.is_required = data.is_required
-    if (data.default_value !== undefined && data.default_value !== null) {
-      updateData.default_value = data.default_value
+    if (data.isRequired !== undefined) updateData.isRequired = data.isRequired
+    if (data.allowDuplicates !== undefined) updateData.allowDuplicates = data.allowDuplicates
+    if (data.defaultValue !== undefined && data.defaultValue !== null) {
+      updateData.defaultValue = data.defaultValue
     }
 
     // Only update non-position fields if there are any

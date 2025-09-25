@@ -1,9 +1,9 @@
 -- CreateTable: Allowed Emails
 -- Access control whitelist for email addresses and domain patterns
-CREATE TABLE "allowed_emails" (
+CREATE TABLE "allowedEmails" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "email" TEXT,
     "domain" TEXT,
     "type" TEXT NOT NULL,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

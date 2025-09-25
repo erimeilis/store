@@ -62,6 +62,8 @@ tableDataRoutes.post('/api/tables/:tableId/data', writeAuthMiddleware, async (c)
   const tableId = c.req.param('tableId')
   const body = await c.req.json()
 
+  console.log('🔍 /data endpoint called with:', JSON.stringify(body, null, 2))
+
   const result = await service.createDataRow(c, user, tableId, body)
 
   return c.json(result.response, result.status as ContentfulStatusCode)

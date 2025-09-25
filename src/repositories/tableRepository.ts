@@ -1,8 +1,8 @@
 import { getPrismaClient } from '@/lib/database.js'
 import type { Bindings } from '@/types/bindings.js'
 import type { UserTable, TableColumn, TableSchema, CreateTableRequest, UpdateTableRequest, TableMassAction } from '@/types/dynamic-tables.js'
-import { Prisma, type PrismaClient } from '@prisma/client'
-import { sanitizeForSQL, validateSortColumn, validateSortDirection } from '@/utils/common.js'
+import type { PrismaClient } from '@prisma/client'
+import { validateSortColumn, validateSortDirection } from '@/utils/common.js'
 
 /**
  * Repository for table operations
@@ -15,7 +15,7 @@ export class TableRepository {
   }
 
   /**
-   * Find tables accessible to user with filtering and pagination
+   * Find tables accessible to user with filtering and pagination using Prisma ORM
    */
   async findTables(
     userId: string,
@@ -30,150 +30,170 @@ export class TableRepository {
       forSale?: string
     },
     sort: { column: string; direction: string },
-    pagination: { page: number; limit: number; offset: number }
+    pagination: { page: number; limit: number; offset: number },
+    isAdmin: boolean = false
   ): Promise<{ tables: UserTable[]; totalCount: number }> {
-    const allowedSortColumns = ['name', 'description', 'created_by', 'is_public', 'for_sale', 'created_at', 'updated_at']
+    const allowedSortColumns = ['name', 'description', 'createdBy', 'isPublic', 'forSale', 'createdAt', 'updatedAt']
     const safeSortColumn = validateSortColumn(sort.column, allowedSortColumns)
     const safeSortDirection = validateSortDirection(sort.direction)
 
-    // Build WHERE conditions
-    let additionalFilters = ''
+    // Build Prisma where clause - admin users can see all tables
+    const where: any = isAdmin ? {} : {
+      OR: [
+        { userId: userId },
+        { isPublic: true }
+      ]
+    }
 
+    // Apply filters
     if (filters.name) {
-      additionalFilters += ` AND ut.name LIKE '%${sanitizeForSQL(filters.name)}%'`
+      where.name = { contains: filters.name }
     }
 
     if (filters.description) {
-      additionalFilters += ` AND ut.description LIKE '%${sanitizeForSQL(filters.description)}%'`
+      where.description = { contains: filters.description }
     }
 
     if (filters.owner) {
-      additionalFilters += ` AND (
-        ut.created_by LIKE '%${sanitizeForSQL(filters.owner)}%' OR
-        (ut.created_by = 'user:${userId}' AND '${userEmail}' NOT LIKE 'token:%' AND '${userEmail}' LIKE '%${sanitizeForSQL(filters.owner)}%')
-      )`
+      where.OR = [
+        { createdBy: { contains: filters.owner } },
+        ...(userEmail && !userEmail.startsWith('token:') ? [{
+          AND: [
+            { createdBy: `user:${userId}` },
+            // Additional owner filter logic can be added here
+          ]
+        }] : [])
+      ]
     }
 
     if (filters.visibility === 'true' || filters.visibility === 'Public') {
-      additionalFilters += ` AND ut.is_public = 1`
+      where.isPublic = true
     } else if (filters.visibility === 'false' || filters.visibility === 'Private') {
-      additionalFilters += ` AND ut.is_public = 0`
+      where.isPublic = false
     }
 
     if (filters.createdAt) {
-      additionalFilters += ` AND DATE(ut.created_at) = '${sanitizeForSQL(filters.createdAt)}'`
+      const date = new Date(filters.createdAt)
+      const nextDay = new Date(date)
+      nextDay.setDate(date.getDate() + 1)
+      where.createdAt = {
+        gte: date,
+        lt: nextDay
+      }
     }
 
     if (filters.updatedAt) {
-      additionalFilters += ` AND DATE(ut.updated_at) = '${sanitizeForSQL(filters.updatedAt)}'`
+      const date = new Date(filters.updatedAt)
+      const nextDay = new Date(date)
+      nextDay.setDate(date.getDate() + 1)
+      where.updatedAt = {
+        gte: date,
+        lt: nextDay
+      }
     }
 
     if (filters.forSale === 'true') {
-      additionalFilters += ` AND ut.for_sale = 1`
+      where.forSale = true
     } else if (filters.forSale === 'false') {
-      additionalFilters += ` AND ut.for_sale = 0`
+      where.forSale = false
     }
 
-    // Get tables
-    const tables = await this.prisma.$queryRaw<UserTable[]>`
-      SELECT
-        ut.id,
-        ut.name,
-        ut.description,
-        ut.created_by,
-        ut.is_public,
-        ut.for_sale,
-        ut.created_at,
-        ut.updated_at,
-        CASE
-          WHEN ut.created_by = ${`user:${userId}`} AND ${userEmail} NOT LIKE 'token:%' THEN ${userEmail}
-          WHEN ut.created_by LIKE 'token:%' THEN SUBSTR(ut.created_by, 7)
-          WHEN ut.created_by LIKE 'user:%' THEN SUBSTR(ut.created_by, 6)
-          ELSE ut.created_by
-        END as owner_display_name
-      FROM user_tables ut
-      WHERE (ut.user_id = ${userId} OR ut.is_public = true) ${Prisma.raw(additionalFilters)}
-      ORDER BY ut.${Prisma.raw(safeSortColumn)} ${Prisma.raw(safeSortDirection)}
-      LIMIT ${pagination.limit} OFFSET ${pagination.offset}
-    `
+    // Get tables and total count
+    const [tables, totalCount] = await Promise.all([
+      this.prisma.userTable.findMany({
+        where,
+        orderBy: { [safeSortColumn]: safeSortDirection },
+        skip: pagination.offset,
+        take: pagination.limit
+      }),
+      this.prisma.userTable.count({ where })
+    ])
 
-    // Get total count
-    const [countResult] = await this.prisma.$queryRaw<[{ count: number }]>`
-      SELECT COUNT(*) as count FROM user_tables ut
-      WHERE (ut.user_id = ${userId} OR ut.is_public = true) ${Prisma.raw(additionalFilters)}
-    `
+    // Add owner display name logic
+    const tablesWithOwner = tables.map(table => ({
+      ...table,
+      ownerDisplayName: this.getOwnerDisplayName(table.createdBy, userId, userEmail)
+    }))
 
-    return { tables, totalCount: countResult.count }
+    return { tables: tablesWithOwner, totalCount }
   }
 
   /**
-   * Find table by ID with access check
+   * Helper to get owner display name
+   */
+  private getOwnerDisplayName(createdBy: string, userId: string, userEmail: string): string {
+    if (createdBy === `user:${userId}` && !userEmail.startsWith('token:')) {
+      return userEmail
+    }
+    if (createdBy.startsWith('token:')) {
+      return createdBy.substring(6)
+    }
+    if (createdBy.startsWith('user:')) {
+      return createdBy.substring(5)
+    }
+    return createdBy
+  }
+
+  /**
+   * Find table by ID with access check using Prisma ORM
    */
   async findTableById(tableId: string, userId: string): Promise<UserTable | null> {
-    const [table] = await this.prisma.$queryRaw<UserTable[]>`
-      SELECT id, name, description, created_by, user_id, is_public, for_sale, created_at, updated_at
-      FROM user_tables
-      WHERE id = ${tableId} AND (user_id = ${userId} OR is_public = true)
-    `
-    return table || null
+    return this.prisma.userTable.findFirst({
+      where: {
+        id: tableId,
+        OR: [
+          { userId: userId },
+          { isPublic: true }
+        ]
+      }
+    })
   }
 
   /**
-   * Find table by ID without access check (for internal use)
+   * Find table by ID without access check (for internal use) using Prisma ORM
    */
   async findTableByIdInternal(tableId: string): Promise<UserTable | null> {
-    const [table] = await this.prisma.$queryRaw<UserTable[]>`
-      SELECT id, name, description, created_by, user_id, is_public, for_sale, created_at, updated_at
-      FROM user_tables
-      WHERE id = ${tableId}
-    `
-    return table || null
+    return this.prisma.userTable.findUnique({
+      where: { id: tableId }
+    })
   }
 
   /**
-   * Get table columns
+   * Get table columns using Prisma ORM
    */
   async getTableColumns(tableId: string): Promise<TableColumn[]> {
-    const columns = await this.prisma.$queryRaw<any[]>`
-      SELECT id, table_id, name, type, is_required, default_value, position, created_at
-      FROM table_columns
-      WHERE table_id = ${tableId}
-      ORDER BY position ASC
-    `
+    const columns = await this.prisma.tableColumn.findMany({
+      where: { tableId },
+      orderBy: { position: 'asc' }
+    })
 
-    // Convert SQLite integers/strings to proper booleans
     return columns.map(column => ({
       ...column,
-      is_required: column.is_required === true || column.is_required === 1 || column.is_required === '1' || column.is_required === 'true'
-    })) as TableColumn[]
+      type: column.type as any // Type assertion for ColumnType
+    }))
   }
 
   /**
-   * Get individual column
+   * Get individual column using Prisma ORM
    */
   async getColumn(tableId: string, columnId: string): Promise<TableColumn | null> {
-    const columns = await this.prisma.$queryRaw<any[]>`
-      SELECT id, table_id, name, type, is_required, default_value, position, created_at
-      FROM table_columns
-      WHERE table_id = ${tableId} AND id = ${columnId}
-      LIMIT 1
-    `
+    const column = await this.prisma.tableColumn.findFirst({
+      where: {
+        tableId,
+        id: columnId
+      }
+    })
 
-    if (columns.length === 0) {
-      return null
-    }
+    if (!column) return null
 
-    const column = columns[0]
-
-    // Convert SQLite integers/strings to proper booleans
     return {
       ...column,
-      is_required: column.is_required === true || column.is_required === 1 || column.is_required === '1' || column.is_required === 'true'
-    } as TableColumn
+      type: column.type as any // Type assertion for ColumnType
+    }
   }
 
   /**
-   * Create new table with columns
+   * Create new table with columns using Prisma ORM
    */
   async createTable(tableData: CreateTableRequest, userId: string, userEmail: string): Promise<TableSchema> {
     const tableId = crypto.randomUUID()
@@ -190,38 +210,52 @@ export class TableRepository {
       userEmail
     })
 
-    // Create table
-    await this.prisma.$queryRaw`
-      INSERT INTO user_tables (id, name, description, created_by, user_id, is_public, for_sale)
-      VALUES (${tableId}, ${tableData.name.trim()}, ${tableData.description || null}, ${userEmail}, ${finalUserId}, ${tableData.is_public}, ${tableData.for_sale || false})
-    `
+    // Create table first
+    const table = await this.prisma.userTable.create({
+      data: {
+        id: tableId,
+        name: tableData.name.trim(),
+        description: tableData.description || null,
+        createdBy: userEmail,
+        userId: finalUserId,
+        isPublic: tableData.isPublic,
+        forSale: tableData.forSale || false
+      }
+    })
 
-    // Create columns
-    for (let i = 0; i < tableData.columns.length; i++) {
-      const col = tableData.columns[i]
-      if (!col) continue
+    // Create columns using batch transaction
+    const columnCreates = tableData.columns.map((col, i) => {
+      if (!col) return null
+      return this.prisma.tableColumn.create({
+        data: {
+          id: crypto.randomUUID(),
+          tableId: tableId,
+          name: col.name.trim(),
+          type: col.type,
+          isRequired: col.isRequired || false,
+          allowDuplicates: col.allowDuplicates ?? true,
+          defaultValue: col.defaultValue || null,
+          position: col.position || i
+        }
+      })
+    }).filter(Boolean)
 
-      const columnId = crypto.randomUUID()
+    // Execute column creation in batch
+    const columns = await this.prisma.$transaction(columnCreates)
 
-      await this.prisma.$queryRaw`
-        INSERT INTO table_columns (id, table_id, name, type, is_required, default_value, position)
-        VALUES (${columnId}, ${tableId}, ${col.name.trim()}, ${col.type}, ${col.is_required || false}, ${col.default_value || null}, ${col.position || i})
-      `
+    const result = {
+      table,
+      columns: columns.map(col => ({
+        ...col,
+        type: col.type as any // Type assertion for ColumnType
+      })) as TableColumn[]
     }
 
-    // Fetch created table and columns
-    const table = await this.findTableByIdInternal(tableId)
-    const columns = await this.getTableColumns(tableId)
-
-    if (!table) {
-      throw new Error('Created table could not be retrieved')
-    }
-
-    return { table, columns }
+    return result
   }
 
   /**
-   * Update table metadata
+   * Update table metadata using Prisma ORM
    */
   async updateTable(tableId: string, updates: UpdateTableRequest): Promise<TableSchema> {
     console.log('🔧 TableRepository.updateTable called:')
@@ -229,65 +263,49 @@ export class TableRepository {
     console.log('  - updates:', JSON.stringify(updates, null, 2))
     console.log('  - updates keys:', Object.keys(updates || {}))
 
-    // Build dynamic SET clauses only for provided fields
-    const setClauses: string[] = []
-    const setValues: any[] = []
+    // Build update data object only for provided fields
+    const updateData: any = {}
 
     if (updates.name !== undefined) {
-      setClauses.push('name = ?')
-      setValues.push(updates.name)
+      updateData.name = updates.name
     }
 
     if (updates.description !== undefined) {
-      setClauses.push('description = ?')
-      setValues.push(updates.description)
+      updateData.description = updates.description
     }
 
-    if (updates.is_public !== undefined) {
-      setClauses.push('is_public = ?')
-      setValues.push(updates.is_public)
+    if (updates.isPublic !== undefined) {
+      updateData.isPublic = updates.isPublic
     }
 
-    if (updates.for_sale !== undefined) {
-      setClauses.push('for_sale = ?')
-      setValues.push(updates.for_sale)
+    if (updates.forSale !== undefined) {
+      updateData.forSale = updates.forSale
     }
 
-    // Always update the timestamp
-    setClauses.push('updated_at = CURRENT_TIMESTAMP')
-
-    if (setClauses.length === 1) { // Only timestamp
+    if (Object.keys(updateData).length === 0) {
       throw new Error('No fields to update')
     }
 
-    // Execute dynamic update
-    const setClause = setClauses.join(', ')
-    setValues.push(tableId) // For WHERE clause
+    // Always update the timestamp
+    updateData.updatedAt = new Date()
 
-    console.log('🔧 About to execute SQL:')
-    console.log('  - SET clause:', setClause)
-    console.log('  - Values:', setValues)
-    console.log('  - Full SQL:', `UPDATE user_tables SET ${setClause} WHERE id = ?`)
+    console.log('🔧 About to execute Prisma update:')
+    console.log('  - Update data:', updateData)
 
-    await this.prisma.$executeRawUnsafe(`
-      UPDATE user_tables
-      SET ${setClause}
-      WHERE id = ?
-    `, ...setValues)
+    // Execute update using Prisma
+    const table = await this.prisma.userTable.update({
+      where: { id: tableId },
+      data: updateData
+    })
 
-    // Fetch updated table and columns
-    const table = await this.findTableByIdInternal(tableId)
+    // Fetch columns
     const columns = await this.getTableColumns(tableId)
-
-    if (!table) {
-      throw new Error('Updated table could not be retrieved')
-    }
 
     return { table, columns }
   }
 
   /**
-   * Delete table
+   * Delete table using Prisma ORM
    */
   async deleteTable(tableId: string): Promise<UserTable> {
     const table = await this.findTableByIdInternal(tableId)
@@ -296,29 +314,29 @@ export class TableRepository {
     }
 
     // Delete table (CASCADE will handle columns and data)
-    await this.prisma.$executeRaw`
-      DELETE FROM user_tables WHERE id = ${tableId}
-    `
+    await this.prisma.userTable.delete({
+      where: { id: tableId }
+    })
 
     return table
   }
 
   /**
-   * Check if user owns table
+   * Check if user owns table using Prisma ORM
    */
   async checkTableOwnership(tableId: string, userEmail: string, userId: string): Promise<boolean> {
-    const [table] = await this.prisma.$queryRaw<UserTable[]>`
-      SELECT id, created_by FROM user_tables
-      WHERE id = ${tableId}
-    `
+    const table = await this.prisma.userTable.findUnique({
+      where: { id: tableId },
+      select: { createdBy: true }
+    })
 
     if (!table) return false
 
-    return table.created_by === userEmail || table.created_by === userId
+    return table.createdBy === userEmail || table.createdBy === userId
   }
 
   /**
-   * Execute mass action on tables
+   * Execute mass action on tables using Prisma ORM
    */
   async executeMassAction(
     action: TableMassAction,
@@ -327,239 +345,223 @@ export class TableRepository {
     userId: string,
     isAdmin: boolean
   ): Promise<{ count: number }> {
-    let query: string
-    let params: any[]
+    // Build where clause based on admin status
+    const where: any = {
+      id: { in: tableIds }
+    }
 
-    // Create placeholders for IN clause
-    const placeholders = tableIds.map(() => '?').join(',')
-    const inClause = `(${placeholders})`
+    if (!isAdmin) {
+      where.OR = [
+        { createdBy: userEmail },
+        { createdBy: userId }
+      ]
+    }
+
+    let result: any
 
     switch (action) {
       case 'make_public':
-        if (isAdmin) {
-          query = `UPDATE user_tables SET is_public = true, updated_at = CURRENT_TIMESTAMP WHERE id IN ${inClause}`
-          params = [...tableIds]
-        } else {
-          query = `UPDATE user_tables SET is_public = true, updated_at = CURRENT_TIMESTAMP WHERE id IN ${inClause} AND (created_by = ? OR created_by = ?)`
-          params = [...tableIds, userEmail, userId]
-        }
+        result = await this.prisma.userTable.updateMany({
+          where,
+          data: {
+            isPublic: true,
+            updatedAt: new Date()
+          }
+        })
         break
 
       case 'make_private':
-        if (isAdmin) {
-          query = `UPDATE user_tables SET is_public = false, updated_at = CURRENT_TIMESTAMP WHERE id IN ${inClause}`
-          params = [...tableIds]
-        } else {
-          query = `UPDATE user_tables SET is_public = false, updated_at = CURRENT_TIMESTAMP WHERE id IN ${inClause} AND (created_by = ? OR created_by = ?)`
-          params = [...tableIds, userEmail, userId]
-        }
+        result = await this.prisma.userTable.updateMany({
+          where,
+          data: {
+            isPublic: false,
+            updatedAt: new Date()
+          }
+        })
         break
 
       case 'delete':
-        if (isAdmin) {
-          query = `DELETE FROM user_tables WHERE id IN ${inClause}`
-          params = [...tableIds]
-        } else {
-          query = `DELETE FROM user_tables WHERE id IN ${inClause} AND (created_by = ? OR created_by = ?)`
-          params = [...tableIds, userEmail, userId]
-        }
+        result = await this.prisma.userTable.deleteMany({ where })
         break
 
       default:
         throw new Error('Invalid action')
     }
 
-    await this.prisma.$executeRawUnsafe(query, ...params)
-
-    return { count: tableIds.length }
+    return { count: result.count }
   }
 
   /**
-   * Add column to table
+   * Add column to table using Prisma ORM
    */
   async addColumn(
     tableId: string,
-    columnData: { name: string; type: string; is_required: boolean; default_value?: string; position?: number }
+    columnData: { name: string; type: string; isRequired: boolean; allowDuplicates?: boolean; defaultValue?: string; position?: number }
   ): Promise<TableColumn> {
-    const columnId = crypto.randomUUID()
-
     let position = columnData.position
+
     if (position === undefined) {
       // If no position specified, add at the end
-      const [maxPosResult] = await this.prisma.$queryRaw<[{ max_pos: number | null }]>`
-        SELECT MAX(position) as max_pos FROM table_columns WHERE table_id = ${tableId}
-      `
-      position = (maxPosResult?.max_pos ?? -1) + 1
+      const maxPosResult = await this.prisma.tableColumn.aggregate({
+        where: { tableId },
+        _max: { position: true }
+      })
+      position = (maxPosResult._max.position ?? -1) + 1
     } else {
       // If a specific position is requested, we need to make space
-      // Use a transaction-like approach with careful ordering
-
-      // First, get all columns at or after the target position
-      const columnsToShift = await this.prisma.$queryRaw<{ id: string; position: number }[]>`
-        SELECT id, position FROM table_columns
-        WHERE table_id = ${tableId} AND position >= ${position}
-        ORDER BY position DESC
-      `
+      // Get all columns at or after the target position
+      const columnsToShift = await this.prisma.tableColumn.findMany({
+        where: {
+          tableId,
+          position: { gte: position }
+        },
+        orderBy: { position: 'desc' },
+        select: { id: true, position: true }
+      })
 
       // Shift each column one position to the right, starting from the highest position
-      // This avoids constraint conflicts by working backwards
       for (const col of columnsToShift) {
-        await this.prisma.$executeRaw`
-          UPDATE table_columns
-          SET position = ${col.position + 1}
-          WHERE id = ${col.id} AND table_id = ${tableId}
-        `
+        await this.prisma.tableColumn.update({
+          where: { id: col.id },
+          data: { position: col.position + 1 }
+        })
       }
     }
 
-    // Now insert the new column
-    await this.prisma.$queryRaw`
-      INSERT INTO table_columns (id, table_id, name, type, is_required, default_value, position)
-      VALUES (${columnId}, ${tableId}, ${columnData.name.trim()}, ${columnData.type}, ${columnData.is_required}, ${columnData.default_value || null}, ${position})
-    `
+    // Create the new column
+    const column = await this.prisma.tableColumn.create({
+      data: {
+        id: crypto.randomUUID(),
+        tableId: tableId,
+        name: columnData.name.trim(),
+        type: columnData.type,
+        isRequired: columnData.isRequired,
+        allowDuplicates: columnData.allowDuplicates ?? true,
+        defaultValue: columnData.defaultValue || null,
+        position: position
+      }
+    })
 
-    // Return the created column
-    const [column] = await this.prisma.$queryRaw<any[]>`
-      SELECT id, table_id, name, type, is_required, default_value, position, created_at
-      FROM table_columns
-      WHERE id = ${columnId}
-    `
-
-    if (!column) {
-      throw new Error('Failed to create column')
-    }
-
-    // Convert SQLite integer/string to proper boolean
     return {
       ...column,
-      is_required: column.is_required === true || column.is_required === 1 || column.is_required === '1' || column.is_required === 'true'
-    } as TableColumn
+      type: column.type as any // Type assertion for ColumnType
+    }
   }
 
   /**
-   * Update column in table
+   * Update column in table using Prisma ORM
    */
   async updateColumn(
     tableId: string,
     columnId: string,
-    updates: { name?: string; type?: string; is_required?: boolean; default_value?: string; position?: number }
+    updates: { name?: string; type?: string; isRequired?: boolean; allowDuplicates?: boolean; defaultValue?: string; position?: number }
   ): Promise<TableColumn> {
-    // Build dynamic SET clauses only for provided fields
-    const setClauses: string[] = []
-    const setValues: any[] = []
+    // Build update data object only for provided fields
+    const updateData: any = {}
 
     if (updates.name !== undefined) {
-      setClauses.push('name = ?')
-      setValues.push(updates.name.trim())
+      updateData.name = updates.name.trim()
     }
 
     if (updates.type !== undefined) {
-      setClauses.push('type = ?')
-      setValues.push(updates.type)
+      updateData.type = updates.type
     }
 
-    if (updates.is_required !== undefined) {
-      setClauses.push('is_required = ?')
-      setValues.push(updates.is_required)
+    if (updates.isRequired !== undefined) {
+      updateData.isRequired = updates.isRequired
     }
 
-    if (updates.default_value !== undefined) {
-      setClauses.push('default_value = ?')
-      setValues.push(updates.default_value || null)
+    if (updates.allowDuplicates !== undefined) {
+      updateData.allowDuplicates = updates.allowDuplicates
+    }
+
+    if (updates.defaultValue !== undefined) {
+      updateData.defaultValue = updates.defaultValue || null
     }
 
     if (updates.position !== undefined) {
-      setClauses.push('position = ?')
-      setValues.push(updates.position)
+      updateData.position = updates.position
     }
 
-    if (setClauses.length === 0) {
+    if (Object.keys(updateData).length === 0) {
       throw new Error('No fields to update')
     }
 
-    // Execute dynamic update
-    const setClause = setClauses.join(', ')
-    setValues.push(columnId, tableId) // For WHERE clause
+    // Execute update using Prisma
+    const column = await this.prisma.tableColumn.update({
+      where: {
+        id: columnId,
+        tableId: tableId
+      },
+      data: updateData
+    })
 
-    await this.prisma.$executeRawUnsafe(`
-      UPDATE table_columns
-      SET ${setClause}
-      WHERE id = ? AND table_id = ?
-    `, ...setValues)
-
-    // Return updated column
-    const [column] = await this.prisma.$queryRaw<any[]>`
-      SELECT id, table_id, name, type, is_required, default_value, position, created_at
-      FROM table_columns
-      WHERE id = ${columnId} AND table_id = ${tableId}
-    `
-
-    if (!column) {
-      throw new Error('Column not found after update')
-    }
-
-    // Convert SQLite integer/string to proper boolean
     return {
       ...column,
-      is_required: column.is_required === true || column.is_required === 1 || column.is_required === '1' || column.is_required === 'true'
-    } as TableColumn
+      type: column.type as any // Type assertion for ColumnType
+    }
   }
 
   /**
-   * Delete column from table
+   * Delete column from table using Prisma ORM
    */
   async deleteColumn(tableId: string, columnId: string): Promise<TableColumn> {
     // Get column before deletion
-    const [column] = await this.prisma.$queryRaw<any[]>`
-      SELECT id, table_id, name, type, is_required, default_value, position, created_at
-      FROM table_columns
-      WHERE id = ${columnId} AND table_id = ${tableId}
-    `
+    const column = await this.prisma.tableColumn.findFirst({
+      where: {
+        id: columnId,
+        tableId: tableId
+      }
+    })
 
     if (!column) {
       throw new Error('Column not found')
     }
 
     // Delete column
-    await this.prisma.$executeRaw`
-      DELETE FROM table_columns WHERE id = ${columnId} AND table_id = ${tableId}
-    `
+    await this.prisma.tableColumn.delete({
+      where: {
+        id: columnId
+      }
+    })
 
-    // Convert SQLite integer/string to proper boolean
     return {
       ...column,
-      is_required: column.is_required === true || column.is_required === 1 || column.is_required === '1' || column.is_required === 'true'
-    } as TableColumn
+      type: column.type as any // Type assertion for ColumnType
+    }
   }
 
   /**
-   * Get table by ID with user access check
+   * Get table by ID with user access check (alias for findTableById)
    */
-  async getTable(tableId: string, userId: string): Promise<UserTable | null> {
+  getTable(tableId: string, userId: string): Promise<UserTable | null> {
     return this.findTableById(tableId, userId)
   }
 
   /**
-   * Clear all data from table
+   * Clear all data from table using Prisma ORM
    */
   async clearTableData(tableId: string): Promise<void> {
-    await this.prisma.$executeRaw`
-      DELETE FROM table_data WHERE table_id = ${tableId}
-    `
+    await this.prisma.tableData.deleteMany({
+      where: { tableId }
+    })
   }
 
   /**
-   * Insert data into table
+   * Insert data into table using Prisma ORM
    */
   async insertTableData(tableId: string, data: any, userId: string): Promise<void> {
-    const rowId = crypto.randomUUID()
     const dataJson = JSON.stringify(data)
     const createdBy = `token:admin-token` // This should be replaced with proper user identification
 
-    await this.prisma.$executeRaw`
-      INSERT INTO table_data (id, table_id, data, created_by, created_at, updated_at)
-      VALUES (${rowId}, ${tableId}, ${dataJson}, ${createdBy}, datetime('now'), datetime('now'))
-    `
+    await this.prisma.tableData.create({
+      data: {
+        id: crypto.randomUUID(),
+        tableId: tableId,
+        data: dataJson,
+        createdBy: createdBy
+      }
+    })
   }
 
   /**
@@ -567,40 +569,59 @@ export class TableRepository {
    */
   async checkSaleColumnsExist(tableId: string): Promise<{ hasPrice: boolean; hasQty: boolean }> {
     const columns = await this.getTableColumns(tableId)
-    const hasPrice = columns.some(col => col.name === 'price')
-    const hasQty = columns.some(col => col.name === 'qty')
-    return { hasPrice, hasQty }
+    return {
+      hasPrice: columns.some(col => col.name === 'price'),
+      hasQty: columns.some(col => col.name === 'qty')
+    }
   }
 
   /**
-   * Create missing sale columns for a table
+   * Create missing sale columns for a table using Prisma ORM
    */
   async createMissingSaleColumns(tableId: string): Promise<void> {
     const { hasPrice, hasQty } = await this.checkSaleColumnsExist(tableId)
 
     // Get the current max position to add sale columns at the end following 10, 20, 30, 40... pattern
-    const maxPositionResult = await this.prisma.$queryRaw<[{ maxPosition: number | null }]>`
-      SELECT MAX(position) as maxPosition FROM table_columns WHERE table_id = ${tableId}
-    `
-    const currentMaxPosition = maxPositionResult[0]?.maxPosition ?? 0
-    const nextPosition = currentMaxPosition + 10
+    const maxPositionResult = await this.prisma.tableColumn.aggregate({
+      where: { tableId },
+      _max: { position: true }
+    })
+    const nextPosition = (maxPositionResult._max.position ?? 0) + 10
+    const columnsToCreate = []
 
     if (!hasPrice) {
-      const priceColumnId = crypto.randomUUID()
-      await this.prisma.$queryRaw`
-        INSERT INTO table_columns (id, table_id, name, type, is_required, default_value, position)
-        VALUES (${priceColumnId}, ${tableId}, 'price', 'number', ${true}, ${null}, ${nextPosition})
-      `
+      columnsToCreate.push({
+        id: crypto.randomUUID(),
+        tableId: tableId,
+        name: 'price',
+        type: 'number',
+        isRequired: true,
+        allowDuplicates: true,
+        defaultValue: null,
+        position: nextPosition
+      })
     }
 
     if (!hasQty) {
-      const qtyColumnId = crypto.randomUUID()
       // If price was just added, qty position should be nextPosition + 10, otherwise nextPosition
       const qtyPosition = !hasPrice ? nextPosition + 10 : nextPosition
-      await this.prisma.$queryRaw`
-        INSERT INTO table_columns (id, table_id, name, type, is_required, default_value, position)
-        VALUES (${qtyColumnId}, ${tableId}, 'qty', 'number', ${true}, ${'1'}, ${qtyPosition})
-      `
+      columnsToCreate.push({
+        id: crypto.randomUUID(),
+        tableId: tableId,
+        name: 'qty',
+        type: 'number',
+        isRequired: true,
+        allowDuplicates: true,
+        defaultValue: '1',
+        position: qtyPosition
+      })
+    }
+
+    // Create all missing columns
+    if (columnsToCreate.length > 0) {
+      await this.prisma.tableColumn.createMany({
+        data: columnsToCreate
+      })
     }
   }
 
@@ -609,7 +630,7 @@ export class TableRepository {
    */
   async isColumnProtected(tableId: string, columnName: string): Promise<boolean> {
     const table = await this.findTableByIdInternal(tableId)
-    if (!table || !table.for_sale) {
+    if (!table || !table.forSale) {
       return false
     }
 
@@ -617,45 +638,37 @@ export class TableRepository {
   }
 
   /**
-   * Find public tables that are for sale (for public API endpoints)
+   * Find public tables that are for sale using Prisma ORM
    */
   async findPublicSaleTables(limit: number = 1000): Promise<{ tables: UserTable[]; totalCount: number }> {
-    const tables = await this.prisma.$queryRaw<UserTable[]>`
-      SELECT id, name, description, created_by, user_id, is_public, for_sale, created_at, updated_at
-      FROM user_tables
-      WHERE is_public = true AND for_sale = true
-      ORDER BY created_at DESC
-      LIMIT ${limit}
-    `
-
-    const [countResult] = await this.prisma.$queryRaw<[{ count: number }]>`
-      SELECT COUNT(*) as count
-      FROM user_tables
-      WHERE is_public = true AND for_sale = true
-    `
-
-    return {
-      tables: tables.map(table => ({
-        ...table,
-        is_public: Boolean(table.is_public),
-        for_sale: Boolean(table.for_sale)
-      })),
-      totalCount: countResult?.count || 0
+    const where = {
+      isPublic: true,
+      forSale: true
     }
+
+    const [tables, totalCount] = await Promise.all([
+      this.prisma.userTable.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: limit
+      }),
+      this.prisma.userTable.count({ where })
+    ])
+
+    return { tables, totalCount }
   }
 
   /**
-   * Recount column positions to ensure proper spaced ordering (0, 10, 20, 30, 40...)
+   * Recount column positions to ensure proper spaced ordering (10, 20, 30, 40...) using Prisma ORM
    * This provides room for position swapping in arrow buttons
    */
   async recountColumnPositions(tableId: string): Promise<void> {
     // Get all columns sorted by current position
-    const columns = await this.prisma.$queryRaw<{ id: string; position: number }[]>`
-      SELECT id, position
-      FROM table_columns
-      WHERE table_id = ${tableId}
-      ORDER BY position ASC
-    `
+    const columns = await this.prisma.tableColumn.findMany({
+      where: { tableId },
+      orderBy: { position: 'asc' },
+      select: { id: true, position: true }
+    })
 
     // First, assign all columns temporary unique negative positions to avoid conflicts
     for (let i = 0; i < columns.length; i++) {
@@ -663,11 +676,10 @@ export class TableRepository {
       if (!column) continue
 
       const tempPosition = -1000 - i  // Use unique negative positions
-      await this.prisma.$executeRaw`
-        UPDATE table_columns
-        SET position = ${tempPosition}
-        WHERE id = ${column.id} AND table_id = ${tableId}
-      `
+      await this.prisma.tableColumn.update({
+        where: { id: column.id },
+        data: { position: tempPosition }
+      })
     }
 
     // Then, assign proper spaced positions (10, 20, 30, 40, 50...)
@@ -676,16 +688,15 @@ export class TableRepository {
       if (!column) continue
 
       const spacedPosition = (i + 1) * 10  // Start from 10, not 0
-      await this.prisma.$executeRaw`
-        UPDATE table_columns
-        SET position = ${spacedPosition}
-        WHERE id = ${column.id} AND table_id = ${tableId}
-      `
+      await this.prisma.tableColumn.update({
+        where: { id: column.id },
+        data: { position: spacedPosition }
+      })
     }
   }
 
   /**
-   * Safely update a column's position using intermediate values in spaced gaps
+   * Safely update a column's position using intermediate values in spaced gaps using Prisma ORM
    */
   async updateColumnPositionSafe(tableId: string, columnId: string, newPosition: number): Promise<void> {
     console.log(`🔧 Safe position update: columnId=${columnId}, targetPosition=${newPosition}`)
@@ -697,35 +708,67 @@ export class TableRepository {
     console.log(`📍 Using intermediate position ${intermediatePosition} to avoid conflicts`)
 
     // Step 1: Move to intermediate position to avoid conflicts
-    await this.prisma.$executeRaw`
-      UPDATE table_columns
-      SET position = ${intermediatePosition}
-      WHERE id = ${columnId} AND table_id = ${tableId}
-    `
+    await this.prisma.tableColumn.update({
+      where: { id: columnId },
+      data: { position: intermediatePosition }
+    })
 
     console.log(`✅ Column moved to intermediate position ${intermediatePosition}`)
 
     // Step 2: Move to final target position
-    await this.prisma.$executeRaw`
-      UPDATE table_columns
-      SET position = ${newPosition}
-      WHERE id = ${columnId} AND table_id = ${tableId}
-    `
+    await this.prisma.tableColumn.update({
+      where: { id: columnId },
+      data: { position: newPosition }
+    })
 
     console.log(`✅ Column moved to final position ${newPosition}`)
   }
 
   /**
-   * Swap positions between two columns
+   * Find rows that have a specific value in a specific column using Prisma ORM
+   */
+  async findRowsWithColumnValue(
+    tableId: string,
+    columnName: string,
+    value: any,
+    excludeRowId?: string
+  ): Promise<any[]> {
+    // Convert value to string for JSON comparison
+    const stringValue = String(value)
+
+    // Build Prisma where clause
+    const where: any = {
+      tableId: tableId,
+      OR: [
+        // Search for "columnName":"stringValue" (string values)
+        { data: { contains: `"${columnName}":"${stringValue}"` } },
+        // Search for "columnName":value (numeric/boolean values)
+        { data: { contains: `"${columnName}":${value}` } }
+      ]
+    }
+
+    // Exclude a specific row if provided (useful for updates)
+    if (excludeRowId) {
+      where.id = { not: excludeRowId }
+    }
+
+    const rows = await this.prisma.tableData.findMany({ where })
+    return rows
+  }
+
+  /**
+   * Swap positions between two columns using Prisma ORM
    * With non-unique positions, this is now a simple operation
    */
   async swapColumnPositions(tableId: string, columnId1: string, columnId2: string): Promise<void> {
     // Get current positions of both columns
-    const columns = await this.prisma.$queryRaw<{ id: string; position: number }[]>`
-      SELECT id, position
-      FROM table_columns
-      WHERE table_id = ${tableId} AND (id = ${columnId1} OR id = ${columnId2})
-    `
+    const columns = await this.prisma.tableColumn.findMany({
+      where: {
+        tableId: tableId,
+        id: { in: [columnId1, columnId2] }
+      },
+      select: { id: true, position: true }
+    })
 
     if (columns.length !== 2) {
       throw new Error('One or both columns not found')
@@ -739,16 +782,15 @@ export class TableRepository {
     }
 
     // Simply swap the position values - no intermediate steps needed with non-unique positions
-    await this.prisma.$executeRaw`
-      UPDATE table_columns
-      SET position = ${column2.position}
-      WHERE id = ${columnId1} AND table_id = ${tableId}
-    `
-
-    await this.prisma.$executeRaw`
-      UPDATE table_columns
-      SET position = ${column1.position}
-      WHERE id = ${columnId2} AND table_id = ${tableId}
-    `
+    await Promise.all([
+      this.prisma.tableColumn.update({
+        where: { id: columnId1 },
+        data: { position: column2.position }
+      }),
+      this.prisma.tableColumn.update({
+        where: { id: columnId2 },
+        data: { position: column1.position }
+      })
+    ])
   }
 }
