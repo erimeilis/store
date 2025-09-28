@@ -7,13 +7,15 @@ import React from 'react'
 import { Card, CardBody, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Select } from '@/components/ui/select'
 import { ForSaleToggle } from '@/components/for-sale-toggle'
+
+type TableVisibility = 'private' | 'public' | 'shared'
 
 interface TableInfoData {
   name: string
   description: string
-  isPublic: boolean
+  visibility: TableVisibility
   forSale?: boolean
 }
 
@@ -57,12 +59,21 @@ export function TableInfoForm({ data, errors = {}, onChange }: TableInfoFormProp
           rows={3}
         />
 
-        <Checkbox
-          label="Public Table"
-          labelPosition="right"
-          checked={data.isPublic}
-          onChange={(e) => onChange('isPublic', e.target.checked)}
-        />
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Visibility</span>
+          </label>
+          <Select
+            value={data.visibility}
+            onChange={(e) => onChange('visibility', e.target.value as TableVisibility)}
+            options={[
+              { value: 'private', label: 'Private (Only you can access)' },
+              { value: 'public', label: 'Public (Everyone can view)' },
+              { value: 'shared', label: 'Shared (All users can edit)' }
+            ]}
+            placeholder="Select visibility..."
+          />
+        </div>
 
         <div className="divider text-sm">E-commerce Settings</div>
 

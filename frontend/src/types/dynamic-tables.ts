@@ -7,13 +7,16 @@ export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'email' | 'url
 // Access level definitions matching backend
 export type TableAccessLevel = 'none' | 'read' | 'write' | 'admin'
 
+// Visibility level definitions matching backend
+export type TableVisibility = 'private' | 'public' | 'shared'
+
 // Frontend interfaces matching backend types
 export interface UserTable extends BaseModel {
   id: string
   name: string
   description?: string | null
   createdBy: string
-  isPublic: boolean
+  visibility: TableVisibility
   forSale: boolean // Whether table is configured for e-commerce with protected price/qty columns
   createdAt: string
   updatedAt: string
@@ -63,7 +66,8 @@ export interface ParsedTableData {
 export interface CreateTableRequest {
   name: string
   description?: string
-  isPublic?: boolean
+  visibility?: TableVisibility
+  forSale?: boolean
   columns: CreateColumnRequest[]
 }
 
@@ -79,7 +83,7 @@ export interface CreateColumnRequest {
 export interface UpdateTableRequest {
   name?: string
   description?: string
-  isPublic?: boolean
+  visibility?: TableVisibility
   forSale?: boolean
 }
 
@@ -89,6 +93,14 @@ export interface AddTableDataRequest {
 
 export interface UpdateTableDataRequest {
   data: ParsedTableData
+}
+
+export interface CloneTableRequest {
+  sourceTableId: string
+  newTableName: string
+  description?: string
+  visibility?: TableVisibility
+  forSale?: boolean
 }
 
 // API Response types
@@ -130,7 +142,7 @@ export interface TableAccess {
 export interface TableFormData {
   name: string
   description: string
-  isPublic: boolean
+  visibility: TableVisibility
   forSale: boolean
   columns: ColumnFormData[]
 }

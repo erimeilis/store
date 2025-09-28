@@ -795,7 +795,7 @@ export function ModelList<T extends IModel>({
         onReload: async () => {
             if (orderingConfig.onReorder) {
                 // Use custom reload function to avoid page reload
-                await orderingConfig.onReorder();
+                await orderingConfig.onReorder([] as any, (() => {}) as any);
             } else {
                 // Fallback to page reload if no custom reload function provided
                 window.location.reload();
