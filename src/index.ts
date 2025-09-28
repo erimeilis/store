@@ -1,23 +1,23 @@
 import { Hono } from 'hono'
-import type { Bindings } from '@/types/bindings.js'
+import type { Bindings } from '@/types/bindings'
 
 // Import middleware
-import { corsMiddleware } from '@/middleware/cors.js'
-import { notFoundHandler, globalErrorHandler } from '@/middleware/error.js'
+import { corsMiddleware } from '@/middleware/cors'
+import { notFoundHandler, globalErrorHandler } from '@/middleware/error'
 
 // Import existing route groups (will be gradually migrated)
-import { itemsRoutes } from '@/routes/items.js'
+import { itemsRoutes } from '@/routes/items'
 // import { uploadRoutes } from '@/routes/upload.js'  // Temporarily disabled - legacy route
 // import { importRoutes } from '@/routes/import.js'  // Temporarily disabled - legacy route
-import usersRoutes from '@/routes/users.js'
-import { auth } from '@/routes/auth.js'
-import tokensRoutes from '@/routes/tokens.js'
-import allowedEmailsRoutes from '@/routes/allowed-emails.js'
-import { tablesRoutes } from '@/routes/tables.js'
-import { tableDataRoutes } from '@/routes/table-data.js'
-import salesRoutes from '@/routes/sales.js'
-import inventoryRoutes from '@/routes/inventory.js'
-import publicSalesRoutes from '@/routes/public-sales.js'
+import usersRoutes from '@/routes/users'
+import { auth } from '@/routes/auth'
+import tokensRoutes from '@/routes/tokens'
+import allowedEmailsRoutes from '@/routes/allowed-emails'
+import { tablesRoutes } from '@/routes/tables'
+import { tableDataRoutes } from '@/routes/table-data'
+import salesRoutes from '@/routes/sales'
+import inventoryRoutes from '@/routes/inventory'
+import publicSalesRoutes from '@/routes/public-sales'
 
 /**
  * Store CRUD API - Backend Server

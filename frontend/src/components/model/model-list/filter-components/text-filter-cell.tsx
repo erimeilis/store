@@ -51,7 +51,7 @@ export function TextFilterCell<T extends IModel>({ column, filterValue, onColumn
                 />
                 <Button
                     size="sm"
-                    variant="outline"
+                    style="outline"
                     onClick={handleSearchClick}
                     className="px-2 shrink-0"
                     title="Search now"

@@ -127,30 +127,26 @@ export async function handleOAuthCallback(c: Context) {
           userExists = true
           console.log('✅ Existing user found in database:', { email: userInfo.email, role: userRole })
         } else {
-          console.log('⚠️ User not found in database, checking allowed_emails...')
-          
-          // User doesn't exist, check if email is allowed
-          console.log('🔍 Validating email access for new user:', userInfo.email)
-          const emailValidationResponse = await fetch(`${apiUrl}/api/allowed-emails/validate`, {
-            method: 'POST',
+          console.log('⚠️ User not found in database, checking if this is the first user...')
+
+          // Check if there are any users at all (first user becomes admin)
+          const allUsersResponse = await fetch(`${apiUrl}/api/users?limit=1`, {
             headers: {
               'Authorization': `Bearer ${adminToken}`,
               'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email: userInfo.email })
+            }
           })
-          
-          console.log('📡 Email validation response status:', emailValidationResponse.status)
-          
-          if (emailValidationResponse.ok) {
-            const validationResult = await emailValidationResponse.json() as any
-            console.log('📧 Email validation result:', validationResult)
-            
-            if (validationResult.isAllowed) {
-              console.log('✅ Email is allowed, creating new user:', { email: userInfo.email, matchType: validationResult.matchType })
-              
-              // Create new user
-              const createUserResponse = await fetch(`${apiUrl}/api/users`, {
+
+          if (allUsersResponse.ok) {
+            const allUsersResult = await allUsersResponse.json() as any
+            const userCount = allUsersResult.total || 0
+            const isFirstUser = userCount === 0
+
+            if (isFirstUser) {
+              console.log('🎉 First user registration - creating admin account for:', userInfo.email)
+
+              // Use the backend /auth/register endpoint which has the first-user-admin logic
+              const registerResponse = await fetch(`${apiUrl}/api/auth/register`, {
                 method: 'POST',
                 headers: {
                   'Authorization': `Bearer ${adminToken}`,
@@ -159,33 +155,84 @@ export async function handleOAuthCallback(c: Context) {
                 body: JSON.stringify({
                   email: userInfo.email,
                   name: userInfo.name,
-                  picture: userInfo.picture,
-                  role: 'user'
+                  picture: userInfo.picture
                 })
               })
-              
-              if (createUserResponse.ok) {
-                const newUser = await createUserResponse.json() as any
-                userRole = newUser.role || 'user'
+
+              if (registerResponse.ok) {
+                const registerResult = await registerResponse.json() as any
+                userRole = registerResult.user.role || 'admin'
                 userExists = true
-                console.log('✅ New user created successfully:', { email: userInfo.email, role: userRole })
+                console.log('✅ First user (admin) created successfully:', { email: userInfo.email, role: userRole })
               } else {
-                console.error('❌ Failed to create new user:', await createUserResponse.text())
-                throw new Error('Failed to create user account')
+                console.error('❌ Failed to create first user via /auth/register:', await registerResponse.text())
+                throw new Error('Failed to create admin account')
               }
             } else {
-              console.log('❌ Email not allowed for registration:', { email: userInfo.email, message: validationResult.message })
-              console.log('🔀 Redirecting directly with access denied error')
-              return c.redirect(`/?error=access_denied&message=${encodeURIComponent(validationResult.message)}`)
+              console.log('👥 Not the first user, checking allowed_emails validation...')
+
+              // User doesn't exist and it's not first user, check if email is allowed
+              console.log('🔍 Validating email access for new user:', userInfo.email)
+              const emailValidationResponse = await fetch(`${apiUrl}/api/allowed-emails/validate`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${adminToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: userInfo.email })
+              })
+
+              console.log('📡 Email validation response status:', emailValidationResponse.status)
+
+              if (emailValidationResponse.ok) {
+                const validationResult = await emailValidationResponse.json() as any
+                console.log('📧 Email validation result:', validationResult)
+
+                if (validationResult.isAllowed) {
+                  console.log('✅ Email is allowed, creating new user:', { email: userInfo.email, matchType: validationResult.matchType })
+
+                  // Create new user
+                  const createUserResponse = await fetch(`${apiUrl}/api/users`, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${adminToken}`,
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      email: userInfo.email,
+                      name: userInfo.name,
+                      picture: userInfo.picture,
+                      role: 'user'
+                    })
+                  })
+
+                  if (createUserResponse.ok) {
+                    const newUser = await createUserResponse.json() as any
+                    userRole = newUser.role || 'user'
+                    userExists = true
+                    console.log('✅ New user created successfully:', { email: userInfo.email, role: userRole })
+                  } else {
+                    console.error('❌ Failed to create new user:', await createUserResponse.text())
+                    throw new Error('Failed to create user account')
+                  }
+                } else {
+                  console.log('❌ Email not allowed for registration:', { email: userInfo.email, message: validationResult.message })
+                  console.log('🔀 Redirecting directly with access denied error')
+                  return c.redirect(`/?error=access_denied&message=${encodeURIComponent(validationResult.message)}`)
+                }
+              } else {
+                const errorText = await emailValidationResponse.text()
+                console.error('❌ Email validation check failed:', {
+                  status: emailValidationResponse.status,
+                  statusText: emailValidationResponse.statusText,
+                  responseText: errorText
+                })
+                throw new Error('Failed to validate email access')
+              }
             }
           } else {
-            const errorText = await emailValidationResponse.text()
-            console.error('❌ Email validation check failed:', {
-              status: emailValidationResponse.status,
-              statusText: emailValidationResponse.statusText,
-              responseText: errorText
-            })
-            throw new Error('Failed to validate email access')
+            console.error('❌ Failed to check user count:', await allUsersResponse.text())
+            throw new Error('Failed to check existing users')
           }
         }
       } else {

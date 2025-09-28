@@ -86,7 +86,7 @@ export async function getTableItems(
       return { error: 'Table not found', status: 404 }
     }
 
-    if (!table.isPublic || !table.forSale) {
+    if (!['public', 'shared'].includes(table.visibility) || !table.forSale) {
       return { error: 'Table is not available for public sales', status: 403 }
     }
 
@@ -189,7 +189,7 @@ export async function getItem(
       return { error: 'Table not found', status: 404 }
     }
 
-    if (!table.isPublic || !table.forSale) {
+    if (!['public', 'shared'].includes(table.visibility) || !table.forSale) {
       return { error: 'Table is not available for public sales', status: 403 }
     }
 

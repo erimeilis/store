@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS userTables (
     name TEXT NOT NULL,
     description TEXT,
     createdBy TEXT NOT NULL,
-    isPublic BOOLEAN DEFAULT FALSE,
+    visibility TEXT DEFAULT 'private' CHECK (visibility IN ('private', 'public', 'shared')),
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
     -- Note: created_by stores email but we can't enforce FK since users.email is not primary key
@@ -42,7 +42,8 @@ CREATE TABLE IF NOT EXISTS tableData (
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_userTables_createdBy ON userTables(createdBy);
-CREATE INDEX IF NOT EXISTS idx_userTables_isPublic ON userTables(isPublic);
+CREATE INDEX IF NOT EXISTS idx_userTables_visibility ON userTables(visibility);
+CREATE INDEX IF NOT EXISTS idx_userTables_visibility_createdBy ON userTables(visibility, createdBy);
 CREATE INDEX IF NOT EXISTS idx_tableColumns_tableId ON tableColumns(tableId);
 CREATE INDEX IF NOT EXISTS idx_tableColumns_position ON tableColumns(tableId, position);
 CREATE INDEX IF NOT EXISTS idx_tableData_tableId ON tableData(tableId);

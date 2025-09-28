@@ -5,6 +5,7 @@ import { TableService } from '@/services/tableService/index.js'
 import { parseImportFile } from '@/services/fileParserService/index.js'
 import type { Bindings } from '@/types/bindings.js'
 import type { UserContext } from '@/types/database.js'
+import { cloneTable } from '@/services/tableService/cloneTable.js'
 
 /**
  * Table Management CRUD Routes
@@ -36,7 +37,7 @@ tablesRoutes.get('/api/tables', readAuthMiddleware, async (c) => {
     filterVisibility: c.req.query('filter_visibility') || '',
     filterCreatedAt: c.req.query('filter_createdAt') || '',
     filterUpdatedAt: c.req.query('filter_updatedAt') || '',
-    for_sale: c.req.query('for_sale') || ''
+    forSale: c.req.query('forSale') || ''
   }
 
   const result = await service.listTables(c, user, query)
@@ -481,5 +482,54 @@ function generateColumnMappings(headers: string[], tableColumns: any[]): Array<{
 
   return mappings
 }
+
+/**
+ * Clone a table structure without data ("hollow clone")
+ * POST /api/tables/clone
+ */
+tablesRoutes.post('/api/tables/clone', writeAuthMiddleware, async (c) => {
+  console.log('🎯 Clone API endpoint hit!')
+  try {
+    const user = c.get('user')
+    console.log('🎯 Clone request user:', user)
+    const body = await c.req.json()
+    console.log('🎯 Clone request body:', body)
+
+    // Validate request body
+    if (!body.sourceTableId || !body.newTableName) {
+      return c.json({
+        error: 'Invalid request',
+        message: 'sourceTableId and newTableName are required'
+      }, 400)
+    }
+
+    const request = {
+      sourceTableId: body.sourceTableId,
+      newTableName: body.newTableName,
+      description: body.description,
+      visibility: body.visibility || 'private',
+      forSale: body.forSale || false
+    }
+
+    const result = await cloneTable(c.env, c, user, request)
+
+    // Check if result is a Response (error case)
+    if (result && typeof result === 'object' && 'status' in result) {
+      return result
+    }
+
+    return c.json({
+      message: 'Table cloned successfully',
+      table: result
+    }, 201)
+
+  } catch (error) {
+    console.error('Error cloning table:', error)
+    return c.json({
+      error: 'Clone failed',
+      message: error instanceof Error ? error.message : 'Failed to clone table'
+    }, 500)
+  }
+})
 
 export { tablesRoutes }

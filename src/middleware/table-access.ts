@@ -26,14 +26,19 @@ function determineAccessLevel(table: UserTable, userId: string): TableAccessLeve
     return 'admin'
   }
 
-  // Public tables allow write access to authenticated users
-  if (table.isPublic) {
-    return 'write'
+  // Handle visibility-based access control
+  switch (table.visibility) {
+    case 'shared':
+      // Shared tables allow write access to all authenticated users
+      return 'write'
+    case 'public':
+      // Public tables allow write access to authenticated users (backwards compatibility)
+      return 'write'
+    case 'private':
+    default:
+      // Private tables only allow read access to non-owners
+      return 'read'
   }
-
-  // Private tables only allow read access to non-owners for now
-  // In future could add explicit permissions table
-  return 'read'
 }
 
 /**
@@ -109,7 +114,7 @@ export const createTableAccessMiddleware = (
       
       // Get table information
       const [table] = await prisma.$queryRaw<UserTable[]>`
-        SELECT id, name, description, created_by, user_id, is_public, created_at, updated_at
+        SELECT id, name, description, created_by, user_id, visibility, for_sale, created_at, updated_at
         FROM user_tables
         WHERE id = ${tableId}
       `

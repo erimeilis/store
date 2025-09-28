@@ -196,7 +196,7 @@ export class TableDataRepository {
                 id: tableId,
                 OR: [
                     {userId: userId},
-                    {isPublic: true}
+                    {visibility: { in: ['public', 'shared'] }}
                 ]
             },
             select: {id: true}

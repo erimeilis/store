@@ -31,7 +31,7 @@ export default function CreateTablePage() {
     const [formData, setFormData] = useState<TableFormData>({
         name: '',
         description: '',
-        isPublic: false,
+        visibility: 'private',
         forSale: false,
         columns: [
             {
@@ -189,12 +189,13 @@ export default function CreateTablePage() {
                 <input type="hidden" name="tableData" value={JSON.stringify({
                     name: formData.name.trim(),
                     description: formData.description.trim() || undefined,
-                    isPublic: formData.isPublic,
+                    visibility: formData.visibility,
                     forSale: formData.forSale,
                     columns: formData.columns.map(col => ({
                         name: col.name.trim(),
                         type: col.type,
                         isRequired: col.isRequired,
+                        allowDuplicates: col.allowDuplicates,
                         defaultValue: col.defaultValue.trim() || undefined,
                         position: col.position
                     }))
@@ -204,7 +205,7 @@ export default function CreateTablePage() {
                     data={{
                         name: formData.name,
                         description: formData.description,
-                        isPublic: formData.isPublic,
+                        visibility: formData.visibility,
                         forSale: formData.forSale
                     }}
                     errors={errors}
