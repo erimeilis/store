@@ -145,7 +145,7 @@ model UserTable {
   description String?
   createdBy   String
   userId      String? // Optional user ID for session-based creation
-  isPublic    Boolean  @default(false)
+  visibility  String   @default("private") // 'private' | 'public' | 'shared'
   forSale     Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

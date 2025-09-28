@@ -37,7 +37,7 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
     const [formData, setFormData] = useState({
         name: tableSchema?.table.name || '',
         description: tableSchema?.table.description || '',
-        isPublic: Boolean(tableSchema?.table.isPublic),
+        visibility: (tableSchema?.table.visibility as 'private' | 'public' | 'shared') || 'private',
         forSale: Boolean(tableSchema?.table.forSale)
     })
 
@@ -68,7 +68,7 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
                 setFormData({
                     name: schema.table.name,
                     description: schema.table.description || '',
-                    isPublic: Boolean(schema.table.isPublic),
+                    visibility: (schema.table.visibility as 'private' | 'public' | 'shared') || 'private',
                     forSale: Boolean(schema.table.forSale)
                 })
 
@@ -78,7 +78,7 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
                     tableInfo: schema.table,
                     tableName: schema.table.name,
                     forSale: schema.table.forSale,
-                    isPublic: schema.table.isPublic
+                    visibility: schema.table.visibility
                 })
             } else {
                 const errorData = await response.json() as any
@@ -145,7 +145,7 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
             const requestData: UpdateTableRequest = {
                 name: formData.name.trim(),
                 description: formData.description.trim() || undefined,
-                isPublic: formData.isPublic,
+                visibility: formData.visibility,
                 forSale: formData.forSale
             }
 

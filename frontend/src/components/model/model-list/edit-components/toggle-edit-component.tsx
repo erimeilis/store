@@ -21,12 +21,13 @@ export function ToggleEditComponent<T extends IModel>({
         });
 
         const newValue = e.target.checked;
-        onSetEditValue(newValue);
+        const stringValue = newValue.toString();
+        onSetEditValue(stringValue);
 
-        console.log('🚀 ToggleEditComponent: About to call onSaveEditing with:', newValue);
+        console.log('🚀 ToggleEditComponent: About to call onSaveEditing with:', stringValue);
         // Auto-save on toggle change
         try {
-            await onSaveEditing(newValue);
+            await onSaveEditing(stringValue);
             console.log('✅ ToggleEditComponent: onSaveEditing completed successfully');
         } catch (error) {
             console.error('❌ ToggleEditComponent: onSaveEditing failed:', error);
@@ -34,7 +35,7 @@ export function ToggleEditComponent<T extends IModel>({
     };
 
     // Convert value to boolean for the checkbox (handles both string and boolean values)
-    const isChecked = editValue === true || editValue === '1' || editValue === 'true';
+    const isChecked = editValue === 'true' || editValue === '1' || String(editValue) === 'true';
 
     return (
         <div className="w-full gap-2">
