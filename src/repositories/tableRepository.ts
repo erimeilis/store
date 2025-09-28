@@ -1,6 +1,6 @@
 import { getPrismaClient } from '@/lib/database.js'
 import type { Bindings } from '@/types/bindings.js'
-import type { UserTable, TableColumn, TableSchema, CreateTableRequest, UpdateTableRequest, TableMassAction } from '@/types/dynamic-tables.js'
+import type { UserTable, TableColumn, TableSchema, CreateTableRequest, UpdateTableRequest, TableMassAction, TableVisibility } from '@/types/dynamic-tables.js'
 import type { PrismaClient } from '@prisma/client'
 import { validateSortColumn, validateSortDirection } from '@/utils/common.js'
 
@@ -109,11 +109,12 @@ export class TableRepository {
       this.prisma.userTable.count({ where })
     ])
 
-    // Add owner display name logic
+    // Add owner display name logic with proper type casting
     const tablesWithOwner = tables.map(table => ({
       ...table,
+      visibility: table.visibility as TableVisibility,
       ownerDisplayName: this.getOwnerDisplayName(table.createdBy, userId, userEmail)
-    }))
+    })) as UserTable[]
 
     return { tables: tablesWithOwner, totalCount }
   }
@@ -138,24 +139,26 @@ export class TableRepository {
    * Find table by ID with access check using Prisma ORM
    */
   async findTableById(tableId: string, userId: string): Promise<UserTable | null> {
-    return this.prisma.userTable.findFirst({
+    const table = await this.prisma.userTable.findFirst({
       where: {
         id: tableId,
         OR: [
           { userId: userId },
-          { isPublic: true }
+          { visibility: { in: ['public', 'shared'] } }
         ]
       }
     })
+    return table ? { ...table, visibility: table.visibility as TableVisibility } as UserTable : null
   }
 
   /**
    * Find table by ID without access check (for internal use) using Prisma ORM
    */
   async findTableByIdInternal(tableId: string): Promise<UserTable | null> {
-    return this.prisma.userTable.findUnique({
+    const table = await this.prisma.userTable.findUnique({
       where: { id: tableId }
     })
+    return table ? { ...table, visibility: table.visibility as TableVisibility } as UserTable : null
   }
 
   /**
@@ -218,7 +221,7 @@ export class TableRepository {
         description: tableData.description || null,
         createdBy: userEmail,
         userId: finalUserId,
-        isPublic: tableData.isPublic,
+        visibility: tableData.visibility,
         forSale: tableData.forSale || false
       }
     })
@@ -238,13 +241,13 @@ export class TableRepository {
           position: col.position || i
         }
       })
-    }).filter(Boolean)
+    }).filter(Boolean) as any[]
 
     // Execute column creation in batch
     const columns = await this.prisma.$transaction(columnCreates)
 
     const result = {
-      table,
+      table: { ...table, visibility: table.visibility as TableVisibility } as UserTable,
       columns: columns.map(col => ({
         ...col,
         type: col.type as any // Type assertion for ColumnType
@@ -274,8 +277,8 @@ export class TableRepository {
       updateData.description = updates.description
     }
 
-    if (updates.isPublic !== undefined) {
-      updateData.isPublic = updates.isPublic
+    if (updates.visibility !== undefined) {
+      updateData.visibility = updates.visibility
     }
 
     if (updates.forSale !== undefined) {
@@ -301,7 +304,7 @@ export class TableRepository {
     // Fetch columns
     const columns = await this.getTableColumns(tableId)
 
-    return { table, columns }
+    return { table: { ...table, visibility: table.visibility as TableVisibility } as UserTable, columns }
   }
 
   /**
@@ -364,7 +367,7 @@ export class TableRepository {
         result = await this.prisma.userTable.updateMany({
           where,
           data: {
-            isPublic: true,
+            visibility: 'public',
             updatedAt: new Date()
           }
         })
@@ -374,7 +377,17 @@ export class TableRepository {
         result = await this.prisma.userTable.updateMany({
           where,
           data: {
-            isPublic: false,
+            visibility: 'private',
+            updatedAt: new Date()
+          }
+        })
+        break
+
+      case 'make_shared':
+        result = await this.prisma.userTable.updateMany({
+          where,
+          data: {
+            visibility: 'shared',
             updatedAt: new Date()
           }
         })
@@ -642,7 +655,7 @@ export class TableRepository {
    */
   async findPublicSaleTables(limit: number = 1000): Promise<{ tables: UserTable[]; totalCount: number }> {
     const where = {
-      isPublic: true,
+      visibility: { in: ['public', 'shared'] },
       forSale: true
     }
 
@@ -655,7 +668,13 @@ export class TableRepository {
       this.prisma.userTable.count({ where })
     ])
 
-    return { tables, totalCount }
+    // Type cast the results
+    const typedTables = tables.map(table => ({
+      ...table,
+      visibility: table.visibility as TableVisibility
+    })) as UserTable[]
+
+    return { tables: typedTables, totalCount }
   }
 
   /**

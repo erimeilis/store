@@ -19,15 +19,19 @@ const validColumnTypes = ['text', 'number', 'date', 'boolean', 'email', 'url', '
 const ColumnSchema = z.object({
   name: z.string().min(1, 'Column name is required'),
   type: z.enum(validColumnTypes, { message: `Column type must be one of: ${validColumnTypes.join(', ')}` }),
-  is_required: z.boolean().default(false),
-  default_value: z.any().optional(),
+  isRequired: z.boolean().default(false),
+  allowDuplicates: z.boolean().default(true),
+  defaultValue: z.any().optional(),
   position: z.number().optional() // For compatibility with existing schema
 })
 
 const CreateTableRequestSchema = z.object({
   name: z.string().min(1, 'Table name is required'),
   description: z.string().optional(),
-  is_public: z.boolean().default(false),
+  visibility: z.enum(['private', 'public', 'shared'], {
+    message: "Visibility must be one of: private, public, shared"
+  }).default('private'),
+  forSale: z.boolean().default(false),
   user_id: z.string().optional(), // For compatibility
   columns: z.array(ColumnSchema).min(1, 'At least one column is required')
 })
@@ -35,8 +39,10 @@ const CreateTableRequestSchema = z.object({
 const UpdateTableRequestSchema = z.object({
   name: z.string().min(1, 'Table name is required').optional(),
   description: z.string().optional(),
-  is_public: z.boolean().optional(),
-  for_sale: z.boolean().optional()
+  visibility: z.enum(['private', 'public', 'shared'], {
+    message: "Visibility must be one of: private, public, shared"
+  }).optional(),
+  forSale: z.boolean().optional()
 }).refine(
   (data) => Object.keys(data).length > 0,
   { message: 'At least one field must be provided for update' }
@@ -112,7 +118,7 @@ export class ZodCompatibleValidator {
   validateMassAction(action: TableMassAction | TableDataMassAction, ids: string[]): { valid: boolean; errors: string[] } {
     try {
       // Allow both table and table data mass actions
-      z.enum(['delete', 'export', 'make_public', 'make_private']).parse(action)
+      z.enum(['delete', 'export', 'make_public', 'make_private', 'make_shared']).parse(action)
       z.array(z.string().min(1, 'ID cannot be empty')).min(1, 'No items selected').parse(ids)
       return { valid: true, errors: [] }
     } catch (error) {

@@ -7,6 +7,11 @@
 export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'email' | 'url' | 'textarea' | 'country'
 
 /**
+ * Table visibility levels
+ */
+export type TableVisibility = 'private' | 'public' | 'shared'
+
+/**
  * User-created table metadata
  * Corresponds to user_tables table
  */
@@ -16,7 +21,7 @@ export interface UserTable {
   description: string | null
   createdBy: string // User email or token ID
   userId: string | null // Session user ID (OAuth user ID from users table) - nullable for API token users
-  isPublic: boolean
+  visibility: TableVisibility // 'private' | 'public' | 'shared'
   forSale: boolean // Whether table is configured for e-commerce with protected price/qty columns
   createdAt: Date
   updatedAt: Date
@@ -81,7 +86,7 @@ export interface TableWithData {
 export interface CreateTableRequest {
   name: string
   description?: string
-  isPublic: boolean
+  visibility: TableVisibility // 'private' | 'public' | 'shared'
   forSale?: boolean // Whether to create table as "for sale" with auto price/qty columns
   userId?: string  // Optional user ID for session-based creation
   columns: CreateColumnRequest[]
@@ -105,7 +110,7 @@ export interface CreateColumnRequest {
 export interface UpdateTableRequest {
   name?: string
   description?: string
-  isPublic?: boolean
+  visibility?: TableVisibility // 'private' | 'public' | 'shared'
   forSale?: boolean // Whether to convert table to/from "for sale" mode
 }
 
@@ -204,7 +209,18 @@ export interface TableDataValidationResult {
 /**
  * Mass action types for tables
  */
-export type TableMassAction = 'make_public' | 'make_private' | 'delete'
+export type TableMassAction = 'make_public' | 'make_private' | 'make_shared' | 'delete'
+
+/**
+ * Table cloning request payload
+ */
+export interface CloneTableRequest {
+  sourceTableId: string
+  newTableName: string
+  description?: string
+  visibility?: TableVisibility // Defaults to 'private'
+  forSale?: boolean // Defaults to false
+}
 
 /**
  * Mass action types for table data

@@ -26,8 +26,8 @@ export async function updateTable(
     console.log('  - dataType:', typeof data)
     console.log('  - dataKeys:', Object.keys(data || {}))
     console.log('  - data values:', Object.values(data || {}))
-    console.log('  - isPublic value:', data?.isPublic)
-    console.log('  - isPublic type:', typeof data?.isPublic)
+    console.log('  - visibility value:', data?.visibility)
+    console.log('  - visibility type:', typeof data?.visibility)
 
     // Validate request
     const validation = validator.validateTableId(tableId)
