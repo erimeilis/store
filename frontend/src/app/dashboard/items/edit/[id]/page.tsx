@@ -1,6 +1,7 @@
 import React from 'react';
 import { ModelEdit } from '@/components/model/model-edit';
 import { clientApiRequest } from '@/lib/client-api';
+import InputError from '@/components/ui/input-error';
 
 // Item interface matching our dashboard page structure
 interface Item {
@@ -38,11 +39,7 @@ const renderItemForm = (
           placeholder="Enter item name"
           required
         />
-        {errors?.name && (
-          <label className="label">
-            <span className="label-text-alt text-error">{errors.name}</span>
-          </label>
-        )}
+        <InputError message={errors?.name} />
       </div>
 
       {/* Description Field */}
@@ -58,11 +55,7 @@ const renderItemForm = (
           placeholder="Enter item description (optional)"
           rows={3}
         />
-        {errors?.description && (
-          <label className="label">
-            <span className="label-text-alt text-error">{errors?.description}</span>
-          </label>
-        )}
+        <InputError message={errors?.description} />
       </div>
 
       {/* Price and Quantity Row */}
@@ -86,11 +79,7 @@ const renderItemForm = (
               required
             />
           </div>
-          {errors?.price && (
-            <label className="label">
-              <span className="label-text-alt text-error">{errors?.price}</span>
-            </label>
-          )}
+          <InputError message={errors?.price} />
         </div>
 
         {/* Quantity Field */}
@@ -108,11 +97,7 @@ const renderItemForm = (
             placeholder="0"
             required
           />
-          {errors?.quantity && (
-            <label className="label">
-              <span className="label-text-alt text-error">{errors?.quantity}</span>
-            </label>
-          )}
+          <InputError message={errors?.quantity} />
         </div>
       </div>
 
@@ -129,11 +114,7 @@ const renderItemForm = (
           disabled={processing || readonly}
           placeholder="Enter item category (optional)"
         />
-        {errors?.category && (
-          <label className="label">
-            <span className="label-text-alt text-error">{errors?.category}</span>
-          </label>
-        )}
+        <InputError message={errors?.category} />
         <label className="label">
           <span className="label-text-alt">Categories help organize your inventory.</span>
         </label>

@@ -142,93 +142,60 @@ export async function handleOAuthCallback(c: Context) {
             const userCount = allUsersResult.total || 0
             const isFirstUser = userCount === 0
 
-            if (isFirstUser) {
-              console.log('🎉 First user registration - creating admin account for:', userInfo.email)
+            console.log(isFirstUser ? '🎉 First user registration - creating admin account for:' : '👥 New user registration for:', userInfo.email)
 
-              // Use the backend /auth/register endpoint which has the first-user-admin logic
-              const registerResponse = await fetch(`${apiUrl}/api/auth/register`, {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${adminToken}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  email: userInfo.email,
-                  name: userInfo.name,
-                  picture: userInfo.picture
-                })
+            // Use /api/users POST for ALL user creation (first user or not)
+            // This endpoint has proper email validation and first-user-admin logic built-in
+            const createUserResponse = await fetch(`${apiUrl}/api/users`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${adminToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                email: userInfo.email,
+                name: userInfo.name,
+                picture: userInfo.picture,
+                role: 'user' // Backend will override to 'admin' for first user
               })
+            })
 
-              if (registerResponse.ok) {
-                const registerResult = await registerResponse.json() as any
-                userRole = registerResult.user.role || 'admin'
-                userExists = true
-                console.log('✅ First user (admin) created successfully:', { email: userInfo.email, role: userRole })
-              } else {
-                console.error('❌ Failed to create first user via /auth/register:', await registerResponse.text())
-                throw new Error('Failed to create admin account')
-              }
+            if (createUserResponse.ok) {
+              const newUser = await createUserResponse.json() as any
+              userRole = newUser.role || 'user'
+              userExists = true
+              console.log('✅ User created successfully:', { email: userInfo.email, role: userRole, isFirstUser })
             } else {
-              console.log('👥 Not the first user, checking allowed_emails validation...')
-
-              // User doesn't exist and it's not first user, check if email is allowed
-              console.log('🔍 Validating email access for new user:', userInfo.email)
-              const emailValidationResponse = await fetch(`${apiUrl}/api/allowed-emails/validate`, {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${adminToken}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email: userInfo.email })
+              // User creation failed - handle error and redirect
+              const errorText = await createUserResponse.text()
+              console.error('❌ Failed to create user:', {
+                status: createUserResponse.status,
+                statusText: createUserResponse.statusText,
+                body: errorText
               })
 
-              console.log('📡 Email validation response status:', emailValidationResponse.status)
+              // Parse error response
+              let errorMessage = 'Failed to create user account'
+              try {
+                const errorJson = JSON.parse(errorText)
+                console.log('📋 Parsed error JSON:', errorJson)
 
-              if (emailValidationResponse.ok) {
-                const validationResult = await emailValidationResponse.json() as any
-                console.log('📧 Email validation result:', validationResult)
-
-                if (validationResult.isAllowed) {
-                  console.log('✅ Email is allowed, creating new user:', { email: userInfo.email, matchType: validationResult.matchType })
-
-                  // Create new user
-                  const createUserResponse = await fetch(`${apiUrl}/api/users`, {
-                    method: 'POST',
-                    headers: {
-                      'Authorization': `Bearer ${adminToken}`,
-                      'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                      email: userInfo.email,
-                      name: userInfo.name,
-                      picture: userInfo.picture,
-                      role: 'user'
-                    })
-                  })
-
-                  if (createUserResponse.ok) {
-                    const newUser = await createUserResponse.json() as any
-                    userRole = newUser.role || 'user'
-                    userExists = true
-                    console.log('✅ New user created successfully:', { email: userInfo.email, role: userRole })
-                  } else {
-                    console.error('❌ Failed to create new user:', await createUserResponse.text())
-                    throw new Error('Failed to create user account')
-                  }
+                // Check for email validation error (403 status)
+                if (createUserResponse.status === 403 || errorJson.error === 'Email not allowed' || errorJson.details?.includes('allowed_emails')) {
+                  errorMessage = errorJson.errors?.email || errorJson.message || errorJson.details || 'Email not in allowed list'
+                  console.log('🚫 Email validation failed:', errorMessage)
                 } else {
-                  console.log('❌ Email not allowed for registration:', { email: userInfo.email, message: validationResult.message })
-                  console.log('🔀 Redirecting directly with access denied error')
-                  return c.redirect(`/?error=access_denied&message=${encodeURIComponent(validationResult.message)}`)
+                  errorMessage = errorJson.message || errorJson.error || errorMessage
                 }
-              } else {
-                const errorText = await emailValidationResponse.text()
-                console.error('❌ Email validation check failed:', {
-                  status: emailValidationResponse.status,
-                  statusText: emailValidationResponse.statusText,
-                  responseText: errorText
-                })
-                throw new Error('Failed to validate email access')
+              } catch (parseError) {
+                console.error('Failed to parse error JSON:', parseError)
+                // Use raw error text if JSON parsing fails
+                errorMessage = errorText || errorMessage
               }
+
+              // CRITICAL: Do not continue - redirect immediately
+              console.log('🔀 User creation failed, redirecting to login with error')
+              return c.redirect(`/?error=access_denied&message=${encodeURIComponent(errorMessage)}`)
             }
           } else {
             console.error('❌ Failed to check user count:', await allUsersResponse.text())
@@ -247,11 +214,20 @@ export async function handleOAuthCallback(c: Context) {
     }
     
     // Only proceed if user exists or was created successfully
+    console.log('🔐 Final authentication check:', {
+      userExists,
+      userRole,
+      userEmail: userInfo.email,
+      willCreateSession: userExists
+    })
+
     if (!userExists) {
       console.error('❌ User authentication failed - no valid user account')
+      console.error('❌ BLOCKING ACCESS - redirecting to login')
       return c.redirect('/?error=no_access&message=Access%20denied')
     }
-    
+
+    console.log('✅ User authentication successful, creating session...')
     const user = {
       id: userInfo.id,
       name: userInfo.name,
@@ -259,9 +235,13 @@ export async function handleOAuthCallback(c: Context) {
       image: userInfo.picture,
       role: userRole
     }
-    
+
     const sessionCookie = createSessionCookie(user)
-    console.log('🍪 Session cookie created')
+    console.log('🍪 Session cookie created:', {
+      email: user.email,
+      role: user.role,
+      cookieLength: sessionCookie.length
+    })
     
     // Determine if we're in production based on URL hostname
     const isProduction = c.req.url.includes('.workers.dev') || c.req.url.includes('https://')

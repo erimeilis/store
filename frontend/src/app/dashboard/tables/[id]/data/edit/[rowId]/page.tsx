@@ -13,6 +13,7 @@ import {Textarea} from '@/components/ui/textarea'
 import {Checkbox} from '@/components/ui/checkbox'
 import {Alert} from '@/components/ui/alert'
 import {Breadcrumbs} from '@/components/ui/breadcrumbs'
+import InputError from '@/components/ui/input-error'
 import {CountrySelect} from '@/components/ui/country-select'
 import {ParsedTableData, TableColumn, TableDataRow, TableSchema, UpdateTableDataRequest, validateColumnValue} from '@/types/dynamic-tables'
 import {clientApiRequest} from '@/lib/client-api'
@@ -327,9 +328,7 @@ export default function TableDataEditPage({
                         {tableSchema.columns.map((column) => (
                             <div key={column.id}>
                                 {renderField(column)}
-                                {errors[column.name] && (
-                                    <p className="text-error text-sm mt-1">{errors[column.name]}</p>
-                                )}
+                                <InputError message={errors[column.name]} />
                                 {column.default_value && (
                                     <p className="text-gray-500 text-xs mt-1">
                                         Default: {column.default_value}

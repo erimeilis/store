@@ -1,5 +1,6 @@
 import React from 'react';
 import { ModelEdit } from '@/components/model/model-edit';
+import InputError from '@/components/ui/input-error';
 
 // AllowedEmail interface matching our Prisma schema
 interface AllowedEmail {
@@ -43,11 +44,7 @@ const renderAllowedEmailForm = (
           <option value="email">Specific Email</option>
           <option value="domain">Domain Pattern</option>
         </select>
-        {errors?.type && (
-          <label className="label">
-            <span className="label-text-alt text-error">{errors.type}</span>
-          </label>
-        )}
+        <InputError message={errors?.type} />
         <label className="label">
           <span className="label-text-alt">
             Choose "Specific Email" to allow one email address, or "Domain Pattern" to allow all emails from a domain.
@@ -70,11 +67,7 @@ const renderAllowedEmailForm = (
             placeholder="user@example.com"
             required
           />
-          {errors?.email && (
-            <label className="label">
-              <span className="label-text-alt text-error">{errors.email}</span>
-            </label>
-          )}
+          <InputError message={errors?.email} />
           <label className="label">
             <span className="label-text-alt">Enter the specific email address to allow access.</span>
           </label>
@@ -96,11 +89,7 @@ const renderAllowedEmailForm = (
             placeholder="example.com or @example.com"
             required
           />
-          {errors?.domain && (
-            <label className="label">
-              <span className="label-text-alt text-error">{errors.domain}</span>
-            </label>
-          )}
+          <InputError message={errors?.domain} />
           <label className="label">
             <span className="label-text-alt">
               Enter a domain like "example.com" to allow all emails from that domain (e.g., user@example.com, admin@example.com).

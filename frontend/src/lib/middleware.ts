@@ -19,10 +19,10 @@ export const authMiddleware = async (c: Context<{ Bindings: Env; Variables: Vari
   try {
     // Get session cookie
     const sessionCookie = getCookie(c, authConfig.session.cookieName)
-    
+
     if (!sessionCookie) {
-      // No session cookie, redirect to login
-      return c.redirect('/login')
+      // No session cookie, redirect to home/login
+      return c.redirect('/')
     }
 
     // Decode session (in production, you'd use JWT or encrypt this)
@@ -30,30 +30,66 @@ export const authMiddleware = async (c: Context<{ Bindings: Env; Variables: Vari
     try {
       session = JSON.parse(atob(sessionCookie)) as UserSession
     } catch {
-      // Invalid session format, redirect to login
-      return c.redirect('/login')
+      // Invalid session format, redirect to home/login
+      return c.redirect('/')
     }
 
     // Check if session is expired
     if (session.exp < Date.now()) {
-      // Session expired, redirect to login
-      return c.redirect('/login')
+      // Session expired, redirect to home/login
+      return c.redirect('/')
     }
 
-    // Add user to context for use in routes
-    c.set('user', {
-      id: session.id,
-      name: session.name,
-      email: session.email,
-      image: session.image,
-      role: session.role || 'user' // Default to user role if not present
-    })
-    
+    // CRITICAL: Validate user exists in database
+    // Session cookies can persist even after database resets
+    try {
+      const apiUrl = c.env?.API_URL || 'http://localhost:8787'
+      const adminToken = c.env?.ADMIN_ACCESS_TOKEN || ''
+
+      const userResponse = await fetch(
+        `${apiUrl}/api/users?filterEmail=${encodeURIComponent(session.email)}&exact=true`,
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+
+      if (!userResponse.ok) {
+        console.error('❌ Auth middleware - failed to verify user in database')
+        return c.redirect('/')
+      }
+
+      const userResult = await userResponse.json() as any
+
+      // Check if user actually exists in database
+      if (!userResult.data || userResult.data.length === 0) {
+        console.error('❌ Auth middleware - user not found in database:', session.email)
+        return c.redirect('/')
+      }
+
+      // User exists - use database role (not cookie role for security)
+      const dbUser = userResult.data[0]
+
+      // Add user to context with database-verified role
+      c.set('user', {
+        id: session.id,
+        name: session.name,
+        email: session.email,
+        image: session.image,
+        role: dbUser.role || 'user' // Use database role, not cookie role
+      })
+    } catch (dbError) {
+      console.error('❌ Auth middleware - database validation error:', dbError)
+      return c.redirect('/')
+    }
+
     await next()
   } catch (error) {
     console.error('Auth middleware error:', error)
-    // On error, redirect to login
-    return c.redirect('/login')
+    // On error, redirect to home/login
+    return c.redirect('/')
   }
 }
 
