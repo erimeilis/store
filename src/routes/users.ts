@@ -42,11 +42,12 @@ app.get('/', writeAuthMiddleware, async (c) => {
 
     // Build where clause from filters
     const whereConditions: any = {};
-    
-    // Handle column filters (filter_email, filter_name, etc.)
+
+    // Handle column filters (filterEmail, filterName, etc.) - camelCase
     Object.entries(filters).forEach(([key, value]) => {
-      if (key.startsWith('filter_') && value) {
-        const column = key.replace('filter_', '');
+      if (key.startsWith('filter') && value) {
+        // Convert camelCase filter to column name (filterEmail -> email)
+        const column = key.replace('filter', '').charAt(0).toLowerCase() + key.slice(7);
         if (column === 'email' || column === 'name') {
           if (exact && column === 'email') {
             // Exact match for email (used by OAuth callback)
@@ -190,14 +191,24 @@ app.post('/', adminOnlyMiddleware, zValidator('json', CreateUserSchema), async (
 
     // Validate email against allowed_emails (only for non-first users)
     if (!isFirstUser) {
+      console.log('🔍 Validating email for non-first user:', userData.email);
       const emailValidation = await validateEmailAllowed(database, userData.email);
+      console.log('📧 Email validation result:', emailValidation);
+
       if (!emailValidation.isAllowed && emailValidation.matchType !== 'grandfathered') {
+        console.log('🚫 BLOCKING user creation - email not allowed:', {
+          email: userData.email,
+          reason: emailValidation.message
+        });
         return c.json({
           error: 'Email not allowed',
           errors: { email: emailValidation.message },
           details: 'Only emails in the allowed_emails list can be used for new user accounts'
         }, 403);
       }
+      console.log('✅ Email validation passed, proceeding with user creation');
+    } else {
+      console.log('🎉 First user - bypassing email validation, creating admin');
     }
 
     const user = await database.user.create({
@@ -237,11 +248,11 @@ app.put('/:id', adminOnlyMiddleware, zValidator('json', UpdateUserSchema), async
     const database = getPrismaClient(c.env);
     const { id } = c.req.param();
     const userData = c.req.valid('json');
-    
+
     if (!id) {
       return c.json({ error: 'User ID is required' }, 400);
     }
-    
+
     // Check if user exists
     const existingUser = await database.user.findUnique({
       where: { id }
@@ -249,6 +260,29 @@ app.put('/:id', adminOnlyMiddleware, zValidator('json', UpdateUserSchema), async
 
     if (!existingUser) {
       return c.json({ error: 'User not found' }, 404);
+    }
+
+    // CRITICAL: Prevent editing other admin users
+    // Only the first admin (by creation date) can edit other admins
+    if (existingUser.role === 'admin') {
+      // Find the first admin user
+      const firstAdmin = await database.user.findFirst({
+        where: { role: 'admin' },
+        orderBy: { createdAt: 'asc' }
+      });
+
+      // Check if the current token represents the first admin
+      // For now, we allow editing admins only via ADMIN_ACCESS_TOKEN
+      const tokenType = c.get('tokenType');
+      const isAdminToken = tokenType === 'admin';
+
+      if (!isAdminToken) {
+        return c.json({
+          error: 'Permission denied',
+          message: 'Only the primary admin can edit other admin users',
+          details: 'Admin users can only be modified using the primary admin access token'
+        }, 403);
+      }
     }
 
     // Admin protection: prevent removing last admin
@@ -318,11 +352,11 @@ app.patch('/:id', adminOnlyMiddleware, async (c) => {
     const database = getPrismaClient(c.env);
     const { id } = c.req.param();
     const updates = await c.req.json();
-    
+
     if (!id) {
       return c.json({ error: 'User ID is required' }, 400);
     }
-    
+
     // Check if user exists
     const existingUser = await database.user.findUnique({
       where: { id }
@@ -330,6 +364,22 @@ app.patch('/:id', adminOnlyMiddleware, async (c) => {
 
     if (!existingUser) {
       return c.json({ error: 'User not found' }, 404);
+    }
+
+    // CRITICAL: Prevent editing other admin users
+    // Only the first admin (by creation date) can edit other admins
+    if (existingUser.role === 'admin') {
+      // Check if the current token represents the primary admin
+      const tokenType = c.get('tokenType');
+      const isAdminToken = tokenType === 'admin';
+
+      if (!isAdminToken) {
+        return c.json({
+          error: 'Permission denied',
+          message: 'Only the primary admin can edit other admin users',
+          details: 'Admin users can only be modified using the primary admin access token'
+        }, 403);
+      }
     }
 
     // Admin protection: prevent role changes that would remove last admin
@@ -409,11 +459,11 @@ app.delete('/:id', adminOnlyMiddleware, async (c) => {
   try {
     const database = getPrismaClient(c.env);
     const { id } = c.req.param();
-    
+
     if (!id) {
       return c.json({ error: 'User ID is required' }, 400);
     }
-    
+
     // Check if user exists
     const existingUser = await database.user.findUnique({
       where: { id }
@@ -421,6 +471,21 @@ app.delete('/:id', adminOnlyMiddleware, async (c) => {
 
     if (!existingUser) {
       return c.json({ error: 'User not found' }, 404);
+    }
+
+    // CRITICAL: Prevent deleting admin users
+    // Only the primary admin (via ADMIN_ACCESS_TOKEN) can delete admin users
+    if (existingUser.role === 'admin') {
+      const tokenType = c.get('tokenType');
+      const isAdminToken = tokenType === 'admin';
+
+      if (!isAdminToken) {
+        return c.json({
+          error: 'Permission denied',
+          message: 'Only the primary admin can delete other admin users',
+          details: 'Admin users can only be deleted using the primary admin access token'
+        }, 403);
+      }
     }
 
     // Admin protection: prevent deleting last admin

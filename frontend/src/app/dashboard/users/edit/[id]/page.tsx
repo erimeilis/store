@@ -1,6 +1,7 @@
 import React from 'react';
 import { ModelEdit } from '@/components/model/model-edit';
 import { clientApiRequest } from '@/lib/client-api';
+import InputError from '@/components/ui/input-error';
 
 // User interface matching our Prisma schema
 interface User {
@@ -37,11 +38,7 @@ const renderUserForm = (
           placeholder="Enter email address"
           required
         />
-        {errors?.email && (
-          <label className="label">
-            <span className="label-text-alt text-error">{errors?.email}</span>
-          </label>
-        )}
+        <InputError message={errors?.email} />
       </div>
 
       {/* Name Field */}
@@ -57,11 +54,7 @@ const renderUserForm = (
           disabled={processing || readonly}
           placeholder="Enter full name (optional)"
         />
-        {errors?.name && (
-          <label className="label">
-            <span className="label-text-alt text-error">{errors?.name}</span>
-          </label>
-        )}
+        <InputError message={errors?.name} />
       </div>
 
       {/* Role Field */}
@@ -79,11 +72,7 @@ const renderUserForm = (
           <option value="user">User</option>
           <option value="admin">Admin</option>
         </select>
-        {errors?.role && (
-          <label className="label">
-            <span className="label-text-alt text-error">{errors?.role}</span>
-          </label>
-        )}
+        <InputError message={errors?.role} />
         <label className="label">
           <span className="label-text-alt">Users can manage their own data, admins can manage all system data.</span>
         </label>
@@ -102,11 +91,7 @@ const renderUserForm = (
           disabled={processing || readonly}
           placeholder="https://example.com/avatar.jpg (optional)"
         />
-        {errors?.picture && (
-          <label className="label">
-            <span className="label-text-alt text-error">{errors?.picture}</span>
-          </label>
-        )}
+        <InputError message={errors?.picture} />
         <label className="label">
           <span className="label-text-alt">Profile pictures are typically managed through Google OAuth.</span>
         </label>

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { ForSaleToggle } from '@/components/for-sale-toggle'
+import InputError from '@/components/ui/input-error'
 
 type TableVisibility = 'private' | 'public' | 'shared'
 
@@ -46,9 +47,7 @@ export function TableInfoForm({ data, errors = {}, onChange }: TableInfoFormProp
           className={errors.name ? 'input-error' : ''}
           required
         />
-        {errors.name && (
-          <p className="text-error text-sm mt-1">{errors.name}</p>
-        )}
+        <InputError message={errors.name} />
 
         <Textarea
           value={data.description}
