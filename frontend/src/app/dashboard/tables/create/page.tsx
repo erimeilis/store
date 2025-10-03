@@ -8,6 +8,7 @@
 import React, {useState} from 'react'
 import {Button} from '@/components/ui/button'
 import {Card, CardBody, CardTitle} from '@/components/ui/card'
+import InputError from '@/components/ui/input-error'
 import {Input} from '@/components/ui/input'
 import {Select} from '@/components/ui/select'
 import {Checkbox} from '@/components/ui/checkbox'
@@ -327,9 +328,7 @@ export default function CreateTablePage() {
                                                     className={errors[`column_${index}_name`] ? 'input-error' : ''}
                                                     required
                                                 />
-                                                {errors[`column_${index}_name`] && (
-                                                    <p className="text-error text-sm mt-1">{errors[`column_${index}_name`]}</p>
-                                                )}
+                                                <InputError message={errors[`column_${index}_name`]} />
                                             </div>
 
                                             <div>

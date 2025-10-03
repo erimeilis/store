@@ -1,6 +1,6 @@
 import { FormEventHandler, useRef, useState } from 'react';
 
-import InputError from '@/components/input-error';
+import InputError from '@/components/ui/input-error';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
