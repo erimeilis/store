@@ -1,4 +1,4 @@
-import InputError from '@/components/input-error';
+import InputError from '@/components/ui/input-error';
 import { Select } from '@/components/ui/select';
 import { IModel } from '@/types/models';
 import React from 'react';
