@@ -37,7 +37,7 @@ export async function checkAvailability(
       return { error: 'Item not found', status: 404 }
     }
 
-    const parsedData = JSON.parse(row.data) as ParsedTableData
+    const parsedData = row.data
 
     // Extract current quantity
     const qtyValue = parsedData.qty
@@ -92,7 +92,8 @@ export async function purchaseItem(
       return { error: 'Item not found', status: 404 }
     }
 
-    const parsedData = JSON.parse(row.data) as ParsedTableData
+    // row.data is already parsed by findDataRowById
+    const parsedData = row.data
 
     // Extract current quantity and price
     const qtyValue = parsedData.qty

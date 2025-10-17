@@ -141,7 +141,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             className: 'w-20 sm:w-24',
             filterOptions: COLUMN_TYPE_OPTIONS.map(opt => ({value: opt.value, label: opt.label})),
             render: (column) => (
-                <Badge color="primary" size="sm" className="text-xs">
+                <Badge color="primary" size="sm" className="text-xs whitespace-nowrap">
                     {getColumnTypeLabel(column.type)}
                 </Badge>
             ),

@@ -44,7 +44,7 @@ model Session {
   @@map("sessions")
 }
 
-// Tokens - API authentication with IP/domain whitelist
+// Tokens - API authentication with IP/domain whitelist and table access control
 model Token {
   id             String    @id @default(cuid())
   token          String    @unique
@@ -52,6 +52,7 @@ model Token {
   permissions    String    @default("read") // comma-separated: read,write,delete,admin
   allowedIps     String?   @map("allowedIps") // JSON array of IPs/CIDR ranges
   allowedDomains String?   @map("allowedDomains") // JSON array of domain patterns
+  tableAccess    String?   @map("tableAccess") // JSON array of accessible table IDs
   expiresAt      DateTime? @map("expiresAt")
   createdAt      DateTime  @default(now()) @map("createdAt")
   updatedAt      DateTime  @updatedAt @map("updatedAt")

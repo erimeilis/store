@@ -12,6 +12,8 @@ import { getUserInfo, createErrorResponse, createSuccessResponse, buildPaginatio
 interface ListTableDataQuery {
   page?: number
   limit?: number
+  sort?: string
+  direction?: string
 }
 
 export async function listTableData(
@@ -32,8 +34,8 @@ export async function listTableData(
       return createErrorResponse('Validation failed', idValidation.errors.join(', '), 400)
     }
 
-    // Check table access
-    const hasAccess = await repository.checkTableAccess(tableId, userId)
+    // Check table access (pass user context for token-based access)
+    const hasAccess = await repository.checkTableAccess(tableId, userId, user)
     if (!hasAccess) {
       return createErrorResponse(
         'Table not found',
@@ -45,6 +47,8 @@ export async function listTableData(
     const page = query.page || 1
     const limit = query.limit || 10
     const offset = (page - 1) * limit
+    const sort = query.sort || 'updatedAt'
+    const direction = query.direction || 'desc'
 
     // Extract filters from query parameters
     const queryParams = new URL(c.req.url).searchParams
@@ -54,17 +58,19 @@ export async function listTableData(
     const { data, totalCount } = await repository.findTableData(
       tableId,
       filters,
-      { page, limit, offset }
+      { page, limit, offset },
+      { column: sort, direction }
     )
 
     // Get table and columns for metadata
+    // Use internal method since we already validated access above
     const tableColumns = await repository.getTableColumns(tableId)
-    const tableInfo = await tableRepository.findTableById(tableId, userId)
+    const tableInfo = await tableRepository.findTableByIdInternal(tableId)
 
     if (!tableInfo) {
       return createErrorResponse(
         'Table not found',
-        `Table with ID ${tableId} does not exist or you don't have access`,
+        `Table with ID ${tableId} does not exist`,
         404
       )
     }

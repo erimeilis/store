@@ -34,6 +34,7 @@ export class TableRepository {
     isAdmin: boolean = false
   ): Promise<{ tables: UserTable[]; totalCount: number }> {
     const allowedSortColumns = ['name', 'description', 'createdBy', 'isPublic', 'forSale', 'createdAt', 'updatedAt']
+    // Note: rowCount sorting is not supported as it's computed after the query
     const safeSortColumn = validateSortColumn(sort.column, allowedSortColumns)
     const safeSortDirection = validateSortDirection(sort.direction)
 
@@ -109,11 +110,21 @@ export class TableRepository {
       this.prisma.userTable.count({ where })
     ])
 
-    // Add owner display name logic with proper type casting
-    const tablesWithOwner = tables.map(table => ({
+    // Get row counts for all tables in parallel
+    const rowCounts = await Promise.all(
+      tables.map(table =>
+        this.prisma.tableData.count({
+          where: { tableId: table.id }
+        })
+      )
+    )
+
+    // Add owner display name and row count logic with proper type casting
+    const tablesWithOwner = tables.map((table, index) => ({
       ...table,
       visibility: table.visibility as TableVisibility,
-      ownerDisplayName: this.getOwnerDisplayName(table.createdBy, userId, userEmail)
+      ownerDisplayName: this.getOwnerDisplayName(table.createdBy, userId, userEmail),
+      rowCount: rowCounts[index]
     })) as UserTable[]
 
     return { tables: tablesWithOwner, totalCount }

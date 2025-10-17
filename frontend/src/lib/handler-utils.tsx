@@ -46,7 +46,7 @@ export async function fetchHandlerData<T = PaginatedResponse<any>>(
     // Build query parameters
     const params = new URLSearchParams({
       limit: limit.toString(),
-      ...(page ? { page: page.toString() } : { offset: offset.toString() }),
+      page: (page || Math.floor(offset / limit) + 1).toString(),
       ...additionalParams
     })
     
@@ -132,15 +132,26 @@ export function buildPageProps(
   data: any,
   additionalProps: Record<string, any> = {}
 ): Record<string, any> {
+  // Extract all query parameters for filters
+  const queries = c.req.queries()
+  const allFilters: Record<string, any> = {
+    sort: c.req.query('sort'),
+    direction: c.req.query('direction') as 'asc' | 'desc'
+  }
+
+  // Include all filter_ parameters
+  Object.entries(queries).forEach(([key, values]) => {
+    if (key.startsWith('filter_') && values && values.length > 0) {
+      allFilters[key] = values[0]
+    }
+  })
+
   return {
     user,
     apiUrl: c.env?.API_URL,
     apiToken: c.env?.ADMIN_ACCESS_TOKEN,
     ...data,
-    filters: {
-      sort: c.req.query('sort'),
-      direction: c.req.query('direction') as 'asc' | 'desc'
-    },
+    filters: allFilters,
     ...additionalProps
   }
 }

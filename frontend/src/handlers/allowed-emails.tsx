@@ -8,10 +8,22 @@ import { fetchHandlerData, renderDashboardPage, buildPageProps, API_ENDPOINTS } 
 
 export async function handleAllowedEmailsPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
   const user = c.get('user')
-  const allowedEmails = await fetchHandlerData(API_ENDPOINTS.allowedEmails, c)
-  
+
+  // Extract all query parameters to pass to the API (including filters, sort, direction, etc.)
+  const queryParams: Record<string, string> = {}
+  const queries = c.req.queries()
+  Object.entries(queries).forEach(([key, values]) => {
+    if (values && values.length > 0) {
+      queryParams[key] = values[0]
+    }
+  })
+
+  const allowedEmails = await fetchHandlerData(API_ENDPOINTS.allowedEmails, c, {
+    additionalParams: queryParams
+  })
+
   const allowedEmailsProps = buildPageProps(user, c, { allowedEmails })
-  
+
   return renderDashboardPage(c, '/dashboard/allowed-emails', allowedEmailsProps)
 }
 
