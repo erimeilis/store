@@ -25,6 +25,7 @@ export interface UserTable {
   forSale: boolean // Whether table is configured for e-commerce with protected price/qty columns
   createdAt: Date
   updatedAt: Date
+  rowCount?: number // Optional: Total number of data rows in this table
 }
 
 /**
@@ -44,13 +45,26 @@ export interface TableColumn {
 }
 
 /**
- * Dynamic table data row
+ * Dynamic table data row (raw from database)
  * Corresponds to table_data table
  */
 export interface TableDataRow {
   id: string
   tableId: string
   data: string // JSON blob with column data
+  createdBy: string | null // User email
+  createdAt: Date
+  updatedAt: Date
+}
+
+/**
+ * Dynamic table data row with parsed data
+ * Used when data is already parsed by repository methods
+ */
+export interface ParsedTableDataRow {
+  id: string
+  tableId: string
+  data: ParsedTableData // Already parsed JSON data
   createdBy: string | null // User email
   createdAt: Date
   updatedAt: Date

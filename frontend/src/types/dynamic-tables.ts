@@ -21,6 +21,7 @@ export interface UserTable extends BaseModel {
   createdAt: string
   updatedAt: string
   ownerDisplayName?: string // Friendly display name for the owner
+  rowCount?: number // Total number of data rows in this table
 }
 
 export interface TableColumn extends BaseModel {

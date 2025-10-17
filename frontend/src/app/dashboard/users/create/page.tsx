@@ -1,6 +1,8 @@
 import React from 'react';
 import { ModelEdit } from '@/components/model/model-edit';
 import InputError from '@/components/ui/input-error';
+import {Input} from '@/components/ui/input';
+import {Select} from '@/components/ui/select';
 
 // User interface matching our Prisma schema
 interface User {
@@ -28,9 +30,10 @@ const renderUserForm = (
         <label className="label">
           <span className="label-text">Email *</span>
         </label>
-        <input
+        <Input
           type="email"
-          className={`input input-bordered w-full ${errors?.email ? 'input-error' : ''}`}
+          color={errors?.email ? 'error' : 'default'}
+          className="w-full"
           value={data.email || ''}
           onChange={(e) => setData('email', e.target.value)}
           disabled={processing || readonly}
@@ -45,9 +48,10 @@ const renderUserForm = (
         <label className="label">
           <span className="label-text">Full Name</span>
         </label>
-        <input
+        <Input
           type="text"
-          className={`input input-bordered w-full ${errors?.name ? 'input-error' : ''}`}
+          color={errors?.name ? 'error' : 'default'}
+          className="w-full"
           value={data.name || ''}
           onChange={(e) => setData('name', e.target.value)}
           disabled={processing || readonly}
@@ -61,8 +65,9 @@ const renderUserForm = (
         <label className="label">
           <span className="label-text">Role *</span>
         </label>
-        <select
-          className={`select select-bordered w-full ${errors?.role ? 'select-error' : ''}`}
+        <Select
+          color={errors?.role ? 'error' : 'default'}
+          className="w-full"
           value={data.role || 'user'}
           onChange={(e) => setData('role', e.target.value)}
           disabled={processing || readonly}
@@ -70,7 +75,7 @@ const renderUserForm = (
         >
           <option value="user">User</option>
           <option value="admin">Admin</option>
-        </select>
+        </Select>
         <InputError message={errors?.role} />
         <label className="label">
           <span className="label-text-alt">Users can manage their own data, admins can manage all system data.</span>
@@ -82,9 +87,10 @@ const renderUserForm = (
         <label className="label">
           <span className="label-text">Profile Picture URL</span>
         </label>
-        <input
+        <Input
           type="url"
-          className={`input input-bordered w-full ${errors?.picture ? 'input-error' : ''}`}
+          color={errors?.picture ? 'error' : 'default'}
+          className="w-full"
           value={data.picture || ''}
           onChange={(e) => setData('picture', e.target.value)}
           disabled={processing || readonly}
@@ -101,9 +107,9 @@ const renderUserForm = (
           <label className="label">
             <span className="label-text">Created At</span>
           </label>
-          <input
+          <Input
             type="text"
-            className="input input-bordered w-full"
+            className="w-full"
             value={new Date(data.createdAt).toLocaleString()}
             disabled
           />

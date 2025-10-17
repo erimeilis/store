@@ -5,6 +5,7 @@ import { getPrismaClient } from '@/lib/database.js';
 import { writeAuthMiddleware } from '@/middleware/auth.js';
 import { formatApiDate } from '@/lib/date-utils.js';
 import { buildPaginationInfo } from '@/utils/common.js';
+import { PostmanGeneratorService } from '@/services/postman-generator.js';
 
 const app = new Hono();
 
@@ -12,17 +13,19 @@ const app = new Hono();
 const CreateTokenSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   permissions: z.string().default('read'), // comma-separated: read,write,delete,admin
-  allowedIps: z.string().optional(), // JSON array of IPs/CIDR ranges
-  allowedDomains: z.string().optional(), // JSON array of domain patterns
-  expiresAt: z.string().datetime().optional(),
+  allowedIps: z.string().nullable().optional(), // JSON array of IPs/CIDR ranges
+  allowedDomains: z.string().nullable().optional(), // JSON array of domain patterns
+  tableAccess: z.array(z.string()).default([]), // Array of table IDs the token can access
+  expiresAt: z.string().datetime().nullable().optional(),
 });
 
 const UpdateTokenSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
   permissions: z.string().optional(),
-  allowedIps: z.string().optional(),
-  allowedDomains: z.string().optional(),
-  expiresAt: z.string().datetime().optional(),
+  allowedIps: z.string().nullable().optional(),
+  allowedDomains: z.string().nullable().optional(),
+  tableAccess: z.array(z.string()).optional(),
+  expiresAt: z.string().datetime().nullable().optional(),
 });
 
 const MassActionSchema = z.object({
@@ -41,15 +44,23 @@ function generateSecureToken(): string {
 app.get('/', writeAuthMiddleware, async (c) => {
   try {
     const database = getPrismaClient(c.env);
+    const user = c.get('user');
     const { page = '1', limit = '10', sort, direction = 'asc', ...filters } = c.req.query();
-    
+
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const offset = (pageNum - 1) * limitNum;
 
     // Build where clause from filters
     const whereConditions: any = {};
-    
+
+    // Non-admin users can only see their own tokens
+    if (!user.permissions.includes('admin')) {
+      whereConditions.id = {
+        notIn: ['admin-token', 'frontend-token'] // Exclude system tokens for non-admins
+      };
+    }
+
     // Handle column filters (filter_name, filter_permissions, etc.)
     Object.entries(filters).forEach(([key, value]) => {
       if (key.startsWith('filter_') && value) {
@@ -117,6 +128,7 @@ app.get('/', writeAuthMiddleware, async (c) => {
           permissions: true,
           allowedIps: true,
           allowedDomains: true,
+          tableAccess: true,
           expiresAt: true,
           createdAt: true,
           updatedAt: true,
@@ -165,6 +177,7 @@ app.get('/:id', writeAuthMiddleware, async (c) => {
         permissions: true,
         allowedIps: true,
         allowedDomains: true,
+        tableAccess: true,
         expiresAt: true,
         createdAt: true,
         updatedAt: true,
@@ -177,9 +190,10 @@ app.get('/:id', writeAuthMiddleware, async (c) => {
 
     const response = {
       ...token,
-      allowed_ips: token.allowedIps,
-      allowed_domains: token.allowedDomains,
-      expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
+      allowedIps: token.allowedIps,
+      allowedDomains: token.allowedDomains,
+      tableAccess: token.tableAccess ? JSON.parse(token.tableAccess) : [],
+      expiresAt: token.expiresAt ? token.expiresAt.toISOString() : null,
       createdAt: formatApiDate(token.createdAt),
       updatedAt: formatApiDate(token.updatedAt),
     };
@@ -188,6 +202,70 @@ app.get('/:id', writeAuthMiddleware, async (c) => {
   } catch (error) {
     console.error('Error fetching token:', error);
     return c.json({ error: 'Failed to fetch token' }, 500);
+  }
+});
+
+// Generate Postman collection for a token
+app.get('/:id/postman', writeAuthMiddleware, async (c) => {
+  try {
+    const database = getPrismaClient(c.env);
+    const { id } = c.req.param();
+
+    if (!id) {
+      return c.json({ error: 'Token ID is required' }, 400);
+    }
+
+    // Get token details
+    const token = await database.token.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        token: true,
+        name: true,
+        permissions: true,
+        allowedIps: true,
+        allowedDomains: true,
+        tableAccess: true,
+        expiresAt: true,
+      }
+    });
+
+    if (!token) {
+      return c.json({ error: 'Token not found' }, 404);
+    }
+
+    // Get all tables to filter based on token access
+    const tables = await database.userTable.findMany({
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        forSale: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    // Generate Postman collection
+    const apiUrl = c.env?.API_URL || 'http://localhost:8787';
+    const postmanService = new PostmanGeneratorService(apiUrl);
+
+    const tokenWithParsedAccess = {
+      ...token,
+      tableAccess: token.tableAccess ? JSON.parse(token.tableAccess) : null,
+    };
+
+    const collection = await postmanService.generateCollection(tokenWithParsedAccess, tables);
+
+    // Set response headers for file download
+    c.header('Content-Type', 'application/json');
+    c.header('Content-Disposition', `attachment; filename="${token.name.replace(/[^a-z0-9]/gi, '_')}_collection.json"`);
+
+    return c.json(collection);
+  } catch (error) {
+    console.error('Error generating Postman collection:', error);
+    return c.json({ error: 'Failed to generate Postman collection' }, 500);
   }
 });
 
@@ -212,6 +290,18 @@ app.post('/', writeAuthMiddleware, zValidator('json', CreateTokenSchema), async 
       }, 400);
     }
 
+    // Validate that at least one table is selected (unless no tables exist in system)
+    if (!tokenData.tableAccess || tokenData.tableAccess.length === 0) {
+      // Check if there are any tables in the system
+      const tablesCount = await database.userTable.count();
+      if (tablesCount > 0) {
+        return c.json({
+          error: 'Table access required',
+          errors: { tableAccess: 'At least one table must be selected for token access' }
+        }, 400);
+      }
+    }
+
     const token = await database.token.create({
       data: {
         token: tokenValue,
@@ -219,6 +309,7 @@ app.post('/', writeAuthMiddleware, zValidator('json', CreateTokenSchema), async 
         permissions: tokenData.permissions || 'read',
         allowedIps: tokenData.allowedIps || null,
         allowedDomains: tokenData.allowedDomains || null,
+        tableAccess: JSON.stringify(tokenData.tableAccess),
         expiresAt: tokenData.expiresAt ? new Date(tokenData.expiresAt) : null,
       },
       select: {
@@ -228,6 +319,7 @@ app.post('/', writeAuthMiddleware, zValidator('json', CreateTokenSchema), async 
         permissions: true,
         allowedIps: true,
         allowedDomains: true,
+        tableAccess: true,
         expiresAt: true,
         createdAt: true,
         updatedAt: true,
@@ -238,6 +330,7 @@ app.post('/', writeAuthMiddleware, zValidator('json', CreateTokenSchema), async 
       ...token,
       allowed_ips: token.allowedIps,
       allowed_domains: token.allowedDomains,
+      table_access: token.tableAccess ? JSON.parse(token.tableAccess) : [],
       expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
       createdAt: formatApiDate(token.createdAt),
       updatedAt: formatApiDate(token.updatedAt),
@@ -291,8 +384,9 @@ app.put('/:id', writeAuthMiddleware, zValidator('json', UpdateTokenSchema), asyn
         ...(tokenData.permissions && { permissions: tokenData.permissions }),
         ...(tokenData.allowedIps !== undefined && { allowedIps: tokenData.allowedIps }),
         ...(tokenData.allowedDomains !== undefined && { allowedDomains: tokenData.allowedDomains }),
-        ...(tokenData.expiresAt !== undefined && { 
-          expiresAt: tokenData.expiresAt ? new Date(tokenData.expiresAt) : null 
+        ...(tokenData.tableAccess !== undefined && { tableAccess: JSON.stringify(tokenData.tableAccess) }),
+        ...(tokenData.expiresAt !== undefined && {
+          expiresAt: tokenData.expiresAt ? new Date(tokenData.expiresAt) : null
         }),
       },
       select: {
@@ -302,6 +396,7 @@ app.put('/:id', writeAuthMiddleware, zValidator('json', UpdateTokenSchema), asyn
         permissions: true,
         allowedIps: true,
         allowedDomains: true,
+        tableAccess: true,
         expiresAt: true,
         createdAt: true,
         updatedAt: true,
@@ -312,6 +407,7 @@ app.put('/:id', writeAuthMiddleware, zValidator('json', UpdateTokenSchema), asyn
       ...token,
       allowed_ips: token.allowedIps,
       allowed_domains: token.allowedDomains,
+      table_access: token.tableAccess ? JSON.parse(token.tableAccess) : [],
       expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
       createdAt: formatApiDate(token.createdAt),
       updatedAt: formatApiDate(token.updatedAt),
@@ -365,6 +461,8 @@ app.patch('/:id', writeAuthMiddleware, async (c) => {
           updateData[key] = value;
         } else if (key === 'allowedIps' || key === 'allowedDomains') {
           updateData[key] = value || null;
+        } else if (key === 'tableAccess') {
+          updateData[key] = value ? JSON.stringify(value) : null;
         } else if (key === 'expiresAt') {
           updateData[key] = value ? new Date(value as string) : null;
         }
@@ -385,6 +483,7 @@ app.patch('/:id', writeAuthMiddleware, async (c) => {
         permissions: true,
         allowedIps: true,
         allowedDomains: true,
+        tableAccess: true,
         expiresAt: true,
         createdAt: true,
         updatedAt: true,
@@ -395,6 +494,7 @@ app.patch('/:id', writeAuthMiddleware, async (c) => {
       ...token,
       allowed_ips: token.allowedIps,
       allowed_domains: token.allowedDomains,
+      table_access: token.tableAccess ? JSON.parse(token.tableAccess) : [],
       expires_at: token.expiresAt ? formatApiDate(token.expiresAt) : null,
       createdAt: formatApiDate(token.createdAt),
       updatedAt: formatApiDate(token.updatedAt),

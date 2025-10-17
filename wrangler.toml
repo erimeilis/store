@@ -33,6 +33,7 @@ ALLOWED_ORIGINS = "https://store-crud-front.eri-42e.workers.dev,https://store-cr
 binding = "DB"
 database_name = "store-database-preview"
 database_id = "6a7a4053-7868-45a6-839d-1bfa6c62f41c"
+migrations_dir = "prisma/migrations"
 
 [[env.local.r2_buckets]]
 binding = "BUCKET"

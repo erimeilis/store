@@ -21,14 +21,17 @@ export function Pagination<T extends IModel>({
                                                  size = 'sm',
                                                  className,
                                              }: PaginationProps<T>) {
-    const [pageInput, setPageInput] = useState('')
     const [showInput, setShowInput] = useState(false)
     const debounceRef = useRef<NodeJS.Timeout | null>(null)
+    const inputRef = useRef<HTMLInputElement>(null)
 
     const {currentPage, lastPage, links, prevPageUrl, nextPageUrl} = items
 
+    // Reset input value when currentPage changes (after navigation)
     useEffect(() => {
-        setPageInput(currentPage.toString())
+        if (inputRef.current) {
+            inputRef.current.value = currentPage.toString()
+        }
     }, [currentPage])
 
     // Cleanup debounce timeout on unmount
@@ -52,24 +55,27 @@ export function Pagination<T extends IModel>({
 
     const handlePageInputSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        submitPageInput(pageInput)
+        if (inputRef.current) {
+            submitPageInput(inputRef.current.value)
+        }
     }
 
     const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
-        setPageInput(value)
 
         // Clear existing debounce timeout
         if (debounceRef.current) {
             clearTimeout(debounceRef.current)
         }
 
-        // Set new debounce timeout for mobile users (1.5 seconds after stop typing)
-        debounceRef.current = setTimeout(() => {
-            if (value && value !== currentPage.toString()) {
+        // Only set debounce if there's a valid complete page number
+        const pageNum = parseInt(value)
+        if (pageNum && pageNum >= 1 && pageNum <= lastPage && pageNum !== currentPage) {
+            // Set new debounce timeout for mobile users (1.5 seconds after stop typing)
+            debounceRef.current = setTimeout(() => {
                 submitPageInput(value)
-            }
-        }, 1500)
+            }, 1500)
+        }
     }
 
     const handlePageInputBlur = (originalOnBlur?: () => void) => {
@@ -78,9 +84,14 @@ export function Pagination<T extends IModel>({
             clearTimeout(debounceRef.current)
         }
 
-        // Submit the form if the value has changed
-        if (pageInput && pageInput !== currentPage.toString()) {
-            submitPageInput(pageInput)
+        if (inputRef.current) {
+            const trimmedInput = inputRef.current.value.trim()
+            if (trimmedInput && trimmedInput !== currentPage.toString()) {
+                submitPageInput(trimmedInput)
+            } else if (!trimmedInput) {
+                // If input is empty on blur, reset it to current page
+                inputRef.current.value = currentPage.toString()
+            }
         }
 
         // Call original onBlur handler if provided
@@ -150,7 +161,7 @@ export function Pagination<T extends IModel>({
         return null
     }
 
-    // Reusable page input component
+    // Reusable page input component (uncontrolled)
     const PageInputComponent = ({className = '', onBlur, autoFocus = false}: {
         className?: string
         onBlur?: () => void
@@ -158,10 +169,11 @@ export function Pagination<T extends IModel>({
     }) => (
         <form onSubmit={handlePageInputSubmit} className={className}>
             <Input
+                ref={inputRef}
                 type="number"
                 min="1"
                 max={lastPage}
-                value={pageInput}
+                defaultValue={currentPage.toString()}
                 onChange={handlePageInputChange}
                 onBlur={() => handlePageInputBlur(onBlur)}
                 className="w-16 h-8 text-center"
