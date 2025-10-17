@@ -4,7 +4,6 @@
  */
 
 import type { Context } from 'hono'
-import { clientApiRequest } from '@/lib/client-api'
 
 // Item interface to match demo page component
 interface Item {

@@ -35,7 +35,7 @@ export function SalesTrendsChart({ data, title = 'Sales Trends', height = 200 }:
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-4">{title}</h3>
       <div className="space-y-2" style={{ height: `${height}px` }}>
-        {data.slice(-7).map((item, index) => {
+        {data.slice(-7).map((item) => {
           const revenueHeight = (item.revenue / maxRevenue) * (height - 60);
           const salesHeight = (item.salesCount / maxSales) * (height - 60);
 
@@ -201,7 +201,7 @@ export function StatusDonutChart({
           <div
             className="w-full h-full rounded-full"
             style={{
-              background: `conic-gradient(${entries.map(([key, value], index) => {
+              background: `conic-gradient(${entries.map(([_key, value], index) => {
                 const percentage = (value / total) * 100;
                 const startAngle = cumulativePercentage;
                 cumulativePercentage += percentage;

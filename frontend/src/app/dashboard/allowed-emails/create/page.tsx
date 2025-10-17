@@ -1,6 +1,8 @@
 import React from 'react';
 import { ModelEdit } from '@/components/model/model-edit';
 import InputError from '@/components/ui/input-error';
+import {Input} from '@/components/ui/input';
+import {Select} from '@/components/ui/select';
 
 // AllowedEmail interface matching our Prisma schema
 interface AllowedEmail {
@@ -26,8 +28,9 @@ const renderAllowedEmailForm = (
         <label className="label">
           <span className="label-text">Type *</span>
         </label>
-        <select
-          className={`select select-bordered w-full ${errors?.type ? 'select-error' : ''}`}
+        <Select
+          color={errors?.type ? 'error' : 'default'}
+          className="w-full"
           value={data.type || 'email'}
           onChange={(e) => {
             setData('type', e.target.value);
@@ -43,7 +46,7 @@ const renderAllowedEmailForm = (
         >
           <option value="email">Specific Email</option>
           <option value="domain">Domain Pattern</option>
-        </select>
+        </Select>
         <InputError message={errors?.type} />
         <label className="label">
           <span className="label-text-alt">
@@ -58,9 +61,10 @@ const renderAllowedEmailForm = (
           <label className="label">
             <span className="label-text">Email Address *</span>
           </label>
-          <input
+          <Input
             type="email"
-            className={`input input-bordered w-full ${errors?.email ? 'input-error' : ''}`}
+            color={errors?.email ? 'error' : 'default'}
+            className="w-full"
             value={data.email || ''}
             onChange={(e) => setData('email', e.target.value)}
             disabled={processing || readonly}
@@ -80,9 +84,10 @@ const renderAllowedEmailForm = (
           <label className="label">
             <span className="label-text">Domain Pattern *</span>
           </label>
-          <input
+          <Input
             type="text"
-            className={`input input-bordered w-full ${errors?.domain ? 'input-error' : ''}`}
+            color={errors?.domain ? 'error' : 'default'}
+            className="w-full"
             value={data.domain || ''}
             onChange={(e) => setData('domain', e.target.value)}
             disabled={processing || readonly}
@@ -103,9 +108,9 @@ const renderAllowedEmailForm = (
           <label className="label">
             <span className="label-text">Created At</span>
           </label>
-          <input
+          <Input
             type="text"
-            className="input input-bordered w-full"
+            className="w-full"
             value={new Date(data.createdAt).toLocaleString()}
             disabled
           />

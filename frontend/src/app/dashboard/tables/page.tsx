@@ -17,7 +17,7 @@ export default function TablesPage({
                                    }: {
     tables?: IPaginatedResponse<UserTable> | null,
     filters?: { sort?: string, direction?: 'asc' | 'desc' },
-    user?: { id: string; email: string; name: string }
+    user?: { id: string; email: string; name: string; role?: string }
 }) {
     return (
         <TableList

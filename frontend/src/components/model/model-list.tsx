@@ -712,7 +712,7 @@ export function ModelList<T extends IModel>({
                             const errorData = await response.json();
                             const errorMessage = (errorData as any)?.error || (errorData as any)?.message || 'Failed to save changes';
                             setEditingError(errorMessage);
-                        } catch (e) {
+                        } catch {
                             setEditingError('Failed to save changes');
                         }
                         setIsEditingSaving(false);

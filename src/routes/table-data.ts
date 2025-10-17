@@ -19,7 +19,7 @@ const tableDataRoutes = new Hono<{
 
 
 /**
- * List all data rows for a table with pagination
+ * List all data rows for a table with pagination, filtering, and sorting
  * GET /api/tables/:tableId/data
  */
 tableDataRoutes.get('/api/tables/:tableId/data', readAuthMiddleware, async (c) => {
@@ -29,7 +29,9 @@ tableDataRoutes.get('/api/tables/:tableId/data', readAuthMiddleware, async (c) =
 
   const query = {
     page: parseInt(c.req.query('page') || '1', 10),
-    limit: parseInt(c.req.query('limit') || '10', 10)
+    limit: parseInt(c.req.query('limit') || '10', 10),
+    sort: c.req.query('sort') || 'updatedAt',
+    direction: c.req.query('direction') || 'desc'
   }
 
   const result = await service.listTableData(c, user, tableId, query)

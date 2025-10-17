@@ -1,10 +1,10 @@
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { TableCell } from '@/components/ui/table';
 import { IModel } from '@/types/models';
 import { IColumnDefinition } from '@/components/model/model-list/types';
 import { IconSearch } from '@tabler/icons-react';
-import { useState } from 'react';
 
 export interface TextFilterCellProps<T extends IModel> {
     column: IColumnDefinition<T>;

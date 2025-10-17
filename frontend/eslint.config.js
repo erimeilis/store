@@ -27,6 +27,9 @@ export default [js.configs.recommended, {
             clearInterval: 'readonly',
             localStorage: 'readonly',
             RequestInit: 'readonly',
+            navigator: 'readonly',
+            MutationObserver: 'readonly',
+            Blob: 'readonly',
             // Node.js globals
             process: 'readonly',
             // TypeScript globals

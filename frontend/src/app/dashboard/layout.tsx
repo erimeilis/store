@@ -332,13 +332,14 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
 
               {/* Logout */}
               <div className="pt-2">
-                <button
+                <Button
                   onClick={handleLogout}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-error hover:text-error-content transition-colors w-full text-left"
+                  style="ghost"
+                  icon={IconLogout}
+                  className="w-full justify-start hover:bg-error hover:text-error-content"
                 >
-                  <IconLogout size={20} />
-                  <span>Logout</span>
-                </button>
+                  Logout
+                </Button>
               </div>
             </div>
           </div>

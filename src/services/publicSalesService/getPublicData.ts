@@ -199,7 +199,7 @@ export async function getItem(
       return { error: 'Item not found', status: 404 }
     }
 
-    const parsedData = JSON.parse(row.data) as ParsedTableData
+    const parsedData = row.data
 
     // Extract required fields for sales
     const priceValue = parsedData.price

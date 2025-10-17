@@ -1,6 +1,7 @@
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardActions, CardBody, CardTitle } from '@/components/ui/card';
+import { Alert } from '@/components/ui/alert';
 import { IModel, IModelEditProps } from '@/types/models';
 import { IconArrowLeft } from '@tabler/icons-react';
 import React, { useState } from 'react';
@@ -18,6 +19,7 @@ interface ModelEditComponentProps<T extends IModel> extends IModelEditProps<T> {
         processing: boolean,
         readonly?: boolean,
     ) => React.ReactNode;
+    additionalActions?: React.ReactNode;
 }
 
 export function ModelEdit<T extends IModel>({
@@ -28,6 +30,7 @@ export function ModelEdit<T extends IModel>({
     submitRoute,
     method = 'post',
     renderForm,
+    additionalActions,
 }: ModelEditComponentProps<T>) {
     const isNew = !item;
     const initialData = item || ({} as T);
@@ -148,8 +151,11 @@ export function ModelEdit<T extends IModel>({
                     window.location.href = backRoute;
                 }, 1500);
             } else {
-                const errorData = await response.json() as { errors?: Partial<Record<string, string>> };
-                setErrors(errorData.errors || { general: 'An error occurred' });
+                const errorData = await response.json() as { errors?: Partial<Record<string, string>>, error?: string | { name: string; message: string } };
+                const generalError = typeof errorData.error === 'string'
+                    ? errorData.error
+                    : errorData.error?.message || 'An error occurred';
+                setErrors(errorData.errors || { general: generalError });
                 setSubmitFailed(true);
                 setProcessing(false);
             }
@@ -183,9 +189,12 @@ export function ModelEdit<T extends IModel>({
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <Heading title={headingTitle} />
-                    <Button style="outline" icon={IconArrowLeft} onClick={() => window.location.href = backRoute}>
-                        Back to List
-                    </Button>
+                    <div className="flex gap-2">
+                        {additionalActions}
+                        <Button style="outline" icon={IconArrowLeft} onClick={() => window.location.href = backRoute}>
+                            Back to List
+                        </Button>
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit}>
@@ -193,6 +202,16 @@ export function ModelEdit<T extends IModel>({
                         <CardBody>
                             <CardTitle>{isNew ? `New ${title}` : `${title} Details`}</CardTitle>
                             {renderForm(data as T, handleDataChange, errors, processing, readonly)}
+                            {/* Error Alert */}
+                            {errors.general && (
+                                <Alert color="error">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>{errors.general}</span>
+                                </Alert>
+                            )}
+
                             {!readonly && (
                                 <CardActions justify="between">
                                     <Button
@@ -205,14 +224,14 @@ export function ModelEdit<T extends IModel>({
                                     >
                                         Reset
                                     </Button>
-                                    <Button 
-                                        type="submit" 
+                                    <Button
+                                        type="submit"
                                         disabled={processing}
                                         processing={processing}
                                         success={success}
                                         fail={submitFailed}
                                     >
-                                        {isNew ? 'Create' : 'Update'} {title}
+                                        {isNew ? 'Create token' : 'Update token'}
                                     </Button>
                                 </CardActions>
                             )}

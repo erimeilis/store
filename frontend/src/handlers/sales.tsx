@@ -6,8 +6,8 @@ import type { Context } from 'hono';
 import type { Env, Variables } from '@/types/hono';
 import { renderDashboardPage, buildPageProps, fetchHandlerData } from '@/lib/handler-utils';
 
-// API endpoints for sales
-const SALES_API_ENDPOINTS = {
+// API endpoints for sales (for future use)
+const _SALES_API_ENDPOINTS = {
   sales: '/api/sales',
   salesAnalytics: '/api/sales/analytics',
   salesSummary: '/api/sales/summary',

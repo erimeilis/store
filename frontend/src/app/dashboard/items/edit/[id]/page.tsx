@@ -2,6 +2,8 @@ import React from 'react';
 import { ModelEdit } from '@/components/model/model-edit';
 import { clientApiRequest } from '@/lib/client-api';
 import InputError from '@/components/ui/input-error';
+import {Input} from '@/components/ui/input';
+import {Textarea} from '@/components/ui/textarea';
 
 // Item interface matching our dashboard page structure
 interface Item {
@@ -30,9 +32,10 @@ const renderItemForm = (
         <label className="label">
           <span className="label-text">Name *</span>
         </label>
-        <input
+        <Input
           type="text"
-          className={`input input-bordered w-full ${errors?.name ? 'input-error' : ''}`}
+          color={errors?.name ? 'error' : 'default'}
+          className="w-full"
           value={data.name || ''}
           onChange={(e) => setData('name', e.target.value)}
           disabled={processing || readonly}
@@ -47,8 +50,9 @@ const renderItemForm = (
         <label className="label">
           <span className="label-text">Description</span>
         </label>
-        <textarea
-          className={`textarea textarea-bordered w-full ${errors?.description ? 'textarea-error' : ''}`}
+        <Textarea
+          color={errors?.description ? 'error' : 'default'}
+          className="w-full"
           value={data.description || ''}
           onChange={(e) => setData('description', e.target.value)}
           disabled={processing || readonly}
@@ -67,11 +71,12 @@ const renderItemForm = (
           </label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-            <input
+            <Input
               type="number"
               step="0.01"
               min="0"
-              className={`input input-bordered w-full pl-8 ${errors?.price ? 'input-error' : ''}`}
+              color={errors?.price ? 'error' : 'default'}
+              className="w-full pl-8"
               value={data.price || ''}
               onChange={(e) => setData('price', parseFloat(e.target.value) || 0)}
               disabled={processing || readonly}
@@ -87,10 +92,11 @@ const renderItemForm = (
           <label className="label">
             <span className="label-text">Quantity *</span>
           </label>
-          <input
+          <Input
             type="number"
             min="0"
-            className={`input input-bordered w-full ${errors?.quantity ? 'input-error' : ''}`}
+            color={errors?.quantity ? 'error' : 'default'}
+            className="w-full"
             value={data.quantity || ''}
             onChange={(e) => setData('quantity', parseInt(e.target.value) || 0)}
             disabled={processing || readonly}
@@ -106,9 +112,10 @@ const renderItemForm = (
         <label className="label">
           <span className="label-text">Category</span>
         </label>
-        <input
+        <Input
           type="text"
-          className={`input input-bordered w-full ${errors?.category ? 'input-error' : ''}`}
+          color={errors?.category ? 'error' : 'default'}
+          className="w-full"
           value={data.category || ''}
           onChange={(e) => setData('category', e.target.value)}
           disabled={processing || readonly}
@@ -127,9 +134,9 @@ const renderItemForm = (
         <label className="label">
           <span className="label-text">Item ID</span>
         </label>
-        <input
+        <Input
           type="text"
-          className="input input-bordered w-full"
+          className="w-full"
           value={data.id}
           disabled
         />
@@ -140,9 +147,9 @@ const renderItemForm = (
           <label className="label">
             <span className="label-text">Created At</span>
           </label>
-          <input
+          <Input
             type="text"
-            className="input input-bordered w-full"
+            className="w-full"
             value={new Date(data.createdAt).toLocaleString()}
             disabled
           />
@@ -152,9 +159,9 @@ const renderItemForm = (
           <label className="label">
             <span className="label-text">Updated At</span>
           </label>
-          <input
+          <Input
             type="text"
-            className="input input-bordered w-full"
+            className="w-full"
             value={new Date(data.updatedAt).toLocaleString()}
             disabled
           />
