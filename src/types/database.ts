@@ -36,6 +36,7 @@ export interface Token {
   permissions: string // Comma-separated: read,write,delete,admin
   allowedIps: string | null // JSON array of IPs/CIDR ranges
   allowedDomains: string | null // JSON array of domain patterns
+  tableAccess: string | null // JSON array of accessible table IDs
   expiresAt: Date | null
   createdAt: Date
   updatedAt: Date

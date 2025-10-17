@@ -36,8 +36,8 @@ export async function createDataRow(
       return createErrorResponse('Validation failed', idValidation.errors.join(', '), 400)
     }
 
-    // Check table access
-    const hasAccess = await repository.checkTableAccess(tableId, userId)
+    // Check table access (pass user context for token-based access)
+    const hasAccess = await repository.checkTableAccess(tableId, userId, user)
     if (!hasAccess) {
       return createErrorResponse(
         'Table not found',

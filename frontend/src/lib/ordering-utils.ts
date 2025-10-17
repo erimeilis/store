@@ -3,6 +3,7 @@
  * Extracted from columns page to make ordering reusable across different models
  */
 
+import React from 'react'
 import { clientApiRequest } from '@/lib/client-api'
 import { IModel } from '@/types/models'
 

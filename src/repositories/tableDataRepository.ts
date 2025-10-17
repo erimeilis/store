@@ -1,6 +1,6 @@
 import {getPrismaClient} from '@/lib/database.js'
 import type {Bindings} from '@/types/bindings.js'
-import type {ParsedTableData, TableColumn, TableDataMassAction, TableDataRow} from '@/types/dynamic-tables.js'
+import type {ParsedTableData, ParsedTableDataRow, TableColumn, TableDataMassAction, TableDataRow} from '@/types/dynamic-tables.js'
 import type {PrismaClient} from '@prisma/client'
 
 /**
@@ -14,12 +14,13 @@ export class TableDataRepository {
     }
 
     /**
-     * Find table data with filtering and pagination using Prisma ORM
+     * Find table data with filtering, pagination, and sorting using Prisma ORM
      */
     async findTableData(
         tableId: string,
         filters: { [key: string]: string },
-        pagination: { page: number; limit: number; offset: number }
+        pagination: { page: number; limit: number; offset: number },
+        sort?: { column: string; direction: string }
     ): Promise<{ data: TableDataRow[]; totalCount: number }> {
         // Build Prisma where clause
         const where: any = {
@@ -70,16 +71,73 @@ export class TableDataRepository {
             }
         }
 
+        // Determine sort order
+        const sortColumn = sort?.column || 'updatedAt'
+        const sortDirection = (sort?.direction?.toLowerCase() === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc'
+
+        // Check if sorting by a system column or a data column
+        const systemColumns = ['id', 'tableId', 'createdBy', 'createdAt', 'updatedAt']
+        let orderBy: any
+
+        if (systemColumns.includes(sortColumn)) {
+            // Sort by system column directly
+            orderBy = { [sortColumn]: sortDirection }
+        } else {
+            // For data columns, we need to fetch all matching records and sort in memory
+            // This is a limitation of SQLite JSON columns - they don't support efficient sorting
+            // For better performance with large datasets, consider a different approach
+            orderBy = { updatedAt: 'desc' } // Fallback to default sorting
+        }
+
         // Get data rows using Prisma
-        const [dataRows, totalCount] = await Promise.all([
-            this.prisma.tableData.findMany({
-                where,
-                orderBy: {updatedAt: 'desc'},
-                skip: pagination.offset,
-                take: pagination.limit
-            }),
+        const findManyOptions: any = {
+            where,
+            orderBy,
+            skip: systemColumns.includes(sortColumn) ? pagination.offset : 0
+        }
+
+        if (systemColumns.includes(sortColumn) && pagination.limit) {
+            findManyOptions.take = pagination.limit
+        }
+
+        let [dataRows, totalCount] = await Promise.all([
+            this.prisma.tableData.findMany(findManyOptions),
             this.prisma.tableData.count({where})
         ])
+
+        // If sorting by data column, sort in memory after fetching
+        if (!systemColumns.includes(sortColumn)) {
+            // Parse and sort
+            const parsedRows = dataRows.map(row => ({
+                ...row,
+                parsedData: JSON.parse(row.data)
+            }))
+
+            parsedRows.sort((a, b) => {
+                const aValue = a.parsedData[sortColumn]
+                const bValue = b.parsedData[sortColumn]
+
+                // Handle null/undefined values
+                if (aValue == null && bValue == null) return 0
+                if (aValue == null) return sortDirection === 'asc' ? -1 : 1
+                if (bValue == null) return sortDirection === 'asc' ? 1 : -1
+
+                // Compare values
+                let comparison = 0
+                if (typeof aValue === 'number' && typeof bValue === 'number') {
+                    comparison = aValue - bValue
+                } else {
+                    comparison = String(aValue).localeCompare(String(bValue))
+                }
+
+                return sortDirection === 'asc' ? comparison : -comparison
+            })
+
+            // Apply pagination after sorting
+            dataRows = parsedRows
+                .slice(pagination.offset, pagination.offset + pagination.limit)
+                .map(({ parsedData, ...row }) => row)
+        }
 
         // Parse JSON data and convert to camelCase
         const parsedData = dataRows.map(row => ({
@@ -96,8 +154,9 @@ export class TableDataRepository {
 
     /**
      * Find data row by ID using Prisma ORM
+     * Returns parsed data row with data already parsed from JSON
      */
-    async findDataRowById(rowId: string, tableId: string): Promise<TableDataRow | null> {
+    async findDataRowById(rowId: string, tableId: string): Promise<ParsedTableDataRow | null> {
         const row = await this.prisma.tableData.findUnique({
             where: {
                 id: rowId,
@@ -114,7 +173,7 @@ export class TableDataRepository {
             createdBy: row.createdBy,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt
-        } as TableDataRow
+        }
     }
 
     /**
@@ -171,7 +230,7 @@ export class TableDataRepository {
     /**
      * Delete data row using Prisma ORM
      */
-    async deleteDataRow(rowId: string, tableId: string): Promise<TableDataRow> {
+    async deleteDataRow(rowId: string, tableId: string): Promise<ParsedTableDataRow> {
         const existingRow = await this.findDataRowById(rowId, tableId)
         if (!existingRow) {
             throw new Error('Row not found')
@@ -189,8 +248,41 @@ export class TableDataRepository {
 
     /**
      * Check table access using Prisma ORM
+     * Now supports token-based table access control
      */
-    async checkTableAccess(tableId: string, userId: string): Promise<boolean> {
+    async checkTableAccess(tableId: string, userId: string, userContext?: any): Promise<boolean> {
+        console.log('🔍 checkTableAccess called:', {
+            tableId,
+            userId,
+            hasUserContext: !!userContext,
+            hasToken: !!userContext?.token,
+            tokenId: userContext?.tokenId,
+            tableAccess: userContext?.token?.tableAccess
+        });
+
+        // Check if token has explicit table access
+        if (userContext?.token?.tableAccess) {
+            try {
+                const allowedTables = JSON.parse(userContext.token.tableAccess);
+                console.log('✅ Token tableAccess parsed:', allowedTables);
+                if (Array.isArray(allowedTables) && allowedTables.includes(tableId)) {
+                    console.log('✅ Token HAS access to table:', tableId);
+                    return true; // Token has explicit access to this table
+                }
+                console.log('❌ Token does NOT have access to table:', tableId);
+            } catch (error) {
+                console.error('Error parsing token tableAccess:', error);
+            }
+        }
+
+        // Check if it's a standalone token (admin-token, frontend-token)
+        if (userContext?.tokenId === 'admin-token' || userContext?.tokenId === 'frontend-token') {
+            console.log('✅ Standalone token detected:', userContext.tokenId);
+            return true; // Standalone tokens have unrestricted access
+        }
+
+        // Fall back to standard user/visibility check
+        console.log('🔄 Falling back to user/visibility check');
         const table = await this.prisma.userTable.findFirst({
             where: {
                 id: tableId,
@@ -201,6 +293,7 @@ export class TableDataRepository {
             },
             select: {id: true}
         })
+        console.log('🔄 User/visibility check result:', !!table);
         return !!table
     }
 

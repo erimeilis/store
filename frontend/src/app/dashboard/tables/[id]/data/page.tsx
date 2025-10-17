@@ -256,7 +256,16 @@ export default function TableDataPage({
   }
 
   const columnDefinitions = generateColumnDefinitions(columns);
-  
+
+  // Extract filters from URL parameters (including sort and direction)
+  const urlFilters: { [key: string]: any } = {};
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    params.forEach((value, key) => {
+      urlFilters[key] = value;
+    });
+  }
+
   // Transform data to include flattened data for ModelList
   const transformedPaginatedData = {
     ...paginatedData,
@@ -312,7 +321,7 @@ export default function TableDataPage({
       <ModelList<ExtendedTableDataRow>
         title="Table Data"
         items={transformedPaginatedData}
-        filters={{}}
+        filters={urlFilters}
         columns={columnDefinitions}
         createRoute={undefined}
         editRoute={(id) => `/dashboard/tables/${currentTableId}/data/edit/${id}`}

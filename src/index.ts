@@ -18,6 +18,7 @@ import { tableDataRoutes } from '@/routes/table-data'
 import salesRoutes from '@/routes/sales'
 import inventoryRoutes from '@/routes/inventory'
 import publicSalesRoutes from '@/routes/public-sales'
+import adminRoutes from '@/routes/admin'
 
 /**
  * Store CRUD API - Backend Server
@@ -704,6 +705,9 @@ app.route('/', inventoryRoutes)
 
 // Public sales API (browse and purchase items from "for sale" tables)
 app.route('/', publicSalesRoutes)
+
+// Admin operations (protected with admin-only middleware)
+app.route('/api/admin', adminRoutes)
 
 // =============================================================================
 // ERROR HANDLING

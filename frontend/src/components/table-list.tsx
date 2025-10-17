@@ -10,14 +10,16 @@ import { IColumnDefinition, IRowAction, ModelList } from '@/components/model/mod
 import { IPaginatedResponse } from '@/types/models'
 import { UserTable } from '@/types/dynamic-tables'
 import { formatApiDate } from '@/lib/date-utils'
-import { IconColumns3, IconCopy, IconDatabase, IconShoppingCart } from '@tabler/icons-react'
+import { IconColumns3, IconCopy, IconDatabase, IconShoppingCart, IconWand } from '@tabler/icons-react'
 import { TableCloneModal } from '@/components/table-clone-modal'
+import { generateDummyTables } from '@/handlers/admin'
+import { toast } from '@/components/ui/toast'
 
 export interface TableListProps {
   title: string
   items: IPaginatedResponse<UserTable> | null
   filters?: { sort?: string, direction?: 'asc' | 'desc', [key: string]: any }
-  user?: { id: string; email: string; name: string }
+  user?: { id: string; email: string; name: string; role?: string }
 
   // Configuration options
   showForSaleFilter?: boolean  // Filter to only "for sale" tables
@@ -38,8 +40,15 @@ export function TableList({
   createRoute = '/dashboard/tables/create',
   showTypeColumn = true
 }: TableListProps) {
-  const [cloneModalOpen, setCloneModalOpen] = useState(false)
+  const [_cloneModalOpen, setCloneModalOpen] = useState(false)
   const [selectedTable, setSelectedTable] = useState<UserTable | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [showForSaleConfirmModal, setShowForSaleConfirmModal] = useState(false)
+  const [isGeneratingForSale, setIsGeneratingForSale] = useState(false)
+
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin'
 
   // Base column definitions
   const baseColumns: IColumnDefinition<UserTable>[] = [
@@ -79,6 +88,19 @@ export function TableList({
         <span className="text-sm">
           {table.ownerDisplayName || table.createdBy}
         </span>
+      )
+    },
+    {
+      key: 'rowCount',
+      label: 'Rows',
+      sortable: false,
+      filterable: false,
+      render: (table) => (
+        <div className="flex items-center justify-center">
+          <span className="badge badge-neutral">
+            {table.rowCount ?? 0}
+          </span>
+        </div>
       )
     },
     {
@@ -251,6 +273,62 @@ export function TableList({
     setSelectedTable(null)
   }
 
+  const handleGenerateDummyTables = async () => {
+    if (!user?.id) {
+      toast.error('User ID is required to generate tables')
+      return
+    }
+
+    setIsGenerating(true)
+    setShowConfirmModal(false)
+
+    try {
+      const result = await generateDummyTables(user.id, 100, 200, false)
+
+      if (result.success) {
+        toast.success(`Success! Generated ${result.tablesCreated} tables with ${result.rowsCreated} total rows.`, {
+          duration: 5000
+        })
+        window.location.reload()
+      } else {
+        toast.error(`Error: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Error generating dummy tables:', error)
+      toast.error('Failed to generate dummy tables. Check console for details.')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const handleGenerateForSaleTables = async () => {
+    if (!user?.id) {
+      toast.error('User ID is required to generate tables')
+      return
+    }
+
+    setIsGeneratingForSale(true)
+    setShowForSaleConfirmModal(false)
+
+    try {
+      const result = await generateDummyTables(user.id, 20, 50, true)
+
+      if (result.success) {
+        toast.success(`Success! Generated ${result.tablesCreated} FOR SALE tables with ${result.rowsCreated} total rows.`, {
+          duration: 5000
+        })
+        window.location.reload()
+      } else {
+        toast.error(`Error: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Error generating for-sale tables:', error)
+      toast.error('Failed to generate for-sale tables. Check console for details.')
+    } finally {
+      setIsGeneratingForSale(false)
+    }
+  }
+
   // Build base props
   const baseProps = {
     title,
@@ -266,6 +344,57 @@ export function TableList({
 
   return (
     <>
+      {/* Admin Controls Section */}
+      {isAdmin && (
+        <div className="mb-4 p-4 bg-warning/10 border border-warning rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <IconWand className="h-5 w-5 text-warning" />
+              <div>
+                <h3 className="font-semibold text-warning">Admin Tools</h3>
+                <p className="text-sm text-gray-600">Generate test data for development and testing</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowForSaleConfirmModal(true)}
+                disabled={isGeneratingForSale || isGenerating}
+                className="btn btn-success btn-sm"
+              >
+                {isGeneratingForSale ? (
+                  <>
+                    <span className="loading loading-spinner loading-xs"></span>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <IconShoppingCart className="h-4 w-4" />
+                    Generate 20 For Sale Tables
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setShowConfirmModal(true)}
+                disabled={isGenerating || isGeneratingForSale}
+                className="btn btn-warning btn-sm"
+              >
+                {isGenerating ? (
+                  <>
+                    <span className="loading loading-spinner loading-xs"></span>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <IconWand className="h-4 w-4" />
+                    Generate 100 Test Tables
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {enableMassActions ? (
         <ModelList<UserTable>
           {...baseProps}
@@ -277,6 +406,81 @@ export function TableList({
           {...baseProps}
           massActionRoute=""
         />
+      )}
+
+      {/* Confirmation Modal for Dummy Table Generation */}
+      {showConfirmModal && (
+        <dialog id="confirm-dummy-modal" className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Confirm Test Data Generation</h3>
+            <p className="py-4">
+              This will generate <strong>100 dummy tables</strong> with <strong>200 test records</strong> each.
+              This is a <strong>large operation</strong> and may take some time.
+            </p>
+            <p className="text-warning text-sm">
+              ⚠️ This action will create a total of <strong>20,000 test records</strong> in your database.
+            </p>
+            <div className="modal-action">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="btn btn-ghost"
+                disabled={isGenerating}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGenerateDummyTables}
+                className="btn btn-warning"
+                disabled={isGenerating}
+              >
+                {isGenerating ? 'Generating...' : 'Yes, Generate Test Data'}
+              </button>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={() => setShowConfirmModal(false)}>close</button>
+          </form>
+        </dialog>
+      )}
+
+      {/* Confirmation Modal for For-Sale Tables Generation */}
+      {showForSaleConfirmModal && (
+        <dialog id="confirm-forsale-modal" className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg flex items-center gap-2">
+              <IconShoppingCart className="h-6 w-6 text-success" />
+              Confirm For-Sale Tables Generation
+            </h3>
+            <p className="py-4">
+              This will generate <strong>20 tables marked "For Sale"</strong> with <strong>50 test records</strong> each.
+            </p>
+            <p className="text-success text-sm">
+              ✓ This action will create a total of <strong>1,000 test records</strong> in your database.
+            </p>
+            <p className="text-info text-sm mt-2">
+              💡 All generated tables will be marked with the shopping cart icon and available in the Store.
+            </p>
+            <div className="modal-action">
+              <button
+                onClick={() => setShowForSaleConfirmModal(false)}
+                className="btn btn-ghost"
+                disabled={isGeneratingForSale}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGenerateForSaleTables}
+                className="btn btn-success"
+                disabled={isGeneratingForSale}
+              >
+                {isGeneratingForSale ? 'Generating...' : 'Yes, Generate For-Sale Tables'}
+              </button>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={() => setShowForSaleConfirmModal(false)}>close</button>
+          </form>
+        </dialog>
       )}
 
       {/* Clone Modal (only if cloning is enabled) */}

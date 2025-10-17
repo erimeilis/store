@@ -77,6 +77,20 @@ export const routes: RouteConfig[] = [
     requiresAuth: true
   },
   {
+    path: '/dashboard/tokens/create',
+    handler: async (c) => (await import('@/handlers/tokens')).handleCreateTokenPage(c),
+    layout: 'dashboard',
+    segment: 'create',
+    requiresAuth: true
+  },
+  {
+    path: '/dashboard/tokens/edit/:id',
+    handler: async (c) => (await import('@/handlers/tokens')).handleEditTokenPage(c),
+    layout: 'dashboard',
+    segment: 'edit',
+    requiresAuth: true
+  },
+  {
     path: '/dashboard/allowed-emails',
     handler: async (c) => (await import('@/handlers/allowed-emails')).handleAllowedEmailsPage(c),
     layout: 'dashboard',
@@ -225,6 +239,8 @@ export const pageComponents = {
   '/dashboard/items/create': async () => (await import('@/app/dashboard/items/create/page')).default,
   '/dashboard/items/edit/[id]': async () => (await import('@/app/dashboard/items/edit/[id]/page')).default,
   '/dashboard/tokens': async () => (await import('@/app/dashboard/tokens/page')).default,
+  '/dashboard/tokens/create': async () => (await import('@/app/dashboard/tokens/create/page')).default,
+  '/dashboard/tokens/edit/[id]': async () => (await import('@/app/dashboard/tokens/edit/[id]/page')).default,
   '/dashboard/allowed-emails': async () => (await import('@/app/dashboard/allowed-emails/page')).default,
   '/dashboard/allowed-emails/create': async () => (await import('@/app/dashboard/allowed-emails/create/page')).default,
   '/dashboard/allowed-emails/edit/[id]': async () => (await import('@/app/dashboard/allowed-emails/edit/[id]/page')).default,

@@ -88,7 +88,11 @@ export async function handleTableDataPage(c: Context<{ Bindings: Env; Variables:
   // Get pagination parameters
   const page = parseInt(c.req.query('page') || '1')
   const limit = parseInt(c.req.query('limit') || c.env?.PAGE_SIZE || '5')
-  
+
+  // Get sort parameters
+  const sort = c.req.query('sort')
+  const direction = c.req.query('direction')
+
   // Extract all filter parameters - dynamic filters for any column
   const url = new URL(c.req.url)
   const filterParams: Record<string, string> = {}
@@ -99,12 +103,15 @@ export async function handleTableDataPage(c: Context<{ Bindings: Env; Variables:
       filterParams[key] = value.trim()
     }
   }
-  
+
   console.log('🔍 Table Data Handler - Filter parameters:', filterParams)
-  
-  // Build additional parameters including all filters (limit is handled by fetchHandlerData)
-  const additionalParams: Record<string, string> = { 
-    ...filterParams
+  console.log('🔍 Table Data Handler - Sort parameters:', { sort, direction })
+
+  // Build additional parameters including all filters and sorting (limit is handled by fetchHandlerData)
+  const additionalParams: Record<string, string> = {
+    ...filterParams,
+    ...(sort && { sort }),
+    ...(direction && { direction })
   }
   
   console.log('🔍 Table Data Handler - About to call fetchHandlerData with:', { 

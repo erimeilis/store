@@ -26,7 +26,7 @@ export async function getDataRow(
     }
 
     // Check table access
-    const hasAccess = await repository.checkTableAccess(tableId, userId)
+    const hasAccess = await repository.checkTableAccess(tableId, userId, user)
     if (!hasAccess) {
       return createErrorResponse(
         'Table not found',
