@@ -16,6 +16,7 @@ import { formatApiDate } from '@/lib/date-utils';
 import { clientApiRequest } from '@/lib/client-api';
 import { TableNavigation } from '@/components/table-navigation';
 import { CountryDisplay, getCountryOptions } from '@/components/ui/country-select';
+import { BooleanCircle } from '@/components/ui/boolean-circle';
 
 interface TableDataPageProps {
   initialData?: IPaginatedResponse<ExtendedTableDataRow> | null;
@@ -132,6 +133,10 @@ export default function TableDataPage({
           { value: 'false', label: 'No' }
         ];
         columnDef.editType = 'toggle';
+        columnDef.editOptions = [
+          { value: 'false', label: 'No' },
+          { value: 'true', label: 'Yes' }
+        ];
       }
 
       // Add filter options and edit options for country columns
@@ -185,9 +190,13 @@ export default function TableDataPage({
     switch (column.type) {
       case 'boolean':
         return (
-          <span className={`badge ${value ? 'badge-success' : 'badge-ghost'}`}>
-            {value ? 'Yes' : 'No'}
-          </span>
+          <div className="flex justify-center">
+            <BooleanCircle
+              value={value}
+              size="md"
+              title={value ? 'Yes' : 'No'}
+            />
+          </div>
         );
       case 'date':
         return value ? formatApiDate(value) : '-';
