@@ -57,6 +57,8 @@ export function TableImportManager({tableId}: TableImportManagerProps) {
     const [success, setSuccess] = useState<string>('')
     const [skipRows, setSkipRows] = useState<number>(0)
     const [currentFile, setCurrentFile] = useState<globalThis.File | null>(null)
+    const [googleSheetsUrl, setGoogleSheetsUrl] = useState<string>('')
+    const [importSource, setImportSource] = useState<'file' | 'sheets'>('file')
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Load table columns and info when component mounts
@@ -149,6 +151,48 @@ export function TableImportManager({tableId}: TableImportManagerProps) {
 
         setCurrentFile(file)
         await parseFile(file, skipRows)
+    }
+
+    const handleGoogleSheetsImport = async () => {
+        if (!googleSheetsUrl.trim()) {
+            setError('Please enter a Google Sheets URL')
+            return
+        }
+
+        setIsUploading(true)
+        setError('')
+        setSuccess('')
+
+        try {
+            const response = await clientApiRequest(`/api/tables/${tableId}/parse-google-sheets`, {
+                method: 'POST',
+                body: JSON.stringify({ url: googleSheetsUrl }),
+                headers: { 'Content-Type': 'application/json' }
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({})) as { message?: string }
+                throw new Error(errorData.message || 'Failed to parse Google Sheets')
+            }
+
+            const result = await response.json() as { data: ParsedData }
+            setParsedData(result.data)
+            setSkipRows(result.data.skipRows || 0)
+
+            // Use detected mappings if available
+            let mappings: ColumnMapping[]
+            if (result.data.detectedColumnMappings && result.data.detectedColumnMappings.length > 0) {
+                mappings = generateOptimalMappings(result.data.headers, result.data.detectedColumnMappings)
+            } else {
+                mappings = generateOptimalMappings(result.data.headers)
+            }
+            setColumnMappings(mappings)
+
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to load Google Sheets')
+        } finally {
+            setIsUploading(false)
+        }
     }
 
     const handleSkipRowsChange = async (newSkipRows: number) => {
@@ -375,32 +419,90 @@ export function TableImportManager({tableId}: TableImportManagerProps) {
 
     return (
         <div className="space-y-6">
-            {/* File Upload Section */}
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium mb-2">
-                        Select File to Import
-                    </label>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".txt,.csv,.xls,.xlsx"
-                        onChange={handleFileUpload}
-                        disabled={isUploading}
-                        className="file-input file-input-bordered w-full"
-                    />
-                    <div className="text-xs text-base-content/60 mt-1">
-                        Supported formats: TXT (tab-delimited), CSV, XLS, XLSX
-                    </div>
-                </div>
+            {/* Import Source Selector */}
+            <Card>
+                <CardBody>
+                    <CardTitle>Import Source</CardTitle>
+                    <RadioGroup
+                        name="import-source"
+                        value={importSource}
+                        onValueChange={(value) => setImportSource(value as 'file' | 'sheets')}
+                        orientation="horizontal"
+                    >
+                        <RadioGroupItem value="file" id="source-file" label="Upload File" />
+                        <RadioGroupItem value="sheets" id="source-sheets" label="Google Sheets URL" />
+                    </RadioGroup>
+                </CardBody>
+            </Card>
 
-                {isUploading && (
-                    <Alert>
-                        <IconUpload className="h-4 w-4 animate-spin"/>
-                        <span>Parsing file...</span>
-                    </Alert>
-                )}
-            </div>
+            {/* File Upload Section */}
+            {importSource === 'file' && (
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-2">
+                            Select File to Import
+                        </label>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".txt,.csv,.xls,.xlsx"
+                            onChange={handleFileUpload}
+                            disabled={isUploading}
+                            className="file-input file-input-bordered w-full"
+                        />
+                        <div className="text-xs text-base-content/60 mt-1">
+                            Supported formats: TXT (tab-delimited), CSV, XLS, XLSX
+                        </div>
+                    </div>
+
+                    {isUploading && (
+                        <Alert>
+                            <IconUpload className="h-4 w-4 animate-spin"/>
+                            <span>Parsing file...</span>
+                        </Alert>
+                    )}
+                </div>
+            )}
+
+            {/* Google Sheets URL Section */}
+            {importSource === 'sheets' && (
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-2">
+                            Google Sheets URL
+                        </label>
+                        <div className="flex gap-2">
+                            <Input
+                                type="url"
+                                placeholder="https://docs.google.com/spreadsheets/d/..."
+                                value={googleSheetsUrl}
+                                onChange={(e) => setGoogleSheetsUrl(e.target.value)}
+                                disabled={isUploading}
+                                className="flex-1"
+                            />
+                            <Button
+                                onClick={handleGoogleSheetsImport}
+                                disabled={isUploading || !googleSheetsUrl.trim()}
+                                processing={isUploading}
+                                color="primary"
+                                icon={IconUpload}
+                            >
+                                {isUploading ? 'Loading...' : 'Load Sheet'}
+                            </Button>
+                        </div>
+                        <div className="text-xs text-base-content/60 mt-1">
+                            Enter the URL of a public Google Sheet. The sheet must be publicly accessible.
+                        </div>
+                    </div>
+
+                    {isUploading && (
+                        <Alert>
+                            <IconUpload className="h-4 w-4 animate-spin"/>
+                            <span>Loading Google Sheets data...</span>
+                        </Alert>
+                    )}
+                </div>
+            )}
 
             {/* Success Display */}
             {success && (

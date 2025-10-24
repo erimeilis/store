@@ -7,6 +7,7 @@
 import type { ParsedData, ParseOptions } from '@/types/file-parser.js'
 import { parseExcelFile } from './parseExcelFile.js'
 import { parseCsvOrTxt } from './parseCsvOrTxt.js'
+import { parseGoogleSheets } from './parseGoogleSheets.js'
 
 /**
  * Main entry point for parsing import files
@@ -26,10 +27,11 @@ export async function parseImportFile(
   } else if (fileExtension === 'xls' || fileExtension === 'xlsx') {
     return await parseExcelFile(file, fileName, fileType, options)
   } else {
-    throw new Error(`Unsupported file type: ${fileExtension}. Please use CSV, TXT, XLS, or XLSX.`)
+    throw new Error(`Unsupported file type: ${fileExtension}. Please use CSV, TXT, XLS, XLSX, or Google Sheets URL.`)
   }
 }
 
 // Re-export the individual parsers for direct use if needed
 export { parseExcelFile } from './parseExcelFile.js'
 export { parseCsvOrTxt } from './parseCsvOrTxt.js'
+export { parseGoogleSheets } from './parseGoogleSheets.js'
