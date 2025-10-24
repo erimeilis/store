@@ -1,7 +1,7 @@
 import type { Context } from 'hono'
 import type { UserContext } from '@/types/database.js'
 import type { TableRepository } from '@/repositories/tableRepository.js'
-import { getUserInfo, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
+import { getUserInfo, isUserAdmin, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
 
 /**
  * Get table columns
@@ -14,11 +14,20 @@ export async function getTableColumns(
 ) {
   try {
     const { userId } = getUserInfo(c, user)
+    const isAdmin = isUserAdmin(user)
 
-    // Get table and verify ownership or public access
+    // Get table and verify ownership or public access (admins have full access)
     const table = await repository.getTable(tableId, userId)
-    if (!table) {
+    if (!table && !isAdmin) {
       return createErrorResponse('Table not found', 'Table not found or access denied', 404)
+    }
+
+    // If admin but table not found via regular access, try direct lookup
+    if (!table && isAdmin) {
+      const directTable = await repository.findTableByIdInternal(tableId)
+      if (!directTable) {
+        return createErrorResponse('Table not found', 'Table does not exist', 404)
+      }
     }
 
     const columns = await repository.getTableColumns(tableId)

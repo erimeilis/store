@@ -62,11 +62,13 @@ export async function addColumn(
   } catch (error) {
     // Handle specific database constraint errors
     if (error instanceof Error) {
-      const errorMessage = error.message.toLowerCase()
-      if (errorMessage.includes('unique constraint failed') && errorMessage.includes('table_columns.name')) {
+      const errorMessage = error.message
+      // Check for unique constraint on tableId + name
+      if (errorMessage.includes('Unique constraint failed') &&
+          (errorMessage.includes('tableId') || errorMessage.includes('name'))) {
         return createErrorResponse(
-          'Column name already exists',
-          `A column with the name "${data.name}" already exists in this table. Please choose a different name.`,
+          'Duplicate column name',
+          `A column named "${data.name}" already exists in this table. Please choose a different name.`,
           409
         )
       }

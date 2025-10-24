@@ -47,7 +47,10 @@ export function extractSpreadsheetInfo(url: string): { spreadsheetId: string; sh
       sheetName = undefined
     }
 
-    return { spreadsheetId, sheetName }
+    // Conditionally include sheetName only if defined (for exactOptionalPropertyTypes)
+    return sheetName !== undefined
+      ? { spreadsheetId, sheetName }
+      : { spreadsheetId }
   } catch (error) {
     console.error('Error extracting spreadsheet info:', error)
     return null
@@ -204,7 +207,11 @@ export async function parseGoogleSheets(
     }
 
     // Assume first row is headers
-    const headers = rows[0].map(cell => String(cell || '').trim())
+    const firstRow = rows[0]
+    if (!firstRow) {
+      throw new Error('First row is empty in the Google Sheet')
+    }
+    const headers = firstRow.map(cell => String(cell || '').trim())
     const dataRows = rows.slice(1).filter(row => row.some(cell => cell && cell.trim()))
 
     return {

@@ -92,6 +92,20 @@ export async function updateColumn(
       'Column updated successfully'
     )
   } catch (error) {
+    // Handle specific database constraint errors
+    if (error instanceof Error) {
+      const errorMessage = error.message
+      // Check for unique constraint on tableId + name
+      if (errorMessage.includes('Unique constraint failed') &&
+          (errorMessage.includes('tableId') || errorMessage.includes('name'))) {
+        return createErrorResponse(
+          'Duplicate column name',
+          `A column with the name "${data.name}" already exists in this table. Please choose a different name.`,
+          409
+        )
+      }
+    }
+
     return createErrorResponse(
       'Failed to update column',
       error instanceof Error ? error.message : 'Unknown error'
