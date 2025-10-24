@@ -9,6 +9,7 @@ import React, {useEffect, useState} from 'react'
 import {IColumnDefinition, IRowAction, ModelList} from '@/components/model/model-list'
 import {Alert} from '@/components/ui/alert'
 import {Badge} from '@/components/ui/badge'
+import {BooleanCircle} from '@/components/ui/boolean-circle'
 import {IconCopy, IconPlus} from '@tabler/icons-react'
 import {COLUMN_TYPE_OPTIONS, getColumnTypeLabel, isProtectedSaleColumn, TableColumn, TableSchema} from '@/types/dynamic-tables'
 import {IMassAction, IPaginatedResponse} from '@/types/models'
@@ -81,6 +82,21 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
         }
     }
 
+    // Optimized silent reload for inline edits (no loading indicator)
+    const reloadTableDataSilently = async () => {
+        if (!tableId) return
+
+        try {
+            const response = await clientApiRequest(`/api/tables/${tableId}`)
+            if (response.ok) {
+                const result = await response.json() as any
+                setSchema(result.table)
+            }
+        } catch (error) {
+            console.error('Silent reload failed:', error)
+        }
+    }
+
 
     // Column definitions for the ModelList
     const columnDefinitions: IColumnDefinition<ColumnModel>[] = [
@@ -104,8 +120,8 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
         {
             key: 'name',
             label: 'Name',
-            sortable: true,
-            filterable: true,
+            sortable: false,
+            filterable: false,
             filterType: 'text',
             className: 'min-w-0 w-auto',
             render: (column) => {
@@ -135,8 +151,8 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
         {
             key: 'type',
             label: 'Type',
-            sortable: true,
-            filterable: true,
+            sortable: false,
+            filterable: false,
             filterType: 'select',
             className: 'w-20 sm:w-24',
             filterOptions: COLUMN_TYPE_OPTIONS.map(opt => ({value: opt.value, label: opt.label})),
@@ -152,8 +168,8 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
         {
             key: 'isRequired',
             label: 'Req',
-            sortable: true,
-            filterable: true,
+            sortable: false,
+            filterable: false,
             filterType: 'select',
             className: 'w-16 sm:w-20 text-center',
             filterOptions: [
@@ -161,10 +177,13 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 {value: 'false', label: 'Optional'}
             ],
             render: (column) => (
-                <span className={`badge badge-xs sm:badge-sm ${column.isRequired ? 'badge-warning' : 'badge-success'}`}>
-          <span className="hidden sm:inline">{column.isRequired ? 'Required' : 'Optional'}</span>
-          <span className="sm:hidden">{column.isRequired ? 'Req' : 'Opt'}</span>
-        </span>
+                <div className="flex justify-center">
+                    <BooleanCircle
+                        value={!column.isRequired}
+                        size="md"
+                        title={column.isRequired ? 'Required' : 'Optional'}
+                    />
+                </div>
             ),
             editableInline: true,
             editType: 'toggle',
@@ -176,8 +195,8 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
         {
             key: 'allowDuplicates',
             label: 'Dupes',
-            sortable: true,
-            filterable: true,
+            sortable: false,
+            filterable: false,
             filterType: 'select',
             className: 'w-16 sm:w-20 text-center',
             filterOptions: [
@@ -185,10 +204,13 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 {value: 'false', label: 'Block'}
             ],
             render: (column) => (
-                <span className={`badge badge-xs sm:badge-sm ${column.allowDuplicates ? 'badge-info' : 'badge-error'}`}>
-          <span className="hidden sm:inline">{column.allowDuplicates ? 'Allow' : 'Block'}</span>
-          <span className="sm:hidden">{column.allowDuplicates ? 'Yes' : 'No'}</span>
-        </span>
+                <div className="flex justify-center">
+                    <BooleanCircle
+                        value={column.allowDuplicates}
+                        size="md"
+                        title={column.allowDuplicates ? 'Allow duplicates' : 'Block duplicates'}
+                    />
+                </div>
             ),
             editableInline: true,
             editType: 'toggle',
@@ -201,7 +223,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             key: 'defaultValue',
             label: 'Default',
             sortable: false,
-            filterable: true,
+            filterable: false,
             filterType: 'text',
             className: 'hidden md:table-cell w-24 lg:w-32',
             render: (column) => (
@@ -215,8 +237,8 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
         {
             key: 'created_at',
             label: 'Created',
-            sortable: true,
-            filterable: true,
+            sortable: false,
+            filterable: false,
             filterType: 'date',
             className: 'hidden lg:table-cell w-28',
             render: (column) => (
@@ -292,7 +314,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
 
             if (response.ok) {
                 // Reload table data to show the new column
-                await loadTableData()
+                await reloadTableDataSilently()
                 console.log('✅ Column cloned successfully')
             } else {
                 const errorData = await response.json() as any
@@ -350,7 +372,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
 
             if (response.ok) {
                 // Reload table data to show the new column
-                await loadTableData()
+                await reloadTableDataSilently()
                 console.log('✅ Column added successfully')
             } else {
                 const errorData = await response.json() as any
@@ -417,8 +439,8 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             <div className="mb-4 sm:mb-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-4">
                     <div className="min-w-0">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Table Columns</h1>
-                        <p className="text-gray-600 mt-2 text-sm sm:text-base">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-base-content">Edit Columns</h1>
+                        <p className="text-base-content/70 mt-2 text-sm sm:text-base">
                             Column structure for <strong className="truncate">{schema.table.name}</strong>
                         </p>
                         {schema.table.description && (
@@ -444,6 +466,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 deleteRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
                 inlineEditRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
                 massActionRoute={`/api/tables/${tableId}/columns/mass-action`}
+                onEditSuccess={reloadTableDataSilently}
                 orderingConfig={{
                     enabled: true,
                     swapEndpoint: `/api/tables/${tableId}/columns/swap`,
@@ -451,9 +474,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                     idField: 'id',
                     recountEndpoint: `/api/tables/${tableId}/columns/recount`,
                     recountDelay: 2000,
-                    onReorder: async () => {
-                        await loadTableData()
-                    }
+                    onReorder: reloadTableDataSilently
                 }}
                 filters={{
                     sort: 'position',

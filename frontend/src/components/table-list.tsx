@@ -14,6 +14,7 @@ import { IconColumns3, IconCopy, IconDatabase, IconShoppingCart, IconWand } from
 import { TableCloneModal } from '@/components/table-clone-modal'
 import { generateDummyTables } from '@/handlers/admin'
 import { toast } from '@/components/ui/toast'
+import { BooleanCircle } from '@/components/ui/boolean-circle'
 
 export interface TableListProps {
   title: string
@@ -154,13 +155,17 @@ export function TableList({
       ],
       editableInline: true,
       editType: 'toggle',
+      editOptions: [
+        { value: 'false', label: 'No' },
+        { value: 'true', label: 'Yes' }
+      ],
       render: (table) => (
-        <div className="flex items-center justify-center">
-          {table.forSale ? (
-            <IconShoppingCart className="h-5 w-5 text-success" title="For Sale" />
-          ) : (
-            <div className="h-5 w-5" title="Regular"></div>
-          )}
+        <div className="flex justify-center">
+          <BooleanCircle
+            value={table.forSale}
+            size="md"
+            title={table.forSale ? 'For Sale' : 'Regular'}
+          />
         </div>
       )
     })

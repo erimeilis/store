@@ -208,7 +208,17 @@ export class ZodCompatibleValidator {
             columnValidator = z.coerce.number()
             break
           case 'boolean':
-            columnValidator = z.coerce.boolean()
+            // Preprocess boolean values to handle string "false" correctly
+            columnValidator = z.preprocess((val) => {
+              if (val === 'false' || val === '0' || val === 0 || val === false) {
+                return false
+              }
+              if (val === 'true' || val === '1' || val === 1 || val === true) {
+                return true
+              }
+              // For other values, use default coercion
+              return Boolean(val)
+            }, z.boolean())
             break
           case 'date':
             columnValidator = z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/))

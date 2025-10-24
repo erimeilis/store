@@ -156,11 +156,6 @@ export function Pagination<T extends IModel>({
 
     const visiblePages = getVisiblePages()
 
-    // Don't render if only one page
-    if (lastPage <= 1) {
-        return null
-    }
-
     // Reusable page input component (uncontrolled)
     const PageInputComponent = ({className = '', onBlur, autoFocus = false}: {
         className?: string
@@ -198,13 +193,17 @@ export function Pagination<T extends IModel>({
         <div className={`mt-4 flex flex-col sm:flex-row items-center justify-between ${className}`}>
             <div className="flex flex-row items-center text-muted-foreground text-sm">
                 <div>Showing {items.from} to {items.to} of {items.total} entries</div>
-                {/* Page input - always show on mobile, conditional on desktop */}
-                <div className={`flex items-center gap-2 ml-4 ${showPageInput ? '' : 'md:hidden'}`}>
-                    <span className="text-sm text-base-content/70">Go to:</span>
-                    <PageInputComponent/>
-                </div>
+                {/* Page input - only show if there's more than one page */}
+                {lastPage > 1 && (
+                    <div className={`flex items-center gap-2 ml-4 ${showPageInput ? '' : 'md:hidden'}`}>
+                        <span className="text-sm text-base-content/70">Go to:</span>
+                        <PageInputComponent/>
+                    </div>
+                )}
             </div>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+            {/* Only show pagination controls if there's more than one page */}
+            {lastPage > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
                 <div className="join">
                     {showPrevNext && prevPageUrl && (
                         <Button
@@ -331,6 +330,7 @@ export function Pagination<T extends IModel>({
                     )}
                 </div>
             </div>
+            )}
         </div>
     )
 }

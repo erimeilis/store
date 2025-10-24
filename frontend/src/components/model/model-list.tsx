@@ -86,6 +86,7 @@ export function ModelList<T extends IModel>({
     massActions,
     rowActions,
     orderingConfig,
+    onEditSuccess,
     renderItem,
     renderHeader,
 }: ModelListComponentProps<T>) {
@@ -549,15 +550,19 @@ export function ModelList<T extends IModel>({
         setEditingSaveSuccess(false);
     };
 
-    const handleSaveSuccess = () => {
+    const handleSaveSuccess = async () => {
         setIsEditingSaving(false);
         setEditingSaveSuccess(true);
-        // Show success feedback for 2 seconds before canceling editing
-        setTimeout(() => {
+        // Show success feedback briefly before canceling editing
+        setTimeout(async () => {
             cancelEditing();
-            // Refresh the page to show the updated data
-            window.location.reload();
-        }, 1500);
+            // Call the onEditSuccess callback if provided, otherwise reload
+            if (onEditSuccess) {
+                await onEditSuccess();
+            } else {
+                window.location.reload();
+            }
+        }, 800);
     };
 
     const handleInputBlur = () => {
@@ -961,13 +966,13 @@ export function ModelList<T extends IModel>({
                             </Table>
                         </TableWrapper>
 
-                        {items && items.lastPage > 1 && (
-                            <Pagination 
-                                items={items} 
-                                showPrevNext={true} 
-                                showPageInput={true} 
-                                maxVisiblePages={7} 
-                                size="sm" 
+                        {items && (
+                            <Pagination
+                                items={items}
+                                showPrevNext={true}
+                                showPageInput={true}
+                                maxVisiblePages={7}
+                                size="sm"
                             />
                         )}
                     </CardBody>
