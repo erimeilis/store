@@ -221,11 +221,6 @@ export default function TableDataPage({
   // Mass actions for table data
   const dataMassActions = [
     {
-      name: 'export',
-      label: 'Export Selected',
-      confirmMessage: 'Export the selected rows to CSV?'
-    },
-    {
       name: 'delete',
       label: 'Delete Rows',
       confirmMessage: 'Are you sure you want to delete the selected rows? This action cannot be undone.'
