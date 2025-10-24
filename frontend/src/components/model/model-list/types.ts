@@ -56,6 +56,7 @@ export interface ModelListComponentProps<T extends IModel> extends IModelListPro
     massActions?: IMassAction[];
     rowActions?: IRowAction<T>[];
     orderingConfig?: IOrderingConfig<T>;
+    onEditSuccess?: () => Promise<void> | void;
     // Legacy props for backward compatibility
     renderItem?: (item: T) => React.ReactNode;
     renderHeader?: () => React.ReactNode;
