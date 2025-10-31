@@ -15,8 +15,8 @@ import {COLUMN_TYPE_OPTIONS, getColumnTypeLabel, isProtectedSaleColumn, TableCol
 import {IMassAction, IPaginatedResponse} from '@/types/models'
 import {formatApiDate} from '@/lib/date-utils'
 import {clientApiRequest} from '@/lib/client-api'
-import {TableNavigation} from '@/components/table-navigation'
 import {ProtectedColumnBadge} from '@/components/protected-column-indicator'
+import {TablePageHeader} from '@/components/table-page-header'
 
 interface TableColumnsPageProps {
     tableSchema?: TableSchema | null;
@@ -178,11 +178,15 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             ],
             render: (column) => (
                 <div className="flex justify-center">
-                    <BooleanCircle
-                        value={!column.isRequired}
-                        size="md"
-                        title={column.isRequired ? 'Required' : 'Optional'}
-                    />
+                    {column.isRequired ? (
+                        <BooleanCircle
+                            value={true}
+                            size="md"
+                            title="Required"
+                        />
+                    ) : (
+                        <span className="text-gray-400">-</span>
+                    )}
                 </div>
             ),
             editableInline: true,
@@ -205,11 +209,15 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             ],
             render: (column) => (
                 <div className="flex justify-center">
-                    <BooleanCircle
-                        value={column.allowDuplicates}
-                        size="md"
-                        title={column.allowDuplicates ? 'Allow duplicates' : 'Block duplicates'}
-                    />
+                    {column.allowDuplicates ? (
+                        <BooleanCircle
+                            value={true}
+                            size="md"
+                            title="Allow duplicates"
+                        />
+                    ) : (
+                        <span className="text-gray-400">-</span>
+                    )}
                 </div>
             ),
             editableInline: true,
@@ -405,7 +413,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
 
     if (isLoading) {
         return (
-            <div className="container mx-auto p-4">
+            <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
                 <div className="flex justify-center items-center h-64">
                     <span className="loading loading-spinner loading-lg"></span>
                 </div>
@@ -415,7 +423,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
 
     if (error) {
         return (
-            <div className="container mx-auto p-4">
+            <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
                 <Alert color="error">
                     {error}
                 </Alert>
@@ -425,7 +433,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
 
     if (!schema) {
         return (
-            <div className="container mx-auto p-4">
+            <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
                 <Alert color="error">
                     Failed to load table schema. Please try again.
                 </Alert>
@@ -434,53 +442,41 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
     }
 
     return (
-        <div className="container mx-auto p-2 sm:p-4">
-            {/* Header */}
-            <div className="mb-4 sm:mb-6">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-4">
-                    <div className="min-w-0">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-base-content">Edit Columns</h1>
-                        <p className="text-base-content/70 mt-2 text-sm sm:text-base">
-                            Column structure for <strong className="truncate">{schema.table.name}</strong>
-                        </p>
-                        {schema.table.description && (
-                            <p className="text-gray-500 text-xs sm:text-sm mt-1 line-clamp-2">{schema.table.description}</p>
-                        )}
-                    </div>
-                    <TableNavigation
-                        tableId={tableId || ''}
-                        activePage="columns"
-                    />
-                </div>
-            </div>
-
-            {/* ModelList for Column Management */}
-            <ModelList<ColumnModel>
-                title="Column Management"
-                items={columnsData}
-                columns={columnDefinitions}
-                massActions={massActions}
-                rowActions={rowActions}
-                createRoute={undefined}
-                editRoute={() => '#'}
-                deleteRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
-                inlineEditRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
-                massActionRoute={`/api/tables/${tableId}/columns/mass-action`}
-                onEditSuccess={reloadTableDataSilently}
-                orderingConfig={{
-                    enabled: true,
-                    swapEndpoint: `/api/tables/${tableId}/columns/swap`,
-                    positionField: 'position',
-                    idField: 'id',
-                    recountEndpoint: `/api/tables/${tableId}/columns/recount`,
-                    recountDelay: 2000,
-                    onReorder: reloadTableDataSilently
-                }}
-                filters={{
-                    sort: 'position',
-                    direction: 'asc'
-                }}
+        <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+            <TablePageHeader
+                title="Edit Columns"
+                subtitle={<>Column structure for <strong className="truncate">{schema.table.name}</strong></>}
+                description={schema.table.description || undefined}
+                tableId={tableId || ''}
+                activePage="columns"
             />
+
+            <ModelList<ColumnModel>
+            title="Column Management"
+            items={columnsData}
+            columns={columnDefinitions}
+            massActions={massActions}
+            rowActions={rowActions}
+            createRoute={undefined}
+            editRoute={() => '#'}
+            deleteRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
+            inlineEditRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
+            massActionRoute={`/api/tables/${tableId}/columns/mass-action`}
+            onEditSuccess={reloadTableDataSilently}
+            orderingConfig={{
+                enabled: true,
+                swapEndpoint: `/api/tables/${tableId}/columns/swap`,
+                positionField: 'position',
+                idField: 'id',
+                recountEndpoint: `/api/tables/${tableId}/columns/recount`,
+                recountDelay: 2000,
+                onReorder: reloadTableDataSilently
+            }}
+            filters={{
+                sort: 'position',
+                direction: 'asc'
+            }}
+        />
         </div>
     )
 }

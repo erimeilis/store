@@ -38,18 +38,15 @@ export function ToggleEditComponent<T extends IModel>({
     const isChecked = editValue === 'true' || editValue === '1' || String(editValue) === 'true';
 
     return (
-        <div className="w-full gap-2">
-            <Toggle
-                color={editingError ? 'error' : 'success'}
-                size="sm"
-                checked={isChecked}
-                onChange={handleToggleChange}
-                onKeyDown={onEditKeyPress}
-                onBlur={onInputBlur}
-                disabled={isEditingSaving}
-                autoFocus
-            />
-            {editingError && <InputError message={editingError} />}
-        </div>
+        <Toggle
+            color={editingError ? 'error' : 'success'}
+            size="sm"
+            checked={isChecked}
+            onChange={handleToggleChange}
+            onKeyDown={onEditKeyPress}
+            onBlur={onInputBlur}
+            disabled={isEditingSaving}
+            autoFocus
+        />
     );
 }

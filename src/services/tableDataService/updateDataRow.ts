@@ -65,10 +65,15 @@ export async function updateDataRow(
     // Apply default values from column definitions
     const processedData = applyDefaultValues(data.data, tableColumns)
 
-    // Check for duplicate values in columns that don't allow duplicates
+    // For PATCH requests (inline editing), only validate the fields that are being changed
+    // This prevents validation errors on existing invalid data when editing other fields
+    const changedFields = Object.keys(data.data)
+    const columnsToValidate = tableColumns.filter(col => changedFields.includes(col.name))
+
+    // Check for duplicate values in columns that don't allow duplicates (only for changed fields)
     const duplicateValidation = await validateDuplicates(
       tableId,
-      tableColumns,
+      columnsToValidate,
       processedData,
       repository,
       rowId // Exclude the current row from duplicate check
@@ -84,8 +89,8 @@ export async function updateDataRow(
       )
     }
 
-    // Validate data against schema
-    const dataValidation = await validator.validateTableData(tableColumns, processedData)
+    // Validate only the changed fields against schema (not the entire row)
+    const dataValidation = await validator.validateTableData(columnsToValidate, processedData)
     if (!dataValidation.valid) {
       return createErrorResponse(
         'Validation failed',

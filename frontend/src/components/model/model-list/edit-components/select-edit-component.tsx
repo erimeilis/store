@@ -13,6 +13,7 @@ export function SelectEditComponent<T extends IModel>({
     onSaveEditing,
     onEditKeyPress,
     onInputBlur,
+    onSetIsClickingSaveButton,
 }: InlineEditComponentProps<T>) {
     if (!column.editOptions) return null;
 
@@ -27,26 +28,26 @@ export function SelectEditComponent<T extends IModel>({
     };
 
     return (
-        <div className="w-full gap-2">
-            <Select
-                size="sm"
-                style="ghost"
-                value={editValue}
-                onChange={handleSelectChange}
-                onKeyDown={onEditKeyPress as any}
-                onBlur={onInputBlur}
-                className={`${editingError ? 'select-error' : ''}`}
-                disabled={isEditingSaving}
-                autoFocus
-            >
-                <option value="">Select...</option>
-                {column.editOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                        {option.label}
-                    </option>
-                ))}
-            </Select>
-            {editingError && <InputError message={editingError} />}
-        </div>
+        <Select
+            size="sm"
+            style="ghost"
+            value={editValue}
+            onChange={handleSelectChange}
+            onKeyDown={onEditKeyPress as any}
+            onBlur={onInputBlur}
+            onMouseDown={() => onSetIsClickingSaveButton(true)}
+            onMouseUp={() => onSetIsClickingSaveButton(false)}
+            onMouseLeave={() => onSetIsClickingSaveButton(false)}
+            className={`${editingError ? 'select-error border-error' : ''}`}
+            disabled={isEditingSaving}
+            autoFocus
+        >
+            <option value="">Select...</option>
+            {column.editOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                    {option.label}
+                </option>
+            ))}
+        </Select>
     );
 }

@@ -9,8 +9,8 @@ import React, {useEffect, useState} from 'react'
 import {Button} from '@/components/ui/button'
 import {Alert} from '@/components/ui/alert'
 import {TableInfoForm} from '@/components/table-info-form'
-import {TableNavigation} from '@/components/table-navigation'
 import {ForSaleConversionDialog} from '@/components/for-sale-conversion-dialog'
+import {TablePageHeader} from '@/components/table-page-header'
 import {TableSchema, UpdateTableRequest} from '@/types/dynamic-tables'
 import {clientApiRequest} from '@/lib/client-api'
 
@@ -179,7 +179,7 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
 
     if (isLoading) {
         return (
-            <div className="container mx-auto p-4 max-w-4xl">
+            <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
                 <div className="flex justify-center items-center h-64">
                     <span className="loading loading-spinner loading-lg"></span>
                 </div>
@@ -188,21 +188,13 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
     }
 
     return (
-        <div className="container mx-auto p-4 max-w-4xl">
-            <div className="mb-6">
-                <div className="flex justify-between items-start mb-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-base-content">Edit Table</h1>
-                        <p className="text-base-content/70 mt-2">
-                            Update table information and access settings.
-                        </p>
-                    </div>
-                    <TableNavigation
-                        tableId={tableId || ''}
-                        activePage="edit"
-                    />
-                </div>
-            </div>
+        <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+            <TablePageHeader
+                title="Edit Table"
+                subtitle="Update table information and access settings"
+                tableId={tableId || ''}
+                activePage="edit"
+            />
 
             {errors.general && (
                 <Alert color="error" className="mb-6">
