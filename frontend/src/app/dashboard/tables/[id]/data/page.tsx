@@ -14,9 +14,9 @@ import {
 } from '@/types/dynamic-tables';
 import { formatApiDate } from '@/lib/date-utils';
 import { clientApiRequest } from '@/lib/client-api';
-import { TableNavigation } from '@/components/table-navigation';
 import { CountryDisplay, getCountryOptions } from '@/components/ui/country-select';
 import { BooleanCircle } from '@/components/ui/boolean-circle';
+import { TablePageHeader } from '@/components/table-page-header';
 
 interface TableDataPageProps {
   initialData?: IPaginatedResponse<ExtendedTableDataRow> | null;
@@ -238,7 +238,7 @@ export default function TableDataPage({
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
         <div className="flex justify-center items-center h-64">
           <span className="loading loading-spinner loading-lg"></span>
         </div>
@@ -248,7 +248,7 @@ export default function TableDataPage({
 
   if (error || !paginatedData) {
     return (
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
         <div className="alert alert-error">
           <svg className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -297,31 +297,15 @@ export default function TableDataPage({
   });
 
   return (
-    <div className="container mx-auto p-4">
-      {/* Table Info Header */}
-      {table && (
-        <div className="mb-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-2xl font-bold">{table.name}</h1>
-              {table.description && (
-                <p className="text-gray-600 mt-1">{table.description}</p>
-              )}
-              <div className="flex items-center gap-2 mt-2">
-                <span className={`badge ${table.isPublic ? 'badge-success' : 'badge-warning'}`}>
-                  {table.isPublic ? 'Public' : 'Private'}
-                </span>
-              </div>
-            </div>
-            <TableNavigation
-              tableId={currentTableId || ''}
-              activePage="data"
-            />
-          </div>
-        </div>
-      )}
+    <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+      <TablePageHeader
+        title="Table Data"
+        subtitle={<>View and manage data in <strong className="truncate">{table?.name}</strong></>}
+        description={table?.description || undefined}
+        tableId={currentTableId || ''}
+        activePage="data"
+      />
 
-      {/* ModelList Component */}
       <ModelList<ExtendedTableDataRow>
         title="Table Data"
         items={transformedPaginatedData}
@@ -333,6 +317,7 @@ export default function TableDataPage({
         inlineEditRoute={(id) => `/api/tables/${currentTableId}/data/${id}`}
         massActionRoute={`/api/tables/${currentTableId}/data/mass-action`}
         massActions={dataMassActions}
+        onEditSuccess={loadTableData}
       />
     </div>
   );

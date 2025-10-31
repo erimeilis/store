@@ -26,17 +26,26 @@ export async function handleSalesListPage(c: Context<{ Bindings: Env; Variables:
   const sort = c.req.query('sort') || 'createdAt';
   const direction = c.req.query('direction') || 'desc';
 
-  // Build additional parameters for filtering using camelCase
+  // Extract filter parameters from frontend (filter_* format)
+  // Backend sales route expects direct params (no filter_ prefix)
+  const filterSaleStatus = c.req.query('filter_saleStatus')
+  const filterTableId = c.req.query('filter_tableId')
+  const filterCustomerId = c.req.query('filter_customerId')
+  const filterDateFrom = c.req.query('filter_dateFrom')
+  const filterDateTo = c.req.query('filter_dateTo')
+  const filterSearch = c.req.query('filter_search')
+
+  // Build additional parameters - strip filter_ prefix for backend
   const additionalParams: Record<string, string> = {
-    sortBy: sort,
-    sortOrder: direction
+    sort_by: sort,
+    sort_order: direction
   };
-  if (c.req.query('saleStatus')) additionalParams.saleStatus = c.req.query('saleStatus')!;
-  if (c.req.query('tableId')) additionalParams.tableId = c.req.query('tableId')!;
-  if (c.req.query('customerId')) additionalParams.customerId = c.req.query('customerId')!;
-  if (c.req.query('dateFrom')) additionalParams.dateFrom = c.req.query('dateFrom')!;
-  if (c.req.query('dateTo')) additionalParams.dateTo = c.req.query('dateTo')!;
-  if (c.req.query('search')) additionalParams.search = c.req.query('search')!;
+  if (filterSaleStatus) additionalParams.saleStatus = filterSaleStatus;
+  if (filterTableId) additionalParams.tableId = filterTableId;
+  if (filterCustomerId) additionalParams.customerId = filterCustomerId;
+  if (filterDateFrom) additionalParams.date_from = filterDateFrom;
+  if (filterDateTo) additionalParams.date_to = filterDateTo;
+  if (filterSearch) additionalParams.search = filterSearch;
 
   const sales = await fetchHandlerData('/api/sales', c, {
     page,
@@ -48,12 +57,12 @@ export async function handleSalesListPage(c: Context<{ Bindings: Env; Variables:
     filters: {
       sort,
       direction,
-      saleStatus: c.req.query('saleStatus'),
-      tableId: c.req.query('tableId'),
-      customerId: c.req.query('customerId'),
-      dateFrom: c.req.query('dateFrom'),
-      dateTo: c.req.query('dateTo'),
-      search: c.req.query('search')
+      filterSaleStatus,
+      filterTableId,
+      filterCustomerId,
+      filterDateFrom,
+      filterDateTo,
+      filterSearch
     }
   });
 
@@ -97,33 +106,35 @@ export async function handleInventoryPage(c: Context<{ Bindings: Env; Variables:
   const user = c.get('user');
 
   try {
-    // Get pagination and filtering parameters using universal system
+    // Get pagination and filtering parameters
     const page = parseInt(c.req.query('page') || '1')
     const sort = c.req.query('sort') || 'createdAt'
     const direction = c.req.query('direction') || 'desc'
 
-    // Build additional parameters for filtering using camelCase
-    console.log('🚨 HANDLER DEBUG: Using camelCase parameters!', { sort, direction })
+    // Extract filter parameters from frontend (filter_* format)
+    // Backend inventory route expects direct params (no filter_ prefix, camelCase)
+    const filterTransactionType = c.req.query('filter_transactionType')
+    const filterTableName = c.req.query('filter_tableName')
+    const filterItemName = c.req.query('filter_itemName')
+    const filterQuantityChange = c.req.query('filter_quantityChange')
+    const filterReferenceId = c.req.query('filter_referenceId')
+    const filterCreatedBy = c.req.query('filter_createdBy')
+    const filterCreatedAt = c.req.query('filter_createdAt')
+
+    // Build additional parameters - strip filter_ prefix, use backend expected names
     const additionalParams: Record<string, string> = {
       sortBy: sort,
       sortOrder: direction
     }
 
-    // Map frontend filter parameters to backend API camelCase parameters
-    if (c.req.query('filterTransactionType')) additionalParams.transactionType = c.req.query('filterTransactionType')!
-    if (c.req.query('filterTableName')) additionalParams.tableNameSearch = c.req.query('filterTableName')!
-    if (c.req.query('filterItemName')) additionalParams.itemSearch = c.req.query('filterItemName')!
-    if (c.req.query('filterQuantityChange')) additionalParams.quantityChange = c.req.query('filterQuantityChange')!
-    if (c.req.query('filterReferenceId')) additionalParams.referenceId = c.req.query('filterReferenceId')!
-    if (c.req.query('filterCreatedBy')) additionalParams.createdBy = c.req.query('filterCreatedBy')!
-    if (c.req.query('filterCreatedAt')) additionalParams.dateFrom = c.req.query('filterCreatedAt')!
-
-    // Legacy parameter support (in case called directly) - convert to camelCase
-    if (c.req.query('transactionType')) additionalParams.transactionType = c.req.query('transactionType')!
-    if (c.req.query('tableId')) additionalParams.tableId = c.req.query('tableId')!
-    if (c.req.query('dateFrom')) additionalParams.dateFrom = c.req.query('dateFrom')!
-    if (c.req.query('dateTo')) additionalParams.dateTo = c.req.query('dateTo')!
-    if (c.req.query('createdBy')) additionalParams.createdBy = c.req.query('createdBy')!
+    // Map filter parameters to backend expected names
+    if (filterTransactionType) additionalParams.transactionType = filterTransactionType
+    if (filterTableName) additionalParams.tableNameSearch = filterTableName
+    if (filterItemName) additionalParams.itemSearch = filterItemName
+    if (filterQuantityChange) additionalParams.quantityChange = filterQuantityChange
+    if (filterReferenceId) additionalParams.referenceId = filterReferenceId
+    if (filterCreatedBy) additionalParams.createdBy = filterCreatedBy
+    if (filterCreatedAt) additionalParams.dateFrom = filterCreatedAt
 
     // Use fetchHandlerData like other handlers
     const transactions = await fetchHandlerData('/api/inventory/transactions', c, {
@@ -150,20 +161,14 @@ export async function handleInventoryPage(c: Context<{ Bindings: Env; Variables:
       filters: {
         sort,
         direction,
-        // Frontend filter parameters (for ModelList component state)
-        filterTransactionType: c.req.query('filterTransactionType'),
-        filterTableName: c.req.query('filterTableName'),
-        filterItemName: c.req.query('filterItemName'),
-        filterQuantityChange: c.req.query('filterQuantityChange'),
-        filterReferenceId: c.req.query('filterReferenceId'),
-        filterCreatedBy: c.req.query('filterCreatedBy'),
-        filterCreatedAt: c.req.query('filterCreatedAt'),
-        // Legacy parameters (backward compatibility)
-        transactionType: c.req.query('transactionType'),
-        tableId: c.req.query('tableId'),
-        dateFrom: c.req.query('dateFrom'),
-        dateTo: c.req.query('dateTo'),
-        createdBy: c.req.query('createdBy')
+        // Pass filter values for ModelList component state
+        filterTransactionType,
+        filterTableName,
+        filterItemName,
+        filterQuantityChange,
+        filterReferenceId,
+        filterCreatedBy,
+        filterCreatedAt
       }
     });
 

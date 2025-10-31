@@ -268,7 +268,7 @@ export default function TableDataEditPage({
 
     if (isLoading) {
         return (
-            <div className="container mx-auto p-4 max-w-2xl">
+            <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
                 <div className="flex justify-center items-center h-64">
                     <span className="loading loading-spinner loading-lg"></span>
                 </div>
@@ -278,7 +278,7 @@ export default function TableDataEditPage({
 
     if (!tableSchema || !rowData) {
         return (
-            <div className="container mx-auto p-4 max-w-2xl">
+            <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
                 <Alert color="error">
                     Failed to load table data. Please try again.
                 </Alert>
@@ -287,7 +287,7 @@ export default function TableDataEditPage({
     }
 
     return (
-        <div className="container mx-auto p-4 max-w-2xl">
+        <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
             {/* Header */}
             <div className="mb-6">
                 <Breadcrumbs
@@ -308,7 +308,7 @@ export default function TableDataEditPage({
                     ]}
                 />
 
-                <h1 className="text-3xl font-bold text-gray-800">Edit Row</h1>
+                <h1 className="text-3xl font-bold">Edit Row</h1>
                 <p className="text-gray-600 mt-2">
                     Update data for this row in {tableSchema.table.name}.
                 </p>

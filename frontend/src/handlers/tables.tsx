@@ -23,22 +23,23 @@ export async function handleTablesListPage(c: Context<{ Bindings: Env; Variables
   const sort = c.req.query('sort') || 'updatedAt'
   const direction = c.req.query('direction') || 'desc'
 
-  // Extract all filter parameters
-  const filterName = c.req.query('filterName')
-  const filterDescription = c.req.query('filterDescription')
-  const filterOwner = c.req.query('filterOwner')
-  const filterVisibility = c.req.query('filterVisibility') || c.req.query('filterIsPublic')
-  const filterCreatedAt = c.req.query('filterCreatedAt')
-  const filterUpdatedAt = c.req.query('filterUpdatedAt')
+  // Extract all filter parameters (snake_case from frontend)
+  // Backend tables route expects snake_case WITH filter_ prefix
+  const filterName = c.req.query('filter_name')
+  const filterDescription = c.req.query('filter_description')
+  const filterOwner = c.req.query('filter_owner')
+  const filterVisibility = c.req.query('filter_visibility') || c.req.query('filter_isPublic')
+  const filterCreatedAt = c.req.query('filter_createdAt')
+  const filterUpdatedAt = c.req.query('filter_updatedAt')
 
-  // Build additional parameters including all filters
+  // Build additional parameters - keep snake_case format for backend
   const additionalParams: Record<string, string> = { sort, direction }
-  if (filterName) additionalParams.filterName = filterName
-  if (filterDescription) additionalParams.filterDescription = filterDescription
-  if (filterOwner) additionalParams.filterOwner = filterOwner
-  if (filterVisibility) additionalParams.filterVisibility = filterVisibility
-  if (filterCreatedAt) additionalParams.filterCreatedAt = filterCreatedAt
-  if (filterUpdatedAt) additionalParams.filterUpdatedAt = filterUpdatedAt
+  if (filterName) additionalParams.filter_name = filterName
+  if (filterDescription) additionalParams.filter_description = filterDescription
+  if (filterOwner) additionalParams.filter_owner = filterOwner
+  if (filterVisibility) additionalParams.filter_visibility = filterVisibility
+  if (filterCreatedAt) additionalParams.filter_createdAt = filterCreatedAt
+  if (filterUpdatedAt) additionalParams.filter_updatedAt = filterUpdatedAt
   
   const tables = await fetchHandlerData(TABLES_API_ENDPOINTS.tables, c, {
     page,
@@ -47,17 +48,8 @@ export async function handleTablesListPage(c: Context<{ Bindings: Env; Variables
   })
   
   const tablesProps = buildPageProps(user, c, {
-    tables,
-    filters: {
-      sort,
-      direction,
-      filterName: filterName,
-      filterDescription: filterDescription,
-      filterOwner: filterOwner,
-      filterVisibility: filterVisibility,
-      filterCreatedAt: filterCreatedAt,
-      filterUpdatedAt: filterUpdatedAt
-    }
+    tables
+    // buildPageProps automatically extracts all filter_* parameters from URL
   })
   
   return renderDashboardPage(c, '/dashboard/tables', tablesProps)
