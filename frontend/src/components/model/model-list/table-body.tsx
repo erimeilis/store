@@ -1,7 +1,9 @@
 import { Icon } from '@/components/icon';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Toggle } from '@/components/ui/toggle';
 import { TableBody, TableCell, TableHeaderCell, TableRow } from '@/components/ui/table';
+import InputError from '@/components/ui/input-error';
 import { IModel } from '@/types/models';
 import { formatApiDate } from '@/lib/date-utils';
 import { IconEdit, IconTrash, IconCheck, IconX, IconGripVertical, IconArrowUp, IconArrowDown } from '@tabler/icons-react';
@@ -117,18 +119,21 @@ function AddNewRowComponent<T extends IModel>({
                     />
                 );
             case 'toggle':
+                const isChecked = value === 'true' || value === '1' || String(value) === 'true';
                 return (
-                    <select
-                        value={value}
-                        onChange={(e) => handleInputChange(columnKey, e.target.value)}
-                        onKeyDown={handleKeyPress as any}
-                        className="select select-sm select-bordered w-full"
-                        disabled={isSavingNewRow}
-                        required={column.editValidation?.required}
-                    >
-                        <option value="false">No</option>
-                        <option value="true">Yes</option>
-                    </select>
+                    <div className="flex items-center justify-center">
+                        <Toggle
+                            color="success"
+                            size="sm"
+                            checked={isChecked}
+                            onChange={(e) => {
+                                const newValue = e.target.checked ? 'true' : 'false';
+                                console.log('🔄 Toggle changed:', { columnKey, wasChecked: isChecked, nowChecked: e.target.checked, newValue });
+                                handleInputChange(columnKey, newValue);
+                            }}
+                            disabled={isSavingNewRow}
+                        />
+                    </div>
                 );
             case 'select':
                 return (
@@ -512,7 +517,54 @@ export function ModelTableBody<T extends IModel>({
 }: TableBodyProps<T>) {
     return (
         <TableBody>
-            {/* Add New Row Component - shows at the top when active */}
+            {/* Regular table rows */}
+            {!items || !items.data || items.data.length === 0 ? (
+                <TableRow>
+                    <TableCell colSpan={100} className="p-2 text-center">
+                        No items found
+                    </TableCell>
+                </TableRow>
+            ) : (
+                items.data.map((item: T) => (
+                    <React.Fragment key={item.id}>
+                        <ModelTableRow
+                            item={item}
+                            columns={columns}
+                            selectedItems={selectedItems as any}
+                            editingCell={editingCell}
+                            editValue={editValue}
+                            editingError={editingError}
+                            isEditingSaving={isEditingSaving}
+                            editingSaveSuccess={editingSaveSuccess}
+                            editRoute={editRoute}
+                            deleteRoute={deleteRoute}
+                            useLegacyRendering={useLegacyRendering}
+                            onItemSelect={onItemSelect}
+                            onStartEditing={onStartEditing}
+                            onSaveEditing={onSaveEditing}
+                            onSetEditValue={onSetEditValue}
+                            onEditKeyPress={onEditKeyPress}
+                            onInputBlur={onInputBlur}
+                            onSetIsClickingSaveButton={onSetIsClickingSaveButton}
+                            onDeleteItem={onDeleteItem}
+                            renderItem={renderItem}
+                            rowActions={rowActions}
+                            orderingHandlers={orderingHandlers}
+                            hasMassActions={hasMassActions}
+                        />
+                        {/* Show error message below the row if editing this row and there's an error */}
+                        {editingError && editingCell && editingCell.itemId === item.id && (
+                            <TableRow>
+                                <TableCell colSpan={100} className="p-2 bg-error/10">
+                                    <InputError message={editingError} />
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </React.Fragment>
+                ))
+            )}
+
+            {/* Add New Row Component - shows at the bottom when active */}
             {isAddingNewRow && onUpdateNewRowData && onSaveNewRow && onCancelAddingNewRow && (
                 <>
                     <AddNewRowComponent
@@ -536,44 +588,6 @@ export function ModelTableBody<T extends IModel>({
                         </TableRow>
                     )}
                 </>
-            )}
-            
-            {/* Regular table rows */}
-            {!items || !items.data || items.data.length === 0 ? (
-                <TableRow>
-                    <TableCell colSpan={100} className="p-2 text-center">
-                        No items found
-                    </TableCell>
-                </TableRow>
-            ) : (
-                items.data.map((item: T) => (
-                    <ModelTableRow
-                        key={item.id}
-                        item={item}
-                        columns={columns}
-                        selectedItems={selectedItems as any}
-                        editingCell={editingCell}
-                        editValue={editValue}
-                        editingError={editingError}
-                        isEditingSaving={isEditingSaving}
-                        editingSaveSuccess={editingSaveSuccess}
-                        editRoute={editRoute}
-                        deleteRoute={deleteRoute}
-                        useLegacyRendering={useLegacyRendering}
-                        onItemSelect={onItemSelect}
-                        onStartEditing={onStartEditing}
-                        onSaveEditing={onSaveEditing}
-                        onSetEditValue={onSetEditValue}
-                        onEditKeyPress={onEditKeyPress}
-                        onInputBlur={onInputBlur}
-                        onSetIsClickingSaveButton={onSetIsClickingSaveButton}
-                        onDeleteItem={onDeleteItem}
-                        renderItem={renderItem}
-                        rowActions={rowActions}
-                        orderingHandlers={orderingHandlers}
-                        hasMassActions={hasMassActions}
-                    />
-                ))
             )}
         </TableBody>
     );

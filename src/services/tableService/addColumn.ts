@@ -63,6 +63,17 @@ export async function addColumn(
     // Handle specific database constraint errors
     if (error instanceof Error) {
       const errorMessage = error.message
+
+      // Check for foreign key constraint (missing or invalid type)
+      if (errorMessage.includes('Foreign key constraint') ||
+          errorMessage.includes('foreign key constraint violated')) {
+        return createErrorResponse(
+          'Invalid column type',
+          'Please select a valid column type (text, number, date, boolean, or email).',
+          400
+        )
+      }
+
       // Check for unique constraint on tableId + name
       if (errorMessage.includes('Unique constraint failed') &&
           (errorMessage.includes('tableId') || errorMessage.includes('name'))) {

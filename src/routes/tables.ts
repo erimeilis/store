@@ -31,13 +31,13 @@ tablesRoutes.get('/api/tables', readAuthMiddleware, async (c) => {
     limit: parseInt(c.req.query('limit') || '10', 10),
     sort: c.req.query('sort') || 'updatedAt',
     direction: c.req.query('direction') || 'desc',
-    filterName: c.req.query('filter_name') || '',
-    filterDescription: c.req.query('filter_description') || '',
-    filterOwner: c.req.query('filter_owner') || '',
-    filterVisibility: c.req.query('filter_visibility') || '',
-    filterCreatedAt: c.req.query('filter_createdAt') || '',
-    filterUpdatedAt: c.req.query('filter_updatedAt') || '',
-    forSale: c.req.query('forSale') || ''
+    filterName: c.req.query('filter_name'),
+    filterDescription: c.req.query('filter_description'),
+    filterOwner: c.req.query('filter_owner'),
+    filterVisibility: c.req.query('filter_visibility'),
+    filterCreatedAt: c.req.query('filter_createdAt'),
+    filterUpdatedAt: c.req.query('filter_updatedAt'),
+    forSale: c.req.query('forSale')
   }
 
   const result = await service.listTables(c, user, query)
@@ -201,7 +201,9 @@ tablesRoutes.post('/api/tables/:id/columns/mass-action', writeAuthMiddleware, as
   const body = await c.req.json()
 
   // Expected body format: { action: 'make_required' | 'make_optional' | 'delete', columnIds: string[] }
-  const result = await service.executeColumnMassAction(c, user, tableId, body.action, body.ids)
+  // Accept both 'ids' and 'columnIds' for backward compatibility
+  const columnIds = body.ids || body.columnIds
+  const result = await service.executeColumnMassAction(c, user, tableId, body.action, columnIds)
 
   return c.json(result.response, result.status as ContentfulStatusCode)
 })

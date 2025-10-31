@@ -33,7 +33,7 @@ export class TableRepository {
     pagination: { page: number; limit: number; offset: number },
     isAdmin: boolean = false
   ): Promise<{ tables: UserTable[]; totalCount: number }> {
-    const allowedSortColumns = ['name', 'description', 'createdBy', 'isPublic', 'forSale', 'createdAt', 'updatedAt']
+    const allowedSortColumns = ['name', 'description', 'createdBy', 'visibility', 'forSale', 'createdAt', 'updatedAt']
     // Note: rowCount sorting is not supported as it's computed after the query
     const safeSortColumn = validateSortColumn(sort.column, allowedSortColumns)
     const safeSortDirection = validateSortDirection(sort.direction)
@@ -42,7 +42,7 @@ export class TableRepository {
     const where: any = isAdmin ? {} : {
       OR: [
         { userId: userId },
-        { isPublic: true }
+        { visibility: { in: ['public', 'shared'] } }
       ]
     }
 
@@ -67,10 +67,9 @@ export class TableRepository {
       ]
     }
 
-    if (filters.visibility === 'true' || filters.visibility === 'Public') {
-      where.isPublic = true
-    } else if (filters.visibility === 'false' || filters.visibility === 'Private') {
-      where.isPublic = false
+    if (filters.visibility) {
+      // Filter by visibility column directly (values: 'private', 'public', 'shared')
+      where.visibility = filters.visibility.toLowerCase()
     }
 
     if (filters.createdAt) {

@@ -6,7 +6,7 @@ import { Table, TableWrapper } from '@/components/ui/table';
 import { IMassAction, IModel } from '@/types/models';
 import { IconFilter, IconPlus, IconTrash, IconX } from '@tabler/icons-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { formatDateForInput } from '@/lib/date-utils';
+import { formatDateForInput, parseDDMMYYYY } from '@/lib/date-utils';
 import { clientApiRequest } from '@/lib/client-api';
 import {
     DragState,
@@ -165,6 +165,8 @@ export function ModelList<T extends IModel>({
 
             if (column.editType === 'toggle' || column.filterType === 'select') {
                 initialData[columnKey] = 'false'; // Default for boolean fields
+            } else if (columnKey === 'type') {
+                initialData[columnKey] = 'text'; // Default column type to "text"
             } else {
                 initialData[columnKey] = column.editValidation?.required ? '' : '';
             }
@@ -248,10 +250,16 @@ export function ModelList<T extends IModel>({
             });
 
             if (response.ok) {
-                // Success - reload the page to show the new data
+                // Success - refresh data without page reload
                 console.log('New row created successfully');
                 cancelAddingNewRow();
-                window.location.reload(); // Simple approach to refresh the data
+
+                // Call the onEditSuccess callback if provided, otherwise reload
+                if (onEditSuccess) {
+                    await onEditSuccess();
+                } else {
+                    window.location.reload();
+                }
             } else {
                 const errorMessage = await extractErrorMessage(response);
                 setNewRowError(errorMessage);
@@ -670,6 +678,12 @@ export function ModelList<T extends IModel>({
                 } else if (column.editType === 'toggle') {
                     // Convert checkbox values to proper booleans
                     convertedValue = currentValue === '1' || currentValue === 'true' || (currentValue as any) === true;
+                } else if (column.filterType === 'date' && currentValue) {
+                    // Convert date from dd.mm.yyyy (display format) to yyyy-mm-dd (API format)
+                    const parsedDate = parseDDMMYYYY(currentValue);
+                    if (parsedDate) {
+                        convertedValue = formatDateForInput(parsedDate);
+                    }
                 }
 
                 console.log('🌐 About to make API request:', {
@@ -715,8 +729,29 @@ export function ModelList<T extends IModel>({
                         // Extract specific error message from backend response
                         try {
                             const errorData = await response.json();
-                            const errorMessage = (errorData as any)?.error || (errorData as any)?.message || 'Failed to save changes';
-                            setEditingError(errorMessage);
+
+                            // Check if there are detailed validation errors
+                            if ((errorData as any)?.details && Array.isArray((errorData as any).details)) {
+                                const details = (errorData as any).details as string[];
+
+                                // Try to find error for current column
+                                const currentColumnError = details.find((err: string) =>
+                                    err.toLowerCase().includes(`column '${editingCell.columnKey.toLowerCase()}'`)
+                                );
+
+                                if (currentColumnError) {
+                                    // Extract the error message after the column name
+                                    const match = currentColumnError.match(/Column '.*?':\s*(.+)/i);
+                                    setEditingError(match ? match[1] : currentColumnError);
+                                } else {
+                                    // Show the first error if current column not found
+                                    setEditingError(details[0] || 'Validation failed');
+                                }
+                            } else {
+                                // Fallback to generic error messages
+                                const errorMessage = (errorData as any)?.message || (errorData as any)?.error || 'Failed to save changes';
+                                setEditingError(errorMessage);
+                            }
                         } catch {
                             setEditingError('Failed to save changes');
                         }
@@ -896,7 +931,13 @@ export function ModelList<T extends IModel>({
                             </div>
                             {hasFilterableColumns && (
                                 <div className="flex items-center space-x-2">
-                                    <Button size="sm" onClick={() => setShowFilters(!showFilters)} icon={IconFilter}>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => setShowFilters(!showFilters)}
+                                        icon={IconFilter}
+                                        color={showFilters ? "primary" : undefined}
+                                        style={showFilters ? "default" : "ghost"}
+                                    >
                                         Filters
                                     </Button>
                                     {Object.keys(columnFilters).length > 0 && (
@@ -966,7 +1007,7 @@ export function ModelList<T extends IModel>({
                             </Table>
                         </TableWrapper>
 
-                        {items && (
+                        {items && items.data && items.data.length > 0 && (
                             <Pagination
                                 items={items}
                                 showPrevNext={true}
