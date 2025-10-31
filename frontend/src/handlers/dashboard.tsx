@@ -14,18 +14,18 @@ export async function handleDashboardPage(c: Context<{ Bindings: Env; Variables:
   const sort = c.req.query('sort') || 'createdAt'
   const direction = c.req.query('direction') || 'desc'
 
-  // Extract all filter parameters for For Sale Tables
-  const filterName = c.req.query('filterName')
-  const filterDescription = c.req.query('filterDescription')
-  const filterVisibility = c.req.query('filterVisibility')
-  const filterUpdatedAt = c.req.query('filterUpdatedAt')
+  // Extract all filter parameters for For Sale Tables (snake_case with filter_ prefix)
+  const filterName = c.req.query('filter_name')
+  const filterDescription = c.req.query('filter_description')
+  const filterVisibility = c.req.query('filter_visibility')
+  const filterUpdatedAt = c.req.query('filter_updatedAt')
 
   // Build additional parameters including all filters and forSale=true filter
   const additionalParams: Record<string, string> = { sort, direction, forSale: 'true' }
-  if (filterName) additionalParams.filterName = filterName
-  if (filterDescription) additionalParams.filterDescription = filterDescription
-  if (filterVisibility) additionalParams.filterVisibility = filterVisibility
-  if (filterUpdatedAt) additionalParams.filterUpdatedAt = filterUpdatedAt
+  if (filterName) additionalParams.filter_name = filterName
+  if (filterDescription) additionalParams.filter_description = filterDescription
+  if (filterVisibility) additionalParams.filter_visibility = filterVisibility
+  if (filterUpdatedAt) additionalParams.filter_updatedAt = filterUpdatedAt
 
   const tables = await fetchHandlerData(API_ENDPOINTS.tables, c, {
     page,

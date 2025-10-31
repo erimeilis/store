@@ -8,10 +8,43 @@ import { fetchHandlerData, renderDashboardPage, buildPageProps, API_ENDPOINTS } 
 
 export async function handleUsersPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
   const user = c.get('user')
-  const users = await fetchHandlerData(API_ENDPOINTS.users, c)
-  
-  const usersProps = buildPageProps(user, c, { users, currentUser: user })
-  
+
+  // Get pagination and filtering parameters
+  const page = parseInt(c.req.query('page') || '1')
+  const sort = c.req.query('sort') || 'createdAt'
+  const direction = c.req.query('direction') || 'desc'
+
+  // Extract all filter parameters (snake_case from frontend)
+  const filterEmail = c.req.query('filter_email')
+  const filterName = c.req.query('filter_name')
+  const filterRole = c.req.query('filter_role')
+  const filterCreatedAt = c.req.query('filter_createdAt')
+
+  // Build additional parameters including all filters (convert to camelCase for backend)
+  const additionalParams: Record<string, string> = { sort, direction }
+  if (filterEmail) additionalParams.filterEmail = filterEmail
+  if (filterName) additionalParams.filterName = filterName
+  if (filterRole) additionalParams.filterRole = filterRole
+  if (filterCreatedAt) additionalParams.filterCreatedAt = filterCreatedAt
+
+  const users = await fetchHandlerData(API_ENDPOINTS.users, c, {
+    page,
+    additionalParams
+  })
+
+  const usersProps = buildPageProps(user, c, {
+    users,
+    currentUser: user,
+    filters: {
+      sort,
+      direction,
+      filterEmail,
+      filterName,
+      filterRole,
+      filterCreatedAt
+    }
+  })
+
   return renderDashboardPage(c, '/dashboard/users', usersProps)
 }
 
