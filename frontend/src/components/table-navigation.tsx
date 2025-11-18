@@ -58,7 +58,7 @@ export function TableNavigation({tableId, activePage, className = ''}: TableNavi
                         key={button.key}
                         type="button"
                         size="sm"
-                        color={isActive ? 'primary' : 'neutral'}
+                        color={isActive ? 'primary' : 'info'}
                         style={isActive ? 'soft' : 'ghost'}
                         onClick={() => window.location.href = button.href}
                         className={isActive ? 'font-semibold' : ''}

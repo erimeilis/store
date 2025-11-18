@@ -179,7 +179,7 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
 
     if (isLoading) {
         return (
-            <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+            <div className="container mx-auto sm:p-4">
                 <div className="flex justify-center items-center h-64">
                     <span className="loading loading-spinner loading-lg"></span>
                 </div>
@@ -188,12 +188,13 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
     }
 
     return (
-        <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+        <div className="container mx-auto sm:p-4">
             <TablePageHeader
                 title="Edit Table"
                 subtitle="Update table information and access settings"
                 tableId={tableId || ''}
                 activePage="edit"
+                tableName={currentSchema?.table.name || formData.name}
             />
 
             {errors.general && (

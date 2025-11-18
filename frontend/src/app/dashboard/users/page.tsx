@@ -145,6 +145,8 @@ export default function UsersPage({
     deleteRoute: isAdmin ? (id: string | number) => `/api/users/${id}` : () => "",
     inlineEditRoute: isAdmin ? (id: string | number) => `/api/users/${id}` : () => "",
     massActionRoute: isAdmin ? "/api/users/mass-action" : "",
+    dataEndpoint: "/api/users", // Enable client-side data fetching for filters/sorting
+    compactPagination: true,
     ...(isAdmin && { massActions: userMassActions })
   };
 

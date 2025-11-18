@@ -79,7 +79,7 @@ export async function listTableData(
 
     return createSuccessResponse({
       data,
-      pagination,
+      ...pagination,
       _meta: {
         table: tableInfo,
         columns: tableColumns
