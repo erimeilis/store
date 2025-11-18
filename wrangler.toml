@@ -25,6 +25,7 @@ head_sampling_rate = 1
 NODE_ENV = "production"
 API_URL = "https://store-crud-api.eri-42e.workers.dev"
 ALLOWED_ORIGINS = "https://store-crud-front.eri-42e.workers.dev,https://store-crud-api.eri-42e.workers.dev"
+PAGE_SIZE = "20"
 
 # Local Environment (uses local D1 in .wrangler/state/)
 [env.local]
@@ -47,6 +48,7 @@ id = "1ddafd825d9a49828b814d0ac7ebe0d0"
 NODE_ENV = "development"
 API_URL = "http://localhost:8787"
 ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:8787"
+PAGE_SIZE = "5"
 
 # Preview Environment (uses remote preview D1 on Cloudflare)
 [env.preview]
@@ -71,6 +73,7 @@ experimental_remote = true
 NODE_ENV = "development"
 API_URL = "http://localhost:8787"
 ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:8787"
+PAGE_SIZE = "10"
 
 [env.preview.observability]
 enabled = true
@@ -96,6 +99,7 @@ id = "faf63b06f0cf4d5c969166dda943cf36"
 NODE_ENV = "production"
 API_URL = "https://store-crud-api.eri-42e.workers.dev"
 ALLOWED_ORIGINS = "https://store-crud-front.eri-42e.workers.dev,https://store-crud-api.eri-42e.workers.dev"
+PAGE_SIZE = "20"
 
 [env.production.observability]
 enabled = true
