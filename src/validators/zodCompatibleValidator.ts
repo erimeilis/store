@@ -282,12 +282,21 @@ export class ZodCompatibleValidator {
 
   /**
    * Extract filters from query parameters
+   * Supports both camelCase (filterColumnName) and underscore (filter_column_name) formats
    */
   extractFilters(queryParams: URLSearchParams): { [key: string]: string } {
     const filters: { [key: string]: string } = {}
 
     for (const [key, value] of queryParams.entries()) {
-      if (key.startsWith('filter_') && value.trim()) {
+      // Handle camelCase format: filterColumnName -> columnName
+      if (key.startsWith('filter') && key !== 'filter' && value.trim()) {
+        // Remove 'filter' prefix and lowercase the first letter
+        // filterLikes -> likes, filterType -> type
+        const columnName = key.charAt(6).toLowerCase() + key.slice(7)
+        filters[columnName] = value.trim()
+      }
+      // Also support legacy underscore format for backward compatibility
+      else if (key.startsWith('filter_') && value.trim()) {
         const columnName = key.replace('filter_', '')
         filters[columnName] = value.trim()
       }

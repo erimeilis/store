@@ -28,6 +28,7 @@ export async function listTables(
     if (query.filterVisibility !== undefined) filters.visibility = query.filterVisibility
     if (query.filterCreatedAt !== undefined) filters.createdAt = query.filterCreatedAt
     if (query.filterUpdatedAt !== undefined) filters.updatedAt = query.filterUpdatedAt
+    if (query.filterForSale !== undefined) filters.forSale = query.filterForSale
     if (query.forSale !== undefined) filters.forSale = query.forSale
 
     const sort: TableSort = {
@@ -52,8 +53,8 @@ export async function listTables(
     const paginationInfo = buildPaginationInfo(page, limit, totalCount)
 
     return createSuccessResponse({
-      tables,
-      pagination: paginationInfo
+      data: tables,
+      ...paginationInfo
     })
   } catch (error) {
     return createErrorResponse(

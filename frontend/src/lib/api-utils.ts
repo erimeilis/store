@@ -24,10 +24,12 @@ function generatePaginationLinks(currentPage: number, totalPages: number) {
 
 /**
  * Transform standardized backend response to frontend PaginatedResponse format
- * Now handles the unified format: { data/tables/items, pagination, _meta? }
+ * Handles two formats:
+ * 1. Current format: { data/tables/items, currentPage, lastPage, perPage, total, ... } (fields at root)
+ * 2. Legacy format: { data/tables/items, pagination: { page, limit, total, totalPages, ... } }
  */
 export function transformPaginatedResponse<T>(backendResponse: any, itemTransformer?: (item: any) => T): PaginatedResponse<T> | null {
-  if (!backendResponse?.pagination) return null
+  if (!backendResponse) return null
 
   // Extract data array from different possible field names
   let dataArray: any[] = []
@@ -44,23 +46,45 @@ export function transformPaginatedResponse<T>(backendResponse: any, itemTransfor
   // Transform items if transformer provided
   const items = itemTransformer ? dataArray.map(itemTransformer) : dataArray
 
-  // Extract pagination info
-  const { pagination } = backendResponse
-  const { page, limit, total, totalPages, hasNextPage, hasPrevPage } = pagination
+  let result: any
 
-  // Build standardized frontend response
-  const result: any = {
-    data: items,
-    currentPage: page,
-    lastPage: totalPages,
-    perPage: limit,
-    total: total,
-    from: total > 0 ? (page - 1) * limit + 1 : null,
-    to: total > 0 ? Math.min(page * limit, total) : null,
-    links: generatePaginationLinks(page, totalPages),
-    prevPageUrl: hasPrevPage ? `?page=${page - 1}` : null,
-    nextPageUrl: hasNextPage ? `?page=${page + 1}` : null,
-    lastPageUrl: totalPages > 1 ? `?page=${totalPages}` : null
+  // Check if response has pagination fields at root level (current backend format)
+  if (backendResponse.currentPage !== undefined && backendResponse.lastPage !== undefined) {
+    // Current format - pagination fields at root
+    result = {
+      data: items,
+      currentPage: backendResponse.currentPage,
+      lastPage: backendResponse.lastPage,
+      perPage: backendResponse.perPage,
+      total: backendResponse.total,
+      from: backendResponse.from,
+      to: backendResponse.to,
+      links: backendResponse.links || generatePaginationLinks(backendResponse.currentPage, backendResponse.lastPage),
+      prevPageUrl: backendResponse.prevPageUrl,
+      nextPageUrl: backendResponse.nextPageUrl,
+      lastPageUrl: backendResponse.lastPageUrl
+    }
+  } else if (backendResponse.pagination) {
+    // Legacy format - pagination object
+    const { pagination } = backendResponse
+    const { page, limit, total, totalPages, hasNextPage, hasPrevPage } = pagination
+
+    result = {
+      data: items,
+      currentPage: page,
+      lastPage: totalPages,
+      perPage: limit,
+      total: total,
+      from: total > 0 ? (page - 1) * limit + 1 : null,
+      to: total > 0 ? Math.min(page * limit, total) : null,
+      links: generatePaginationLinks(page, totalPages),
+      prevPageUrl: hasPrevPage ? `?page=${page - 1}` : null,
+      nextPageUrl: hasNextPage ? `?page=${page + 1}` : null,
+      lastPageUrl: totalPages > 1 ? `?page=${totalPages}` : null
+    }
+  } else {
+    // No pagination info found
+    return null
   }
 
   // Preserve _meta field for table data responses (contains column definitions)

@@ -344,7 +344,9 @@ export function TableList({
     editRoute: (id: string | number) => `/dashboard/tables/${id}/edit`,
     deleteRoute: (id: string | number) => `/api/tables/${id}`,
     inlineEditRoute: (id: string | number) => `/api/tables/${id}`,
-    rowActions: getRowActions()
+    dataEndpoint: '/api/tables',
+    rowActions: getRowActions(),
+    compactPagination: true
   }
 
   return (

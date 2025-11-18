@@ -7,6 +7,7 @@
 
 import React from 'react'
 import { TableNavigation } from '@/components/table-navigation'
+import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 
 interface TablePageHeaderProps {
     title: string
@@ -14,6 +15,7 @@ interface TablePageHeaderProps {
     description?: string
     tableId: string
     activePage: 'edit' | 'columns' | 'data' | 'import'
+    tableName?: string
 }
 
 export function TablePageHeader({
@@ -21,10 +23,41 @@ export function TablePageHeader({
     subtitle,
     description,
     tableId,
-    activePage
+    activePage,
+    tableName
 }: TablePageHeaderProps) {
+    // Generate breadcrumb items based on active page
+    const getBreadcrumbLabel = () => {
+        switch (activePage) {
+            case 'edit': return 'Edit Table'
+            case 'columns': return 'Columns'
+            case 'data': return 'Data'
+            case 'import': return 'Import'
+            default: return title
+        }
+    }
+
     return (
         <div className="mb-4 sm:mb-6">
+            {/* Breadcrumbs */}
+            <Breadcrumbs
+                className="mb-2"
+                items={[
+                    {
+                        label: 'Dynamic Tables',
+                        href: '/dashboard/tables'
+                    },
+                    ...(tableName ? [{
+                        label: tableName,
+                        href: `/dashboard/tables/${tableId}/data`
+                    }] : []),
+                    {
+                        label: getBreadcrumbLabel(),
+                        current: true
+                    }
+                ]}
+            />
+
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-4">
                 <div className="min-w-0 flex-1">
                     <h1 className="text-2xl sm:text-3xl font-bold text-base-content">

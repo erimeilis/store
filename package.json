@@ -36,14 +36,14 @@
     "@hono/zod-openapi": "^1.1.0",
     "@hono/zod-validator": "^0.7.2",
     "@iarna/toml": "^2.2.5",
-    "@prisma/adapter-d1": "^6.15.0",
-    "@prisma/client": "^6.18.0",
-    "@types/react": "^19.1.11",
-    "@types/react-dom": "^19.1.8",
+    "@prisma/adapter-d1": "^6.19.0",
+    "@prisma/client": "^6.19.0",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
     "country-data-list": "^1.5.5",
-    "hono": "^4.9.4",
+    "hono": "^4.10.6",
     "playwright": "^1.55.0",
-    "prisma": "^6.18.0",
+    "prisma": "^6.19.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "toml": "^3.0.0",
@@ -51,13 +51,13 @@
     "zod": "^4.1.9"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250823.0",
+    "@cloudflare/workers-types": "^4.20251117.0",
     "@faker-js/faker": "^10.0.0",
-    "@types/node": "^24.3.0",
-    "@types/three": "^0.180.0",
+    "@types/node": "^24.10.1",
+    "@types/three": "^0.181.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4",
-    "wrangler": "^4.45.0"
+    "wrangler": "^4.47.0"
   }
 }

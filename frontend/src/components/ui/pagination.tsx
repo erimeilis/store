@@ -11,6 +11,8 @@ export interface PaginationProps<T extends IModel> {
     maxVisiblePages?: number
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
     className?: string
+    onPageChange?: (page: number) => void
+    compact?: boolean
 }
 
 export function Pagination<T extends IModel>({
@@ -20,12 +22,19 @@ export function Pagination<T extends IModel>({
                                                  maxVisiblePages = 7,
                                                  size = 'sm',
                                                  className,
+                                                 onPageChange,
+                                                 compact = false,
                                              }: PaginationProps<T>) {
     const [showInput, setShowInput] = useState(false)
     const debounceRef = useRef<NodeJS.Timeout | null>(null)
     const inputRef = useRef<HTMLInputElement>(null)
 
     const {currentPage, lastPage, links, prevPageUrl, nextPageUrl} = items
+
+    // Only show pagination if there's more than one page
+    if (!lastPage || lastPage <= 1) {
+        return null
+    }
 
     // Reset input value when currentPage changes (after navigation)
     useEffect(() => {
@@ -46,12 +55,16 @@ export function Pagination<T extends IModel>({
     const submitPageInput = useCallback((inputValue: string) => {
         const page = parseInt(inputValue)
         if (page && page >= 1 && page <= lastPage && page !== currentPage) {
-            const url = new URL(window.location.href)
-            url.searchParams.set('page', page.toString())
-            window.location.href = url.toString()
+            if (onPageChange) {
+                onPageChange(page)
+            } else {
+                const url = new URL(window.location.href)
+                url.searchParams.set('page', page.toString())
+                window.location.href = url.toString()
+            }
         }
         setShowInput(false)
-    }, [currentPage, lastPage])
+    }, [currentPage, lastPage, onPageChange])
 
     const handlePageInputSubmit = (e: React.FormEvent) => {
         e.preventDefault()
@@ -101,7 +114,15 @@ export function Pagination<T extends IModel>({
     }
 
     const handlePageClick = (url: string) => {
-        window.location.href = url
+        if (onPageChange) {
+            // Extract page number from URL
+            const urlObj = new URL(url, window.location.origin)
+            const pageParam = urlObj.searchParams.get('page')
+            const page = pageParam ? parseInt(pageParam) : 1
+            onPageChange(page)
+        } else {
+            window.location.href = url
+        }
     }
 
     // Generate visible page numbers with ellipsis logic
@@ -192,7 +213,12 @@ export function Pagination<T extends IModel>({
     return (
         <div className={`mt-4 flex flex-col sm:flex-row items-center justify-between ${className}`}>
             <div className="flex flex-row items-center text-muted-foreground text-sm">
-                <div>Showing {items.from} to {items.to} of {items.total} entries</div>
+                <div>
+                    {compact
+                        ? `${items.from} – ${items.to} of ${items.total}`
+                        : `Showing ${items.from} to ${items.to} of ${items.total} entries`
+                    }
+                </div>
                 {/* Page input - only show if there's more than one page */}
                 {lastPage > 1 && (
                     <div className={`flex items-center gap-2 ml-4 ${showPageInput ? '' : 'md:hidden'}`}>

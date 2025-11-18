@@ -435,6 +435,8 @@ export default function InventoryPage({transactions, filters, stockAlerts}: Inve
                 deleteRoute={() => '#'} // No individual delete for audit trail
                 massActionRoute=""
                 massActions={[]}
+                dataEndpoint="/api/sales/inventory"
+                compactPagination={true}
             />
 
             {/* Clear All Confirmation Modal */}

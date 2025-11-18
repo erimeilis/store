@@ -132,6 +132,8 @@ export default function AllowedEmailsPage({
       deleteRoute={(id) => `/api/allowed-emails/${id}`}
       massActionRoute="/api/allowed-emails/mass-action"
       massActions={allowedEmailMassActions}
+      dataEndpoint="/api/allowed-emails"
+      compactPagination={true}
     />
   );
 }

@@ -7,13 +7,14 @@ export interface ListTablesQuery {
     limit?: number
     sort?: string
     direction?: string
-    filterName?: string
-    filterDescription?: string
-    filterOwner?: string
-    filterVisibility?: string
-    filterCreatedAt?: string
-    filterUpdatedAt?: string
-    forSale?: string
+    filterName?: string | undefined
+    filterDescription?: string | undefined
+    filterOwner?: string | undefined
+    filterVisibility?: string | undefined
+    filterCreatedAt?: string | undefined
+    filterUpdatedAt?: string | undefined
+    filterForSale?: string | undefined
+    forSale?: string | undefined
 }
 
 export interface TableFilters {
@@ -62,6 +63,7 @@ export interface AddColumnRequest {
     name: string
     type: string
     isRequired?: boolean | string
+    allowDuplicates?: boolean | string
     defaultValue?: string | null
     position?: number
 }

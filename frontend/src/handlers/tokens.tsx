@@ -24,7 +24,18 @@ export async function handleCreateTokenPage(c: Context<{ Bindings: Env; Variable
     additionalParams: { sort: 'name', direction: 'asc' }
   })
 
+  console.log('🔍 handleCreateTokenPage - Fetched tables:', {
+    hasTables: !!tables,
+    tableCount: tables?.data?.length || 0,
+    total: (tables as any)?.total || 0
+  })
+
   const createTokenProps = buildPageProps(user, c, { tables })
+
+  console.log('🔍 handleCreateTokenPage - Final props:', {
+    hasTablesInProps: !!createTokenProps.tables,
+    propsKeys: Object.keys(createTokenProps)
+  })
 
   return renderDashboardPage(c, '/dashboard/tokens/create', createTokenProps)
 }

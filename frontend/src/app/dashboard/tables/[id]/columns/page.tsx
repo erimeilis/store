@@ -413,7 +413,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
 
     if (isLoading) {
         return (
-            <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+            <div className="container mx-auto sm:p-4">
                 <div className="flex justify-center items-center h-64">
                     <span className="loading loading-spinner loading-lg"></span>
                 </div>
@@ -423,7 +423,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
 
     if (error) {
         return (
-            <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+            <div className="container mx-auto sm:p-4">
                 <Alert color="error">
                     {error}
                 </Alert>
@@ -433,7 +433,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
 
     if (!schema) {
         return (
-            <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+            <div className="container mx-auto sm:p-4">
                 <Alert color="error">
                     Failed to load table schema. Please try again.
                 </Alert>
@@ -442,41 +442,44 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
     }
 
     return (
-        <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+        <div className="container mx-auto sm:p-4">
             <TablePageHeader
                 title="Edit Columns"
                 subtitle={<>Column structure for <strong className="truncate">{schema.table.name}</strong></>}
                 description={schema.table.description || undefined}
                 tableId={tableId || ''}
                 activePage="columns"
+                tableName={schema.table.name}
             />
 
             <ModelList<ColumnModel>
-            title="Column Management"
-            items={columnsData}
-            columns={columnDefinitions}
-            massActions={massActions}
-            rowActions={rowActions}
-            createRoute={undefined}
-            editRoute={() => '#'}
-            deleteRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
-            inlineEditRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
-            massActionRoute={`/api/tables/${tableId}/columns/mass-action`}
-            onEditSuccess={reloadTableDataSilently}
-            orderingConfig={{
-                enabled: true,
-                swapEndpoint: `/api/tables/${tableId}/columns/swap`,
-                positionField: 'position',
-                idField: 'id',
-                recountEndpoint: `/api/tables/${tableId}/columns/recount`,
-                recountDelay: 2000,
-                onReorder: reloadTableDataSilently
-            }}
-            filters={{
-                sort: 'position',
-                direction: 'asc'
-            }}
-        />
+                title="Column Management"
+                items={columnsData}
+                columns={columnDefinitions}
+                massActions={massActions}
+                rowActions={rowActions}
+                createRoute={undefined}
+                editRoute={() => '#'}
+                deleteRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
+                inlineEditRoute={(id) => `/api/tables/${tableId}/columns/${id}`}
+                massActionRoute={`/api/tables/${tableId}/columns/mass-action`}
+                onEditSuccess={reloadTableDataSilently}
+                orderingConfig={{
+                    enabled: true,
+                    swapEndpoint: `/api/tables/${tableId}/columns/swap`,
+                    positionField: 'position',
+                    idField: 'id',
+                    recountEndpoint: `/api/tables/${tableId}/columns/recount`,
+                    recountDelay: 2000,
+                    onReorder: reloadTableDataSilently
+                }}
+                filters={{
+                    sort: 'position',
+                    direction: 'asc'
+                }}
+                dataEndpoint={`/api/tables/${tableId}/columns`}
+                compactPagination={true}
+            />
         </div>
     )
 }

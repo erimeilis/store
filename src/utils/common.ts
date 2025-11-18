@@ -85,17 +85,50 @@ export function sanitizeForSQL(value: string): string {
 }
 
 /**
- * Build pagination info
+ * Build pagination info in Laravel-style format for frontend compatibility
  */
 export function buildPaginationInfo(page: number, limit: number, totalCount: number) {
   const totalPages = Math.ceil(totalCount / limit)
+  const from = totalCount > 0 ? (page - 1) * limit + 1 : null
+  const to = totalCount > 0 ? Math.min(page * limit, totalCount) : null
+
+  // Build links array for pagination buttons
+  const links = []
+
+  // Previous link
+  links.push({
+    url: page > 1 ? `?page=${page - 1}` : null,
+    label: '&laquo; Previous',
+    active: false
+  })
+
+  // Page number links
+  for (let i = 1; i <= totalPages; i++) {
+    links.push({
+      url: `?page=${i}`,
+      label: i.toString(),
+      active: i === page
+    })
+  }
+
+  // Next link
+  links.push({
+    url: page < totalPages ? `?page=${page + 1}` : null,
+    label: 'Next &raquo;',
+    active: false
+  })
+
   return {
-    page,
-    limit,
+    currentPage: page,
+    lastPage: totalPages,
+    perPage: limit,
     total: totalCount,
-    totalPages,
-    hasNextPage: page < totalPages,
-    hasPrevPage: page > 1
+    from,
+    to,
+    links,
+    prevPageUrl: page > 1 ? `?page=${page - 1}` : null,
+    nextPageUrl: page < totalPages ? `?page=${page + 1}` : null,
+    lastPageUrl: totalPages > 0 ? `?page=${totalPages}` : null
   }
 }
 
