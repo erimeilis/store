@@ -79,7 +79,8 @@ export async function handleTableDataPage(c: Context<{ Bindings: Env; Variables:
   
   // Get pagination parameters
   const page = parseInt(c.req.query('page') || '1')
-  const limit = parseInt(c.req.query('limit') || c.env?.PAGE_SIZE || '5')
+  const limitParam = c.req.query('limit')
+  const limit = limitParam ? parseInt(limitParam) : undefined
 
   // Get sort parameters
   const sort = c.req.query('sort')

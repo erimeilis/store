@@ -10,6 +10,7 @@ export type Bindings = {
   API_URL?: string
   AUTH_BASE_URL?: string
   ALLOWED_ORIGINS?: string
+  PAGE_SIZE?: string
   
   // Authentication tokens
   ADMIN_ACCESS_TOKEN?: string

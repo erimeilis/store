@@ -16,7 +16,6 @@ id = "faf63b06f0cf4d5c969166dda943cf36"
 [vars]
 API_URL = "https://store-crud-api.eri-42e.workers.dev"
 GOOGLE_REDIRECT_URI = "https://store-crud-front.eri-42e.workers.dev/auth/callback/google"
-PAGE_SIZE = "20"
 
 [observability]
 enabled = true
@@ -32,7 +31,6 @@ id = "19954278d76c49cd9e431ba514b700b6"
 [env.dev.vars]
 API_URL = "http://localhost:8787"
 GOOGLE_REDIRECT_URI = "http://localhost:5173/auth/callback/google"
-PAGE_SIZE = "5"
 
 # Preview Environment (remote KV)
 [env.preview]
@@ -45,4 +43,3 @@ preview_id = "19954278d76c49cd9e431ba514b700b6"
 [env.preview.vars]
 API_URL = "http://localhost:8787"
 GOOGLE_REDIRECT_URI = "http://localhost:5173/auth/callback/google"
-PAGE_SIZE = "10"

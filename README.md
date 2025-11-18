@@ -21,6 +21,7 @@ npm run dev:fullstack
 ```
 
 **URLs:**
+
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8787
 
@@ -38,12 +39,14 @@ Store/
 ## 🧑‍💻 Development
 
 **Start development servers:**
+
 ```bash
 npm run dev:fullstack          # Local D1 + frontend
 npm run dev:fullstack:remote   # Remote preview D1 + frontend
 ```
 
 **Database commands:**
+
 ```bash
 npm run db:seed       # Add 205 test items
 npm run db:studio     # Visual database browser
@@ -51,6 +54,7 @@ npm run db:migrate    # Apply schema changes
 ```
 
 **Testing:**
+
 ```bash
 npm run test          # Backend tests
 npm run build         # TypeScript check
@@ -65,6 +69,7 @@ npm run deploy:frontend     # Frontend only
 ```
 
 **Set production secrets:**
+
 ```bash
 cd frontend
 wrangler secret put GOOGLE_CLIENT_ID --env production
@@ -89,6 +94,7 @@ node scripts/db-reset-production.js # Reset production D1 + seed 200 items (DANG
 ```
 
 ### Individual Seeding (without reset)
+
 ```bash
 # Note: Local D1 starts empty and doesn't need seeding
 # Items and tokens are created as needed during development
@@ -97,6 +103,7 @@ npx tsx scripts/seed-production.sql # Seed production D1 with 200 items
 ```
 
 ### Schema Management
+
 ```bash
 npm run db:migrate           # Apply new migrations to local
 npm run db:studio           # Visual database browser
@@ -104,6 +111,7 @@ npm run db:generate         # Generate Prisma client
 ```
 
 ### View Database Content
+
 ```bash
 # Local D1 database (wrangler manages local state)
 wrangler d1 execute store-database-preview --env dev --command="SELECT COUNT(*) FROM items;"
@@ -115,8 +123,9 @@ wrangler d1 execute store-database --env production --remote --command="SELECT C
 ```
 
 ### Database Reset Safety
+
 - **Local D1:** Safe to reset anytime (seeded with 10 test items)
-- **Preview D1:** Safe to reset (test data, used for staging)  
+- **Preview D1:** Safe to reset (test data, used for staging)
 - **Production D1:** ⚠️ REQUIRES EXPLICIT CONFIRMATION - will delete all real data!
 
 The production reset script requires typing "DELETE PRODUCTION DATA" exactly to proceed.
@@ -137,7 +146,7 @@ curl -H "Authorization: Bearer 35890e45a5122de41a406cdaa290e711404c1292205b6ad4a
 ## 🌐 API Endpoints
 
 - `GET /api/items` - List all items
-- `POST /api/items` - Create item  
+- `POST /api/items` - Create item
 - `PUT /api/items/:id` - Update item
 - `DELETE /api/items/:id` - Delete item
 - `GET /health` - Health check
@@ -145,7 +154,7 @@ curl -H "Authorization: Bearer 35890e45a5122de41a406cdaa290e711404c1292205b6ad4a
 ## 📚 Documentation
 
 - **[Development Guide](docs/DEVELOPMENT.md)** - Setup, testing, troubleshooting
-- **[API Reference](docs/API.md)** - Complete API documentation  
+- **[API Reference](docs/API.md)** - Complete API documentation
 - **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Production deployment
 - **[Environment Setup](docs/ENVIRONMENTS.md)** - Multi-environment configuration
 - **[Token Security](docs/TOKEN_SECURITY.md)** - Authentication system
@@ -153,15 +162,18 @@ curl -H "Authorization: Bearer 35890e45a5122de41a406cdaa290e711404c1292205b6ad4a
 ## 🛠️ Scripts
 
 **Development:**
+
 - `npm run dev:fullstack` - Start both servers
 - `npm run dev:fullstack:remote` - Use remote D1 database
 
 **Database:**
+
 - `npm run db:seed` - Add test data (205 items)
 - `npm run db:studio` - Visual database browser
 - `npm run db:migrate` - Apply schema changes
 
 **Deployment:**
+
 - `npm run deploy:fullstack` - Deploy everything
 - `npm run deploy:backend` - Backend only
 - `npm run deploy:frontend` - Frontend only
@@ -169,17 +181,25 @@ curl -H "Authorization: Bearer 35890e45a5122de41a406cdaa290e711404c1292205b6ad4a
 ## 🔧 Troubleshooting
 
 **Port conflicts:**
+
 ```bash
 lsof -ti:8787 | xargs kill -9  # Backend
 lsof -ti:5173 | xargs kill -9  # Frontend
 ```
 
 **Database issues:**
+
 ```bash
 wrangler d1 list              # List D1 databases
 npm run db:push               # Sync schema
 ```
 
+---
+
 ## 📄 License
 
-MIT License - see LICENSE file for details
+MIT License - see [LICENSE](LICENSE) file for details.
+
+---
+
+**Made with 💙💛 using Hono, React, and Cloudflare Workers**

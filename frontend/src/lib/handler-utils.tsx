@@ -22,7 +22,6 @@ export async function fetchHandlerData<T = PaginatedResponse<any>>(
   c: Context<{ Bindings: Env; Variables: Variables }>,
   options: {
     limit?: number
-    offset?: number
     page?: number
     additionalParams?: Record<string, string>
     transformer?: (item: any) => any
@@ -31,24 +30,24 @@ export async function fetchHandlerData<T = PaginatedResponse<any>>(
   try {
     const apiUrl = c.env?.API_URL || 'http://localhost:8787'
     const { fetchAPI, transformPaginatedResponse } = await import('./api-utils.js')
-    
-    // Get limit from environment or use default
-    const defaultLimit = parseInt(c.env?.PAGE_SIZE || '20')
-    
-    const { 
-      limit = defaultLimit, 
-      offset = PAGINATION_CONFIG.DEFAULT_OFFSET,
+
+    const {
+      limit,
       page,
       additionalParams = {},
       transformer
     } = options
-    
-    // Build query parameters
+
+    // Build query parameters - let backend control PAGE_SIZE
     const params = new URLSearchParams({
-      limit: limit.toString(),
-      page: (page || Math.floor(offset / limit) + 1).toString(),
+      page: (page || 1).toString(),
       ...additionalParams
     })
+
+    // Only add limit if explicitly provided (e.g., for dropdown lists)
+    if (limit) {
+      params.set('limit', limit.toString())
+    }
     
     const finalUrl = `${apiUrl}${endpoint}?${params.toString()}`
     console.log('🔍 fetchHandlerData - Building request:', {

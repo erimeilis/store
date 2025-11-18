@@ -354,15 +354,15 @@ export function TableList({
       {/* Admin Controls Section */}
       {isAdmin && (
         <div className="mb-4 p-4 bg-warning/10 border border-warning rounded-lg">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2">
-              <IconWand className="h-5 w-5 text-warning" />
+              <IconWand className="h-5 w-5 text-warning flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-warning">Admin Tools</h3>
-                <p className="text-sm text-gray-600">Generate test data for development and testing</p>
+                <p className="text-sm text-gray-600 hidden sm:block">Generate test data for development and testing</p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setShowForSaleConfirmModal(true)}
                 disabled={isGeneratingForSale || isGenerating}
