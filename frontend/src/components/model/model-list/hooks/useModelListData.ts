@@ -56,16 +56,16 @@ export function useModelListData<T extends IModel>({
                 // Some APIs return { data: [], pagination: {} }, others return flat { data: [], total: number, ... }
                 const transformedResult: IPaginatedResponse<T> = result.pagination ? {
                     data: result.data,
-                    currentPage: result.pagination.currentPage || 1,
-                    lastPage: result.pagination.lastPage || 1,
-                    perPage: result.pagination.perPage || 10,
-                    total: result.pagination.total || 0,
-                    from: result.pagination.from || null,
-                    to: result.pagination.to || null,
-                    links: result.pagination.links || [],
-                    prevPageUrl: result.pagination.prevPageUrl || null,
-                    nextPageUrl: result.pagination.nextPageUrl || null,
-                    lastPageUrl: result.pagination.lastPageUrl || null
+                    currentPage: result.pagination.currentPage ?? 1,
+                    lastPage: result.pagination.lastPage ?? 1,
+                    perPage: result.pagination.perPage ?? items?.perPage ?? 10,
+                    total: result.pagination.total ?? 0,
+                    from: result.pagination.from ?? null,
+                    to: result.pagination.to ?? null,
+                    links: result.pagination.links ?? [],
+                    prevPageUrl: result.pagination.prevPageUrl ?? null,
+                    nextPageUrl: result.pagination.nextPageUrl ?? null,
+                    lastPageUrl: result.pagination.lastPageUrl ?? null
                 } : result as IPaginatedResponse<T>
 
                 setClientData(transformedResult)
