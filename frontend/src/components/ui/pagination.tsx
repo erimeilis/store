@@ -335,7 +335,7 @@ export function Pagination<T extends IModel>({
                                     behaviour={isActive ? 'active' : 'default'}
                                     className="join-item"
                                     onClick={() => pageLink?.url && handlePageClick(pageLink.url)}
-                                    disabled={!pageLink?.url}
+                                    disabled={isActive || !pageLink?.url}
                                 >
                                     {pageNumber}
                                 </Button>
