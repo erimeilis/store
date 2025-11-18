@@ -268,7 +268,7 @@ export default function TableDataEditPage({
 
     if (isLoading) {
         return (
-            <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+            <div className="container mx-auto sm:p-4">
                 <div className="flex justify-center items-center h-64">
                     <span className="loading loading-spinner loading-lg"></span>
                 </div>
@@ -278,7 +278,7 @@ export default function TableDataEditPage({
 
     if (!tableSchema || !rowData) {
         return (
-            <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+            <div className="container mx-auto sm:p-4">
                 <Alert color="error">
                     Failed to load table data. Please try again.
                 </Alert>
@@ -287,7 +287,7 @@ export default function TableDataEditPage({
     }
 
     return (
-        <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
+        <div className="container mx-auto sm:p-4">
             {/* Header */}
             <div className="mb-6">
                 <Breadcrumbs
@@ -328,7 +328,7 @@ export default function TableDataEditPage({
                         {tableSchema.columns.map((column) => (
                             <div key={column.id}>
                                 {renderField(column)}
-                                <InputError message={errors[column.name]} />
+                                <InputError message={errors[column.name]}/>
                                 {column.default_value && (
                                     <p className="text-gray-500 text-xs mt-1">
                                         Default: {column.default_value}

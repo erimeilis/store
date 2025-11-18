@@ -241,6 +241,8 @@ export default function SalesPage({ sales, filters }: SalesPageProps) {
         deleteRoute={(id) => `/api/sales/${id}`}
         massActionRoute="/api/sales/mass-action"
         massActions={salesMassActions}
+        dataEndpoint="/api/sales"
+        compactPagination={true}
       />
     </div>
   );

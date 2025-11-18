@@ -32,7 +32,8 @@ export function ModelEdit<T extends IModel>({
     renderForm,
     additionalActions,
 }: ModelEditComponentProps<T>) {
-    const isNew = !item;
+    // Determine if this is a new item based on method (post = create, put/patch = update)
+    const isNew = method === 'post';
     const initialData = item || ({} as T);
 
     const [data, setDataState] = useState<T>(initialData);
@@ -231,7 +232,7 @@ export function ModelEdit<T extends IModel>({
                                         success={success}
                                         fail={submitFailed}
                                     >
-                                        {isNew ? 'Create token' : 'Update token'}
+                                        {isNew ? `Create ${title.toLowerCase()}` : `Update ${title.toLowerCase()}`}
                                     </Button>
                                 </CardActions>
                             )}

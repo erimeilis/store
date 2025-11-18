@@ -31,12 +31,13 @@ tablesRoutes.get('/api/tables', readAuthMiddleware, async (c) => {
     limit: parseInt(c.req.query('limit') || '10', 10),
     sort: c.req.query('sort') || 'updatedAt',
     direction: c.req.query('direction') || 'desc',
-    filterName: c.req.query('filter_name'),
-    filterDescription: c.req.query('filter_description'),
-    filterOwner: c.req.query('filter_owner'),
-    filterVisibility: c.req.query('filter_visibility'),
-    filterCreatedAt: c.req.query('filter_createdAt'),
-    filterUpdatedAt: c.req.query('filter_updatedAt'),
+    filterName: c.req.query('filterName'),
+    filterDescription: c.req.query('filterDescription'),
+    filterOwner: c.req.query('filterCreatedBy'),
+    filterVisibility: c.req.query('filterVisibility'),
+    filterCreatedAt: c.req.query('filterCreatedAt'),
+    filterUpdatedAt: c.req.query('filterUpdatedAt'),
+    filterForSale: c.req.query('filterForSale'),
     forSale: c.req.query('forSale')
   }
 
