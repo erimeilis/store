@@ -118,7 +118,7 @@ function AddNewRowComponent<T extends IModel>({
                         required={column.editValidation?.required}
                     />
                 );
-            case 'toggle':
+            case 'toggle': {
                 const isChecked = value === 'true' || value === '1' || String(value) === 'true';
                 return (
                     <div className="flex items-center justify-center">
@@ -128,13 +128,13 @@ function AddNewRowComponent<T extends IModel>({
                             checked={isChecked}
                             onChange={(e) => {
                                 const newValue = e.target.checked ? 'true' : 'false';
-                                console.log('🔄 Toggle changed:', { columnKey, wasChecked: isChecked, nowChecked: e.target.checked, newValue });
                                 handleInputChange(columnKey, newValue);
                             }}
                             disabled={isSavingNewRow}
                         />
                     </div>
                 );
+            }
             case 'select':
                 return (
                     <select

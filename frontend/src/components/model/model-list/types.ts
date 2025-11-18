@@ -57,6 +57,10 @@ export interface ModelListComponentProps<T extends IModel> extends IModelListPro
     rowActions?: IRowAction<T>[];
     orderingConfig?: IOrderingConfig<T>;
     onEditSuccess?: () => Promise<void> | void;
+    // Client-side data fetching (optional - if provided, component will fetch its own data)
+    dataEndpoint?: string;
+    // Pagination display format
+    compactPagination?: boolean;
     // Legacy props for backward compatibility
     renderItem?: (item: T) => React.ReactNode;
     renderHeader?: () => React.ReactNode;

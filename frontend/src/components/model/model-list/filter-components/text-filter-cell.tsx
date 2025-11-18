@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { TableCell } from '@/components/ui/table';
 import { IModel } from '@/types/models';
 import { IColumnDefinition } from '@/components/model/model-list/types';
-import { IconSearch } from '@tabler/icons-react';
+import { IconX } from '@tabler/icons-react';
 
 export interface TextFilterCellProps<T extends IModel> {
     column: IColumnDefinition<T>;
@@ -16,49 +15,41 @@ export function TextFilterCell<T extends IModel>({ column, filterValue, onColumn
     const columnKey = String(column.key);
     const [localValue, setLocalValue] = useState(filterValue);
 
+    // Sync local state when filter is cleared from parent (e.g., Clear All Filters button)
+    useEffect(() => {
+        setLocalValue(filterValue);
+    }, [filterValue]);
+
     const handleInputChange = (value: string) => {
         setLocalValue(value);
         // Still trigger the debounced filter
         onColumnFilter(columnKey, value, 'text');
     };
 
-    const handleSearchClick = () => {
-        // Trigger immediate search by clearing and re-setting the value
-        // This bypasses the debounce timeout
+    const handleClear = () => {
+        setLocalValue('');
         onColumnFilter(columnKey, '', 'text');
-        setTimeout(() => {
-            onColumnFilter(columnKey, localValue, 'text');
-        }, 0);
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            handleSearchClick();
-        }
     };
 
     return (
         <TableCell key={columnKey}>
-            <div className="flex gap-1">
-                <Input
-                    size="sm"
-                    type="text"
-                    placeholder={`Filter ${column.label.toLowerCase()}...`}
-                    value={localValue}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="flex-1"
-                />
-                <Button
-                    size="sm"
-                    style="outline"
-                    onClick={handleSearchClick}
-                    className="px-2 shrink-0"
-                    title="Search now"
-                >
-                    <IconSearch size={14} />
-                </Button>
-            </div>
+            <Input
+                size="sm"
+                type="text"
+                placeholder={`Filter ${column.label.toLowerCase()}...`}
+                value={localValue}
+                onChange={(e) => handleInputChange(e.target.value)}
+                suffix={localValue ? (
+                    <button
+                        type="button"
+                        onClick={handleClear}
+                        className="p-0.5 text-base-content/50 hover:text-base-content transition-colors"
+                        title="Clear filter"
+                    >
+                        <IconX size={12} />
+                    </button>
+                ) : undefined}
+            />
         </TableCell>
     );
 }

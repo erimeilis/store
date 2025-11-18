@@ -1,4 +1,3 @@
-import InputError from '@/components/ui/input-error';
 import { Toggle } from '@/components/ui/toggle';
 import { IModel } from '@/types/models';
 import React from 'react';
@@ -11,24 +10,15 @@ export function ToggleEditComponent<T extends IModel>({
     onSetEditValue,
     onSaveEditing,
     onEditKeyPress,
-    onInputBlur,
 }: InlineEditComponentProps<T>) {
     const handleToggleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        console.log('🔄 ToggleEditComponent.handleToggleChange:', {
-            checked: e.target.checked,
-            currentEditValue: editValue,
-            newValue: e.target.checked
-        });
-
         const newValue = e.target.checked;
         const stringValue = newValue.toString();
         onSetEditValue(stringValue);
 
-        console.log('🚀 ToggleEditComponent: About to call onSaveEditing with:', stringValue);
         // Auto-save on toggle change
         try {
             await onSaveEditing(stringValue);
-            console.log('✅ ToggleEditComponent: onSaveEditing completed successfully');
         } catch (error) {
             console.error('❌ ToggleEditComponent: onSaveEditing failed:', error);
         }
@@ -44,7 +34,6 @@ export function ToggleEditComponent<T extends IModel>({
             checked={isChecked}
             onChange={handleToggleChange}
             onKeyDown={onEditKeyPress}
-            onBlur={onInputBlur}
             disabled={isEditingSaving}
             autoFocus
         />

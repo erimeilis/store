@@ -217,6 +217,8 @@ export default function TokensPage({
         deleteRoute={(id) => `/api/tokens/${id}`}
         massActionRoute="/api/tokens/mass-action"
         massActions={tokenMassActions}
+        dataEndpoint="/api/tokens"
+        compactPagination={true}
       />
 
       {/* System Tokens Section */}

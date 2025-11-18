@@ -41,7 +41,8 @@ export async function addColumn(
     const columnData: any = {
       name: data.name,
       type: data.type,
-      isRequired: data.isRequired === true || data.isRequired === 'true'
+      isRequired: data.isRequired === true || data.isRequired === 'true',
+      allowDuplicates: data.allowDuplicates === true || data.allowDuplicates === 'true'
     }
 
     if (data.defaultValue !== undefined && data.defaultValue !== null) {
