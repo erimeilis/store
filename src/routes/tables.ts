@@ -28,7 +28,7 @@ tablesRoutes.get('/api/tables', readAuthMiddleware, async (c) => {
 
   const query = {
     page: parseInt(c.req.query('page') || '1', 10),
-    limit: parseInt(c.req.query('limit') || '10', 10),
+    limit: parseInt(c.req.query('limit') || c.env.PAGE_SIZE || '10', 10),
     sort: c.req.query('sort') || 'updatedAt',
     direction: c.req.query('direction') || 'desc',
     filterName: c.req.query('filterName'),
