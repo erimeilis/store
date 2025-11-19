@@ -174,7 +174,7 @@ function AddNewRowComponent<T extends IModel>({
     return (
         <TableRow className="bg-base-100 border-2 border-dashed border-primary">
             {hasMassActions && (
-                <TableHeaderCell className="w-4">
+                <TableHeaderCell>
                     <div className="flex items-center">
                         <span className="text-xs text-primary font-semibold">New</span>
                     </div>
@@ -185,27 +185,27 @@ function AddNewRowComponent<T extends IModel>({
                     {renderInputForColumn(column)}
                 </TableCell>
             ))}
-            <TableHeaderCell className="w-fit text-right">
-                <div className="flex items-center justify-end gap-2">
+            <TableHeaderCell className="text-right">
+                <div className="flex items-center justify-end gap-1">
                     {isSavingNewRow ? (
                         <span className="loading loading-spinner loading-sm"></span>
                     ) : (
                         <>
-                            <Button 
-                                size="icon" 
-                                color="success" 
-                                style="soft" 
-                                icon={IconCheck} 
-                                title="Save new row" 
+                            <Button
+                                size="icon"
+                                color="success"
+                                style="soft"
+                                icon={IconCheck}
+                                title="Save new row"
                                 onClick={() => onSaveNewRow()}
                                 disabled={isSavingNewRow}
                             />
                             <Button
                                 size="icon"
                                 color="default"
-                                style="ghost" 
-                                icon={IconX} 
-                                title="Cancel" 
+                                style="ghost"
+                                icon={IconX}
+                                title="Cancel"
                                 onClick={onCancelAddingNewRow}
                                 disabled={isSavingNewRow}
                             />
@@ -424,7 +424,7 @@ function ModelTableRow<T extends IModel>({
             onDrop={orderingHandlers ? (e) => orderingHandlers.onDrop(e, item) : undefined}
         >
             {hasMassActions && (
-                <TableHeaderCell className="w-4 cursor-pointer">
+                <TableHeaderCell>
                     <div className="flex items-center">
                         <Checkbox
                             id={`select-item-${item.id}`}
@@ -456,8 +456,8 @@ function ModelTableRow<T extends IModel>({
                           />
                       </TableCell>
                   ))}
-            <TableHeaderCell className="w-fit text-right">
-                <div className="flex items-center justify-end gap-2">
+            <TableHeaderCell className="text-right">
+                <div className="flex items-center justify-end gap-1">
                     {/* Custom row actions */}
                     {rowActions?.map((action, index) => (
                         <Button

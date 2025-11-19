@@ -6,11 +6,10 @@
 'use client'
 
 import React from 'react'
-import { TableNavigation } from '@/components/table-navigation'
+import { TableNavigation, getTablePageTitle } from '@/components/table-navigation'
 import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 
 interface TablePageHeaderProps {
-    title: string
     subtitle: string | React.ReactNode
     description?: string
     tableId: string
@@ -19,23 +18,13 @@ interface TablePageHeaderProps {
 }
 
 export function TablePageHeader({
-    title,
     subtitle,
     description,
     tableId,
     activePage,
     tableName
 }: TablePageHeaderProps) {
-    // Generate breadcrumb items based on active page
-    const getBreadcrumbLabel = () => {
-        switch (activePage) {
-            case 'edit': return 'Edit Table'
-            case 'columns': return 'Columns'
-            case 'data': return 'Data'
-            case 'import': return 'Import'
-            default: return title
-        }
-    }
+    const title = getTablePageTitle(activePage)
 
     return (
         <div className="mb-4 sm:mb-6">
@@ -52,7 +41,7 @@ export function TablePageHeader({
                         href: `/dashboard/tables/${tableId}/data`
                     }] : []),
                     {
-                        label: getBreadcrumbLabel(),
+                        label: title,
                         current: true
                     }
                 ]}
