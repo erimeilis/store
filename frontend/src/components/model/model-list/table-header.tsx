@@ -78,7 +78,7 @@ export function TableHeader<T extends IModel>({
                 {useLegacyRendering
                     ? renderHeader && renderHeader()
                     : columns.map((column) => <ColumnHeaderCell key={String(column.key)} column={column} filters={filters} onSort={onSort} />)}
-                <TableHeaderCell scope="col" className="w-24 text-right">
+                <TableHeaderCell scope="col" className="text-right">
                     <div className="flex justify-end">
                         <IconDots />
                     </div>

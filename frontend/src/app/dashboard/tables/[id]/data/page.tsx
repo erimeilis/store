@@ -305,7 +305,6 @@ export default function TableDataPage({
     return (
         <div className="container mx-auto sm:p-4">
             <TablePageHeader
-                title="Table Data"
                 subtitle={<>View and manage data in <strong className="truncate">{table?.name}</strong></>}
                 description={table?.description || undefined}
                 tableId={currentTableId || ''}

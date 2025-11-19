@@ -68,11 +68,11 @@ export default function ImportPage({params}: ImportPageProps) {
     return (
         <div className="container mx-auto sm:p-4">
             <TablePageHeader
-                title="Import Data"
                 subtitle={<>Upload and import data into <strong className="truncate">{schema.table.name}</strong></>}
                 description={schema.table.description || undefined}
                 tableId={params.id}
                 activePage="import"
+                tableName={schema.table.name}
             />
 
             <Card>
