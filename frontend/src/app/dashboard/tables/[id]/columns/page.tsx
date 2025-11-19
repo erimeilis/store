@@ -233,7 +233,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             sortable: false,
             filterable: false,
             filterType: 'text',
-            className: 'hidden md:table-cell w-24 lg:w-32',
+            className: 'w-24 lg:w-32',
             render: (column) => (
                 <span className="text-xs text-gray-600 font-mono truncate block max-w-[100px]" title={column.defaultValue || 'none'}>
           {column.defaultValue || <em className="text-gray-400">none</em>}
@@ -248,7 +248,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             sortable: false,
             filterable: false,
             filterType: 'date',
-            className: 'hidden lg:table-cell w-28',
+            className: 'w-28',
             render: (column) => (
                 <span className="text-xs text-gray-500">
           {formatApiDate(column.createdAt)}
@@ -444,7 +444,6 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
     return (
         <div className="container mx-auto sm:p-4">
             <TablePageHeader
-                title="Edit Columns"
                 subtitle={<>Column structure for <strong className="truncate">{schema.table.name}</strong></>}
                 description={schema.table.description || undefined}
                 tableId={tableId || ''}

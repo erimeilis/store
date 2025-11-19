@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { TableCell } from '@/components/ui/table';
 import { IModel } from '@/types/models';
@@ -13,33 +13,40 @@ export interface TextFilterCellProps<T extends IModel> {
 
 export function TextFilterCell<T extends IModel>({ column, filterValue, onColumnFilter }: TextFilterCellProps<T>) {
     const columnKey = String(column.key);
-    const [localValue, setLocalValue] = useState(filterValue);
+    const inputRef = useRef<HTMLInputElement>(null);
 
-    // Sync local state when filter is cleared from parent (e.g., Clear All Filters button)
+    // Sync input value when filter is cleared from parent (e.g., Clear All Filters button)
+    // Only update if different and input is not focused (to avoid disrupting user typing)
     useEffect(() => {
-        setLocalValue(filterValue);
+        if (inputRef.current && inputRef.current !== document.activeElement) {
+            if (inputRef.current.value !== filterValue) {
+                inputRef.current.value = filterValue;
+            }
+        }
     }, [filterValue]);
 
-    const handleInputChange = (value: string) => {
-        setLocalValue(value);
-        // Still trigger the debounced filter
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         onColumnFilter(columnKey, value, 'text');
     };
 
     const handleClear = () => {
-        setLocalValue('');
+        if (inputRef.current) {
+            inputRef.current.value = '';
+        }
         onColumnFilter(columnKey, '', 'text');
     };
 
     return (
         <TableCell key={columnKey}>
             <Input
+                ref={inputRef}
                 size="sm"
                 type="text"
                 placeholder={`Filter ${column.label.toLowerCase()}...`}
-                value={localValue}
-                onChange={(e) => handleInputChange(e.target.value)}
-                suffix={localValue ? (
+                defaultValue={filterValue}
+                onChange={handleInputChange}
+                suffix={
                     <button
                         type="button"
                         onClick={handleClear}
@@ -48,7 +55,7 @@ export function TextFilterCell<T extends IModel>({ column, filterValue, onColumn
                     >
                         <IconX size={12} />
                     </button>
-                ) : undefined}
+                }
             />
         </TableCell>
     );

@@ -190,7 +190,6 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
     return (
         <div className="container mx-auto sm:p-4">
             <TablePageHeader
-                title="Edit Table"
                 subtitle="Update table information and access settings"
                 tableId={tableId || ''}
                 activePage="edit"

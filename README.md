@@ -1,4 +1,4 @@
-# Store CRUD Application
+# Store
 
 A full-stack store management application built with **Hono**, **React**, and **Cloudflare infrastructure**.
 

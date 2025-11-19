@@ -31,11 +31,6 @@ export function Pagination<T extends IModel>({
 
     const {currentPage, lastPage, links, prevPageUrl, nextPageUrl} = items
 
-    // Only show pagination if there's more than one page
-    if (!lastPage || lastPage <= 1) {
-        return null
-    }
-
     // Reset input value when currentPage changes (after navigation)
     useEffect(() => {
         if (inputRef.current) {
@@ -65,6 +60,12 @@ export function Pagination<T extends IModel>({
         }
         setShowInput(false)
     }, [currentPage, lastPage, onPageChange])
+
+    // Only show pagination if there's more than one page
+    // Note: This must be AFTER all hooks to comply with React's rules of hooks
+    if (!lastPage || lastPage <= 1) {
+        return null
+    }
 
     const handlePageInputSubmit = (e: React.FormEvent) => {
         e.preventDefault()
