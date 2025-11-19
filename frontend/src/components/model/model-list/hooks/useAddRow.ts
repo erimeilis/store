@@ -9,6 +9,7 @@ interface UseAddRowProps<T extends IModel> {
     inlineEditRoute?: (id: number | string) => string
     massActionRoute: string
     onEditSuccess?: () => Promise<void> | void
+    onRowAdded?: () => void
 }
 
 interface UseAddRowReturn {
@@ -26,7 +27,8 @@ export function useAddRow<T extends IModel>({
     columns,
     inlineEditRoute,
     massActionRoute,
-    onEditSuccess
+    onEditSuccess,
+    onRowAdded
 }: UseAddRowProps<T>): UseAddRowReturn {
     // Add row state
     const [isAddingNewRow, setIsAddingNewRow] = useState<boolean>(false)
@@ -36,7 +38,6 @@ export function useAddRow<T extends IModel>({
 
     // Add Row functionality
     const startAddingNewRow = () => {
-
         // Initialize newRowData with default values based on column types
         // Only include editable columns (skip system columns like 'order')
         const initialData: Record<string, string> = {}
@@ -65,6 +66,13 @@ export function useAddRow<T extends IModel>({
         setNewRowData(initialData)
         setIsAddingNewRow(true)
         setNewRowError('')
+
+        // Scroll to the new row after it renders
+        if (onRowAdded) {
+            setTimeout(() => {
+                onRowAdded()
+            }, 50)
+        }
     }
 
     const cancelAddingNewRow = () => {
@@ -146,6 +154,14 @@ export function useAddRow<T extends IModel>({
                     await onEditSuccess()
                 } else {
                     window.location.reload()
+                }
+
+                // Call onRowAdded after data refresh to scroll to new row
+                if (onRowAdded) {
+                    // Small delay to ensure DOM has updated with new data
+                    setTimeout(() => {
+                        onRowAdded()
+                    }, 100)
                 }
             } else {
                 const errorMessage = await extractErrorMessage(response)

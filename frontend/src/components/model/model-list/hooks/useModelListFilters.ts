@@ -230,26 +230,59 @@ export function useModelListFilters<T extends IModel>({
     // Handle date filter dropdown toggle
     const toggleDateFilter = (columnKey: string) => {
         setOpenDateFilters((prev) => {
-            const newSet = new Set(prev)
-            if (newSet.has(columnKey)) {
-                newSet.delete(columnKey)
-                // Remove position data when closing
+            const newSet = new Set<string>()
+
+            if (prev.has(columnKey)) {
+                // Closing the current calendar - remove position data
                 setCalendarPositions((prevPos) => {
                     const newPos = {...prevPos}
                     delete newPos[columnKey]
                     return newPos
                 })
+                // Return empty set (calendar closed)
+                return newSet
             } else {
+                // Opening a new calendar - close any existing ones first
+                setCalendarPositions({})
                 newSet.add(columnKey)
                 // Calculate position when opening
                 const triggerElement = calendarTriggersRef.current[columnKey]
                 if (triggerElement) {
                     const rect = triggerElement.getBoundingClientRect()
+                    const calendarHeight = 320 // Approximate calendar height
+                    const calendarWidth = Math.max(rect.width, 280)
+                    const viewportHeight = window.innerHeight
+                    const viewportWidth = window.innerWidth
+
+                    // Check if calendar would overflow below viewport
+                    // Note: Using viewport coordinates (no scroll offset) for fixed positioning
+                    const spaceBelow = viewportHeight - rect.bottom
+                    const spaceAbove = rect.top
+
+                    let top: number
+                    if (spaceBelow >= calendarHeight) {
+                        // Enough space below - position below trigger
+                        top = rect.bottom + 4
+                    } else if (spaceAbove >= calendarHeight) {
+                        // Not enough below but enough above - position above trigger
+                        top = rect.top - calendarHeight - 4
+                    } else {
+                        // Not enough space either way - position at top of viewport
+                        top = 8
+                    }
+
+                    // Check horizontal overflow on mobile
+                    let left = rect.left
+                    if (left + calendarWidth > viewportWidth) {
+                        // Would overflow right - align to right edge with padding
+                        left = Math.max(8, viewportWidth - calendarWidth - 8)
+                    }
+
                     setCalendarPositions((prevPos) => ({
                         ...prevPos,
                         [columnKey]: {
-                            top: rect.bottom + window.scrollY + 4, // 4px margin
-                            left: rect.left + window.scrollX,
+                            top,
+                            left,
                             width: rect.width,
                         },
                     }))

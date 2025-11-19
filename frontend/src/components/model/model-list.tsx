@@ -6,7 +6,7 @@ import {Table, TableWrapper} from '@/components/ui/table'
 import {Alert} from '@/components/ui/alert'
 import {IModel} from '@/types/models'
 import {IconFilter, IconPlus, IconTrash, IconX} from '@tabler/icons-react'
-import React from 'react'
+import React, {useRef, useCallback} from 'react'
 
 // Import our extracted components
 import {DateFilterCalendar} from './model-list/date-filter-calendar'
@@ -102,6 +102,22 @@ export function ModelList<T extends IModel>({
         onEditSuccess
     })
 
+    // Ref for the card container to find table rows
+    const cardRef = useRef<HTMLDivElement>(null)
+
+    // Scroll to the last row in the table
+    const scrollToLastRow = useCallback(() => {
+        if (cardRef.current) {
+            const tableBody = cardRef.current.querySelector('tbody')
+            if (tableBody) {
+                const lastRow = tableBody.querySelector('tr:last-child')
+                if (lastRow) {
+                    lastRow.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                }
+            }
+        }
+    }, [])
+
     const {
         isAddingNewRow,
         newRowData,
@@ -115,7 +131,8 @@ export function ModelList<T extends IModel>({
         columns,
         inlineEditRoute,
         massActionRoute,
-        onEditSuccess
+        onEditSuccess,
+        onRowAdded: scrollToLastRow
     })
 
     const {
@@ -188,19 +205,18 @@ export function ModelList<T extends IModel>({
                 )}
             </div>
 
+            <div ref={cardRef}>
             <Card>
                 <CardBody>
-                    {/* Table Title and Controls */}
-                    <div className="mb-4 flex items-baseline justify-between">
-                        <div className="font-semibold">All {title}</div>
-                        <div className="flex items-center space-x-4">
-                            {selectedItems.size > 0 && (
-                                <div className="flex items-center space-x-2">
-                                    <div className="text-muted-foreground font-light">({selectedItems.size} selected)</div>
-                                    {massActions && massActions.length > 0 && (
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-muted-foreground text-sm">•</span>
-                                            <div className="flex items-center space-x-1">
+                    {/* Table Controls */}
+                    {(selectedItems.size > 0 || hasFilterableColumns) && (
+                        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                                {selectedItems.size > 0 && (
+                                    <>
+                                        <div className="text-muted-foreground font-light text-sm">({selectedItems.size} selected)</div>
+                                        {massActions && massActions.length > 0 && (
+                                            <div className="flex flex-wrap items-center gap-1">
                                                 {massActions.map((action) => (
                                                     <Button
                                                         key={action.name}
@@ -214,30 +230,30 @@ export function ModelList<T extends IModel>({
                                                     </Button>
                                                 ))}
                                             </div>
-                                        </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                            {hasFilterableColumns && (
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        size="sm"
+                                        onClick={() => setShowFilters(!showFilters)}
+                                        icon={IconFilter}
+                                        color={showFilters ? 'primary' : undefined}
+                                        style={showFilters ? 'default' : 'ghost'}
+                                    >
+                                        Filters
+                                    </Button>
+                                    {Object.keys(columnFilters).length > 0 && (
+                                        <Button style="ghost" size="sm" onClick={clearAllFilters} icon={IconX}>
+                                            Clear
+                                        </Button>
                                     )}
                                 </div>
                             )}
                         </div>
-                        {hasFilterableColumns && (
-                            <div className="flex items-center space-x-2">
-                                <Button
-                                    size="sm"
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    icon={IconFilter}
-                                    color={showFilters ? 'primary' : undefined}
-                                    style={showFilters ? 'default' : 'ghost'}
-                                >
-                                    Filters
-                                </Button>
-                                {Object.keys(columnFilters).length > 0 && (
-                                    <Button style="ghost" size="sm" onClick={clearAllFilters} icon={IconX}>
-                                        Clear
-                                    </Button>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                    )}
 
                     {/* Loading and Error States for Client-Side Data Fetching */}
                     {dataEndpoint && isLoadingData && (
@@ -253,7 +269,7 @@ export function ModelList<T extends IModel>({
                     )}
 
                     <TableWrapper>
-                        <Table modifier="zebra pinCols" className="w-full text-left text-sm">
+                        <Table modifier="zebra pinCols" className="w-full min-w-max text-left text-sm">
                             <TableHeader
                                 columns={columns}
                                 filters={filters || {}}
@@ -323,6 +339,7 @@ export function ModelList<T extends IModel>({
                     )}
                 </CardBody>
             </Card>
+            </div>
 
             {/* Date Filter Calendar Portal */}
             <DateFilterCalendar
