@@ -27,6 +27,8 @@ interface UseModelListFiltersReturn {
     handleDateSelect: (columnKey: string, date: Date | undefined) => void
     handlePageChange: (page: number) => void
     getFilterParamName: (columnKey: string) => string
+    currentSort: string | undefined
+    currentDirection: 'asc' | 'desc'
 }
 
 export function useModelListFilters<T extends IModel>({
@@ -41,6 +43,23 @@ export function useModelListFilters<T extends IModel>({
     const [openDateFilters, setOpenDateFilters] = useState<Set<string>>(new Set())
     const [calendarPositions, setCalendarPositions] = useState<Record<string, { top: number; left: number; width: number }>>({})
     const calendarTriggersRef = useRef<Record<string, HTMLDivElement | null>>({})
+
+    // Sort state - initialize from URL or filters prop
+    const [currentSort, setCurrentSort] = useState<string | undefined>(() => {
+        if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search)
+            return urlParams.get('sort') || filters?.sort
+        }
+        return filters?.sort
+    })
+    const [currentDirection, setCurrentDirection] = useState<'asc' | 'desc'>(() => {
+        if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search)
+            const dir = urlParams.get('direction')
+            if (dir === 'asc' || dir === 'desc') return dir
+        }
+        return (filters?.direction as 'asc' | 'desc') || 'asc'
+    })
 
     // Debounce ref for text filters
     const debounceTimeouts = useRef<Record<string, NodeJS.Timeout>>({})
@@ -100,13 +119,14 @@ export function useModelListFilters<T extends IModel>({
 
     // Handle sorting
     const handleSort = (columnKey: string) => {
-        const currentSort = filters?.sort
-        const currentDirection = filters?.direction || 'asc'
-
         let newDirection: 'asc' | 'desc' = 'asc'
         if (currentSort === columnKey && currentDirection === 'asc') {
             newDirection = 'desc'
         }
+
+        // Update local state immediately for UI responsiveness
+        setCurrentSort(columnKey)
+        setCurrentDirection(newDirection)
 
         const params = new URLSearchParams(window.location.search)
         params.set('sort', columnKey)
@@ -320,6 +340,8 @@ export function useModelListFilters<T extends IModel>({
         toggleDateFilter,
         handleDateSelect,
         handlePageChange,
-        getFilterParamName
+        getFilterParamName,
+        currentSort,
+        currentDirection
     }
 }

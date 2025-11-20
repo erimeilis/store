@@ -68,7 +68,9 @@ export function ModelList<T extends IModel>({
         clearAllFilters,
         toggleDateFilter,
         handleDateSelect,
-        handlePageChange
+        handlePageChange,
+        currentSort,
+        currentDirection
     } = useModelListFilters<T>({
         columns,
         filters,
@@ -272,7 +274,7 @@ export function ModelList<T extends IModel>({
                         <Table modifier="zebra pinCols" className="w-full min-w-max text-left text-sm">
                             <TableHeader
                                 columns={columns}
-                                filters={filters || {}}
+                                filters={{ ...filters, sort: currentSort, direction: currentDirection }}
                                 selectedItems={selectedItems}
                                 items={displayData ? {data: displayData.data, last_page: displayData.lastPage} : null}
                                 onSort={handleSort}
