@@ -5,16 +5,15 @@ import type { Bindings } from '@/types/bindings'
 import { corsMiddleware } from '@/middleware/cors'
 import { notFoundHandler, globalErrorHandler } from '@/middleware/error'
 
-// Import existing route groups (will be gradually migrated)
+// Import route groups
 import { itemsRoutes } from '@/routes/items'
-// import { uploadRoutes } from '@/routes/upload.js'  // Temporarily disabled - legacy route
-// import { importRoutes } from '@/routes/import.js'  // Temporarily disabled - legacy route
 import usersRoutes from '@/routes/users'
 import { auth } from '@/routes/auth'
 import tokensRoutes from '@/routes/tokens'
 import allowedEmailsRoutes from '@/routes/allowed-emails'
 import { tablesRoutes } from '@/routes/tables'
 import { tableDataRoutes } from '@/routes/table-data'
+import { myTablesRoutes } from '@/routes/my-tables'
 import salesRoutes from '@/routes/sales'
 import inventoryRoutes from '@/routes/inventory'
 import publicSalesRoutes from '@/routes/public-sales'
@@ -53,8 +52,8 @@ app.get('/health', (c) => {
   return c.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    environment: 'development'
+    version: c.env.APP_VERSION || '0.0.0',
+    environment: c.env.NODE_ENV || 'unknown'
   }, 200)
 })
 
@@ -673,40 +672,33 @@ app.get('/api/openapi.json', (c) => {
 })
 
 // =============================================================================
-// LEGACY ROUTE GROUPS (TO BE MIGRATED)
+// API ROUTES
 // =============================================================================
 
-// Items CRUD operations (protected with auth middleware)
+// Items CRUD operations
 app.route('/', itemsRoutes)
 
-// File upload and processing (protected with auth middleware) - Temporarily disabled
-// app.route('/', uploadRoutes)
-
-// Data import from external sources (protected with auth middleware) - Temporarily disabled
-// app.route('/', importRoutes)
-
-// Users management operations (protected with auth middleware)
+// Users management
 app.route('/api/users', usersRoutes)
-// Authentication operations (user registration after OAuth)
 app.route('/api/auth', auth)
 
-// Tokens management operations (protected with auth middleware)
+// Tokens management
 app.route('/api/tokens', tokensRoutes)
-// Allowed emails management operations (protected with auth middleware)
 app.route('/api/allowed-emails', allowedEmailsRoutes)
 
-// Dynamic tables management operations (protected with auth middleware)
+// Dynamic tables management
 app.route('/', tablesRoutes)
 app.route('/', tableDataRoutes)
+app.route('/', myTablesRoutes)
 
-// Sales tracking system (protected with auth middleware)
+// Sales and inventory
 app.route('/', salesRoutes)
 app.route('/', inventoryRoutes)
 
-// Public sales API (browse and purchase items from "for sale" tables)
+// Public sales API
 app.route('/', publicSalesRoutes)
 
-// Admin operations (protected with admin-only middleware)
+// Admin operations
 app.route('/api/admin', adminRoutes)
 
 // =============================================================================

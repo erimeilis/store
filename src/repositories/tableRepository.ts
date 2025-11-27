@@ -349,6 +349,28 @@ export class TableRepository {
   }
 
   /**
+   * Get all table IDs accessible to user (for selectAll mass actions)
+   * Only returns tables the user owns (not public/shared tables they can view)
+   */
+  async getAllTableIds(userId: string, userEmail: string, isAdmin: boolean = false): Promise<string[]> {
+    // Build where clause - only owned tables (not public/shared)
+    // For mass actions, we should only act on tables the user owns
+    const where: any = isAdmin ? {} : {
+      OR: [
+        { userId: userId },
+        { createdBy: userEmail }
+      ]
+    }
+
+    const tables = await this.prisma.userTable.findMany({
+      where,
+      select: { id: true }
+    })
+
+    return tables.map(t => t.id)
+  }
+
+  /**
    * Execute mass action on tables using Prisma ORM
    */
   async executeMassAction(
@@ -821,5 +843,46 @@ export class TableRepository {
         data: { position: column1.position }
       })
     ])
+  }
+
+  /**
+   * Rename a column key in all data rows of a table
+   * This updates the JSON data field to use the new column name
+   */
+  async renameColumnInData(tableId: string, oldName: string, newName: string): Promise<number> {
+    // Get all rows for this table
+    const rows = await this.prisma.tableData.findMany({
+      where: { tableId },
+      select: { id: true, data: true }
+    })
+
+    let updatedCount = 0
+
+    for (const row of rows) {
+      try {
+        const data = JSON.parse(row.data)
+
+        // Check if the old column name exists in this row
+        if (oldName in data) {
+          // Copy the value to the new key
+          data[newName] = data[oldName]
+          // Delete the old key
+          delete data[oldName]
+
+          // Update the row with the new data
+          await this.prisma.tableData.update({
+            where: { id: row.id },
+            data: { data: JSON.stringify(data) }
+          })
+
+          updatedCount++
+        }
+      } catch (error) {
+        console.error(`Failed to update row ${row.id}:`, error)
+        // Continue with other rows even if one fails
+      }
+    }
+
+    return updatedCount
   }
 }
