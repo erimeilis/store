@@ -61,12 +61,6 @@ export function Pagination<T extends IModel>({
         setShowInput(false)
     }, [currentPage, lastPage, onPageChange])
 
-    // Only show pagination if there's more than one page
-    // Note: This must be AFTER all hooks to comply with React's rules of hooks
-    if (!lastPage || lastPage <= 1) {
-        return null
-    }
-
     const handlePageInputSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         if (inputRef.current) {
@@ -211,13 +205,30 @@ export function Pagination<T extends IModel>({
         </Button>
     )
 
+    // Calculate from/to if they're null (fallback for single page or missing data)
+    const dataLength = Array.isArray(items.data) ? items.data.length : 0
+    const totalItems = typeof items.total === 'number' ? items.total : 0
+    const page = typeof currentPage === 'number' && currentPage > 0 ? currentPage : 1
+    const perPageValue = typeof items.perPage === 'number' && items.perPage > 0 ? items.perPage : (dataLength || 10)
+
+    let calculatedFrom = 0
+    let calculatedTo = 0
+
+    if (totalItems > 0) {
+        calculatedFrom = (page - 1) * perPageValue + 1
+        calculatedTo = Math.min(calculatedFrom + dataLength - 1, totalItems)
+    }
+
+    const from = typeof items.from === 'number' ? items.from : calculatedFrom
+    const to = typeof items.to === 'number' ? items.to : calculatedTo
+
     return (
         <div className={`mt-4 flex flex-col sm:flex-row items-center justify-between ${className}`}>
             <div className="flex flex-row items-center text-muted-foreground text-sm">
                 <div>
                     {compact
-                        ? `${items.from} – ${items.to} of ${items.total}`
-                        : `Showing ${items.from} to ${items.to} of ${items.total} entries`
+                        ? `${from} – ${to} of ${items.total}`
+                        : `Showing ${from} to ${to} of ${items.total} entries`
                     }
                 </div>
                 {/* Page input - only show if there's more than one page */}

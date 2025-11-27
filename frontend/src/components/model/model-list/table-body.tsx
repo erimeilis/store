@@ -270,8 +270,12 @@ function TableCellContent<T extends IModel>({
         );
     }
 
+    // Check if this cell is editable (either always editable or conditionally editable)
+    const isEditable = column.editableInline &&
+        (column.isEditableInline ? column.isEditableInline(item) : true);
+
     // If this column supports inline editing, make it clickable
-    if (column.editableInline) {
+    if (isEditable) {
         const cellContent = (() => {
             if (column.render) {
                 return column.render(item);

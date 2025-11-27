@@ -39,13 +39,33 @@ export async function updateColumn(
       return createErrorResponse('Column not found', 'Column does not exist', 404)
     }
 
+    // Check if this is a protected column (price/qty in forSale tables)
+    const isProtected = await repository.isColumnProtected(tableId, column.name)
+
     // Check if trying to rename a protected column
     if (data.name !== undefined && data.name !== column.name) {
-      const isProtected = await repository.isColumnProtected(tableId, column.name)
       if (isProtected) {
         return createErrorResponse(
           'Column protected',
           `Cannot rename protected column "${column.name}" while table is marked for sale. Change table to non-sale mode first.`,
+          403
+        )
+      }
+    }
+
+    // Check if trying to modify protected column properties (isRequired, allowDuplicates)
+    if (isProtected) {
+      if (data.isRequired !== undefined && data.isRequired !== column.isRequired) {
+        return createErrorResponse(
+          'Column protected',
+          `Cannot modify "required" setting for protected column "${column.name}" while table is marked for sale. Price and qty columns must remain required.`,
+          403
+        )
+      }
+      if (data.allowDuplicates !== undefined && data.allowDuplicates !== column.allowDuplicates) {
+        return createErrorResponse(
+          'Column protected',
+          `Cannot modify "allow duplicates" setting for protected column "${column.name}" while table is marked for sale.`,
           403
         )
       }

@@ -3,8 +3,56 @@
 
 /**
  * Supported column types for user-created tables
+ *
+ * Text Types:
+ * - text: Single line string
+ * - textarea: Multi-line text
+ * - email: Email address with validation
+ * - url: Web address with protocol validation
+ * - phone: Phone number (allows + ( ) - spaces digits)
+ * - country: ISO 3166-1 alpha-2 code (2 letters)
+ *
+ * Numeric Types:
+ * - integer: Whole numbers only
+ * - float: Decimal numbers
+ * - currency: Money amount (2 decimal places)
+ * - percentage: Percent value (0-100, stored as decimal)
+ * - number: @deprecated Use 'integer' or 'float' instead
+ *
+ * Date/Time Types:
+ * - date: Calendar date (YYYY-MM-DD)
+ * - time: Time only (HH:MM)
+ * - datetime: Date + time (ISO format)
+ *
+ * Other Types:
+ * - boolean: True/false toggle
+ * - select: Dropdown options (requires options config)
+ * - rating: Star rating (1-5 integer)
+ * - color: Color picker (hex format)
  */
-export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'email' | 'url' | 'textarea' | 'country'
+export type ColumnType =
+  // Text types
+  | 'text'
+  | 'textarea'
+  | 'email'
+  | 'url'
+  | 'phone'
+  | 'country'
+  // Numeric types
+  | 'integer'
+  | 'float'
+  | 'currency'
+  | 'percentage'
+  | 'number' // @deprecated - use 'integer' or 'float'
+  // Date/Time types
+  | 'date'
+  | 'time'
+  | 'datetime'
+  // Other types
+  | 'boolean'
+  | 'select'
+  | 'rating'
+  | 'color'
 
 /**
  * Table visibility levels
@@ -239,7 +287,19 @@ export interface CloneTableRequest {
 /**
  * Mass action types for table data
  */
-export type TableDataMassAction = 'delete' | 'export'
+export type TableDataMassAction = 'delete' | 'export' | 'set_field_value'
+
+/**
+ * Mass action request with optional value for populate actions
+ */
+export interface TableDataMassActionRequest {
+  action: TableDataMassAction
+  ids: string[]
+  /** Field name to update (for set_field_value action) */
+  fieldName?: string
+  /** Value to set (for set_field_value action) */
+  value?: string | number
+}
 
 /**
  * Mass action result
