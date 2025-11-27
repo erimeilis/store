@@ -9,6 +9,9 @@ interface UseModelListModalsProps {
     selectedItems: Set<number | string>
     setSelectedItems: React.Dispatch<React.SetStateAction<Set<number | string>>>
     onEditSuccess?: () => Promise<void> | void
+    // All pages selection support
+    isAllPagesSelected?: boolean
+    setIsAllPagesSelected?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 interface UseModelListModalsReturn<T extends IModel> {
@@ -27,7 +30,7 @@ interface UseModelListModalsReturn<T extends IModel> {
     massActionError: string
     openMassActionModal: (action: IMassAction) => void
     closeMassActionModal: () => void
-    handleMassActionConfirm: () => Promise<void>
+    handleMassActionConfirm: (inputValue?: string | number) => Promise<void>
 }
 
 export function useModelListModals<T extends IModel>({
@@ -35,7 +38,9 @@ export function useModelListModals<T extends IModel>({
     massActionRoute,
     selectedItems,
     setSelectedItems,
-    onEditSuccess
+    onEditSuccess,
+    isAllPagesSelected,
+    setIsAllPagesSelected
 }: UseModelListModalsProps): UseModelListModalsReturn<T> {
     // Delete modal state
     const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false)
@@ -112,7 +117,7 @@ export function useModelListModals<T extends IModel>({
         setMassActionError('') // Reset error when closing
     }
 
-    const handleMassActionConfirm = async () => {
+    const handleMassActionConfirm = async (inputValue?: string | number) => {
         if (!selectedMassAction) {
             setMassActionError('No action selected')
             return
@@ -132,17 +137,37 @@ export function useModelListModals<T extends IModel>({
             const isColumnsRoute = massActionRoute.includes('/columns/mass-action')
             const idsParam = isColumnsRoute ? 'columnIds' : 'ids'
 
+            // Build request body
+            const requestBody: Record<string, any> = {
+                action: selectedMassAction.name,
+                [idsParam]: selectedItemIds,
+            }
+
+            // Add selectAll flag for all-pages selection (Gmail-style)
+            if (isAllPagesSelected) {
+                requestBody.selectAll = true
+            }
+
+            // Add field name and value for actions that require input
+            if (selectedMassAction.requiresInput && inputValue !== undefined) {
+                if (selectedMassAction.fieldName) {
+                    requestBody.fieldName = selectedMassAction.fieldName
+                }
+                requestBody.value = inputValue
+            }
+
             const response = await clientApiRequest(massActionRoute, {
                 method: 'POST',
-                body: JSON.stringify({
-                    action: selectedMassAction.name,
-                    [idsParam]: selectedItemIds,
-                }),
+                body: JSON.stringify(requestBody),
             })
 
             if (response.ok) {
                 closeMassActionModal()
                 setSelectedItems(new Set()) // Clear selection after successful mass action
+                // Clear all-pages selection flag
+                if (setIsAllPagesSelected) {
+                    setIsAllPagesSelected(false)
+                }
                 // Refresh data without page reload
                 if (onEditSuccess) {
                     await onEditSuccess()

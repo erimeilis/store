@@ -59,11 +59,59 @@ export async function updateTable(
       return createErrorResponse('Table not found', 'Table does not exist', 404)
     }
 
-    // Handle conversion to "for sale" mode
+    // Handle conversion to "for sale" mode - validate columns exist with correct settings
     if (data.forSale === true && !currentTable.forSale) {
-      console.log('🔄 Converting table to "for sale" mode')
-      // Create missing sale columns if needed
-      await repository.createMissingSaleColumns(tableId)
+      console.log('🔄 Validating conversion to "for sale" mode')
+
+      // Check if price and qty columns exist with correct settings
+      const columns = await repository.getTableColumns(tableId)
+      const priceColumn = columns.find(col => col.name === 'price')
+      const qtyColumn = columns.find(col => col.name === 'qty')
+
+      const missingColumns: string[] = []
+      const invalidColumns: string[] = []
+
+      // Validate price column
+      if (!priceColumn) {
+        missingColumns.push('price')
+      } else {
+        if (priceColumn.type !== 'number') {
+          invalidColumns.push(`price (must be type "number", got "${priceColumn.type}")`)
+        }
+        if (!priceColumn.isRequired) {
+          invalidColumns.push('price (must be required)')
+        }
+      }
+
+      // Validate qty column
+      if (!qtyColumn) {
+        missingColumns.push('qty')
+      } else {
+        if (qtyColumn.type !== 'number') {
+          invalidColumns.push(`qty (must be type "number", got "${qtyColumn.type}")`)
+        }
+        if (!qtyColumn.isRequired) {
+          invalidColumns.push('qty (must be required)')
+        }
+      }
+
+      // Return error if columns are missing or invalid
+      if (missingColumns.length > 0 || invalidColumns.length > 0) {
+        const errors: string[] = []
+        if (missingColumns.length > 0) {
+          errors.push(`Missing required columns: ${missingColumns.join(', ')}`)
+        }
+        if (invalidColumns.length > 0) {
+          errors.push(`Invalid column configuration: ${invalidColumns.join(', ')}`)
+        }
+        return createErrorResponse(
+          'Cannot mark table as "for sale"',
+          `Tables marked for sale require "price" and "qty" columns with type "number" and required=true. ${errors.join('. ')}. Please add or fix these columns before enabling "for sale" mode.`,
+          400
+        )
+      }
+
+      console.log('✅ Sale columns validated successfully')
     }
 
     // Update table

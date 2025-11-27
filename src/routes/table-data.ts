@@ -40,6 +40,38 @@ tableDataRoutes.get('/api/tables/:tableId/data', readAuthMiddleware, async (c) =
 })
 
 /**
+ * Check for invalid country codes in table data
+ * GET /api/tables/:tableId/data/country-issues
+ * Returns list of rows with invalid country codes (names instead of ISO codes)
+ * NOTE: Must be defined BEFORE :rowId routes to prevent "country-issues" matching as rowId
+ */
+tableDataRoutes.get('/api/tables/:tableId/data/country-issues', readAuthMiddleware, async (c) => {
+  const service = new TableDataService(c.env)
+  const user = c.get('user')
+  const tableId = c.req.param('tableId')
+
+  const result = await service.detectCountryIssues(c, user, tableId)
+
+  return c.json(result.response, result.status as ContentfulStatusCode)
+})
+
+/**
+ * Fix all invalid country codes in table data
+ * POST /api/tables/:tableId/data/fix-countries
+ * Converts country names to ISO codes
+ * NOTE: Must be defined BEFORE :rowId routes
+ */
+tableDataRoutes.post('/api/tables/:tableId/data/fix-countries', writeAuthMiddleware, async (c) => {
+  const service = new TableDataService(c.env)
+  const user = c.get('user')
+  const tableId = c.req.param('tableId')
+
+  const result = await service.fixCountryCodes(c, user, tableId)
+
+  return c.json(result.response, result.status as ContentfulStatusCode)
+})
+
+/**
  * Get specific data row by ID
  * GET /api/tables/:tableId/data/:rowId
  */
@@ -119,7 +151,7 @@ tableDataRoutes.delete('/api/tables/:tableId/data/:rowId', writeAuthMiddleware, 
 })
 
 /**
- * Mass action for table data (delete, export)
+ * Mass action for table data (delete, export, set_field_value)
  * POST /api/tables/:tableId/data/mass-action
  */
 tableDataRoutes.post('/api/tables/:tableId/data/mass-action', writeAuthMiddleware, async (c) => {
@@ -128,7 +160,14 @@ tableDataRoutes.post('/api/tables/:tableId/data/mass-action', writeAuthMiddlewar
   const tableId = c.req.param('tableId')
   const body = await c.req.json()
 
-  const result = await service.executeMassAction(c, user, tableId, body.action, body.ids)
+  // Extract options for actions that require additional parameters
+  const options = {
+    fieldName: body.fieldName,
+    value: body.value,
+    selectAll: body.selectAll // Gmail-style select all pages
+  }
+
+  const result = await service.executeMassAction(c, user, tableId, body.action, body.ids || [], options)
 
   return c.json(result.response, result.status as ContentfulStatusCode)
 })

@@ -9,6 +9,13 @@ import type { TableDataRepository } from '@/repositories/tableDataRepository.js'
 import type { ZodCompatibleValidator } from '@/validators/zodCompatibleValidator.js'
 import { getUserInfo, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
 
+export interface MassActionOptions {
+  fieldName?: string
+  value?: string | number
+  /** When true, apply action to ALL rows in the table (Gmail-style select all) */
+  selectAll?: boolean
+}
+
 export async function executeMassAction(
   repository: TableDataRepository,
   validator: ZodCompatibleValidator,
@@ -16,16 +23,11 @@ export async function executeMassAction(
   user: UserContext,
   tableId: string,
   action: TableDataMassAction,
-  ids: string[]
+  ids: string[],
+  options?: MassActionOptions
 ) {
   try {
     const { userId } = getUserInfo(c, user)
-
-    // Validate request
-    const validation = validator.validateMassAction(action, ids)
-    if (!validation.valid) {
-      return createErrorResponse('Validation failed', validation.errors.join(', '), 400)
-    }
 
     // Validate table ID
     const idValidation = validator.validateIds(tableId)
@@ -33,7 +35,7 @@ export async function executeMassAction(
       return createErrorResponse('Validation failed', idValidation.errors.join(', '), 400)
     }
 
-    // Check table access
+    // Check table access first (needed before fetching all IDs)
     const hasAccess = await repository.checkTableAccess(tableId, userId, user)
     if (!hasAccess) {
       return createErrorResponse(
@@ -43,11 +45,47 @@ export async function executeMassAction(
       )
     }
 
-    // Execute mass action
-    const result = await repository.executeMassAction(tableId, action, ids)
+    // Handle selectAll flag - fetch all row IDs for the table
+    let targetIds = ids
+    if (options?.selectAll) {
+      const allRows = await repository.getAllRowIds(tableId)
+      targetIds = allRows
+      if (targetIds.length === 0) {
+        return createErrorResponse('No rows found', 'The table has no rows to process', 400)
+      }
+    }
+
+    // Validate request (skip ids validation if selectAll was used)
+    if (!options?.selectAll) {
+      const validation = validator.validateMassAction(action, ids)
+      if (!validation.valid) {
+        return createErrorResponse('Validation failed', validation.errors.join(', '), 400)
+      }
+    }
+
+    // Additional validation for set_field_value action
+    if (action === 'set_field_value') {
+      if (!options?.fieldName) {
+        return createErrorResponse('Validation failed', 'Field name is required for this action', 400)
+      }
+      if (options?.value === undefined || options?.value === null || options?.value === '') {
+        return createErrorResponse('Validation failed', 'Value is required for this action', 400)
+      }
+    }
+
+    // Execute mass action with resolved IDs
+    const result = await repository.executeMassAction(tableId, action, targetIds, options)
+
+    // Generate appropriate message based on action
+    let message: string
+    if (action === 'set_field_value' && options?.fieldName) {
+      message = `Successfully updated ${options.fieldName} to ${options.value} for ${result.count} row(s)`
+    } else {
+      message = `Successfully ${action}d ${result.count} row(s)`
+    }
 
     const response: any = {
-      message: `Successfully ${action}d ${result.count} row(s)`,
+      message,
       count: result.count
     }
 
