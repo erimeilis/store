@@ -15,6 +15,10 @@ interface MassActionConfirmationProps {
     isLoading?: boolean;
     actionType?: 'delete' | 'warning' | 'info';
     actionName?: string; // Used to determine icon and styling
+    /** Optional input content to render between message and buttons */
+    inputContent?: React.ReactNode;
+    /** Whether the confirm button should be disabled */
+    isConfirmDisabled?: boolean;
 }
 
 /**
@@ -46,6 +50,8 @@ export function MassActionConfirmation({
     isLoading = false,
     actionType = 'warning',
     actionName = '',
+    inputContent,
+    isConfirmDisabled = false,
 }: MassActionConfirmationProps) {
     // Determine styling based on action type
     const getActionStyling = () => {
@@ -125,6 +131,13 @@ export function MassActionConfirmation({
                 {/* Message */}
                 <p className="text-muted-foreground mb-4 text-center text-sm">{message}</p>
 
+                {/* Optional Input Content */}
+                {inputContent && (
+                    <div className="mb-4">
+                        {inputContent}
+                    </div>
+                )}
+
                 {/* Error Message */}
                 {errorMessage && (
                     <div className="mb-6 rounded-lg bg-error/10 p-3 border border-error/20">
@@ -139,7 +152,7 @@ export function MassActionConfirmation({
                         color={styling.buttonColor}
                         onClick={onConfirm}
                         processing={isLoading}
-                        disabled={isLoading}
+                        disabled={isLoading || isConfirmDisabled}
                         icon={ActionIcon}
                         className="min-w-24"
                     >

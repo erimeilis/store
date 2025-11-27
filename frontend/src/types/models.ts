@@ -28,11 +28,83 @@ export interface PaginationLink {
   active: boolean
 }
 
+/**
+ * Input field types for mass actions and forms
+ *
+ * Text Types:
+ * - text: Single line string
+ * - textarea: Multi-line text
+ * - email: Email address with validation
+ * - url: Web address with protocol validation
+ * - phone: Phone number (allows + ( ) - spaces digits)
+ * - country: ISO 3166-1 alpha-2 code (2 letters)
+ *
+ * Numeric Types:
+ * - integer: Whole numbers only (uses parseInt)
+ * - float: Decimal numbers (uses parseFloat)
+ * - currency: Money amount (2 decimal places)
+ * - percentage: Percent value (0-100)
+ * - number: @deprecated Use 'integer' or 'float' instead
+ *
+ * Date/Time Types:
+ * - date: Calendar date (YYYY-MM-DD)
+ * - time: Time only (HH:MM)
+ * - datetime: Date + time (ISO format)
+ *
+ * Other Types:
+ * - boolean: True/false toggle
+ * - select: Dropdown options (requires options config)
+ * - rating: Star rating (1-5 integer)
+ * - color: Color picker (hex format)
+ */
+export type InputFieldType =
+  // Text types
+  | 'text'
+  | 'textarea'
+  | 'email'
+  | 'url'
+  | 'phone'
+  | 'country'
+  // Numeric types
+  | 'integer'
+  | 'float'
+  | 'currency'
+  | 'percentage'
+  | 'number' // @deprecated - use 'integer' or 'float'
+  // Date/Time types
+  | 'date'
+  | 'time'
+  | 'datetime'
+  // Other types
+  | 'boolean'
+  | 'select'
+  | 'rating'
+  | 'color';
+
+/**
+ * Configuration for input fields in mass actions
+ */
+export interface InputConfig {
+  type: InputFieldType;
+  label: string;
+  placeholder?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: { value: string; label: string }[];
+}
+
 // Mass action interface
 export interface MassAction {
   name: string;
   label: string;
   confirmMessage?: string;
+  /** If true, shows an input field in the modal for user to enter a value */
+  requiresInput?: boolean;
+  /** Input configuration for actions that require user input */
+  inputConfig?: InputConfig;
+  /** Field name to update (for bulk update actions) */
+  fieldName?: string;
 }
 
 // Base props interface for model lists

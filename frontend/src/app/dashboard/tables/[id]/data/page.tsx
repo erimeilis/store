@@ -14,6 +14,7 @@ import {clientApiRequest} from '@/lib/client-api'
 import {CountryDisplay, getCountryOptions} from '@/components/ui/country-select'
 import {BooleanCircle} from '@/components/ui/boolean-circle'
 import {TablePageHeader} from '@/components/table-page-header'
+import {IconFlag, IconWand} from '@tabler/icons-react'
 
 interface TableDataPageProps {
     initialData?: IPaginatedResponse<ExtendedTableDataRow> | null;
@@ -58,6 +59,16 @@ export default function TableDataPage({
     const [isLoading, setIsLoading] = useState(!initialData)
     const [error, setError] = useState<string>('')
 
+    // Country issue detection state
+    const [countryIssues, setCountryIssues] = useState<{
+        hasIssues: boolean
+        totalIssues: number
+        fixableIssues: number
+        totalAffectedRows: number
+    } | null>(null)
+    const [isFixingCountries, setIsFixingCountries] = useState(false)
+    const [countryFixResult, setCountryFixResult] = useState<string | null>(null)
+
     // Get tableId from URL if not passed as prop (client-side)
     const currentTableId = tableId || (typeof window !== 'undefined' ? window.location.pathname.split('/')[3] : undefined)
 
@@ -65,6 +76,9 @@ export default function TableDataPage({
         // Only load data if we don't have initialData (client-side scenario)
         if (!initialData && currentTableId) {
             loadTableData()
+        } else if (initialData && currentTableId) {
+            // If we have initial data, still check for country issues
+            checkCountryIssues()
         }
     }, [currentTableId, initialData])
 
@@ -93,6 +107,8 @@ export default function TableDataPage({
             if (response.ok) {
                 const result = await response.json() as IPaginatedResponse<ExtendedTableDataRow>
                 setPaginatedData(result)
+                // Check for country issues after loading data
+                checkCountryIssues()
             } else {
                 const errorData = await response.json() as any
                 setError(errorData.message || 'Failed to load table data')
@@ -101,6 +117,66 @@ export default function TableDataPage({
             setError(error instanceof Error ? error.message : 'Failed to load table data')
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    // Check for country issues (raw names instead of ISO codes)
+    const checkCountryIssues = async () => {
+        if (!currentTableId) return
+
+        try {
+            const response = await clientApiRequest(`/api/tables/${currentTableId}/data/country-issues`)
+            if (response.ok) {
+                const result = await response.json() as {
+                    hasIssues: boolean
+                    totalIssues: number
+                    fixableIssues: number
+                    totalAffectedRows: number
+                }
+                // Response is the data directly (not wrapped in {success, data})
+                if (result.hasIssues !== undefined) {
+                    setCountryIssues(result)
+                }
+            }
+        } catch (err) {
+            console.error('Failed to check country issues:', err)
+        }
+    }
+
+    // Fix all country codes
+    const handleFixCountries = async () => {
+        if (!currentTableId) return
+
+        setIsFixingCountries(true)
+        setCountryFixResult(null)
+
+        try {
+            const response = await clientApiRequest(`/api/tables/${currentTableId}/data/fix-countries`, {
+                method: 'POST'
+            })
+
+            if (response.ok) {
+                const result = await response.json() as {
+                    fixed: number
+                    failed: number
+                    message?: string
+                }
+                // Response is the data directly (not wrapped in {success, data})
+                if (result.fixed !== undefined) {
+                    setCountryFixResult(`Fixed ${result.fixed} row(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}`)
+                    // Reload data and recheck issues
+                    await loadTableData()
+                } else {
+                    setCountryFixResult(`Error: ${result.message || 'Unknown error'}`)
+                }
+            } else {
+                const errorData = await response.json() as { message?: string }
+                setCountryFixResult(`Error: ${errorData.message || 'Failed to fix countries'}`)
+            }
+        } catch (err) {
+            setCountryFixResult(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+        } finally {
+            setIsFixingCountries(false)
         }
     }
 
@@ -239,7 +315,36 @@ export default function TableDataPage({
             name: 'delete',
             label: 'Delete Rows',
             confirmMessage: 'Are you sure you want to delete the selected rows? This action cannot be undone.'
-        }
+        },
+        // Add populate actions for forSale tables
+        ...(table?.forSale ? [
+            {
+                name: 'set_field_value',
+                label: 'Set Price',
+                confirmMessage: 'Enter the price value to set for all selected rows.',
+                requiresInput: true,
+                fieldName: 'price',
+                inputConfig: {
+                    type: 'currency' as const,
+                    label: 'Price',
+                    placeholder: 'Enter price...',
+                    min: 0
+                }
+            },
+            {
+                name: 'set_field_value',
+                label: 'Set Quantity',
+                confirmMessage: 'Enter the quantity value to set for all selected rows.',
+                requiresInput: true,
+                fieldName: 'qty',
+                inputConfig: {
+                    type: 'integer' as const,
+                    label: 'Quantity',
+                    placeholder: 'Enter quantity...',
+                    min: 0
+                }
+            }
+        ] : [])
     ]
 
     if (isLoading) {
@@ -311,6 +416,38 @@ export default function TableDataPage({
                 activePage="data"
                 tableName={table?.name}
             />
+
+            {/* Country Issues Banner */}
+            {countryIssues?.hasIssues && (
+                <div className="alert alert-warning mb-4 shadow-lg">
+                    <IconFlag className="h-5 w-5" />
+                    <div className="flex-1">
+                        <h3 className="font-bold">Country Data Needs Fixing</h3>
+                        <p className="text-sm">
+                            Found {countryIssues.totalIssues} country value(s) in {countryIssues.totalAffectedRows} row(s)
+                            that use full names instead of ISO codes.
+                            {countryIssues.fixableIssues > 0 && ` ${countryIssues.fixableIssues} can be automatically converted.`}
+                        </p>
+                        {countryFixResult && (
+                            <p className={`text-sm mt-1 ${countryFixResult.startsWith('Error') ? 'text-error' : 'text-success'}`}>
+                                {countryFixResult}
+                            </p>
+                        )}
+                    </div>
+                    <button
+                        className="btn btn-sm btn-warning gap-1"
+                        onClick={handleFixCountries}
+                        disabled={isFixingCountries || countryIssues.fixableIssues === 0}
+                    >
+                        {isFixingCountries ? (
+                            <span className="loading loading-spinner loading-xs"></span>
+                        ) : (
+                            <IconWand className="h-4 w-4" />
+                        )}
+                        {isFixingCountries ? 'Fixing...' : 'Fix All'}
+                    </button>
+                </div>
+            )}
 
             <ModelList<ExtendedTableDataRow>
                 title="Table Data"

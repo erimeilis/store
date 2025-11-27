@@ -298,12 +298,24 @@ export class TableDataRepository {
     }
 
     /**
+     * Get all row IDs for a table (used for "select all" functionality)
+     */
+    async getAllRowIds(tableId: string): Promise<string[]> {
+        const rows = await this.prisma.tableData.findMany({
+            where: { tableId },
+            select: { id: true }
+        })
+        return rows.map(row => row.id)
+    }
+
+    /**
      * Execute mass action on table data using Prisma ORM
      */
     async executeMassAction(
         tableId: string,
         action: TableDataMassAction,
-        rowIds: string[]
+        rowIds: string[],
+        options?: { fieldName?: string; value?: string | number }
     ): Promise<{ count: number; data?: TableDataRow[] }> {
         const where = {
             id: {in: rowIds},
@@ -335,6 +347,35 @@ export class TableDataRepository {
                     count: exportRows.length,
                     data: parsedExportData
                 }
+
+            case 'set_field_value':
+                if (!options?.fieldName || options?.value === undefined) {
+                    throw new Error('Field name and value are required for set_field_value action')
+                }
+
+                // Get all rows to update
+                const rowsToUpdate = await this.prisma.tableData.findMany({
+                    where,
+                    select: { id: true, data: true }
+                })
+
+                // Update each row's JSON data with the new field value
+                let updatedCount = 0
+                for (const row of rowsToUpdate) {
+                    const currentData = JSON.parse(row.data)
+                    currentData[options.fieldName] = options.value
+
+                    await this.prisma.tableData.update({
+                        where: { id: row.id },
+                        data: {
+                            data: JSON.stringify(currentData),
+                            updatedAt: new Date()
+                        }
+                    })
+                    updatedCount++
+                }
+
+                return { count: updatedCount }
 
             default:
                 throw new Error('Invalid action')
@@ -413,5 +454,33 @@ export class TableDataRepository {
             createdAt: row.createdAt,
             updatedAt: row.updatedAt
         })) as TableDataRow[]
+    }
+
+    /**
+     * Get all data rows for a table (without pagination) - used for bulk operations
+     */
+    async getAllDataForTable(tableId: string): Promise<{ id: string; data: any }[]> {
+        const rows = await this.prisma.tableData.findMany({
+            where: { tableId },
+            select: { id: true, data: true }
+        })
+
+        return rows.map(row => ({
+            id: row.id,
+            data: row.data
+        }))
+    }
+
+    /**
+     * Update data row directly by ID (for bulk operations)
+     */
+    async updateDataRowDirect(rowId: string, data: any): Promise<void> {
+        await this.prisma.tableData.update({
+            where: { id: rowId },
+            data: {
+                data: JSON.stringify(data),
+                updatedAt: new Date()
+            }
+        })
     }
 }

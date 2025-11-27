@@ -141,6 +141,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 )
             },
             editableInline: true,
+            isEditableInline: (column) => !isProtectedSaleColumn(column.name, schema?.table.forSale || false),
             editType: 'text',
             editValidation: {
                 required: true,
@@ -176,20 +177,25 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 {value: 'true', label: 'Required'},
                 {value: 'false', label: 'Optional'}
             ],
-            render: (column) => (
-                <div className="flex justify-center">
-                    {column.isRequired ? (
-                        <BooleanCircle
-                            value={true}
-                            size="md"
-                            title="Required"
-                        />
-                    ) : (
-                        <span className="text-gray-400">-</span>
-                    )}
-                </div>
-            ),
+            render: (column) => {
+                const isProtected = isProtectedSaleColumn(column.name, schema?.table.forSale || false)
+                return (
+                    <div className="flex justify-center items-center gap-1">
+                        {column.isRequired ? (
+                            <BooleanCircle
+                                value={true}
+                                size="md"
+                                title={isProtected ? "Required (protected)" : "Required"}
+                            />
+                        ) : (
+                            <span className="text-gray-400">-</span>
+                        )}
+                        {isProtected && <span className="text-xs text-warning" title="Protected column">🔒</span>}
+                    </div>
+                )
+            },
             editableInline: true,
+            isEditableInline: (column) => !isProtectedSaleColumn(column.name, schema?.table.forSale || false),
             editType: 'toggle',
             editOptions: [
                 {value: 'false', label: 'No'},
@@ -207,20 +213,25 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 {value: 'true', label: 'Allow'},
                 {value: 'false', label: 'Block'}
             ],
-            render: (column) => (
-                <div className="flex justify-center">
-                    {column.allowDuplicates ? (
-                        <BooleanCircle
-                            value={true}
-                            size="md"
-                            title="Allow duplicates"
-                        />
-                    ) : (
-                        <span className="text-gray-400">-</span>
-                    )}
-                </div>
-            ),
+            render: (column) => {
+                const isProtected = isProtectedSaleColumn(column.name, schema?.table.forSale || false)
+                return (
+                    <div className="flex justify-center items-center gap-1">
+                        {column.allowDuplicates ? (
+                            <BooleanCircle
+                                value={true}
+                                size="md"
+                                title={isProtected ? "Allow duplicates (protected)" : "Allow duplicates"}
+                            />
+                        ) : (
+                            <span className="text-gray-400">-</span>
+                        )}
+                        {isProtected && <span className="text-xs text-warning" title="Protected column">🔒</span>}
+                    </div>
+                )
+            },
             editableInline: true,
+            isEditableInline: (column) => !isProtectedSaleColumn(column.name, schema?.table.forSale || false),
             editType: 'toggle',
             editOptions: [
                 {value: 'false', label: 'No'},

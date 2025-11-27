@@ -18,7 +18,8 @@ import { getDataRow } from './getDataRow.js'
 import { createDataRow } from './createDataRow.js'
 import { updateDataRow } from './updateDataRow.js'
 import { deleteDataRow } from './deleteDataRow.js'
-import { executeMassAction } from './executeMassAction.js'
+import { executeMassAction, type MassActionOptions } from './executeMassAction.js'
+import { detectCountryIssues, fixCountryCodes } from './countryOperations.js'
 
 /**
  * Table data service class that maintains the same interface
@@ -89,8 +90,22 @@ export class TableDataService {
   /**
    * Execute mass action on table data
    */
-  async executeMassAction(c: Context, user: UserContext, tableId: string, action: TableDataMassAction, ids: string[]) {
-    return executeMassAction(this.repository, this.validator, c, user, tableId, action, ids)
+  async executeMassAction(c: Context, user: UserContext, tableId: string, action: TableDataMassAction, ids: string[], options?: MassActionOptions) {
+    return executeMassAction(this.repository, this.validator, c, user, tableId, action, ids, options)
+  }
+
+  /**
+   * Detect invalid country codes (names instead of ISO codes) in table data
+   */
+  async detectCountryIssues(c: Context, user: UserContext, tableId: string) {
+    return detectCountryIssues(this.repository, this.tableRepository, this.validator, c, user, tableId)
+  }
+
+  /**
+   * Fix all invalid country codes by converting names to ISO codes
+   */
+  async fixCountryCodes(c: Context, user: UserContext, tableId: string) {
+    return fixCountryCodes(this.repository, this.tableRepository, this.validator, c, user, tableId)
   }
 }
 

@@ -4,6 +4,7 @@ import {Card, CardBody} from '@/components/ui/card'
 import {Pagination} from '@/components/ui/pagination'
 import {Table, TableWrapper} from '@/components/ui/table'
 import {Alert} from '@/components/ui/alert'
+import {ButtonLink} from '@/components/ui/link'
 import {IModel} from '@/types/models'
 import {IconFilter, IconPlus, IconTrash, IconX} from '@tabler/icons-react'
 import React, {useRef, useCallback} from 'react'
@@ -82,7 +83,15 @@ export function ModelList<T extends IModel>({
         selectedItems,
         setSelectedItems,
         handleItemSelect,
-        handleSelectAll
+        handleSelectAll,
+        // All pages selection (Gmail-style)
+        isAllPagesSelected,
+        setIsAllPagesSelected,
+        handleSelectAllPages,
+        clearAllPagesSelection,
+        isAllCurrentPageSelected,
+        totalItems,
+        currentPageItemCount
     } = useModelListSelection<T>({ items: items || null, displayData })
 
     const {
@@ -157,7 +166,10 @@ export function ModelList<T extends IModel>({
         massActionRoute,
         selectedItems,
         setSelectedItems,
-        onEditSuccess
+        onEditSuccess,
+        // All pages selection support
+        isAllPagesSelected,
+        setIsAllPagesSelected
     })
 
     const {
@@ -270,6 +282,29 @@ export function ModelList<T extends IModel>({
                         </Alert>
                     )}
 
+                    {/* Gmail-style Select All Banner */}
+                    {isAllCurrentPageSelected && totalItems > currentPageItemCount && (
+                        <Alert color="info" style="soft" className="mb-4 text-center">
+                            {isAllPagesSelected ? (
+                                <>
+                                    <span className="font-medium">All {totalItems.toLocaleString()} items are selected.</span>
+                                    {' '}
+                                    <ButtonLink color="info" onClick={clearAllPagesSelection}>
+                                        Clear selection
+                                    </ButtonLink>
+                                </>
+                            ) : (
+                                <>
+                                    <span>All {currentPageItemCount} items on this page are selected.</span>
+                                    {' '}
+                                    <ButtonLink color="info" onClick={handleSelectAllPages}>
+                                        Select all {totalItems.toLocaleString()} items
+                                    </ButtonLink>
+                                </>
+                            )}
+                        </Alert>
+                    )}
+
                     <TableWrapper>
                         <Table modifier="zebra pinCols" className="w-full min-w-max text-left text-sm">
                             <TableHeader
@@ -361,7 +396,7 @@ export function ModelList<T extends IModel>({
                 selectedMassAction={selectedMassAction}
                 isExecutingMassAction={isExecutingMassAction}
                 massActionError={massActionError}
-                selectedCount={selectedItems.size}
+                selectedCount={isAllPagesSelected ? totalItems : selectedItems.size}
                 onCloseDeleteModal={closeDeleteModal}
                 onConfirmDelete={handleDeleteConfirm}
                 onCloseMassActionModal={closeMassActionModal}

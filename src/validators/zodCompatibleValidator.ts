@@ -118,7 +118,7 @@ export class ZodCompatibleValidator {
   validateMassAction(action: TableMassAction | TableDataMassAction, ids: string[]): { valid: boolean; errors: string[] } {
     try {
       // Allow both table and table data mass actions
-      z.enum(['delete', 'export', 'make_public', 'make_private', 'make_shared']).parse(action)
+      z.enum(['delete', 'export', 'make_public', 'make_private', 'make_shared', 'set_field_value']).parse(action)
       z.array(z.string().min(1, 'ID cannot be empty')).min(1, 'No items selected').parse(ids)
       return { valid: true, errors: [] }
     } catch (error) {
