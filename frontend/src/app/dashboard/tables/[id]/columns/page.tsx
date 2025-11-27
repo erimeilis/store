@@ -10,13 +10,14 @@ import {IColumnDefinition, IRowAction, ModelList} from '@/components/model/model
 import {Alert} from '@/components/ui/alert'
 import {Badge} from '@/components/ui/badge'
 import {BooleanCircle} from '@/components/ui/boolean-circle'
-import {IconCopy, IconPlus} from '@tabler/icons-react'
+import {IconCopy, IconPlus, IconAlertTriangle, IconWand} from '@tabler/icons-react'
 import {COLUMN_TYPE_OPTIONS, getColumnTypeLabel, isProtectedSaleColumn, TableColumn, TableSchema} from '@/types/dynamic-tables'
 import {IMassAction, IPaginatedResponse} from '@/types/models'
 import {formatApiDate} from '@/lib/date-utils'
 import {clientApiRequest} from '@/lib/client-api'
 import {ProtectedColumnBadge} from '@/components/protected-column-indicator'
 import {TablePageHeader} from '@/components/table-page-header'
+import {toDisplayName, hasColumnNameIssues, getColumnNameIssues} from '@/utils/column-name-utils'
 
 interface TableColumnsPageProps {
     tableSchema?: TableSchema | null;
@@ -34,12 +35,81 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
     const [columnsData, setColumnsData] = useState<IPaginatedResponse<ColumnModel> | null>(null)
     const [error, setError] = useState<string | null>(null)
 
+    // Column name issues state
+    const [columnIssues, setColumnIssues] = useState<{
+        hasIssues: boolean
+        totalIssues: number
+        affectedColumns: string[]
+    } | null>(null)
+    const [isFixingColumns, setIsFixingColumns] = useState(false)
+    const [columnFixResult, setColumnFixResult] = useState<string | null>(null)
+
     // Load table data if not provided
     useEffect(() => {
         if (!tableSchema && tableId) {
             loadTableData()
         }
     }, [tableId, tableSchema])
+
+    // Check for column name issues when schema changes
+    useEffect(() => {
+        if (schema?.columns) {
+            checkColumnNameIssues(schema.columns)
+        }
+    }, [schema])
+
+    // Check for column name issues (non-camelCase names, invalid characters)
+    const checkColumnNameIssues = (columns: TableColumn[]) => {
+        const affectedColumns: string[] = []
+
+        for (const column of columns) {
+            if (hasColumnNameIssues(column.name)) {
+                affectedColumns.push(column.name)
+            }
+        }
+
+        setColumnIssues({
+            hasIssues: affectedColumns.length > 0,
+            totalIssues: affectedColumns.length,
+            affectedColumns
+        })
+    }
+
+    // Fix all column names
+    const handleFixColumnNames = async () => {
+        if (!tableId) return
+
+        setIsFixingColumns(true)
+        setColumnFixResult(null)
+
+        try {
+            const response = await clientApiRequest(`/api/tables/${tableId}/columns/fix-names`, {
+                method: 'POST'
+            })
+
+            if (response.ok) {
+                const result = await response.json() as {
+                    fixed: number
+                    failed: number
+                    message?: string
+                }
+                if (result.fixed !== undefined) {
+                    setColumnFixResult(`Fixed ${result.fixed} column(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}`)
+                    // Reload data and recheck issues
+                    await loadTableData()
+                } else {
+                    setColumnFixResult(`Error: ${result.message || 'Unknown error'}`)
+                }
+            } else {
+                const errorData = await response.json() as { message?: string }
+                setColumnFixResult(`Error: ${errorData.message || 'Failed to fix column names'}`)
+            }
+        } catch (err) {
+            setColumnFixResult(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+        } finally {
+            setIsFixingColumns(false)
+        }
+    }
 
     // Convert schema columns to paginated response for ModelList
     useEffect(() => {
@@ -126,10 +196,14 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             className: 'min-w-0 w-auto',
             render: (column) => {
                 const isProtected = isProtectedSaleColumn(column.name, schema?.table.forSale || false)
+                const hasIssues = hasColumnNameIssues(column.name)
+                const issues = hasIssues ? getColumnNameIssues(column.name) : []
+                const displayName = toDisplayName(column.name)
+
                 return (
                     <div className="flex items-center gap-2">
-                        <span className="truncate block max-w-[120px] sm:max-w-none" title={column.name}>
-                            {column.name}
+                        <span className="truncate block max-w-[120px] sm:max-w-none" title={`${displayName} (internal: ${column.name})`}>
+                            {displayName}
                         </span>
                         <ProtectedColumnBadge
                             columnName={column.name}
@@ -137,6 +211,14 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                             protectionReason="forSale"
                             variant="icon"
                         />
+                        {hasIssues && (
+                            <span
+                                className="tooltip tooltip-warning"
+                                data-tip={`Issues: ${issues.join(', ')}`}
+                            >
+                                <IconAlertTriangle className="h-4 w-4 text-warning" />
+                            </span>
+                        )}
                     </div>
                 )
             },
@@ -190,7 +272,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                         ) : (
                             <span className="text-gray-400">-</span>
                         )}
-                        {isProtected && <span className="text-xs text-warning" title="Protected column">🔒</span>}
+                        <ProtectedColumnBadge columnName={column.name} isProtected={isProtected} protectionReason="system" variant="icon" />
                     </div>
                 )
             },
@@ -226,7 +308,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                         ) : (
                             <span className="text-gray-400">-</span>
                         )}
-                        {isProtected && <span className="text-xs text-warning" title="Protected column">🔒</span>}
+                        <ProtectedColumnBadge columnName={column.name} isProtected={isProtected} protectionReason="system" variant="icon" />
                     </div>
                 )
             },
@@ -461,6 +543,38 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 activePage="columns"
                 tableName={schema.table.name}
             />
+
+            {/* Column Name Issues Banner */}
+            {columnIssues?.hasIssues && (
+                <div className="alert alert-warning mb-4 shadow-lg">
+                    <IconAlertTriangle className="h-5 w-5" />
+                    <div className="flex-1">
+                        <h3 className="font-bold">Column Names Need Fixing</h3>
+                        <p className="text-sm">
+                            Found {columnIssues.totalIssues} column(s) with naming issues
+                            (non-Latin characters, numbers, or incorrect format).
+                            Column names should only contain letters and spaces.
+                        </p>
+                        {columnFixResult && (
+                            <p className={`text-sm mt-1 ${columnFixResult.startsWith('Error') ? 'text-error' : 'text-success'}`}>
+                                {columnFixResult}
+                            </p>
+                        )}
+                    </div>
+                    <button
+                        className="btn btn-sm btn-warning gap-1"
+                        onClick={handleFixColumnNames}
+                        disabled={isFixingColumns}
+                    >
+                        {isFixingColumns ? (
+                            <span className="loading loading-spinner loading-xs"></span>
+                        ) : (
+                            <IconWand className="h-4 w-4" />
+                        )}
+                        {isFixingColumns ? 'Fixing...' : 'Fix All'}
+                    </button>
+                </div>
+            )}
 
             <ModelList<ColumnModel>
                 title="Column Management"

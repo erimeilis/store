@@ -13,11 +13,12 @@ const healthRoutes = new Hono<{ Bindings: Bindings }>()
  * GET /
  */
 healthRoutes.get('/', (c) => {
-  return c.json({ 
+  return c.json({
     status: 'healthy',
     message: 'Store CRUD API is running',
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
+    version: c.env.APP_VERSION || '0.0.0',
+    environment: c.env.NODE_ENV || 'unknown',
     service: 'backend-api'
   })
 })
@@ -34,11 +35,12 @@ healthRoutes.get('/health', async (c) => {
     const dbHealthy = await checkDatabaseHealth(prisma)
     
     if (dbHealthy) {
-      return c.json({ 
+      return c.json({
         status: 'healthy',
         message: 'Store CRUD API is running',
         timestamp,
-        version: '1.0.0',
+        version: c.env.APP_VERSION || '0.0.0',
+        environment: c.env.NODE_ENV || 'unknown',
         service: 'backend-api',
         database: {
           status: 'connected',
@@ -46,11 +48,12 @@ healthRoutes.get('/health', async (c) => {
         }
       })
     } else {
-      return c.json({ 
+      return c.json({
         status: 'unhealthy',
         message: 'Database connection failed',
         timestamp,
-        version: '1.0.0',
+        version: c.env.APP_VERSION || '0.0.0',
+        environment: c.env.NODE_ENV || 'unknown',
         service: 'backend-api',
         database: {
           status: 'disconnected',
@@ -59,11 +62,12 @@ healthRoutes.get('/health', async (c) => {
       }, 503)
     }
   } catch (error) {
-    return c.json({ 
+    return c.json({
       status: 'unhealthy',
       message: 'Health check failed',
       timestamp,
-      version: '1.0.0',
+      version: c.env.APP_VERSION || '0.0.0',
+      environment: c.env.NODE_ENV || 'unknown',
       service: 'backend-api',
       database: {
         status: 'error',
