@@ -4,6 +4,7 @@ import type { AddColumnRequest } from '@/types/table-queries.js'
 import type { TableRepository } from '@/repositories/tableRepository.js'
 import type { ZodCompatibleValidator } from '@/validators/zodCompatibleValidator.js'
 import { getUserInfo, isUserAdmin, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
+import { validateColumnName } from '@/utils/column-name-utils.js'
 
 /**
  * Add new column to table
@@ -37,9 +38,15 @@ export async function addColumn(
       return createErrorResponse('Validation failed', 'Column name and type are required', 400)
     }
 
-    // Add column
+    // Validate and convert column name to camelCase
+    const nameValidation = validateColumnName(data.name)
+    if (!nameValidation.valid) {
+      return createErrorResponse('Invalid column name', nameValidation.error || 'Invalid column name', 400)
+    }
+
+    // Add column with converted internal name
     const columnData: any = {
-      name: data.name,
+      name: nameValidation.internalName,
       type: data.type,
       isRequired: data.isRequired === true || data.isRequired === 'true',
       allowDuplicates: data.allowDuplicates === true || data.allowDuplicates === 'true'

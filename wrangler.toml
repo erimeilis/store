@@ -70,7 +70,7 @@ id = "1ddafd825d9a49828b814d0ac7ebe0d0"
 experimental_remote = true
 
 [env.preview.vars]
-NODE_ENV = "development"
+NODE_ENV = "preview"
 API_URL = "http://localhost:8787"
 ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:8787"
 PAGE_SIZE = "10"

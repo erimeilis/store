@@ -140,7 +140,10 @@ tablesRoutes.post('/api/tables/mass-action', writeAuthMiddleware, async (c) => {
   const user = c.get('user')
   const body = await c.req.json()
 
-  const result = await service.executeMassAction(c, user, body.action, body.ids)
+  // Pass selectAll flag as options (Gmail-style select all)
+  const options = body.selectAll ? { selectAll: true } : undefined
+
+  const result = await service.executeMassAction(c, user, body.action, body.ids, options)
 
   return c.json(result.response, result.status as ContentfulStatusCode)
 })
@@ -231,6 +234,18 @@ tablesRoutes.post('/api/tables/:id/columns/swap', writeAuthMiddleware, async (c)
   const tableId = c.req.param('id')
   const body = await c.req.json()
   const result = await service.swapColumnPositions(c, user, tableId, body.columnId1, body.columnId2)
+  return c.json(result.response, result.status as ContentfulStatusCode)
+})
+
+/**
+ * Fix column names to use proper camelCase format
+ * POST /api/tables/:id/columns/fix-names
+ */
+tablesRoutes.post('/api/tables/:id/columns/fix-names', writeAuthMiddleware, async (c) => {
+  const service = new TableService(c.env)
+  const user = c.get('user')
+  const tableId = c.req.param('id')
+  const result = await service.fixColumnNames(c, user, tableId)
   return c.json(result.response, result.status as ContentfulStatusCode)
 })
 

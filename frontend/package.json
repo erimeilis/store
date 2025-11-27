@@ -1,6 +1,6 @@
 {
   "name": "store-crud-frontend",
-  "version": "1.3.0",
+  "version": "1.3.2",
   "description": "Store CRUD Frontend built with Hono and React",
   "private": true,
   "type": "module",

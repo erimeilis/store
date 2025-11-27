@@ -1,11 +1,16 @@
 import type { Context } from 'hono'
 import type { UserContext } from '@/types/database.js'
 import type { TableMassAction } from '@/types/dynamic-tables.js'
-import { createErrorResponse, createSuccessResponse } from '@/utils/common.js'
+import { getUserInfo, isUserAdmin, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
 import { deleteTable } from './deleteTable.js'
 import { updateTable } from './updateTable.js'
 import type { TableRepository } from '@/repositories/tableRepository.js'
 import type { ZodCompatibleValidator } from '@/validators/zodCompatibleValidator.js'
+
+export interface TableMassActionOptions {
+  /** When true, apply action to ALL tables the user owns (Gmail-style select all) */
+  selectAll?: boolean
+}
 
 /**
  * Execute mass action on multiple tables
@@ -16,11 +21,25 @@ export async function executeMassAction(
   c: Context,
   user: UserContext,
   action: TableMassAction,
-  ids: string[]
+  ids: string[],
+  options?: TableMassActionOptions
 ) {
   try {
+    const { userId, userEmail } = getUserInfo(c, user)
+    const isAdmin = isUserAdmin(user)
+
+    // Handle selectAll flag - fetch all table IDs for the user
+    let targetIds = ids
+    if (options?.selectAll) {
+      targetIds = await repository.getAllTableIds(userId, userEmail, isAdmin)
+      if (targetIds.length === 0) {
+        return createErrorResponse('No tables found', 'You have no tables to process', 400)
+      }
+      console.log(`📋 selectAll: Fetched ${targetIds.length} table IDs for mass action`)
+    }
+
     const results = await Promise.all(
-      ids.map(async (id) => {
+      targetIds.map(async (id) => {
         switch (action) {
           case 'delete':
             return deleteTable(repository, validator, c, user, id)
@@ -37,8 +56,8 @@ export async function executeMassAction(
     )
 
     return createSuccessResponse(
-      { results },
-      `Mass action ${action} completed`
+      { results, count: targetIds.length },
+      `Mass action ${action} completed on ${targetIds.length} table(s)`
     )
   } catch (error) {
     return createErrorResponse(

@@ -15,6 +15,7 @@ import {CountryDisplay, getCountryOptions} from '@/components/ui/country-select'
 import {BooleanCircle} from '@/components/ui/boolean-circle'
 import {TablePageHeader} from '@/components/table-page-header'
 import {IconFlag, IconWand} from '@tabler/icons-react'
+import {toDisplayName} from '@/utils/column-name-utils'
 
 interface TableDataPageProps {
     initialData?: IPaginatedResponse<ExtendedTableDataRow> | null;
@@ -183,9 +184,11 @@ export default function TableDataPage({
     // Generate dynamic column definitions from table schema
     const generateColumnDefinitions = (columns: TableColumn[]): IColumnDefinition<ExtendedTableDataRow>[] => {
         return columns.map(column => {
+            // Convert internal camelCase name to display Title Case
+            const displayName = toDisplayName(column.name)
             const columnDef: IColumnDefinition<ExtendedTableDataRow> = {
                 key: column.name,
-                label: column.name + (column.isRequired ? ' *' : '') + (!column.allowDuplicates ? ' ∃!' : ''),
+                label: displayName + (column.isRequired ? ' *' : '') + (!column.allowDuplicates ? ' ∃!' : ''),
                 sortable: true,
                 filterable: true,
                 filterType: getFilterType(column.type),

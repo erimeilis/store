@@ -4,9 +4,10 @@ export type Bindings = {
   DB: D1Database
   BUCKET: R2Bucket
   KV?: KVNamespace
-  
+
   // Environment variables
   NODE_ENV?: string
+  APP_VERSION?: string
   API_URL?: string
   AUTH_BASE_URL?: string
   ALLOWED_ORIGINS?: string

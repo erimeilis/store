@@ -12,7 +12,7 @@ import { getTable } from './getTable.js'
 import { createTable } from './createTable.js'
 import { updateTable } from './updateTable.js'
 import { deleteTable } from './deleteTable.js'
-import { executeMassAction } from './executeMassAction.js'
+import { executeMassAction, type TableMassActionOptions } from './executeMassAction.js'
 import { importTableData } from './importTableData.js'
 import { getTableColumns } from './getTableColumns.js'
 import { getColumn } from './getColumn.js'
@@ -22,6 +22,7 @@ import { deleteColumn } from './deleteColumn.js'
 import { executeColumnMassAction } from './executeColumnMassAction.js'
 import { recountPositions } from './recountPositions.js'
 import { swapColumnPositions } from './swapColumnPositions.js'
+import { fixColumnNames } from './fixColumnNames.js'
 
 /**
  * Refactored Table service - delegates to individual function modules
@@ -58,8 +59,8 @@ export class TableService {
     return deleteTable(this.repository, this.validator, c, user, tableId)
   }
 
-  async executeMassAction(c: Context, user: UserContext, action: TableMassAction, ids: string[]) {
-    return executeMassAction(this.repository, this.validator, c, user, action, ids)
+  async executeMassAction(c: Context, user: UserContext, action: TableMassAction, ids: string[], options?: TableMassActionOptions) {
+    return executeMassAction(this.repository, this.validator, c, user, action, ids, options)
   }
 
   // Data operations
@@ -98,5 +99,9 @@ export class TableService {
 
   async swapColumnPositions(c: Context, user: UserContext, tableId: string, columnId1: string, columnId2: string) {
     return swapColumnPositions(this.repository, this.validator, c, user, tableId, columnId1, columnId2)
+  }
+
+  async fixColumnNames(c: Context, user: UserContext, tableId: string) {
+    return fixColumnNames(this.repository, this.validator, c, user, tableId)
   }
 }
