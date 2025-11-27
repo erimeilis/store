@@ -184,6 +184,19 @@ export class PostmanGeneratorService {
             description: 'Check API health status',
           },
         },
+        {
+          name: 'List My Tables',
+          request: {
+            method: 'GET',
+            header: [],
+            url: {
+              raw: '{{api_url}}/api/my-tables',
+              host: ['{{api_url}}'],
+              path: ['api', 'my-tables'],
+            },
+            description: 'List all tables accessible to this token. Returns table metadata including name, description, visibility, forSale status, column count, and row count.',
+          },
+        },
       ],
     };
   }

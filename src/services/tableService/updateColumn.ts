@@ -4,6 +4,7 @@ import type { UpdateColumnRequest } from '@/types/table-queries.js'
 import type { TableRepository } from '@/repositories/tableRepository.js'
 import type { ZodCompatibleValidator } from '@/validators/zodCompatibleValidator.js'
 import { getUserInfo, isUserAdmin, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
+import { validateColumnName } from '@/utils/column-name-utils.js'
 
 /**
  * Update column in table
@@ -42,8 +43,19 @@ export async function updateColumn(
     // Check if this is a protected column (price/qty in forSale tables)
     const isProtected = await repository.isColumnProtected(tableId, column.name)
 
-    // Check if trying to rename a protected column
+    // Validate and convert column name if renaming
+    let internalName: string | undefined
+    let oldColumnName: string | undefined
     if (data.name !== undefined && data.name !== column.name) {
+      // Validate new column name
+      const nameValidation = validateColumnName(data.name)
+      if (!nameValidation.valid) {
+        return createErrorResponse('Invalid column name', nameValidation.error || 'Invalid column name', 400)
+      }
+      internalName = nameValidation.internalName
+      oldColumnName = column.name // Save old name for data migration
+
+      // Check if trying to rename a protected column
       if (isProtected) {
         return createErrorResponse(
           'Column protected',
@@ -90,7 +102,7 @@ export async function updateColumn(
 
     // Update other fields if provided
     const updateData: any = {}
-    if (data.name !== undefined) updateData.name = data.name
+    if (internalName !== undefined) updateData.name = internalName
     if (data.type !== undefined) updateData.type = data.type
     if (data.isRequired !== undefined) updateData.isRequired = data.isRequired
     if (data.allowDuplicates !== undefined) updateData.allowDuplicates = data.allowDuplicates
@@ -102,6 +114,12 @@ export async function updateColumn(
     let result
     if (Object.keys(updateData).length > 0) {
       result = await repository.updateColumn(tableId, columnId, updateData)
+
+      // CRITICAL: If column was renamed, also update all data rows to use the new column name
+      if (oldColumnName && internalName && oldColumnName !== internalName) {
+        const rowsUpdated = await repository.renameColumnInData(tableId, oldColumnName, internalName)
+        console.log(`✅ Renamed column "${oldColumnName}" → "${internalName}" (${rowsUpdated} data rows updated)`)
+      }
     } else {
       // If only position was updated, get the updated column
       result = await repository.getColumn(tableId, columnId)

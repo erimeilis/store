@@ -77,6 +77,16 @@ npm run db:generate          # Generate Prisma client
 curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8787/api/items
 ```
 
+## 📊 Dynamic Tables
+
+User-created tables with full CRUD support, column management, and "for sale" mode.
+
+**Column Naming:** Internal camelCase (`firstName`) → Display Title Case (`First Name`)
+
+**Mass Actions:** Gmail-style "select all across pages" with delete/visibility bulk operations
+
+**Protected Columns:** Price/Qty columns are protected when table is "for sale"
+
 ## 🌐 API Endpoints
 
 - `GET /api/items` - List all items
@@ -85,6 +95,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8787/api/items
 - `DELETE /api/items/:id` - Delete item
 - `GET /api/tables` - List dynamic tables
 - `GET /api/tables/:id/data` - List table data
+- `POST /api/tables/mass-action` - Bulk table operations (with selectAll support)
 - `GET /health` - Health check
 
 ## 🔧 Troubleshooting
