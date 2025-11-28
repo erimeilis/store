@@ -2,6 +2,24 @@
 .dev.vars
 /frontend/.dev.vars
 
+# Environment files (keep examples for public)
+.env
+.env.local
+!.env.example
+!.env.local.example
+
+# Generated tokens (sensitive - never commit!)
+/scripts/tokens/
+
+# Developer documentation (local only)
+CLAUDE.md
+
+# Generated config files (keep templates for public)
+wrangler.toml
+/frontend/wrangler.toml
+!wrangler.toml.template
+!/frontend/wrangler.toml.template
+
 /src/generated/prisma
 /Store.iml
 /.wrangler/
