@@ -432,9 +432,10 @@ function generatePhoneTable(userId: string, index: number): CreateTableRequest {
   ]
 
   const phoneType = faker.helpers.arrayElement(phoneTypes)
+  const timestamp = Date.now().toString(36).slice(-5).toUpperCase()
 
   return {
-    name: `${phoneType} ${index}`,
+    name: `${phoneType} #${index}-${timestamp}`,
     description: `${phoneType} inventory with voice, SMS, and pricing information`,
     visibility: faker.helpers.arrayElement(['private', 'public', 'shared'] as const),
     forSale: true, // Phone tables are always for sale
@@ -480,9 +481,10 @@ export function generateDummyTable(userId: string, index: number, forceForSale?:
   ]
 
   const tableType = faker.helpers.arrayElement(tableTypes)
+  const timestamp = Date.now().toString(36).slice(-5).toUpperCase()
 
   return {
-    name: `${tableType} Test ${index}`,
+    name: `${tableType} #${index}-${timestamp}`,
     description: faker.company.catchPhrase(),
     visibility: faker.helpers.arrayElement(['private', 'public', 'shared'] as const),
     forSale: isForSale,
@@ -577,20 +579,17 @@ export async function generateDummyTables(
 
         totalTablesCreated++
 
-        // Create table columns
-        for (const column of tableRequest.columns) {
-          await database.tableColumn.create({
-            data: {
-              tableId: userTable.id,
-              name: column.name,
-              type: column.type,
-              isRequired: column.isRequired,
-              allowDuplicates: column.allowDuplicates !== undefined ? column.allowDuplicates : true,
-              defaultValue: column.defaultValue || null,
-              position: column.position
-            }
-          })
-        }
+        // Create table columns in batch (reduces DB operations)
+        const columnData = tableRequest.columns.map(column => ({
+          tableId: userTable.id,
+          name: column.name,
+          type: column.type,
+          isRequired: column.isRequired,
+          allowDuplicates: column.allowDuplicates !== undefined ? column.allowDuplicates : true,
+          defaultValue: column.defaultValue || null,
+          position: column.position
+        }))
+        await database.tableColumn.createMany({ data: columnData })
 
         // Detect if this is a phone table by checking for phone-related name keywords
         const isPhoneTable = /phone|virtual|did|voip|toll-?free|mobile|local/i.test(tableRequest.name)
@@ -599,7 +598,8 @@ export async function generateDummyTables(
           console.log(`📱 Creating phone table: ${tableRequest.name}`)
         }
 
-        // Generate and insert data rows
+        // Generate data rows in batch (critical for avoiding Worker timeout)
+        const dataRows = []
         for (let j = 0; j < rowsPerTable; j++) {
           // Use phone data generator for phone tables, standard generator for others
           const rowData = isPhoneTable
@@ -613,23 +613,24 @@ export async function generateDummyTables(
                 }))
               )
 
-          await database.tableData.create({
-            data: {
-              tableId: userTable.id,
-              data: JSON.stringify(rowData),
-              createdBy: 'system' // System generated
-            }
+          dataRows.push({
+            tableId: userTable.id,
+            data: JSON.stringify(rowData),
+            createdBy: 'system'
           })
-
-          totalRowsCreated++
         }
+
+        // Insert all rows in one batch operation
+        await database.tableData.createMany({ data: dataRows })
+        totalRowsCreated += rowsPerTable
 
         // Log progress every 10 tables
         if (i % 10 === 0) {
           console.log(`✅ Progress: ${i}/${tableCount} tables created (${totalRowsCreated} rows total)`)
         }
       } catch (tableError) {
-        console.error(`❌ Error creating table ${i}:`, tableError)
+        const errorMsg = tableError instanceof Error ? tableError.message : String(tableError)
+        console.error(`❌ Error creating table ${i}/${tableCount}:`, errorMsg)
         // Continue with next table instead of failing completely
       }
     }

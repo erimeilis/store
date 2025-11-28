@@ -19,7 +19,6 @@ export interface Env {
   VITE_API_URL?: string;
   ENVIRONMENT?: string;
   ADMIN_ACCESS_TOKEN?: string;
-  USER_REGISTRATION_TOKEN?: string;
   // eslint-disable-next-line no-undef
   ASSETS?: Fetcher; // Cloudflare Workers static assets
   // eslint-disable-next-line no-undef

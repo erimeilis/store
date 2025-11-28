@@ -26,11 +26,11 @@ function getTokenFilePath(environment: string): string {
   return `${TOKEN_DIR}/${environment}-tokens.json`;
 }
 
-export function loadOrGenerateTokens(environment: string): TokenSet {
+export function loadOrGenerateTokens(environment: string, forceRegenerate = false): TokenSet {
   const tokenFilePath = getTokenFilePath(environment);
 
-  // Check if tokens already exist for this environment
-  if (existsSync(tokenFilePath)) {
+  // Check if tokens already exist for this environment (and not forcing regeneration)
+  if (!forceRegenerate && existsSync(tokenFilePath)) {
     try {
       const existing = JSON.parse(readFileSync(tokenFilePath, 'utf8'));
       console.log(`🔑 Loaded existing tokens for ${environment} (generated: ${existing.generatedAt})`);
@@ -38,6 +38,10 @@ export function loadOrGenerateTokens(environment: string): TokenSet {
     } catch (error) {
       console.log(`⚠️  Failed to load existing tokens for ${environment}, generating new ones`);
     }
+  }
+
+  if (forceRegenerate) {
+    console.log(`🔄 Force regenerating tokens for ${environment}...`);
   }
 
   // Generate new tokens
@@ -84,6 +88,29 @@ export function saveTokensToEnvFile(tokenSet: TokenSet): void {
     console.log(`   wrangler secret put FRONTEND_ACCESS_TOKEN --env ${environment}`);
     console.log(`   # Use token: ${frontendToken}`);
   }
+}
+
+/**
+ * Update .dev.vars files with tokens for local development
+ * Called by db-reset.ts after regenerating tokens
+ */
+export function saveTokensToDevVars(environment: string, frontendToken: string, adminToken: string): void {
+  if (environment !== 'local') {
+    console.log(`ℹ️  For ${environment} environment, run deploy to upload secrets to Cloudflare`);
+    return;
+  }
+
+  const devVarsPath = './.dev.vars';
+  const frontendDevVarsPath = './frontend/.dev.vars';
+
+  // Update backend .dev.vars with both tokens
+  updateEnvFile(devVarsPath, 'FRONTEND_ACCESS_TOKEN', frontendToken);
+  updateEnvFile(devVarsPath, 'ADMIN_ACCESS_TOKEN', adminToken);
+
+  // Update frontend .dev.vars
+  updateEnvFile(frontendDevVarsPath, 'FRONTEND_ACCESS_TOKEN', frontendToken);
+
+  console.log(`💾 Updated .dev.vars files with new tokens`);
 }
 
 function updateEnvFile(filePath: string, key: string, value: string): void {

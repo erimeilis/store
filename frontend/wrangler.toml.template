@@ -1,0 +1,60 @@
+name = "store-crud-front"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["global_fetch_strictly_public"]
+main = "src/index.tsx"
+
+# Disable workers.dev subdomain in production (using custom domain)
+workers_dev = false
+
+# Static assets
+assets.directory = "./dist"
+assets.binding = "ASSETS"
+
+# Production KV namespace (default deployment target)
+[[kv_namespaces]]
+binding = "KV"
+id = "{{KV_NAMESPACE_ID}}"
+
+# Production vars (default deployment target)
+# Secrets (GOOGLE_CLIENT_ID, etc.) are set via `wrangler secret put`
+[vars]
+API_URL = "{{API_URL}}"
+GOOGLE_REDIRECT_URI = "{{FRONTEND_URL}}/auth/callback/google"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+# Production routes (default deployment)
+{{FRONTEND_ROUTES}}
+
+# =============================================================================
+# Development Environments (use --env flag)
+# =============================================================================
+
+# Local Development Environment (--env local)
+# Uses local KV storage in .wrangler/state/
+[env.local]
+workers_dev = true
+
+[[env.local.kv_namespaces]]
+binding = "KV"
+id = "{{KV_FRONTEND_DEV_ID}}"
+
+[env.local.vars]
+API_URL = "http://localhost:8787"
+GOOGLE_REDIRECT_URI = "http://localhost:5173/auth/callback/google"
+
+# Preview Environment (--env preview)
+# Uses remote preview KV on Cloudflare
+[env.preview]
+workers_dev = true
+
+[[env.preview.kv_namespaces]]
+binding = "KV"
+id = "{{KV_FRONTEND_DEV_ID}}"
+preview_id = "{{KV_FRONTEND_DEV_ID}}"
+
+[env.preview.vars]
+API_URL = "http://localhost:8787"
+GOOGLE_REDIRECT_URI = "http://localhost:5173/auth/callback/google"

@@ -54,7 +54,7 @@ export function loadWranglerConfigs(): WranglerConfig {
 }
 
 
-export function getEnvironmentConfig(environment: string): EnvironmentConfig {
+export function getEnvironmentConfig(environment: string, regenerateTokens = true): EnvironmentConfig {
   const configs = loadWranglerConfigs();
   const { backendConfig, frontendConfig } = configs;
 
@@ -88,7 +88,8 @@ export function getEnvironmentConfig(environment: string): EnvironmentConfig {
   const allowedOrigins = envSection.vars?.ALLOWED_ORIGINS || backendConfig.vars?.ALLOWED_ORIGINS;
 
   // Load or generate secure tokens for this environment
-  const tokenSet = loadOrGenerateTokens(environment);
+  // db-reset (default) regenerates tokens, deploy script can pass false to reuse existing
+  const tokenSet = loadOrGenerateTokens(environment, regenerateTokens);
   const { frontendToken, adminToken } = tokenSet;
 
   // Parse allowed origins into domain format for tokens (strip protocol)

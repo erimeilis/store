@@ -15,6 +15,7 @@ import { readFileSync, readdirSync, writeFileSync, unlinkSync, existsSync } from
 import { join } from 'path';
 import * as readline from 'readline';
 import { getEnvironmentConfig, EnvironmentConfig } from './wrangler-config';
+import { saveTokensToDevVars } from './token-manager';
 
 // Get environment from command line args
 const envArg = process.argv[2];
@@ -24,6 +25,16 @@ if (!envArg || !validEnvironments.includes(envArg)) {
   console.error('❌ Usage: tsx scripts/db-reset.ts <environment>');
   console.error('   Available environments: local, preview, production');
   process.exit(1);
+}
+
+// Regenerate wrangler.toml files from .env to ensure fresh domain configuration
+// This prevents stale ALLOWED_ORIGINS causing empty token domains
+console.log('🔧 Regenerating wrangler.toml from .env...');
+try {
+  execSync('node scripts/generate-config.js', { stdio: 'pipe' });
+  console.log('   ✓ Configuration regenerated');
+} catch (error) {
+  console.log('   ⚠️  Could not regenerate config (continuing with existing)');
 }
 
 // Load configuration dynamically from wrangler.toml files
@@ -36,6 +47,9 @@ try {
   console.log(`   Items: ${config.itemCount}`);
   console.log(`   Remote: ${config.useRemote}`);
   console.log(`   API URL: ${config.apiUrl}`);
+
+  // Update .dev.vars for local development (so backend/frontend can use new tokens)
+  saveTokensToDevVars(envArg, config.frontendToken, config.adminToken);
 } catch (error) {
   console.error('❌ Failed to load configuration:', error instanceof Error ? error.message : String(error));
   process.exit(1);
@@ -65,7 +79,8 @@ async function confirmProductionReset(): Promise<boolean> {
 
 function buildWranglerCommand(command: string, useFile = false): string {
   const base = `wrangler d1 execute ${config.dbName}`;
-  const env = ` --env ${envArg}`;
+  // Production uses default config (no --env flag), other envs use --env flag
+  const env = envArg === 'production' ? '' : ` --env ${envArg}`;
   const remote = config.useRemote ? ' --remote' : ' --local';
   const fileFlag = useFile ? ` --file="${command}"` : ` --command="${command}"`;
   return `${base}${env}${remote}${fileFlag}`;
