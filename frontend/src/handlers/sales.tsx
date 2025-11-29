@@ -1,14 +1,18 @@
 /**
  * Sales Handler - Server-side data fetching for sales management
+ * Now includes both Sales and Rentals in unified transactions view
  */
 
 import type { Context } from 'hono';
 import type { Env, Variables } from '@/types/hono';
 import { renderDashboardPage, buildPageProps, fetchHandlerData } from '@/lib/handler-utils';
+import type { Sale } from '@/types/sales';
+import type { Rental, UnifiedTransaction } from '@/types/rentals';
 
 // API endpoints for sales (for future use)
 const _SALES_API_ENDPOINTS = {
   sales: '/api/sales',
+  rentals: '/api/rentals',
   salesAnalytics: '/api/sales/analytics',
   salesSummary: '/api/sales/summary',
   inventoryTransactions: '/api/inventory/transactions',
@@ -16,7 +20,58 @@ const _SALES_API_ENDPOINTS = {
 };
 
 /**
- * Handler for sales list page
+ * Convert a sale to unified transaction format
+ */
+function saleToUnified(sale: Sale): UnifiedTransaction {
+  return {
+    id: sale.id,
+    transactionNumber: sale.saleNumber,
+    transactionType: 'sale',
+    tableId: sale.tableId,
+    tableName: sale.tableName,
+    itemId: sale.itemId,
+    itemName: sale.itemSnapshot?.name || 'Unknown Item',
+    customerId: sale.customerId,
+    unitPrice: sale.unitPrice,
+    quantity: sale.quantitySold,
+    totalAmount: sale.totalAmount,
+    status: sale.saleStatus,
+    paymentMethod: sale.paymentMethod,
+    notes: sale.notes,
+    transactionDate: sale.createdAt,
+    createdAt: sale.createdAt,
+    updatedAt: sale.updatedAt
+  };
+}
+
+/**
+ * Convert a rental to unified transaction format
+ */
+function rentalToUnified(rental: Rental): UnifiedTransaction {
+  return {
+    id: rental.id,
+    transactionNumber: rental.rentalNumber,
+    transactionType: 'rental',
+    tableId: rental.tableId,
+    tableName: rental.tableName,
+    itemId: rental.itemId,
+    itemName: rental.itemSnapshot?.name || 'Unknown Item',
+    customerId: rental.customerId,
+    unitPrice: rental.unitPrice,
+    quantity: 1, // Rentals are always qty 1
+    totalAmount: rental.unitPrice,
+    status: rental.rentalStatus,
+    paymentMethod: null,
+    notes: rental.notes,
+    transactionDate: rental.rentedAt,
+    releasedAt: rental.releasedAt,
+    createdAt: rental.createdAt,
+    updatedAt: rental.updatedAt
+  };
+}
+
+/**
+ * Handler for sales list page - now shows unified transactions (sales + rentals)
  */
 export async function handleSalesListPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
   const user = c.get('user');
@@ -27,37 +82,103 @@ export async function handleSalesListPage(c: Context<{ Bindings: Env; Variables:
   const direction = c.req.query('direction') || 'desc';
 
   // Extract filter parameters from frontend (filter_* format)
-  // Backend sales route expects direct params (no filter_ prefix)
-  const filterSaleStatus = c.req.query('filter_saleStatus')
+  const filterTransactionType = c.req.query('filter_transactionType') // 'sale' | 'rental' | ''
+  const filterStatus = c.req.query('filter_status')
   const filterTableId = c.req.query('filter_tableId')
   const filterCustomerId = c.req.query('filter_customerId')
   const filterDateFrom = c.req.query('filter_dateFrom')
   const filterDateTo = c.req.query('filter_dateTo')
   const filterSearch = c.req.query('filter_search')
 
-  // Build additional parameters - strip filter_ prefix for backend
-  const additionalParams: Record<string, string> = {
+  // Build additional parameters for sales API
+  const salesParams: Record<string, string> = {
     sort_by: sort,
     sort_order: direction
   };
-  if (filterSaleStatus) additionalParams.saleStatus = filterSaleStatus;
-  if (filterTableId) additionalParams.tableId = filterTableId;
-  if (filterCustomerId) additionalParams.customerId = filterCustomerId;
-  if (filterDateFrom) additionalParams.date_from = filterDateFrom;
-  if (filterDateTo) additionalParams.date_to = filterDateTo;
-  if (filterSearch) additionalParams.search = filterSearch;
+  if (filterStatus) salesParams.saleStatus = filterStatus;
+  if (filterTableId) salesParams.tableId = filterTableId;
+  if (filterCustomerId) salesParams.customerId = filterCustomerId;
+  if (filterDateFrom) salesParams.date_from = filterDateFrom;
+  if (filterDateTo) salesParams.date_to = filterDateTo;
+  if (filterSearch) salesParams.search = filterSearch;
 
-  const sales = await fetchHandlerData('/api/sales', c, {
-    page,
-    additionalParams
+  // Build additional parameters for rentals API
+  const rentalsParams: Record<string, string> = {
+    sortBy: sort === 'createdAt' ? 'rentedAt' : sort,
+    sortOrder: direction
+  };
+  if (filterStatus) rentalsParams.rentalStatus = filterStatus;
+  if (filterTableId) rentalsParams.tableId = filterTableId;
+  if (filterCustomerId) rentalsParams.customerId = filterCustomerId;
+  if (filterDateFrom) rentalsParams.dateFrom = filterDateFrom;
+  if (filterDateTo) rentalsParams.dateTo = filterDateTo;
+  if (filterSearch) rentalsParams.search = filterSearch;
+
+  // Fetch both sales and rentals in parallel (unless filtered to one type)
+  const shouldFetchSales = !filterTransactionType || filterTransactionType === 'sale';
+  const shouldFetchRentals = !filterTransactionType || filterTransactionType === 'rental';
+
+  const [salesResponse, rentalsResponse] = await Promise.all([
+    shouldFetchSales
+      ? fetchHandlerData('/api/sales', c, { page, additionalParams: salesParams })
+      : Promise.resolve({ data: [], total: 0 }),
+    shouldFetchRentals
+      ? fetchHandlerData('/api/rentals', c, { page, additionalParams: rentalsParams })
+      : Promise.resolve({ data: [], total: 0 })
+  ]);
+
+  // Convert to unified transactions
+  const salesData = (salesResponse as any)?.data || [];
+  const rentalsData = (rentalsResponse as any)?.data || [];
+
+  const unifiedSales: UnifiedTransaction[] = salesData.map((sale: Sale) => saleToUnified(sale));
+  const unifiedRentals: UnifiedTransaction[] = rentalsData.map((rental: Rental) => rentalToUnified(rental));
+
+  // Combine and sort by transaction date
+  const allTransactions = [...unifiedSales, ...unifiedRentals].sort((a, b) => {
+    const dateA = new Date(a.transactionDate).getTime();
+    const dateB = new Date(b.transactionDate).getTime();
+    return direction === 'desc' ? dateB - dateA : dateA - dateB;
   });
 
+  // Build combined response with proper IPaginatedResponse structure
+  const totalSales = (salesResponse as any)?.total || salesData.length;
+  const totalRentals = (rentalsResponse as any)?.total || rentalsData.length;
+  const totalItems = totalSales + totalRentals;
+  const perPage = 50;
+  const totalPages = Math.ceil(totalItems / perPage);
+
+  const transactions = {
+    // Required IPaginatedResponse fields
+    data: allTransactions,
+    currentPage: page,
+    lastPage: totalPages,
+    perPage: perPage,
+    total: totalItems,
+    from: totalItems > 0 ? (page - 1) * perPage + 1 : null,
+    to: totalItems > 0 ? Math.min(page * perPage, totalItems) : null,
+    links: Array.from({ length: totalPages }, (_, i) => ({
+      url: `?page=${i + 1}`,
+      label: String(i + 1),
+      active: i + 1 === page
+    })),
+    prevPageUrl: page > 1 ? `?page=${page - 1}` : null,
+    nextPageUrl: page < totalPages ? `?page=${page + 1}` : null,
+    lastPageUrl: totalPages > 1 ? `?page=${totalPages}` : null,
+    // Extra fields for stats display
+    salesCount: totalSales,
+    rentalsCount: totalRentals
+  };
+
   const pageProps = buildPageProps(user, c, {
-    sales,
+    transactions,
+    sales: salesResponse, // Keep original for stats
+    rentals: rentalsResponse, // Keep original for stats
     filters: {
       sort,
       direction,
-      filterSaleStatus,
+      filterTransactionType,
+      filterStatus,
       filterTableId,
       filterCustomerId,
       filterDateFrom,

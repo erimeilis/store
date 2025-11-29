@@ -5,7 +5,7 @@
 
 'use client'
 
-import React, {useState} from 'react'
+import React, {useState, useMemo} from 'react'
 import {Button} from '@/components/ui/button'
 import {Card, CardBody, CardTitle} from '@/components/ui/card'
 import InputError from '@/components/ui/input-error'
@@ -14,8 +14,25 @@ import {Select} from '@/components/ui/select'
 import {Checkbox} from '@/components/ui/checkbox'
 import {Alert} from '@/components/ui/alert'
 import {TableInfoForm} from '@/components/table-info-form'
-import {COLUMN_TYPE_OPTIONS, ColumnFormData, ColumnType, TableFormData} from '@/types/dynamic-tables'
-import {IconArrowDown, IconArrowUp, IconPlus, IconTrash, IconShoppingCart, IconCurrencyDollar, IconPackage, IconInfoCircle} from '@tabler/icons-react'
+import {
+    COLUMN_TYPE_OPTIONS,
+    ColumnFormData,
+    ColumnType,
+    TableFormData,
+    TableType
+} from '@/types/dynamic-tables'
+import {
+    IconArrowDown,
+    IconArrowUp,
+    IconPlus,
+    IconTrash,
+    IconShoppingCart,
+    IconCurrencyDollar,
+    IconPackage,
+    IconInfoCircle,
+    IconClock,
+    IconCheck
+} from '@tabler/icons-react'
 
 interface ValidationErrors {
     general?: string;
@@ -33,7 +50,10 @@ export default function CreateTablePage() {
         name: '',
         description: '',
         visibility: 'private',
-        forSale: false,
+        tableType: 'default',
+        productIdColumn: '',
+        rentalPeriod: 'month',
+        forSale: false, // Deprecated, kept for backwards compatibility
         columns: [
             {
                 name: '',
@@ -45,6 +65,11 @@ export default function CreateTablePage() {
             }
         ]
     })
+
+    // Get column names for productIdColumn selector
+    const columnNames = useMemo(() => {
+        return formData.columns.map(col => col.name).filter(name => name.trim() !== '')
+    }, [formData.columns])
 
     const handleInputChange = (field: keyof TableFormData, value: any) => {
         setFormData(prev => ({...prev, [field]: value}))
@@ -144,12 +169,12 @@ export default function CreateTablePage() {
 
         // Simple form submission - let the server handle everything
         const form = e.target as HTMLFormElement
-        const formData = new FormData(form)
+        const formDataObj = new FormData(form)
 
         try {
             const response = await fetch('/api/tables/create', {
                 method: 'POST',
-                body: formData
+                body: formDataObj
             })
 
             if (response.ok) {
@@ -169,6 +194,8 @@ export default function CreateTablePage() {
             setIsSubmitting(false)
         }
     }
+
+    const isEcommerceTable = formData.tableType === 'sale' || formData.tableType === 'rent'
 
     return (
         <div className="container mx-auto p-4 max-w-4xl">
@@ -191,7 +218,10 @@ export default function CreateTablePage() {
                     name: formData.name.trim(),
                     description: formData.description.trim() || undefined,
                     visibility: formData.visibility,
-                    forSale: formData.forSale,
+                    tableType: formData.tableType,
+                    productIdColumn: formData.productIdColumn || undefined,
+                    rentalPeriod: formData.tableType === 'rent' ? formData.rentalPeriod : undefined,
+                    forSale: formData.tableType === 'sale', // Backwards compatibility
                     columns: formData.columns.map(col => ({
                         name: col.name.trim(),
                         type: col.type,
@@ -201,32 +231,36 @@ export default function CreateTablePage() {
                         position: col.position
                     }))
                 })}/>
-                {/* Table Information */}
+                {/* Table Information with E-commerce Settings */}
                 <TableInfoForm
                     data={{
                         name: formData.name,
                         description: formData.description,
                         visibility: formData.visibility,
-                        forSale: formData.forSale
+                        tableType: formData.tableType,
+                        productIdColumn: formData.productIdColumn,
+                        rentalPeriod: formData.rentalPeriod,
+                        forSale: formData.tableType === 'sale'
                     }}
                     errors={errors}
                     onChange={handleInputChange}
+                    columnNames={columnNames}
                 />
 
-                {/* Auto-Column Preview for For Sale Tables */}
-                {formData.forSale && (
-                    <Card color="info" style="soft">
+                {/* Auto-Column Preview for E-commerce Tables */}
+                {formData.tableType === 'sale' && (
+                    <Card color="success" style="soft">
                         <CardBody>
                             <CardTitle className="flex items-center gap-2">
                                 <IconShoppingCart className="h-5 w-5" />
-                                <span>E-commerce Columns</span>
-                                <span className="badge badge-info badge-sm">Auto-created</span>
+                                <span>Sale Columns</span>
+                                <span className="badge badge-success badge-sm">Auto-created</span>
                             </CardTitle>
                             <p className="text-sm mb-3">
-                                These columns will be automatically added to your table for e-commerce functionality:
+                                These columns will be automatically added for selling items:
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div className="p-3 rounded-lg border">
+                                <div className="p-3 rounded-lg border border-success/30 bg-success/5">
                                     <div className="flex items-center gap-2 mb-1">
                                         <IconCurrencyDollar className="h-4 w-4" />
                                         <span className="font-medium">price</span>
@@ -235,13 +269,13 @@ export default function CreateTablePage() {
                                     <p className="text-xs">Number • Required • No default</p>
                                     <p className="text-xs mt-1">Item price for selling</p>
                                 </div>
-                                <div className="p-3 rounded-lg border">
+                                <div className="p-3 rounded-lg border border-success/30 bg-success/5">
                                     <div className="flex items-center gap-2 mb-1">
                                         <IconPackage className="h-4 w-4" />
                                         <span className="font-medium">qty</span>
                                         <span className="badge badge-warning badge-xs">Protected</span>
                                     </div>
-                                    <p className="text-xs">Number • Required • Default: 1</p>
+                                    <p className="text-xs">Integer • Required • Default: 1</p>
                                     <p className="text-xs mt-1">Available quantity</p>
                                 </div>
                             </div>
@@ -255,12 +289,71 @@ export default function CreateTablePage() {
                     </Card>
                 )}
 
+                {formData.tableType === 'rent' && (
+                    <Card color="info" style="soft">
+                        <CardBody>
+                            <CardTitle className="flex items-center gap-2">
+                                <IconClock className="h-5 w-5" />
+                                <span>Rental Columns</span>
+                                <span className="badge badge-info badge-sm">Auto-created</span>
+                            </CardTitle>
+                            <p className="text-sm mb-3">
+                                These columns will be automatically added for renting items:
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="p-3 rounded-lg border border-info/30 bg-info/5">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <IconCurrencyDollar className="h-4 w-4" />
+                                        <span className="font-medium">price</span>
+                                        <span className="badge badge-warning badge-xs">Protected</span>
+                                    </div>
+                                    <p className="text-xs">Number • Required • No default</p>
+                                    <p className="text-xs mt-1">Rental price per {formData.rentalPeriod}</p>
+                                </div>
+                                <div className="p-3 rounded-lg border border-info/30 bg-info/5">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <IconCurrencyDollar className="h-4 w-4" />
+                                        <span className="font-medium">fee</span>
+                                        <span className="badge badge-warning badge-xs">Protected</span>
+                                    </div>
+                                    <p className="text-xs">Number • Required • Default: 0</p>
+                                    <p className="text-xs mt-1">One-time rental fee/deposit</p>
+                                </div>
+                                <div className="p-3 rounded-lg border border-info/30 bg-info/5">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <IconCheck className="h-4 w-4" />
+                                        <span className="font-medium">used</span>
+                                        <span className="badge badge-warning badge-xs">Protected</span>
+                                    </div>
+                                    <p className="text-xs">Boolean • Required • Default: false</p>
+                                    <p className="text-xs mt-1">Whether item has been rented before</p>
+                                </div>
+                                <div className="p-3 rounded-lg border border-info/30 bg-info/5">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <IconCheck className="h-4 w-4" />
+                                        <span className="font-medium">available</span>
+                                        <span className="badge badge-warning badge-xs">Protected</span>
+                                    </div>
+                                    <p className="text-xs">Boolean • Required • Default: true</p>
+                                    <p className="text-xs mt-1">Whether item is available for rent</p>
+                                </div>
+                            </div>
+                            <div className="alert alert-warning mt-3">
+                                <div className="flex items-center gap-2 text-sm">
+                                    <IconInfoCircle className="h-4 w-4 flex-shrink-0" />
+                                    <span>These columns cannot be deleted or renamed while the table is "for rent"</span>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+                )}
+
                 {/* Column Definition */}
                 <Card>
                     <CardBody>
                         <div className="flex flex-row items-center justify-between mb-4">
                             <CardTitle>
-                                {formData.forSale ? 'Additional Columns' : 'Column Configuration'}
+                                {isEcommerceTable ? 'Additional Columns' : 'Column Configuration'}
                             </CardTitle>
                             <Button
                                 type="button"

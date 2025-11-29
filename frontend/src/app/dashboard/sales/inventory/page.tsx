@@ -7,7 +7,7 @@ import React from 'react'
 import {IColumnDefinition, ModelList} from '@/components/model/model-list'
 import {IPaginatedResponse} from '@/types/models'
 import {formatApiDate} from '@/lib/date-utils'
-import {IconAdjustments, IconEdit, IconMinus, IconPlus, IconShoppingCart} from '@tabler/icons-react'
+import {IconAdjustments, IconEdit, IconMinus, IconPlus, IconShoppingCart, IconClockDollar, IconClockX} from '@tabler/icons-react'
 import {Alert} from '@/components/ui/alert'
 import {Button} from '@/components/ui/button'
 import {Card, CardBody} from '@/components/ui/card'
@@ -19,11 +19,11 @@ interface InventoryTransaction {
     tableId: string;
     tableName: string;
     itemId: string;
-    transactionType: 'sale' | 'add' | 'remove' | 'update' | 'adjust';
+    transactionType: 'sale' | 'rent' | 'release' | 'add' | 'remove' | 'update' | 'adjust';
     quantityChange: number | null;
     previousData: any;
     newData: any;
-    referenceId: string | null; // saleId for sales
+    referenceId: string | null; // saleId for sales, rentalId for rentals
     createdBy: string;
     createdAt: string;
 }
@@ -31,10 +31,12 @@ interface InventoryTransaction {
 // Transaction type display configuration
 const TRANSACTION_TYPE_CONFIG = {
     sale: {label: 'Sale', icon: IconShoppingCart, colorClass: 'text-success', bgClass: 'bg-success/20'},
+    rent: {label: 'Rented', icon: IconClockDollar, colorClass: 'text-accent', bgClass: 'bg-accent/20'},
+    release: {label: 'Released', icon: IconClockX, colorClass: 'text-secondary', bgClass: 'bg-secondary/20'},
     add: {label: 'Added', icon: IconPlus, colorClass: 'text-info', bgClass: 'bg-info/20'},
     remove: {label: 'Removed', icon: IconMinus, colorClass: 'text-warning', bgClass: 'bg-warning/20'},
     update: {label: 'Updated', icon: IconEdit, colorClass: 'text-primary', bgClass: 'bg-primary/20'},
-    adjust: {label: 'Adjustment', icon: IconAdjustments, colorClass: 'text-secondary', bgClass: 'bg-secondary/20'}
+    adjust: {label: 'Adjustment', icon: IconAdjustments, colorClass: 'text-neutral', bgClass: 'bg-neutral/20'}
 }
 
 // Column definitions for Inventory Transactions
@@ -77,9 +79,13 @@ const inventoryColumns: IColumnDefinition<InventoryTransaction>[] = [
         filterable: true,
         filterType: 'text',
         render: (transaction) => (
-            <span className="text-sm">
-        {transaction.tableName}
-      </span>
+            <a
+                href={`/dashboard/tables/${transaction.tableId}/data`}
+                className="text-sm link link-hover link-primary"
+                title={`View ${transaction.tableName} table`}
+            >
+                {transaction.tableName}
+            </a>
         )
     },
     {
@@ -116,14 +122,18 @@ const inventoryColumns: IColumnDefinition<InventoryTransaction>[] = [
                 'Unknown Item'
 
             return (
-                <div className="flex flex-col">
-          <span className="font-medium truncate max-w-[150px]" title={itemName}>
-            {itemName}
-          </span>
-                    <span className="text-xs text-base-content/60 font-mono">
-            ID: {transaction.itemId.substring(0, 8)}...
-          </span>
-                </div>
+                <a
+                    href={`/dashboard/tables/${transaction.tableId}/data?search=${encodeURIComponent(transaction.itemId)}`}
+                    className="flex flex-col link-hover group"
+                    title={`View item in ${transaction.tableName}`}
+                >
+                    <span className="font-medium truncate max-w-[150px] group-hover:text-primary" title={itemName}>
+                        {itemName}
+                    </span>
+                    <span className="text-xs text-base-content/60 font-mono group-hover:text-primary/70">
+                        ID: {transaction.itemId.substring(0, 8)}...
+                    </span>
+                </a>
             )
         }
     },
@@ -179,29 +189,6 @@ const inventoryColumns: IColumnDefinition<InventoryTransaction>[] = [
                         </div>
                     )}
                 </div>
-            )
-        }
-    },
-    {
-        key: 'referenceId',
-        label: 'Reference',
-        sortable: true,
-        filterable: true,
-        filterType: 'text',
-        render: (transaction) => {
-            if (!transaction.referenceId) {
-                return <span className="text-base-content/40">-</span>
-            }
-
-            return (
-                <Button
-                    size="sm"
-                    style="ghost"
-                    color="primary"
-                    onClick={() => window.location.href = `/dashboard/sales/edit/${transaction.referenceId}`}
-                >
-                    {transaction.referenceId.substring(0, 8)}...
-                </Button>
             )
         }
     },

@@ -40,8 +40,8 @@ export async function updateColumn(
       return createErrorResponse('Column not found', 'Column does not exist', 404)
     }
 
-    // Check if this is a protected column (price/qty in forSale tables)
-    const isProtected = await repository.isColumnProtected(tableId, column.name)
+    // Check if this is a protected column based on table type (price/qty for sale, price/used/available for rent)
+    const isProtected = await repository.isColumnProtectedByType(tableId, column.name)
 
     // Validate and convert column name if renaming
     let internalName: string | undefined
@@ -59,7 +59,7 @@ export async function updateColumn(
       if (isProtected) {
         return createErrorResponse(
           'Column protected',
-          `Cannot rename protected column "${column.name}" while table is marked for sale. Change table to non-sale mode first.`,
+          `Cannot rename protected column "${column.name}" while table has a special type (sale/rent). Change table to default type first.`,
           403
         )
       }
@@ -70,14 +70,14 @@ export async function updateColumn(
       if (data.isRequired !== undefined && data.isRequired !== column.isRequired) {
         return createErrorResponse(
           'Column protected',
-          `Cannot modify "required" setting for protected column "${column.name}" while table is marked for sale. Price and qty columns must remain required.`,
+          `Cannot modify "required" setting for protected column "${column.name}" while table has a special type. Protected columns must remain required.`,
           403
         )
       }
       if (data.allowDuplicates !== undefined && data.allowDuplicates !== column.allowDuplicates) {
         return createErrorResponse(
           'Column protected',
-          `Cannot modify "allow duplicates" setting for protected column "${column.name}" while table is marked for sale.`,
+          `Cannot modify "allow duplicates" setting for protected column "${column.name}" while table has a special type.`,
           403
         )
       }

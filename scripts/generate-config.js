@@ -25,6 +25,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT_DIR = resolve(__dirname, '..')
 const TOKENS_DIR = resolve(__dirname, 'tokens')
 
+// Read version from package.json
+const packageJson = JSON.parse(readFileSync(resolve(ROOT_DIR, 'package.json'), 'utf-8'))
+const APP_VERSION = packageJson.version
+
 // Colors for console output
 const colors = {
   reset: '\x1b[0m',
@@ -187,6 +191,7 @@ custom_domain = true`
     '{{PAGE_SIZE}}': env.PAGE_SIZE || '20',
     '{{PAGE_SIZE_PREVIEW}}': env.PAGE_SIZE_PREVIEW || '10',
     '{{PAGE_SIZE_LOCAL}}': env.PAGE_SIZE_LOCAL || '5',
+    '{{APP_VERSION}}': APP_VERSION,
     '{{API_ROUTES}}': apiRoutes,
   }
 
@@ -283,10 +288,12 @@ function generateFrontendDevVars(env, forDev = false) {
     const tokens = loadTokensFromManager('local')
     if (tokens) {
       secrets.push(`FRONTEND_ACCESS_TOKEN=${tokens.frontendToken}`)
+      secrets.push(`ADMIN_ACCESS_TOKEN=${tokens.adminToken}`)  // Needed for API proxy
     }
   } else {
     // Production mode: use .env values
     if (env.FRONTEND_ACCESS_TOKEN) secrets.push(`FRONTEND_ACCESS_TOKEN=${env.FRONTEND_ACCESS_TOKEN}`)
+    if (env.ADMIN_ACCESS_TOKEN) secrets.push(`ADMIN_ACCESS_TOKEN=${env.ADMIN_ACCESS_TOKEN}`)
   }
 
   // Google OAuth always comes from .env
