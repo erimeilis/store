@@ -1,6 +1,7 @@
 /**
  * Postman Collection Generator Service
- * Generates Postman v2.1 collections based on token permissions and table access
+ * Generates Postman v2.1 collections for PUBLIC routes only
+ * Regular tokens can only access /api/public/* routes
  */
 
 interface PostmanCollection {
@@ -61,7 +62,9 @@ interface Table {
   id: string;
   name: string;
   description: string | null;
-  forSale: boolean;
+  tableType?: string;
+  /** @deprecated Use tableType instead */
+  forSale?: boolean;
 }
 
 export class PostmanGeneratorService {
@@ -73,14 +76,19 @@ export class PostmanGeneratorService {
 
   /**
    * Generate a Postman collection for a specific token
+   * Only includes PUBLIC routes that regular tokens can access
    */
   async generateCollection(token: Token, tables: Table[]): Promise<PostmanCollection> {
     const permissions = this.parsePermissions(token.permissions);
     const accessibleTables = this.filterAccessibleTables(tables, token.tableAccess);
 
+    // Separate tables by type
+    const saleTables = accessibleTables.filter(t => t.tableType === 'sale' || t.forSale === true);
+    const rentTables = accessibleTables.filter(t => t.tableType === 'rent');
+
     const collection: PostmanCollection = {
       info: {
-        name: `${token.name} - API Collection`,
+        name: `${token.name} - Public API Collection`,
         description: this.generateDescription(token, permissions),
         schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
       },
@@ -109,13 +117,17 @@ export class PostmanGeneratorService {
       item: [],
     };
 
-    // Add health check folder (always available)
-    collection.item.push(this.createHealthCheckFolder());
+    // Add system folder (health check, list tables)
+    collection.item.push(this.createSystemFolder());
 
-    // Add table-specific folders based on permissions
-    for (const table of accessibleTables) {
-      const folder = this.createTableFolder(table, permissions);
-      collection.item.push(folder);
+    // Add sale tables folder if any
+    if (saleTables.length > 0) {
+      collection.item.push(this.createSalesFolder(saleTables, permissions));
+    }
+
+    // Add rental tables folder if any
+    if (rentTables.length > 0) {
+      collection.item.push(this.createRentalsFolder(rentTables, permissions));
     }
 
     return collection;
@@ -143,7 +155,10 @@ export class PostmanGeneratorService {
    */
   private generateDescription(token: Token, permissions: Set<string>): string {
     const lines = [
-      `API Collection for token: ${token.name}`,
+      `Public API Collection for token: ${token.name}`,
+      '',
+      '**Note:** This collection includes only PUBLIC routes accessible to regular API tokens.',
+      'Admin-only routes (table management, data CRUD) are not included.',
       '',
       '**Permissions:**',
       ...Array.from(permissions).map((p) => `- ${p}`),
@@ -165,9 +180,9 @@ export class PostmanGeneratorService {
   }
 
   /**
-   * Create health check folder
+   * Create system folder with health check and public table list
    */
-  private createHealthCheckFolder(): PostmanFolder {
+  private createSystemFolder(): PostmanFolder {
     return {
       name: 'System',
       item: [
@@ -185,16 +200,16 @@ export class PostmanGeneratorService {
           },
         },
         {
-          name: 'List My Tables',
+          name: 'List Public Tables',
           request: {
             method: 'GET',
             header: [],
             url: {
-              raw: '{{api_url}}/api/my-tables',
+              raw: '{{api_url}}/api/public/tables',
               host: ['{{api_url}}'],
-              path: ['api', 'my-tables'],
+              path: ['api', 'public', 'tables'],
             },
-            description: 'List all tables accessible to this token. Returns table metadata including name, description, visibility, forSale status, column count, and row count.',
+            description: 'List all public tables (both sale and rent types). Use the tableType field to determine which item endpoints to use.',
           },
         },
       ],
@@ -202,192 +217,131 @@ export class PostmanGeneratorService {
   }
 
   /**
-   * Create a folder for a specific table with all available operations
+   * Create folder for sale-type tables
    */
-  private createTableFolder(table: Table, permissions: Set<string>): PostmanFolder {
+  private createSalesFolder(tables: Table[], permissions: Set<string>): PostmanFolder {
     const folder: PostmanFolder = {
-      name: table.name,
+      name: 'Sales',
       item: [],
     };
 
-    // Add read operations
-    if (permissions.has('read')) {
-      folder.item.push(this.createListRequest(table));
-      folder.item.push(this.createGetRequest(table));
-
-      // Add buy operation for "for sale" tables (available with read permission)
-      if (table.forSale) {
-        folder.item.push(this.createBuyRequest(table));
-      }
-    }
-
-    // Add write operations
-    if (permissions.has('write')) {
-      folder.item.push(this.createPostRequest(table));
-      folder.item.push(this.createPutRequest(table));
-      folder.item.push(this.createDeleteRequest(table));
+    // Add table-specific items
+    for (const table of tables) {
+      folder.item.push(this.createSaleTableItemsRequest(table));
+      folder.item.push(this.createSaleItemAvailabilityRequest(table));
+      folder.item.push(this.createBuyRequest(table));
     }
 
     return folder;
   }
 
   /**
-   * Create list request (GET all)
+   * Create folder for rent-type tables
    */
-  private createListRequest(table: Table): PostmanRequest {
+  private createRentalsFolder(tables: Table[], permissions: Set<string>): PostmanFolder {
+    const folder: PostmanFolder = {
+      name: 'Rentals',
+      item: [],
+    };
+
+    // Add table-specific items
+    for (const table of tables) {
+      folder.item.push(this.createRentalTableItemsRequest(table));
+      folder.item.push(this.createRentalItemAvailabilityRequest(table));
+      folder.item.push(this.createRentRequest(table));
+      folder.item.push(this.createReleaseRequest(table));
+    }
+
+    return folder;
+  }
+
+  /**
+   * Create request to list items from a sale-type table
+   */
+  private createSaleTableItemsRequest(table: Table): PostmanRequest {
     return {
-      name: `List ${table.name}`,
+      name: `List ${table.name} Items`,
       request: {
         method: 'GET',
         header: [],
         url: {
-          raw: `{{api_url}}/api/tables/${table.id}/data?page=1&limit=50`,
+          raw: `{{api_url}}/api/public/tables/${table.id}/items`,
           host: ['{{api_url}}'],
-          path: ['api', 'tables', table.id, 'data'],
+          path: ['api', 'public', 'tables', table.id, 'items'],
+        },
+        description: `List all available items from ${table.name} table for purchase`,
+      },
+    };
+  }
+
+  /**
+   * Create request to check sale item availability
+   */
+  private createSaleItemAvailabilityRequest(table: Table): PostmanRequest {
+    return {
+      name: `Check ${table.name} Item Availability`,
+      request: {
+        method: 'GET',
+        header: [],
+        url: {
+          raw: `{{api_url}}/api/public/tables/${table.id}/items/:itemId/availability?quantity=1`,
+          host: ['{{api_url}}'],
+          path: ['api', 'public', 'tables', table.id, 'items', ':itemId', 'availability'],
           query: [
-            { key: 'page', value: '1', description: 'Page number' },
-            { key: 'limit', value: '50', description: 'Items per page' },
-            { key: 'sort', value: '', description: 'Sort by column name' },
-            { key: 'direction', value: '', description: 'asc or desc' },
+            { key: 'quantity', value: '1', description: 'Quantity to check availability for' },
           ],
         },
-        description: `List all items from ${table.name} table with pagination`,
+        description: `Check if an item from ${table.name} is available for purchase and get current stock`,
       },
     };
   }
 
   /**
-   * Create get single item request
+   * Create request to list items from a rent-type table
+   * Uses unified /api/public/tables/:id/items endpoint
    */
-  private createGetRequest(table: Table): PostmanRequest {
+  private createRentalTableItemsRequest(table: Table): PostmanRequest {
     return {
-      name: `Get ${table.name} Item`,
+      name: `List ${table.name} Items`,
       request: {
         method: 'GET',
         header: [],
         url: {
-          raw: `{{api_url}}/api/tables/${table.id}/data/:id`,
+          raw: `{{api_url}}/api/public/tables/${table.id}/items`,
           host: ['{{api_url}}'],
-          path: ['api', 'tables', table.id, 'data', ':id'],
+          path: ['api', 'public', 'tables', table.id, 'items'],
         },
-        description: `Get a single item from ${table.name} table by ID`,
+        description: `List all items from ${table.name} rental table with rental status (used, available, canRent)`,
       },
     };
   }
 
   /**
-   * Create POST request (create)
+   * Create request to check rental item availability
+   * Uses unified /api/public/tables/:id/items/:itemId/availability endpoint
    */
-  private createPostRequest(table: Table): PostmanRequest {
+  private createRentalItemAvailabilityRequest(table: Table): PostmanRequest {
     return {
-      name: `Create ${table.name} Item`,
+      name: `Check ${table.name} Rental Availability`,
       request: {
-        method: 'POST',
-        header: [
-          {
-            key: 'Content-Type',
-            value: 'application/json',
-            type: 'text',
-          },
-        ],
-        url: {
-          raw: `{{api_url}}/api/tables/${table.id}/data`,
-          host: ['{{api_url}}'],
-          path: ['api', 'tables', table.id, 'data'],
-        },
-        body: {
-          mode: 'raw',
-          raw: JSON.stringify(
-            {
-              data: {
-                // Add example fields based on table columns
-                field1: 'value1',
-                field2: 'value2',
-              },
-            },
-            null,
-            2
-          ),
-          options: {
-            raw: {
-              language: 'json',
-            },
-          },
-        },
-        description: `Create a new item in ${table.name} table`,
-      },
-    };
-  }
-
-  /**
-   * Create PUT request (update)
-   */
-  private createPutRequest(table: Table): PostmanRequest {
-    return {
-      name: `Update ${table.name} Item`,
-      request: {
-        method: 'PUT',
-        header: [
-          {
-            key: 'Content-Type',
-            value: 'application/json',
-            type: 'text',
-          },
-        ],
-        url: {
-          raw: `{{api_url}}/api/tables/${table.id}/data/:id`,
-          host: ['{{api_url}}'],
-          path: ['api', 'tables', table.id, 'data', ':id'],
-        },
-        body: {
-          mode: 'raw',
-          raw: JSON.stringify(
-            {
-              data: {
-                // Add example fields based on table columns
-                field1: 'updated_value1',
-                field2: 'updated_value2',
-              },
-            },
-            null,
-            2
-          ),
-          options: {
-            raw: {
-              language: 'json',
-            },
-          },
-        },
-        description: `Update an existing item in ${table.name} table`,
-      },
-    };
-  }
-
-  /**
-   * Create DELETE request
-   */
-  private createDeleteRequest(table: Table): PostmanRequest {
-    return {
-      name: `Delete ${table.name} Item`,
-      request: {
-        method: 'DELETE',
+        method: 'GET',
         header: [],
         url: {
-          raw: `{{api_url}}/api/tables/${table.id}/data/:id`,
+          raw: `{{api_url}}/api/public/tables/${table.id}/items/:itemId/availability`,
           host: ['{{api_url}}'],
-          path: ['api', 'tables', table.id, 'data', ':id'],
+          path: ['api', 'public', 'tables', table.id, 'items', ':itemId', 'availability'],
         },
-        description: `Delete an item from ${table.name} table`,
+        description: `Check if an item from ${table.name} is available for rental (returns used, available, currentlyRented, rentalPrice)`,
       },
     };
   }
 
   /**
-   * Create BUY request (for "for sale" tables)
+   * Create BUY request (for "sale" type tables)
    */
   private createBuyRequest(table: Table): PostmanRequest {
     return {
-      name: `Buy ${table.name} Item`,
+      name: `Buy from ${table.name}`,
       request: {
         method: 'POST',
         header: [
@@ -422,7 +376,92 @@ export class PostmanGeneratorService {
             },
           },
         },
-        description: `Purchase an item from ${table.name} table. This endpoint is available for "for sale" tables and requires read authentication.`,
+        description: `Purchase an item from ${table.name}. Decrements item quantity.`,
+      },
+    };
+  }
+
+  /**
+   * Create RENT request (for "rent" type tables)
+   */
+  private createRentRequest(table: Table): PostmanRequest {
+    return {
+      name: `Rent from ${table.name}`,
+      request: {
+        method: 'POST',
+        header: [
+          {
+            key: 'Content-Type',
+            value: 'application/json',
+            type: 'text',
+          },
+        ],
+        url: {
+          raw: `{{api_url}}/api/public/rent`,
+          host: ['{{api_url}}'],
+          path: ['api', 'public', 'rent'],
+        },
+        body: {
+          mode: 'raw',
+          raw: JSON.stringify(
+            {
+              tableId: table.id,
+              itemId: 'item_id_here',
+              customerId: 'customer_identifier',
+              notes: 'Optional rental notes',
+            },
+            null,
+            2
+          ),
+          options: {
+            raw: {
+              language: 'json',
+            },
+          },
+        },
+        description: `Rent an item from ${table.name}. Sets available=false for the item.`,
+      },
+    };
+  }
+
+  /**
+   * Create RELEASE request (for "rent" type tables)
+   */
+  private createReleaseRequest(table: Table): PostmanRequest {
+    return {
+      name: `Release ${table.name} Rental`,
+      request: {
+        method: 'POST',
+        header: [
+          {
+            key: 'Content-Type',
+            value: 'application/json',
+            type: 'text',
+          },
+        ],
+        url: {
+          raw: `{{api_url}}/api/public/release`,
+          host: ['{{api_url}}'],
+          path: ['api', 'public', 'release'],
+        },
+        body: {
+          mode: 'raw',
+          raw: JSON.stringify(
+            {
+              tableId: table.id,
+              itemId: 'item_id_here',
+              notes: 'Optional release notes',
+            },
+            null,
+            2
+          ),
+          options: {
+            raw: {
+              language: 'json',
+            },
+          },
+        },
+        description: `Release a rented item from ${table.name}. Sets used=true, preventing future rentals.`,
       },
     };
   }

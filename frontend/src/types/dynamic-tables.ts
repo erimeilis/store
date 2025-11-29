@@ -10,6 +10,12 @@ export type TableAccessLevel = 'none' | 'read' | 'write' | 'admin'
 // Visibility level definitions matching backend
 export type TableVisibility = 'private' | 'public' | 'shared'
 
+// Table type for commerce mode
+export type TableType = 'default' | 'sale' | 'rent'
+
+// Rental period options for rent-type tables
+export type RentalPeriod = 'hour' | 'day' | 'week' | 'month' | 'year'
+
 // Frontend interfaces matching backend types
 export interface UserTable extends BaseModel {
   id: string
@@ -17,7 +23,10 @@ export interface UserTable extends BaseModel {
   description?: string | null
   createdBy: string
   visibility: TableVisibility
-  forSale: boolean // Whether table is configured for e-commerce with protected price/qty columns
+  forSale: boolean // Legacy: Whether table is configured for e-commerce with protected price/qty columns
+  tableType?: TableType // New: Table type (default, sale, rent)
+  productIdColumn?: string | null // Column name that serves as product identifier/title
+  rentalPeriod?: RentalPeriod | null // Billing period for rent tables (default: 'month')
   createdAt: string
   updatedAt: string
   ownerDisplayName?: string // Friendly display name for the owner
@@ -68,7 +77,10 @@ export interface CreateTableRequest {
   name: string
   description?: string
   visibility?: TableVisibility
-  forSale?: boolean
+  tableType?: TableType
+  productIdColumn?: string
+  rentalPeriod?: RentalPeriod
+  forSale?: boolean // @deprecated Use tableType instead
   columns: CreateColumnRequest[]
 }
 
@@ -85,7 +97,10 @@ export interface UpdateTableRequest {
   name?: string
   description?: string
   visibility?: TableVisibility
-  forSale?: boolean
+  tableType?: TableType
+  productIdColumn?: string | null
+  rentalPeriod?: RentalPeriod
+  forSale?: boolean // @deprecated Use tableType instead
 }
 
 export interface AddTableDataRequest {
@@ -144,7 +159,10 @@ export interface TableFormData {
   name: string
   description: string
   visibility: TableVisibility
-  forSale: boolean
+  tableType: TableType
+  productIdColumn: string
+  rentalPeriod: RentalPeriod
+  forSale: boolean // @deprecated Use tableType instead
   columns: ColumnFormData[]
 }
 
@@ -211,9 +229,69 @@ export function getColumnTypeLabel(type: ColumnType): string {
   return option?.label || type
 }
 
+/**
+ * @deprecated Use isProtectedColumn instead
+ */
 export function isProtectedSaleColumn(columnName: string, tableForSale: boolean): boolean {
   const PROTECTED_SALE_COLUMNS = ['price', 'qty'];
   return tableForSale && PROTECTED_SALE_COLUMNS.includes(columnName.toLowerCase());
+}
+
+/**
+ * Check if a column is protected based on table type
+ * Sale tables: price, qty
+ * Rent tables: price, fee, used, available
+ *
+ * @param columnName - The name of the column to check
+ * @param tableType - The table type ('default', 'sale', 'rent')
+ * @param forSale - Legacy forSale flag for backward compatibility
+ */
+export function isProtectedColumn(columnName: string, tableType: TableType, forSale?: boolean): boolean {
+  const lowerName = columnName.toLowerCase();
+
+  // Check new tableType first
+  if (tableType === 'sale') {
+    return ['price', 'qty'].includes(lowerName);
+  }
+
+  if (tableType === 'rent') {
+    return ['price', 'fee', 'used', 'available'].includes(lowerName);
+  }
+
+  // Backward compatibility: if tableType is 'default' but forSale is true, treat as sale
+  if (tableType === 'default' && forSale === true) {
+    return ['price', 'qty'].includes(lowerName);
+  }
+
+  return false;
+}
+
+/**
+ * Get protection reason for display
+ *
+ * @param columnName - The name of the column to check
+ * @param tableType - The table type ('default', 'sale', 'rent')
+ * @param forSale - Legacy forSale flag for backward compatibility
+ */
+export function getProtectionReason(columnName: string, tableType: TableType, forSale?: boolean): string | null {
+  if (!isProtectedColumn(columnName, tableType, forSale)) {
+    return null;
+  }
+
+  if (tableType === 'sale') {
+    return 'For Sale';
+  }
+
+  if (tableType === 'rent') {
+    return 'For Rent';
+  }
+
+  // Backward compatibility: if tableType is 'default' but forSale is true, treat as sale
+  if (tableType === 'default' && forSale === true) {
+    return 'For Sale';
+  }
+
+  return null;
 }
 
 export function validateColumnValue(value: any, column: TableColumn): { valid: boolean; error?: string } {

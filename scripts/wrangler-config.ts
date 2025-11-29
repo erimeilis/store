@@ -27,7 +27,6 @@ interface EnvironmentConfig {
   dbId: string;
 
   // Environment settings
-  itemCount: number;
   useRemote: boolean;
   requiresConfirmation: boolean;
   clearWranglerState: boolean;
@@ -102,13 +101,7 @@ export function getEnvironmentConfig(environment: string, regenerateTokens = tru
   const allowedDomains = JSON.stringify(domains);
 
   // Environment-specific settings
-  const itemCounts = {
-    local: 10,
-    preview: 100,
-    production: 200
-  };
-
-  const descriptions = {
+  const descriptions: Record<string, string> = {
     local: 'Local Development Database (local D1 in .wrangler/state/)',
     preview: 'Preview Database (remote D1 on Cloudflare)',
     production: 'Production Database (remote D1 on Cloudflare)'
@@ -117,7 +110,6 @@ export function getEnvironmentConfig(environment: string, regenerateTokens = tru
   return {
     dbName: dbConfig.database_name,
     dbId: dbConfig.database_id,
-    itemCount: itemCounts[environment] || 10,
     useRemote: environment !== 'local',
     requiresConfirmation: environment === 'production',
     clearWranglerState: environment === 'local',

@@ -12,18 +12,20 @@ interface GenerateDummyTablesResponse {
   details?: string
 }
 
+export type TableType = 'default' | 'sale' | 'rent'
+
 /**
  * Generate dummy tables with test data
  * @param userId - User ID to assign as table owner
  * @param tableCount - Number of tables to generate (default: 100)
  * @param rowsPerTable - Number of rows per table (default: 200)
- * @param forSaleOnly - If true, all generated tables will be marked as "for sale" (default: false)
+ * @param tableType - Force a specific table type: 'sale', 'rent', or undefined for random mix
  */
 export async function generateDummyTables(
   userId: string,
   tableCount: number = 100,
   rowsPerTable: number = 200,
-  forSaleOnly: boolean = false
+  tableType?: TableType
 ): Promise<{ success: true; tablesCreated: number; rowsCreated: number } | { success: false; error: string }> {
   try {
     const response = await fetch('/api/admin/generate-dummy-tables', {
@@ -35,7 +37,7 @@ export async function generateDummyTables(
         userId,
         tableCount,
         rowsPerTable,
-        forSaleOnly
+        tableType
       })
     })
 

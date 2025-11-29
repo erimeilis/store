@@ -215,6 +215,7 @@ export async function validateToken(
     const userContext: UserContext = {
       id: token.id,
       permissions,
+      isAdmin: Boolean(token.isAdmin), // Admin tokens can access all routes
       tokenId: token.id,
       token
     }

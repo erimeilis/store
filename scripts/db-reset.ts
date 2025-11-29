@@ -44,7 +44,6 @@ try {
   console.log(`🔄 Resetting ${config.description}...`);
   console.log(`📋 Configuration:`);
   console.log(`   Database: ${config.dbName} (${config.dbId})`);
-  console.log(`   Items: ${config.itemCount}`);
   console.log(`   Remote: ${config.useRemote}`);
   console.log(`   API URL: ${config.apiUrl}`);
 
@@ -208,17 +207,6 @@ function updateTokensWithEnvironmentData(): void {
   }
 }
 
-function seedItems(): void {
-  console.log(`🌱 Seeding database with ${config.itemCount} items...`);
-  
-  const itemsSeedPath = `./seeds/faker-items-${envArg}.sql`;
-  if (!existsSync(itemsSeedPath)) {
-    throw new Error(`Items seed file not found: ${itemsSeedPath}`);
-  }
-  
-  execSync(buildWranglerCommand(itemsSeedPath, true), { stdio: 'inherit' });
-  console.log(`   ✓ ${config.itemCount} items seeded`);
-}
 
 async function main(): Promise<void> {
   try {
@@ -251,13 +239,11 @@ async function main(): Promise<void> {
     
     // Phase 3: Environment-Specific Seeding
     updateTokensWithEnvironmentData();
-    seedItems();
 
     console.log(`✅ ${config.description} reset completed!`);
     console.log('📊 Database ready with:');
-    console.log('   - Fresh schema (6 tables)');
+    console.log('   - Fresh schema (dynamic tables system)');
     console.log('   - Environment-specific authentication tokens');
-    console.log(`   - ${config.itemCount} dynamic items (generated with faker.js)`);
     console.log('   - Access control whitelist configured');
 
   } catch (error) {

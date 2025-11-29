@@ -30,6 +30,7 @@ head_sampling_rate = 1
 # Secrets are set via `wrangler secret put`
 [vars]
 NODE_ENV = "production"
+APP_VERSION = "{{APP_VERSION}}"
 API_URL = "{{API_URL}}"
 ALLOWED_ORIGINS = "{{FRONTEND_URL}},{{API_URL}}"
 PAGE_SIZE = "{{PAGE_SIZE}}"
@@ -62,6 +63,7 @@ id = "{{KV_PREVIEW_NAMESPACE_ID}}"
 
 [env.local.vars]
 NODE_ENV = "development"
+APP_VERSION = "{{APP_VERSION}}"
 API_URL = "http://localhost:8787"
 ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:8787"
 PAGE_SIZE = "{{PAGE_SIZE_LOCAL}}"
@@ -89,6 +91,7 @@ experimental_remote = true
 
 [env.preview.vars]
 NODE_ENV = "preview"
+APP_VERSION = "{{APP_VERSION}}"
 API_URL = "http://localhost:8787"
 ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:8787"
 PAGE_SIZE = "{{PAGE_SIZE_PREVIEW}}"

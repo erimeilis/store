@@ -11,7 +11,7 @@ import {Alert} from '@/components/ui/alert'
 import {Badge} from '@/components/ui/badge'
 import {BooleanCircle} from '@/components/ui/boolean-circle'
 import {IconCopy, IconPlus, IconAlertTriangle, IconWand} from '@tabler/icons-react'
-import {COLUMN_TYPE_OPTIONS, getColumnTypeLabel, isProtectedSaleColumn, TableColumn, TableSchema} from '@/types/dynamic-tables'
+import {COLUMN_TYPE_OPTIONS, getColumnTypeLabel, isProtectedColumn, getProtectionReason, TableColumn, TableSchema, TableType} from '@/types/dynamic-tables'
 import {IMassAction, IPaginatedResponse} from '@/types/models'
 import {formatApiDate} from '@/lib/date-utils'
 import {clientApiRequest} from '@/lib/client-api'
@@ -195,7 +195,10 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             filterType: 'text',
             className: 'min-w-0 w-auto',
             render: (column) => {
-                const isProtected = isProtectedSaleColumn(column.name, schema?.table.forSale || false)
+                const tableType = (schema?.table.tableType || 'default') as TableType
+                const forSale = schema?.table.forSale || false
+                const isProtected = isProtectedColumn(column.name, tableType, forSale)
+                const protectionReason = (tableType === 'sale' || (tableType === 'default' && forSale)) ? 'forSale' : tableType === 'rent' ? 'forRent' : 'system'
                 const hasIssues = hasColumnNameIssues(column.name)
                 const issues = hasIssues ? getColumnNameIssues(column.name) : []
                 const displayName = toDisplayName(column.name)
@@ -208,7 +211,8 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                         <ProtectedColumnBadge
                             columnName={column.name}
                             isProtected={isProtected}
-                            protectionReason="forSale"
+                            protectionReason={protectionReason}
+                            context="name"
                             variant="icon"
                         />
                         {hasIssues && (
@@ -223,7 +227,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 )
             },
             editableInline: true,
-            isEditableInline: (column) => !isProtectedSaleColumn(column.name, schema?.table.forSale || false),
+            isEditableInline: (column) => !isProtectedColumn(column.name, (schema?.table.tableType || 'default') as TableType, schema?.table.forSale || false),
             editType: 'text',
             editValidation: {
                 required: true,
@@ -260,7 +264,10 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 {value: 'false', label: 'Optional'}
             ],
             render: (column) => {
-                const isProtected = isProtectedSaleColumn(column.name, schema?.table.forSale || false)
+                const tableType = (schema?.table.tableType || 'default') as TableType
+                const forSale = schema?.table.forSale || false
+                const isProtected = isProtectedColumn(column.name, tableType, forSale)
+                const protectionReason = (tableType === 'sale' || (tableType === 'default' && forSale)) ? 'forSale' : tableType === 'rent' ? 'forRent' : 'system'
                 return (
                     <div className="flex justify-center items-center gap-1">
                         {column.isRequired ? (
@@ -272,12 +279,12 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                         ) : (
                             <span className="text-gray-400">-</span>
                         )}
-                        <ProtectedColumnBadge columnName={column.name} isProtected={isProtected} protectionReason="system" variant="icon" />
+                        <ProtectedColumnBadge columnName={column.name} isProtected={isProtected} protectionReason={protectionReason} context="other" variant="icon" />
                     </div>
                 )
             },
             editableInline: true,
-            isEditableInline: (column) => !isProtectedSaleColumn(column.name, schema?.table.forSale || false),
+            isEditableInline: (column) => !isProtectedColumn(column.name, (schema?.table.tableType || 'default') as TableType, schema?.table.forSale || false),
             editType: 'toggle',
             editOptions: [
                 {value: 'false', label: 'No'},
@@ -296,7 +303,10 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 {value: 'false', label: 'Block'}
             ],
             render: (column) => {
-                const isProtected = isProtectedSaleColumn(column.name, schema?.table.forSale || false)
+                const tableType = (schema?.table.tableType || 'default') as TableType
+                const forSale = schema?.table.forSale || false
+                const isProtected = isProtectedColumn(column.name, tableType, forSale)
+                const protectionReason = (tableType === 'sale' || (tableType === 'default' && forSale)) ? 'forSale' : tableType === 'rent' ? 'forRent' : 'system'
                 return (
                     <div className="flex justify-center items-center gap-1">
                         {column.allowDuplicates ? (
@@ -308,12 +318,12 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                         ) : (
                             <span className="text-gray-400">-</span>
                         )}
-                        <ProtectedColumnBadge columnName={column.name} isProtected={isProtected} protectionReason="system" variant="icon" />
+                        <ProtectedColumnBadge columnName={column.name} isProtected={isProtected} protectionReason={protectionReason} context="other" variant="icon" />
                     </div>
                 )
             },
             editableInline: true,
-            isEditableInline: (column) => !isProtectedSaleColumn(column.name, schema?.table.forSale || false),
+            isEditableInline: (column) => !isProtectedColumn(column.name, (schema?.table.tableType || 'default') as TableType, schema?.table.forSale || false),
             editType: 'toggle',
             editOptions: [
                 {value: 'false', label: 'No'},
