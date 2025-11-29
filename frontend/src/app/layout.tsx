@@ -18,12 +18,12 @@ export default function RootLayout({ children }: LayoutProps) {
 }
 
 export const metadata = {
-  title: 'Store Management System',
-  description: 'Full-stack store CRUD application built with Hono and React',
-  keywords: ['store', 'inventory', 'management', 'hono', 'react', 'cloudflare'],
+  title: 'Store',
+  description: 'Serverless inventory management on Cloudflare',
+  keywords: ['store', 'inventory', 'serverless', 'hono', 'react', 'cloudflare'],
   openGraph: {
-    title: 'Store Management System',
-    description: 'Full-stack store CRUD application built with Hono and React',
+    title: 'Store',
+    description: 'Serverless inventory management on Cloudflare',
     images: ['/og-image.png']
   }
 }

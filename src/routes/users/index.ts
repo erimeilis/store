@@ -11,7 +11,6 @@ import massAction from './post.mass-action.js';
 
 /**
  * Users Routes
- * CRUD operations for user management with admin protection
  */
 const app = new Hono();
 

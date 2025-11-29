@@ -1,4 +1,4 @@
-name = "store-crud-front"
+name = "store-frontend"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["global_fetch_strictly_public"]
 main = "src/index.tsx"

@@ -24,17 +24,12 @@ import adminRoutes from '@/routes/admin/index.js'
 import { generateOpenAPISpec } from '@/openapi/spec.js'
 
 /**
- * Store CRUD API - Backend Server
- * 
- * A clean, modular Hono application with organized route groups and middleware.
- * Provides CRUD operations for store items with authentication, file upload,
- * and Google Sheets import capabilities.
- * 
- * Architecture:
- * - Middleware: CORS, Authentication, Error handling
- * - Routes: Health, Items CRUD, Upload, Import, Users Management, Tokens, Allowed Emails, Dynamic Tables
- * - Storage: Cloudflare D1 (SQLite), R2 (File storage)
- * - Authentication: Bearer token with D1 database + env fallback
+ * Store API - Backend Server
+ *
+ * Serverless inventory management on Cloudflare's edge.
+ * Dynamic tables, sales, rentals, and API access.
+ *
+ * Stack: Hono + D1 + R2 + KV
  */
 
 // Create Hono app with bindings
