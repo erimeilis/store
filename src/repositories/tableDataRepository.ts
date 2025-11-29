@@ -15,13 +15,14 @@ export class TableDataRepository {
 
     /**
      * Find table data with filtering, pagination, and sorting using Prisma ORM
+     * Returns parsed data rows (data field is already parsed from JSON)
      */
     async findTableData(
         tableId: string,
         filters: { [key: string]: string },
         pagination: { page: number; limit: number; offset: number },
         sort?: { column: string; direction: string }
-    ): Promise<{ data: TableDataRow[]; totalCount: number }> {
+    ): Promise<{ data: ParsedTableDataRow[]; totalCount: number }> {
         // Build Prisma where clause
         const where: any = {
             tableId: tableId
@@ -147,7 +148,7 @@ export class TableDataRepository {
             createdBy: row.createdBy,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt
-        })) as TableDataRow[]
+        })) as ParsedTableDataRow[]
 
         return {data: parsedData, totalCount}
     }
@@ -405,14 +406,20 @@ export class TableDataRepository {
     }
 
     /**
-     * Get table info including forSale status using Prisma ORM
+     * Get table info including tableType using Prisma ORM
      */
-    async getTableInfo(tableId: string): Promise<{ forSale: boolean; name: string } | null> {
+    async getTableInfo(tableId: string): Promise<{ tableType: string; name: string; forSale: boolean } | null> {
         const table = await this.prisma.userTable.findUnique({
             where: {id: tableId},
-            select: {forSale: true, name: true}
+            select: {tableType: true, name: true}
         })
-        return table ? {forSale: table.forSale, name: table.name} : null
+        if (!table) return null
+        return {
+            tableType: table.tableType,
+            name: table.name,
+            // Legacy compatibility: forSale is true when tableType is 'sale'
+            forSale: table.tableType === 'sale'
+        }
     }
 
     /**

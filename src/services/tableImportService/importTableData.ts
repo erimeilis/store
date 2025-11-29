@@ -17,17 +17,17 @@ export async function importTableData(
     const { tableId, data, columnMappings, importMode } = options
     const prisma = getPrismaClient(env)
 
-    // Validate table exists and get forSale status using Prisma
+    // Validate table exists and get tableType status using Prisma
     const tableCheck = await prisma.userTable.findUnique({
         where: { id: tableId },
-        select: { id: true, forSale: true }
+        select: { id: true, tableType: true }
     })
 
     if (!tableCheck) {
         throw new Error('Table not found')
     }
 
-    const isForSaleTable = !!tableCheck.forSale
+    const isSaleTable = tableCheck.tableType === 'sale'
 
     // Get table columns for validation using Prisma
     const rawColumns = await prisma.tableColumn.findMany({
@@ -155,8 +155,8 @@ export async function importTableData(
                         continue
                     }
 
-                    // Add default values for "for sale" tables if price/qty columns exist but weren't mapped
-                    if (isForSaleTable) {
+                    // Add default values for "sale" type tables if price/qty columns exist but weren't mapped
+                    if (isSaleTable) {
                         const hasPriceColumn = tableColumns.some(col => col.name.toLowerCase() === 'price')
                         const hasQtyColumn = tableColumns.some(col => col.name.toLowerCase() === 'qty')
                         const priceIsMapped = validMappings.some(m => m.targetColumn.toLowerCase() === 'price')

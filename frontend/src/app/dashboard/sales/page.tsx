@@ -1,26 +1,91 @@
 /**
  * Sales Dashboard Page Component
- * Admin interface for managing sales transactions and viewing analytics
+ * Unified interface for managing sales AND rental transactions
  */
 
 import React from 'react';
 import { ModelList, IColumnDefinition } from '@/components/model/model-list';
 import { IPaginatedResponse } from '@/types/models';
-import { Sale, SaleStatus, SALE_STATUS_CONFIG, PAYMENT_METHOD_LABELS } from '@/types/sales';
+import { SALE_STATUS_CONFIG, PAYMENT_METHOD_LABELS } from '@/types/sales';
+import { RENTAL_STATUS_CONFIG, UnifiedTransaction } from '@/types/rentals';
 import { formatApiDate, formatCurrency } from '@/lib/date-utils';
 import { Card, CardBody } from '@/components/ui/card';
+import { IconShoppingCart, IconClockDollar } from '@tabler/icons-react';
 
-// Column definitions for Sales management
-const salesColumns: IColumnDefinition<Sale>[] = [
+// Transaction type display configuration
+const TRANSACTION_TYPE_CONFIG = {
+  sale: {
+    label: 'Sale',
+    icon: IconShoppingCart,
+    colorClass: 'text-success',
+    bgClass: 'bg-success/20',
+    badgeClass: 'badge-success'
+  },
+  rental: {
+    label: 'Rental',
+    icon: IconClockDollar,
+    colorClass: 'text-info',
+    bgClass: 'bg-info/20',
+    badgeClass: 'badge-info'
+  }
+};
+
+// Combined status config
+const getStatusConfig = (transactionType: string, status: string) => {
+  if (transactionType === 'sale') {
+    return SALE_STATUS_CONFIG[status as keyof typeof SALE_STATUS_CONFIG] || {
+      label: status,
+      badgeClass: 'badge-neutral'
+    };
+  }
+  return RENTAL_STATUS_CONFIG[status as keyof typeof RENTAL_STATUS_CONFIG] || {
+    label: status,
+    badgeClass: 'badge-neutral'
+  };
+};
+
+// Column definitions for unified transactions
+const transactionColumns: IColumnDefinition<UnifiedTransaction>[] = [
   {
-    key: 'saleNumber',
-    label: 'Sale #',
+    key: 'transactionType',
+    label: 'Type',
+    sortable: true,
+    filterable: true,
+    filterType: 'select',
+    filterOptions: [
+      { value: 'sale', label: 'Sale' },
+      { value: 'rental', label: 'Rental' }
+    ],
+    render: (transaction) => {
+      const config = TRANSACTION_TYPE_CONFIG[transaction.transactionType];
+      const IconComponent = config.icon;
+      return (
+        <div className="flex items-center justify-center">
+          <div
+            className="tooltip tooltip-right"
+            data-tip={config.label}
+          >
+            <div className={`
+              flex items-center justify-center w-8 h-8 rounded-full
+              ${config.bgClass} ${config.colorClass}
+              hover:scale-110 transition-transform duration-200
+            `}>
+              <IconComponent size={16} />
+            </div>
+          </div>
+        </div>
+      );
+    }
+  },
+  {
+    key: 'transactionNumber',
+    label: 'Transaction #',
     sortable: true,
     filterable: true,
     filterType: 'text',
-    render: (sale) => (
+    render: (transaction) => (
       <span className="font-mono text-sm font-medium">
-        {sale.saleNumber}
+        {transaction.transactionNumber}
       </span>
     )
   },
@@ -30,9 +95,9 @@ const salesColumns: IColumnDefinition<Sale>[] = [
     sortable: true,
     filterable: true,
     filterType: 'text',
-    render: (sale) => (
-      <span className="truncate max-w-[150px]" title={sale.customerId}>
-        {sale.customerId}
+    render: (transaction) => (
+      <span className="truncate max-w-[150px]" title={transaction.customerId}>
+        {transaction.customerId}
       </span>
     )
   },
@@ -42,64 +107,68 @@ const salesColumns: IColumnDefinition<Sale>[] = [
     sortable: true,
     filterable: true,
     filterType: 'text',
-    render: (sale) => (
+    render: (transaction) => (
       <span className="badge badge-outline">
-        {sale.tableName}
+        {transaction.tableName}
       </span>
     )
   },
   {
-    key: 'itemSnapshot.name',
+    key: 'itemName',
     label: 'Item',
     sortable: false,
     filterable: true,
     filterType: 'text',
-    render: (sale) => (
+    render: (transaction) => (
       <div className="flex flex-col">
-        <span className="font-medium truncate max-w-[120px]" title={sale.itemSnapshot.name}>
-          {sale.itemSnapshot.name || 'Unknown Item'}
+        <span className="font-medium truncate max-w-[120px]" title={transaction.itemName}>
+          {transaction.itemName || 'Unknown Item'}
         </span>
-        <span className="text-xs text-base-content/60">
-          Qty: {sale.quantitySold}
-        </span>
+        {transaction.quantity > 1 && (
+          <span className="text-xs text-base-content/60">
+            Qty: {transaction.quantity}
+          </span>
+        )}
       </div>
     )
   },
   {
     key: 'totalAmount',
-    label: 'Total',
+    label: 'Amount',
     sortable: true,
     filterable: true,
     filterType: 'text',
-    render: (sale) => (
+    render: (transaction) => (
       <div className="text-right">
         <div className="font-mono font-semibold">
-          {formatCurrency(sale.totalAmount)}
+          {formatCurrency(transaction.totalAmount)}
         </div>
-        <div className="text-xs text-base-content/60">
-          {formatCurrency(sale.unitPrice)} × {sale.quantitySold}
-        </div>
+        {transaction.quantity > 1 && (
+          <div className="text-xs text-base-content/60">
+            {formatCurrency(transaction.unitPrice)} × {transaction.quantity}
+          </div>
+        )}
       </div>
     )
   },
   {
-    key: 'sale_status',
+    key: 'status',
     label: 'Status',
     sortable: true,
     filterable: true,
     filterType: 'select',
-    filterOptions: Object.entries(SALE_STATUS_CONFIG).map(([value, config]) => ({
-      value,
-      label: config.label
-    })),
-    editableInline: true,
-    editType: 'select',
-    editOptions: Object.entries(SALE_STATUS_CONFIG).map(([value, config]) => ({
-      value,
-      label: config.label
-    })),
-    render: (sale) => {
-      const config = SALE_STATUS_CONFIG[sale.saleStatus];
+    filterOptions: [
+      // Sale statuses
+      { value: 'pending', label: 'Pending' },
+      { value: 'completed', label: 'Completed' },
+      { value: 'cancelled', label: 'Cancelled' },
+      { value: 'refunded', label: 'Refunded' },
+      // Rental statuses
+      { value: 'active', label: 'Active' },
+      { value: 'released', label: 'Released' }
+    ],
+    render: (transaction) => {
+      const config = getStatusConfig(transaction.transactionType, transaction.status);
       return (
         <span className={`badge ${config.badgeClass}`}>
           {config.label}
@@ -108,7 +177,7 @@ const salesColumns: IColumnDefinition<Sale>[] = [
     }
   },
   {
-    key: 'payment_method',
+    key: 'paymentMethod',
     label: 'Payment',
     sortable: true,
     filterable: true,
@@ -117,131 +186,162 @@ const salesColumns: IColumnDefinition<Sale>[] = [
       value,
       label
     })),
-    editableInline: true,
-    editType: 'select',
-    editOptions: Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => ({
-      value,
-      label
-    })),
-    render: (sale) => sale.paymentMethod ? PAYMENT_METHOD_LABELS[sale.paymentMethod as keyof typeof PAYMENT_METHOD_LABELS] || sale.paymentMethod : '-'
+    render: (transaction) => {
+      if (transaction.transactionType === 'rental') {
+        return <span className="text-base-content/40">-</span>;
+      }
+      return transaction.paymentMethod
+        ? PAYMENT_METHOD_LABELS[transaction.paymentMethod as keyof typeof PAYMENT_METHOD_LABELS] || transaction.paymentMethod
+        : '-';
+    }
   },
   {
-    key: 'created_at',
-    label: 'Sale Date',
+    key: 'transactionDate',
+    label: 'Date',
     sortable: true,
     filterable: true,
     filterType: 'date',
-    render: (sale) => formatApiDate(sale.createdAt)
+    render: (transaction) => formatApiDate(transaction.transactionDate)
   }
 ];
 
-// Mass actions for sales
-const salesMassActions = [
-  {
-    name: 'update_status',
-    label: 'Update Status',
-    confirmMessage: 'Are you sure you want to update the status for the selected sales?'
-  },
+// Mass actions for transactions
+const transactionMassActions = [
   {
     name: 'export_csv',
     label: 'Export to CSV',
-    confirmMessage: 'Export the selected sales to CSV format?'
-  },
-  {
-    name: 'cancel_sales',
-    label: 'Cancel Sales',
-    confirmMessage: 'Are you sure you want to cancel the selected sales? This action can be undone.'
+    confirmMessage: 'Export the selected transactions to CSV format?'
   }
 ];
 
-interface SalesPageProps {
-  sales?: IPaginatedResponse<Sale> | null;
+interface TransactionsPageProps {
+  transactions?: IPaginatedResponse<UnifiedTransaction> & {
+    salesCount?: number;
+    rentalsCount?: number;
+  } | null;
+  sales?: IPaginatedResponse<any> | null;
+  rentals?: IPaginatedResponse<any> | null;
   filters?: {
     sort?: string;
     direction?: 'asc' | 'desc';
-    sale_status?: SaleStatus;
-    date_from?: string;
-    date_to?: string;
-    table_id?: string;
-    customer_id?: string;
+    filterTransactionType?: string;
+    filterStatus?: string;
+    filterTableId?: string;
+    filterCustomerId?: string;
+    filterDateFrom?: string;
+    filterDateTo?: string;
+    filterSearch?: string;
   };
 }
 
-export default function SalesPage({ sales, filters }: SalesPageProps) {
-  // Provide fallback data structure when sales is undefined
-  const salesData = sales || {
+export default function TransactionsPage({ transactions, sales, rentals, filters }: TransactionsPageProps) {
+  // Provide fallback data structure with all IPaginatedResponse fields
+  const transactionsData = transactions || {
     data: [],
-    meta: {
-      page: 1,
-      limit: 50,
-      total: 0,
-      totalPages: 0
-    }
+    currentPage: 1,
+    lastPage: 0,
+    perPage: 50,
+    total: 0,
+    from: null,
+    to: null,
+    links: [],
+    prevPageUrl: null,
+    nextPageUrl: null,
+    lastPageUrl: null,
+    salesCount: 0,
+    rentalsCount: 0
   };
+
+  // Calculate stats from transactions data
+  const salesTotal = transactionsData.data
+    .filter(t => t.transactionType === 'sale')
+    .reduce((sum, t) => sum + t.totalAmount, 0);
+
+  const rentalsTotal = transactionsData.data
+    .filter(t => t.transactionType === 'rental')
+    .reduce((sum, t) => sum + t.totalAmount, 0);
+
+  const activeRentals = transactionsData.data
+    .filter(t => t.transactionType === 'rental' && t.status === 'active')
+    .length;
 
   return (
     <div className="space-y-6">
-      {/* Sales Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Transactions Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardBody className="text-center">
-            <div className="text-sm font-medium text-base-content/70">Total Sales</div>
+            <div className="text-sm font-medium text-base-content/70">Total Transactions</div>
             <div className="text-3xl font-bold text-primary mt-2">
-              {(salesData as any)?.total || salesData?.data?.length || 0}
+              {transactionsData.total}
             </div>
-            <div className="text-xs text-base-content/50 mt-1">All time transactions</div>
+            <div className="text-xs text-base-content/50 mt-1">All time</div>
           </CardBody>
         </Card>
 
         <Card>
           <CardBody className="text-center">
-            <div className="text-sm font-medium text-base-content/70">Revenue</div>
+            <div className="text-sm font-medium text-base-content/70 flex items-center justify-center gap-1">
+              <IconShoppingCart className="h-4 w-4 text-success" />
+              Sales
+            </div>
             <div className="text-3xl font-bold text-success mt-2">
-              {formatCurrency(
-                salesData.data.reduce((sum, sale) => sum + sale.totalAmount, 0)
-              )}
+              {transactionsData.salesCount}
+            </div>
+            <div className="text-xs text-base-content/50 mt-1">
+              {formatCurrency(salesTotal)} revenue
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardBody className="text-center">
+            <div className="text-sm font-medium text-base-content/70 flex items-center justify-center gap-1">
+              <IconClockDollar className="h-4 w-4 text-info" />
+              Rentals
+            </div>
+            <div className="text-3xl font-bold text-info mt-2">
+              {transactionsData.rentalsCount}
+            </div>
+            <div className="text-xs text-base-content/50 mt-1">
+              {formatCurrency(rentalsTotal)} revenue
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardBody className="text-center">
+            <div className="text-sm font-medium text-base-content/70">Active Rentals</div>
+            <div className="text-3xl font-bold text-warning mt-2">
+              {activeRentals}
+            </div>
+            <div className="text-xs text-base-content/50 mt-1">Currently rented</div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardBody className="text-center">
+            <div className="text-sm font-medium text-base-content/70">Total Revenue</div>
+            <div className="text-3xl font-bold mt-2">
+              {formatCurrency(salesTotal + rentalsTotal)}
             </div>
             <div className="text-xs text-base-content/50 mt-1">From current page</div>
           </CardBody>
         </Card>
-
-        <Card>
-          <CardBody className="text-center">
-            <div className="text-sm font-medium text-base-content/70">Avg. Sale</div>
-            <div className="text-3xl font-bold mt-2">
-              {salesData.data.length ?
-                formatCurrency(
-                  salesData.data.reduce((sum, sale) => sum + sale.totalAmount, 0) / salesData.data.length
-                ) : formatCurrency(0)
-              }
-            </div>
-            <div className="text-xs text-base-content/50 mt-1">Average transaction</div>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardBody className="text-center">
-            <div className="text-sm font-medium text-base-content/70">Items Sold</div>
-            <div className="text-3xl font-bold text-info mt-2">
-              {salesData.data.reduce((sum, sale) => sum + sale.quantitySold, 0)}
-            </div>
-            <div className="text-xs text-base-content/50 mt-1">Total quantity</div>
-          </CardBody>
-        </Card>
       </div>
 
-      {/* Sales Management Table */}
-      <ModelList<Sale>
-        title="Sales Transactions"
-        items={salesData as IPaginatedResponse<Sale> | null}
+      {/* Transactions Table */}
+      <ModelList<UnifiedTransaction>
+        title="Transactions"
+        items={transactionsData as IPaginatedResponse<UnifiedTransaction>}
         filters={filters || {}}
-        columns={salesColumns}
-        editRoute={(id) => `/dashboard/sales/edit/${id}`}
-        inlineEditRoute={(id) => `/api/sales/${id}`}
-        deleteRoute={(id) => `/api/sales/${id}`}
-        massActionRoute="/api/sales/mass-action"
-        massActions={salesMassActions}
-        dataEndpoint="/api/sales"
+        columns={transactionColumns}
+        createRoute={null}
+        editRoute={() => '#'}
+        deleteRoute={() => '#'}
+        massActionRoute=""
+        massActions={transactionMassActions}
+        dataEndpoint="" // Empty to prevent client-side refetching (handler provides unified data)
         compactPagination={true}
       />
     </div>
@@ -249,6 +349,6 @@ export default function SalesPage({ sales, filters }: SalesPageProps) {
 }
 
 export const metadata = {
-  title: 'Sales Management',
-  description: 'Manage sales transactions, view analytics, and track inventory changes'
+  title: 'Transactions',
+  description: 'Manage sales and rental transactions, view analytics, and track revenue'
 };

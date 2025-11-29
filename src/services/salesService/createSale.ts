@@ -25,13 +25,13 @@ export async function createSale(
   const tableDataRepo = new TableDataRepository(env)
 
   try {
-    // 1. Validate that table exists and is for_sale
+    // 1. Validate that table exists and is a 'sale' type table
     const table = await tableRepo.findTableByIdInternal(saleData.tableId)
     if (!table) {
       throw new Error('Table not found')
     }
 
-    if (!table.forSale) {
+    if (table.tableType !== 'sale') {
       throw new Error('Table is not configured for sales')
     }
 

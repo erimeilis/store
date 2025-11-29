@@ -28,12 +28,14 @@ export interface Session {
 
 /**
  * Token model from Prisma schema with IP/domain whitelist
+ * isAdmin: true = admin/frontend tokens (all routes), false = regular API tokens (public routes only)
  */
 export interface Token {
   id: string
   token: string
   name: string
   permissions: string // Comma-separated: read,write,delete,admin
+  isAdmin: boolean // Admin tokens can access all routes, regular tokens only public routes
   allowedIps: string | null // JSON array of IPs/CIDR ranges
   allowedDomains: string | null // JSON array of domain patterns
   tableAccess: string | null // JSON array of accessible table IDs
@@ -89,6 +91,7 @@ export type TokenPermissions = 'read' | 'write' | 'delete' | 'admin'
 export interface UserContext {
   id: string
   permissions: TokenPermissions[]
+  isAdmin: boolean // Whether this token can access non-public routes
   tokenId?: string
   token?: Token
 }

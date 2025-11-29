@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Store CRUD API",
-    "version": "1.0.0",
-    "description": "A comprehensive REST API for managing store inventory, dynamic tables, and e-commerce functionality.",
+    "title": "Store Public API",
+    "version": "1.3.0",
+    "description": "Public REST API for accessing store tables, browsing items, purchasing products, and renting items. All endpoints require a valid API token.",
     "contact": {
       "name": "API Support"
     },
@@ -23,16 +23,16 @@
       "description": "API health and status endpoints"
     },
     {
-      "name": "Items",
-      "description": "CRUD operations for store items"
+      "name": "Public Tables",
+      "description": "Browse available public tables and items (sale and rent types)"
     },
     {
-      "name": "Tables",
-      "description": "Dynamic table schema management"
+      "name": "Sales",
+      "description": "Purchase items from sale-type tables"
     },
     {
-      "name": "Table Data",
-      "description": "Data operations for dynamic tables"
+      "name": "Rentals",
+      "description": "Rent and release items from rent-type tables"
     }
   ],
   "paths": {
@@ -59,7 +59,7 @@
                     },
                     "version": {
                       "type": "string",
-                      "example": "1.0.0"
+                      "example": "1.3.0"
                     },
                     "environment": {
                       "type": "string",
@@ -73,189 +73,27 @@
         }
       }
     },
-    "/api/items": {
+    "/api/public/tables": {
       "get": {
-        "tags": ["Items"],
-        "summary": "List Store Items",
-        "description": "Retrieve a paginated list of items with filtering and search capabilities",
+        "tags": ["Public Tables"],
+        "summary": "List All Public Tables",
+        "description": "Retrieve all public tables (both sale and rent types). Use the `tableType` field to determine which transaction endpoints to use (/api/public/buy for sales, /api/public/rent for rentals).",
         "security": [{"BearerAuth": []}],
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Page number for pagination",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Number of items per page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10
-            }
-          }
-        ],
         "responses": {
           "200": {
-            "description": "List of items",
+            "description": "List of public tables",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "tables": {
                       "type": "array",
-                      "items": {"$ref": "#/components/schemas/Item"}
+                      "items": {"$ref": "#/components/schemas/PublicTable"}
                     },
-                    "total": {"type": "integer"},
-                    "page": {"type": "integer"},
-                    "totalPages": {"type": "integer"}
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": ["Items"],
-        "summary": "Create New Item",
-        "description": "Add a new item to the inventory",
-        "security": [{"BearerAuth": []}],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {"$ref": "#/components/schemas/CreateItemRequest"}
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Item created successfully",
-            "content": {
-              "application/json": {
-                "schema": {"$ref": "#/components/schemas/Item"}
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/items/{id}": {
-      "get": {
-        "tags": ["Items"],
-        "summary": "Get Item by ID",
-        "description": "Retrieve a specific item by its ID",
-        "security": [{"BearerAuth": []}],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "Item ID",
-            "schema": {"type": "string"}
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Item details",
-            "content": {
-              "application/json": {
-                "schema": {"$ref": "#/components/schemas/Item"}
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": ["Items"],
-        "summary": "Update Item",
-        "description": "Update an existing item",
-        "security": [{"BearerAuth": []}],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "Item ID",
-            "schema": {"type": "string"}
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {"$ref": "#/components/schemas/UpdateItemRequest"}
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Item updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {"$ref": "#/components/schemas/Item"}
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["Items"],
-        "summary": "Delete Item",
-        "description": "Remove an item from the inventory",
-        "security": [{"BearerAuth": []}],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "Item ID",
-            "schema": {"type": "string"}
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Item deleted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {"type": "string"}
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/tables": {
-      "get": {
-        "tags": ["Tables"],
-        "summary": "List Tables",
-        "description": "Retrieve user's dynamic tables with metadata",
-        "security": [{"BearerAuth": []}],
-        "responses": {
-          "200": {
-            "description": "List of tables",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {"$ref": "#/components/schemas/Table"}
+                    "count": {
+                      "type": "integer",
+                      "description": "Total number of tables"
                     }
                   }
                 }
@@ -263,129 +101,252 @@
             }
           }
         }
-      },
-      "post": {
-        "tags": ["Tables"],
-        "summary": "Create Table",
-        "description": "Create a new dynamic table with custom schema",
+      }
+    },
+    "/api/public/tables/{tableId}/items": {
+      "get": {
+        "tags": ["Public Tables"],
+        "summary": "Get Items from Table",
+        "description": "Retrieve all available items from a public table. Works for both sale and rent table types. Response format depends on tableType:\n- **sale**: includes `price`, `qty`, `available`\n- **rent**: includes `price`, `used`, `available`, `canRent`",
         "security": [{"BearerAuth": []}],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {"$ref": "#/components/schemas/CreateTableRequest"}
-            }
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "description": "Table ID",
+            "schema": {"type": "string", "format": "uuid"}
           }
-        },
+        ],
         "responses": {
-          "201": {
-            "description": "Table created successfully",
+          "200": {
+            "description": "List of items (format depends on table type)",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/Table"}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "table": {"$ref": "#/components/schemas/PublicTable"},
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {"$ref": "#/components/schemas/SaleItem"},
+                          {"$ref": "#/components/schemas/RentalItem"}
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Table is not publicly accessible"
+          },
+          "404": {
+            "description": "Table not found"
+          }
+        }
+      }
+    },
+    "/api/public/tables/{tableId}/items/{itemId}": {
+      "get": {
+        "tags": ["Public Tables"],
+        "summary": "Get Item Details",
+        "description": "Retrieve details of a specific item. Works for both sale and rent table types.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "description": "Table ID",
+            "schema": {"type": "string", "format": "uuid"}
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "description": "Item ID",
+            "schema": {"type": "string", "format": "uuid"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item details (format depends on table type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "table": {"$ref": "#/components/schemas/PublicTable"},
+                    "item": {
+                      "oneOf": [
+                        {"$ref": "#/components/schemas/SaleItem"},
+                        {"$ref": "#/components/schemas/RentalItem"}
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Item or table not found"
+          }
+        }
+      }
+    },
+    "/api/public/tables/{tableId}/items/{itemId}/availability": {
+      "get": {
+        "tags": ["Public Tables"],
+        "summary": "Check Item Availability",
+        "description": "Check if an item is available for purchase or rental. Response format depends on tableType:\n- **sale**: `{ available, currentStock, requestedQuantity, canFulfill, unitPrice, totalPrice }`\n- **rent**: `{ available, used, currentlyRented, rentalPrice, activeRentalId? }`",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "description": "Table ID",
+            "schema": {"type": "string", "format": "uuid"}
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "description": "Item ID",
+            "schema": {"type": "string", "format": "uuid"}
+          },
+          {
+            "name": "quantity",
+            "in": "query",
+            "description": "Quantity to check availability for (sale tables only)",
+            "schema": {"type": "integer", "minimum": 1, "default": 1}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Availability status (format depends on table type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {"$ref": "#/components/schemas/SaleAvailability"},
+                    {"$ref": "#/components/schemas/RentalAvailability"}
+                  ]
+                }
               }
             }
           }
         }
       }
     },
-    "/api/tables/{id}/data": {
-      "get": {
-        "tags": ["Table Data"],
-        "summary": "Get Table Data",
-        "description": "Retrieve data rows from a specific table with pagination",
-        "security": [{"BearerAuth": []}],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "Table ID",
-            "schema": {"type": "string"}
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Page number for pagination",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Number of rows per page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Table data rows",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {"type": "object"}
-                    },
-                    "total": {"type": "integer"},
-                    "page": {"type": "integer"},
-                    "totalPages": {"type": "integer"}
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
+    "/api/public/buy": {
       "post": {
-        "tags": ["Table Data"],
-        "summary": "Create Table Data Row",
-        "description": "Add a new data row to the table",
+        "tags": ["Sales"],
+        "summary": "Purchase an Item",
+        "description": "Create a purchase transaction for an item from a sale-type table. Decrements the item quantity.",
         "security": [{"BearerAuth": []}],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "Table ID",
-            "schema": {"type": "string"}
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "description": "Dynamic object based on table schema"
-              }
+              "schema": {"$ref": "#/components/schemas/PurchaseRequest"}
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Data row created successfully",
+            "description": "Purchase completed successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {"type": "boolean"},
-                    "data": {"type": "object"}
+                    "message": {"type": "string", "example": "Purchase completed successfully"},
+                    "sale": {"$ref": "#/components/schemas/Sale"}
                   }
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid request, insufficient quantity, or table is not a sale type"
+          },
+          "404": {
+            "description": "Item or table not found"
+          }
+        }
+      }
+    },
+    "/api/public/rent": {
+      "post": {
+        "tags": ["Rentals"],
+        "summary": "Rent an Item",
+        "description": "Create a rental transaction for an item from a rent-type table. Sets available=false for the item.",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/RentRequest"}
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Item rented successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Item rented successfully"},
+                    "rental": {"$ref": "#/components/schemas/Rental"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Item not available for rental or table is not a rent type"
+          }
+        }
+      }
+    },
+    "/api/public/release": {
+      "post": {
+        "tags": ["Rentals"],
+        "summary": "Release a Rented Item",
+        "description": "Release a rental and mark the item as used. Sets used=true, available=false. After release, item cannot be rented again.",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/ReleaseRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rental released successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string"},
+                    "rental": {"$ref": "#/components/schemas/Rental"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or rental not found"
           }
         }
       }
@@ -396,102 +357,16 @@
       "BearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT",
         "description": "Bearer token authentication. Format: `Bearer <token>`"
       }
     },
     "schemas": {
-      "Item": {
+      "PublicTable": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique item identifier"
-          },
-          "name": {
-            "type": "string",
-            "description": "Item name"
-          },
-          "description": {
-            "type": "string",
-            "description": "Item description",
-            "nullable": true
-          },
-          "price": {
-            "type": "number",
-            "format": "float",
-            "description": "Item price"
-          },
-          "image_url": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL to item image",
-            "nullable": true
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "CreateItemRequest": {
-        "type": "object",
-        "required": ["name", "price"],
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Item name"
-          },
-          "description": {
-            "type": "string",
-            "description": "Item description"
-          },
-          "price": {
-            "type": "number",
-            "format": "float",
-            "minimum": 0,
-            "description": "Item price"
-          },
-          "image_url": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL to item image"
-          }
-        }
-      },
-      "UpdateItemRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Item name"
-          },
-          "description": {
-            "type": "string",
-            "description": "Item description"
-          },
-          "price": {
-            "type": "number",
-            "format": "float",
-            "minimum": 0,
-            "description": "Item price"
-          },
-          "image_url": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL to item image"
-          }
-        }
-      },
-      "Table": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
+            "format": "uuid",
             "description": "Unique table identifier"
           },
           "name": {
@@ -500,39 +375,141 @@
           },
           "description": {
             "type": "string",
+            "nullable": true,
             "description": "Table description"
           },
-          "for_sale": {
-            "type": "boolean",
-            "description": "Whether this is an e-commerce table"
+          "tableType": {
+            "type": "string",
+            "enum": ["sale", "rent"],
+            "description": "Table type - determines which transaction endpoints to use"
           },
-          "created_at": {
+          "itemCount": {
+            "type": "integer",
+            "description": "Number of available items"
+          },
+          "createdAt": {
             "type": "string",
             "format": "date-time"
           },
-          "updated_at": {
+          "updatedAt": {
             "type": "string",
             "format": "date-time"
           }
         }
       },
-      "CreateTableRequest": {
+      "SaleItem": {
         "type": "object",
-        "required": ["name"],
+        "description": "Item from a sale-type table",
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Table name"
-          },
-          "description": {
-            "type": "string",
-            "description": "Table description"
-          },
-          "for_sale": {
-            "type": "boolean",
-            "description": "Whether this is an e-commerce table",
-            "default": false
-          }
+          "id": {"type": "string", "format": "uuid"},
+          "name": {"type": "string"},
+          "description": {"type": "string", "nullable": true},
+          "price": {"type": "number", "format": "float"},
+          "qty": {"type": "integer", "description": "Available quantity"},
+          "available": {"type": "boolean", "description": "True if qty > 0"},
+          "data": {"type": "object", "description": "All item data fields"},
+          "createdAt": {"type": "string", "format": "date-time"},
+          "updatedAt": {"type": "string", "format": "date-time"}
+        }
+      },
+      "RentalItem": {
+        "type": "object",
+        "description": "Item from a rent-type table",
+        "properties": {
+          "id": {"type": "string", "format": "uuid"},
+          "name": {"type": "string"},
+          "description": {"type": "string", "nullable": true},
+          "price": {"type": "number", "format": "float"},
+          "used": {"type": "boolean", "description": "Whether item has been used (returned from rental)"},
+          "available": {"type": "boolean", "description": "Whether item is available for rental"},
+          "canRent": {"type": "boolean", "description": "True if item can be rented (available=true AND used=false)"},
+          "data": {"type": "object", "description": "All item data fields"},
+          "createdAt": {"type": "string", "format": "date-time"},
+          "updatedAt": {"type": "string", "format": "date-time"}
+        }
+      },
+      "SaleAvailability": {
+        "type": "object",
+        "description": "Availability response for sale-type tables",
+        "properties": {
+          "available": {"type": "boolean"},
+          "currentStock": {"type": "integer"},
+          "requestedQuantity": {"type": "integer"},
+          "canFulfill": {"type": "boolean"},
+          "unitPrice": {"type": "number", "format": "float"},
+          "totalPrice": {"type": "number", "format": "float"}
+        }
+      },
+      "RentalAvailability": {
+        "type": "object",
+        "description": "Availability response for rent-type tables",
+        "properties": {
+          "available": {"type": "boolean", "description": "Can be rented"},
+          "used": {"type": "boolean"},
+          "currentlyRented": {"type": "boolean"},
+          "rentalPrice": {"type": "number", "format": "float"},
+          "activeRentalId": {"type": "string", "format": "uuid", "nullable": true}
+        }
+      },
+      "PurchaseRequest": {
+        "type": "object",
+        "required": ["tableId", "itemId", "customerId", "quantitySold"],
+        "properties": {
+          "tableId": {"type": "string", "format": "uuid"},
+          "itemId": {"type": "string", "format": "uuid"},
+          "customerId": {"type": "string", "description": "Customer identifier"},
+          "quantitySold": {"type": "integer", "minimum": 1},
+          "paymentMethod": {"type": "string", "nullable": true},
+          "notes": {"type": "string", "nullable": true}
+        }
+      },
+      "RentRequest": {
+        "type": "object",
+        "required": ["tableId", "itemId", "customerId"],
+        "properties": {
+          "tableId": {"type": "string", "format": "uuid"},
+          "itemId": {"type": "string", "format": "uuid"},
+          "customerId": {"type": "string", "description": "Customer identifier"},
+          "notes": {"type": "string", "nullable": true}
+        }
+      },
+      "ReleaseRequest": {
+        "type": "object",
+        "properties": {
+          "rentalId": {"type": "string", "format": "uuid", "description": "Rental ID (option 1)"},
+          "tableId": {"type": "string", "format": "uuid", "description": "Table ID (option 2 with itemId)"},
+          "itemId": {"type": "string", "format": "uuid", "description": "Item ID (option 2 with tableId)"},
+          "notes": {"type": "string", "nullable": true}
+        },
+        "description": "Provide either rentalId OR both tableId and itemId"
+      },
+      "Sale": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "format": "uuid"},
+          "tableId": {"type": "string", "format": "uuid"},
+          "itemId": {"type": "string", "format": "uuid"},
+          "customerId": {"type": "string"},
+          "quantitySold": {"type": "integer"},
+          "unitPrice": {"type": "number", "format": "float"},
+          "totalPrice": {"type": "number", "format": "float"},
+          "paymentMethod": {"type": "string", "nullable": true},
+          "notes": {"type": "string", "nullable": true},
+          "createdAt": {"type": "string", "format": "date-time"}
+        }
+      },
+      "Rental": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "format": "uuid"},
+          "tableId": {"type": "string", "format": "uuid"},
+          "itemId": {"type": "string", "format": "uuid"},
+          "customerId": {"type": "string"},
+          "rentalPrice": {"type": "number", "format": "float"},
+          "status": {"type": "string", "enum": ["active", "returned"]},
+          "notes": {"type": "string", "nullable": true},
+          "rentedAt": {"type": "string", "format": "date-time"},
+          "returnedAt": {"type": "string", "format": "date-time", "nullable": true}
         }
       }
     }

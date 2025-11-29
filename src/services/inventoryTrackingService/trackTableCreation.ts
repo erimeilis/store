@@ -17,7 +17,7 @@ export async function trackTableCreation(
     itemId: 'table-creation',
     transactionType: 'add',
     quantityChange: 0,
-    newData: { action: 'tableCreated', forSale: true },
+    newData: { action: 'tableCreated', tableType: 'sale' },
     createdBy: createdBy
   })
 }
