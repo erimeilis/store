@@ -1,6 +1,5 @@
 /**
  * Tables Management Dashboard Page
- * Lists all dynamic user-created tables with CRUD operations
  */
 
 'use client'

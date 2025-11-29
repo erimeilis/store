@@ -1,8 +1,58 @@
 import { BaseModel } from './models'
 import { isValidCountryCode } from '@/lib/country-utils'
 
-// Column type definitions matching backend
-export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'email' | 'url' | 'textarea' | 'country'
+/**
+ * Supported column types for user-created tables (matching backend)
+ *
+ * Text Types:
+ * - text: Single line string
+ * - textarea: Multi-line text
+ * - email: Email address with validation
+ * - url: Web address with protocol validation
+ * - phone: Phone number (allows + ( ) - spaces digits)
+ * - country: ISO 3166-1 alpha-2 code (2 letters)
+ *
+ * Numeric Types:
+ * - integer: Whole numbers only
+ * - float: Decimal numbers
+ * - currency: Money amount (2 decimal places)
+ * - percentage: Percent value (0-100, stored as decimal)
+ * - number: @deprecated Use 'integer' or 'float' instead
+ *
+ * Date/Time Types:
+ * - date: Calendar date (YYYY-MM-DD)
+ * - time: Time only (HH:MM)
+ * - datetime: Date + time (ISO format)
+ *
+ * Other Types:
+ * - boolean: True/false toggle
+ * - select: Dropdown options (requires options config)
+ * - rating: Star rating (1-5 integer)
+ * - color: Color picker (hex format)
+ */
+export type ColumnType =
+  // Text types
+  | 'text'
+  | 'textarea'
+  | 'email'
+  | 'url'
+  | 'phone'
+  | 'country'
+  // Numeric types
+  | 'integer'
+  | 'float'
+  | 'currency'
+  | 'percentage'
+  | 'number' // @deprecated - use 'integer' or 'float'
+  // Date/Time types
+  | 'date'
+  | 'time'
+  | 'datetime'
+  // Other types
+  | 'boolean'
+  | 'select'
+  | 'rating'
+  | 'color'
 
 // Access level definitions matching backend
 export type TableAccessLevel = 'none' | 'read' | 'write' | 'admin'
@@ -221,7 +271,12 @@ export const COLUMN_TYPE_OPTIONS: ColumnTypeOption[] = [
 
 // Helper functions for type checking
 export function isValidColumnType(type: string): type is ColumnType {
-  return ['text', 'number', 'date', 'boolean', 'email', 'url', 'textarea', 'country'].includes(type)
+  return [
+    'text', 'textarea', 'email', 'url', 'phone', 'country',
+    'integer', 'float', 'currency', 'percentage', 'number',
+    'date', 'time', 'datetime',
+    'boolean', 'select', 'rating', 'color'
+  ].includes(type)
 }
 
 export function getColumnTypeLabel(type: ColumnType): string {
@@ -292,6 +347,91 @@ export function getProtectionReason(columnName: string, tableType: TableType, fo
   }
 
   return null;
+}
+
+// ============================================================================
+// Type Change Preview & Mapping Types
+// ============================================================================
+
+/**
+ * Request to preview a table type change
+ */
+export interface TypeChangePreviewRequest {
+  targetType: TableType
+}
+
+/**
+ * Required column info for type change preview
+ */
+export interface RequiredColumnInfo {
+  name: string
+  type: ColumnType
+  isRequired: boolean
+  defaultValue?: string | null
+}
+
+/**
+ * Suggested mapping for a required column
+ */
+export interface TypeChangeMappingItem {
+  /** Required column name for target type */
+  requiredColumn: string
+  /** Existing column ID to map (null = create new) */
+  existingColumnId: string | null
+  /** Existing column name (for display) */
+  existingColumnName: string | null
+  /** Match confidence score (0-100) */
+  confidence: number
+}
+
+/**
+ * Response from type change preview endpoint
+ */
+export interface TypeChangePreviewResponse {
+  /** Current table type */
+  currentType: TableType
+  /** Target table type */
+  targetType: TableType
+  /** Required columns for target type */
+  requiredColumns: RequiredColumnInfo[]
+  /** Existing columns in the table */
+  existingColumns: Array<{
+    id: string
+    name: string
+    type: ColumnType
+    isRequired: boolean
+  }>
+  /** Suggested mappings (pre-filled based on name matching) */
+  suggestedMappings: TypeChangeMappingItem[]
+  /** Whether all required columns have suggested matches */
+  allMapped: boolean
+}
+
+/**
+ * Request to apply type change with column mappings
+ */
+export interface TypeChangeApplyRequest {
+  targetType: TableType
+  /** Column mappings: requiredColumn -> existingColumnId (null = create new) */
+  columnMappings: Array<{
+    requiredColumn: string
+    existingColumnId: string | null
+  }>
+  /** Optional: rental period for rent tables */
+  rentalPeriod?: RentalPeriod
+}
+
+/**
+ * Response from type change apply endpoint
+ */
+export interface TypeChangeApplyResponse {
+  table: UserTable | null
+  columns: TableColumn[]
+  changes: {
+    renamedColumns: string[]
+    createdColumns: string[]
+    modifiedColumns: string[]
+  }
 }
 
 export function validateColumnValue(value: any, column: TableColumn): { valid: boolean; error?: string } {

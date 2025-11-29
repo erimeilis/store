@@ -5,7 +5,7 @@ interface LayoutProps {
   title?: string
 }
 
-export const Layout = ({ children, title = 'Store CRUD' }: LayoutProps) => (
+export const Layout = ({ children, title = 'Store' }: LayoutProps) => (
   <html>
     <head>
       <title>{title}</title>

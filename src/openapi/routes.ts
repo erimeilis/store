@@ -56,7 +56,7 @@ export const healthRoute = createRoute({
   tags: ['Health'],
   summary: 'API Health Check',
   description: `
-Check the health status and basic information of the Store CRUD API.
+Check the health status and basic information of the Store API.
 
 **Use Cases:**
 - Monitor API availability
@@ -93,7 +93,7 @@ Check the health status and basic information of the Store CRUD API.
 })
 
 // =============================================================================
-// ITEMS ROUTES (Legacy CRUD)
+// ITEMS ROUTES (Legacy)
 // =============================================================================
 
 export const listItemsRoute = createRoute({

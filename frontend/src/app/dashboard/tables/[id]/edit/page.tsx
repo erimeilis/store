@@ -11,7 +11,7 @@ import {Alert} from '@/components/ui/alert'
 import {TableInfoForm, TableInfoData} from '@/components/table-info-form'
 import {TableTypeConversionDialog} from '@/components/table-type-conversion-dialog'
 import {TablePageHeader} from '@/components/table-page-header'
-import {TableSchema, UpdateTableRequest, TableType, RentalPeriod} from '@/types/dynamic-tables'
+import {TableSchema, UpdateTableRequest, TableType, RentalPeriod, TypeChangeApplyRequest} from '@/types/dynamic-tables'
 import {clientApiRequest} from '@/lib/client-api'
 
 interface TableEditPageProps {
@@ -126,17 +126,78 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
         setErrors(prev => ({...prev, [field]: undefined, general: undefined}))
     }
 
-    const handleTableTypeConversion = () => {
-        if (pendingTableType !== null) {
-            setFormData(prev => ({
-                ...prev,
-                tableType: pendingTableType,
-                forSale: pendingTableType === 'sale',
-                // Set default rental period when switching to rent
-                rentalPeriod: pendingTableType === 'rent' && !prev.rentalPeriod ? 'month' : prev.rentalPeriod
-            }))
-            setShowConversionDialog(false)
-            setPendingTableType(null)
+    const handleTableTypeConversion = async (
+        mappings: Array<{ requiredColumn: string; existingColumnId: string | null }>,
+        rentalPeriod?: RentalPeriod
+    ) => {
+        if (pendingTableType === null || !tableId) return
+
+        setIsSubmitting(true)
+        setErrors({})
+
+        try {
+            // For 'default' type, we don't need mappings - just update the table type
+            if (pendingTableType === 'default') {
+                const requestData: UpdateTableRequest = {
+                    tableType: 'default'
+                }
+
+                const response = await clientApiRequest(`/api/tables/${tableId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(requestData)
+                })
+
+                if (response.ok) {
+                    // Update local state
+                    setFormData(prev => ({
+                        ...prev,
+                        tableType: 'default',
+                        forSale: false
+                    }))
+                    setShowConversionDialog(false)
+                    setPendingTableType(null)
+                    // Reload table data to get updated columns
+                    await loadTableData()
+                } else {
+                    const errorData = await response.json() as any
+                    setErrors({general: errorData.message || 'Failed to change table type'})
+                }
+            } else {
+                // For sale/rent types, use the apply-type-change endpoint with mappings
+                const requestData: TypeChangeApplyRequest = {
+                    targetType: pendingTableType,
+                    columnMappings: mappings,
+                    rentalPeriod: pendingTableType === 'rent' ? rentalPeriod : undefined
+                }
+
+                const response = await clientApiRequest(`/api/tables/${tableId}/apply-type-change`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(requestData)
+                })
+
+                if (response.ok) {
+                    // Update local state
+                    setFormData(prev => ({
+                        ...prev,
+                        tableType: pendingTableType,
+                        forSale: pendingTableType === 'sale',
+                        rentalPeriod: pendingTableType === 'rent' ? (rentalPeriod || 'month') : prev.rentalPeriod
+                    }))
+                    setShowConversionDialog(false)
+                    setPendingTableType(null)
+                    // Reload table data to get updated columns
+                    await loadTableData()
+                } else {
+                    const errorData = await response.json() as any
+                    setErrors({general: errorData.message || 'Failed to apply type change'})
+                }
+            }
+        } catch (error) {
+            setErrors({general: error instanceof Error ? error.message : 'Failed to apply type change'})
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
@@ -270,20 +331,16 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
             </form>
 
             {/* Table Type Conversion Confirmation Dialog */}
-            {showConversionDialog && pendingTableType !== null && (
+            {showConversionDialog && pendingTableType !== null && tableId && (
                 <TableTypeConversionDialog
                     isOpen={showConversionDialog}
                     onClose={handleCancelConversion}
                     onConfirm={handleTableTypeConversion}
-                    isLoading={false}
+                    isLoading={isSubmitting}
                     currentType={formData.tableType}
                     newType={pendingTableType}
                     tableName={formData.name}
-                    hasExistingPriceColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'price') || false}
-                    hasExistingQtyColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'qty') || false}
-                    hasExistingFeeColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'fee') || false}
-                    hasExistingUsedColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'used') || false}
-                    hasExistingAvailableColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'available') || false}
+                    tableId={tableId}
                 />
             )}
         </div>

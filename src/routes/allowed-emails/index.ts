@@ -12,7 +12,6 @@ import validateEmail from './post.validate.js';
 
 /**
  * Allowed Emails Routes
- * CRUD operations for email/domain allowlist management
  */
 const app = new Hono();
 

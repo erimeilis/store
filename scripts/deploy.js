@@ -268,10 +268,10 @@ function uploadBackendSecrets(env, dryRun = false) {
 
   for (const [key, value] of validSecrets) {
     if (dryRun) {
-      logSuccess(`Would upload ${key} to store-crud-api`)
+      logSuccess(`Would upload ${key} to store-api`)
     } else {
-      if (uploadSecret('store-crud-api', key, value)) {
-        logSuccess(`Uploaded ${key} to store-crud-api`)
+      if (uploadSecret('store-api', key, value)) {
+        logSuccess(`Uploaded ${key} to store-api`)
       } else {
         logWarning(`Failed to upload ${key}`)
       }
@@ -303,10 +303,10 @@ function uploadFrontendSecrets(env, dryRun = false) {
 
   for (const [key, value] of validSecrets) {
     if (dryRun) {
-      logSuccess(`Would upload ${key} to store-crud-front`)
+      logSuccess(`Would upload ${key} to store-frontend`)
     } else {
-      if (uploadSecret('store-crud-front', key, value)) {
-        logSuccess(`Uploaded ${key} to store-crud-front`)
+      if (uploadSecret('store-frontend', key, value)) {
+        logSuccess(`Uploaded ${key} to store-frontend`)
       } else {
         logWarning(`Failed to upload ${key}`)
       }
@@ -325,7 +325,7 @@ function deployBackend(appVersion, dryRun = false) {
   try {
     // Use --env="" to explicitly target top-level (production) environment
     exec(`wrangler deploy --env="" --var APP_VERSION:${appVersion}${dryRunFlag}`, { cwd: ROOT_DIR })
-    logSuccess('Deployed store-crud-api')
+    logSuccess('Deployed store-api')
     return true
   } catch (error) {
     logError(`Backend deployment failed: ${error.message}`)
@@ -357,7 +357,7 @@ function deployFrontend(dryRun = false) {
     // Use --env="" to explicitly target top-level (production) environment
     exec(`wrangler deploy --env=""${dryRunFlag}`, { cwd: frontendDir })
 
-    logSuccess('Deployed store-crud-front')
+    logSuccess('Deployed store-frontend')
     return true
   } catch (error) {
     logError(`Frontend deployment failed: ${error.message}`)

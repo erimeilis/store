@@ -62,7 +62,7 @@ export const AuthTokenSchema = z.object({
 }).openapi('AuthToken')
 
 // =============================================================================
-// ITEMS SCHEMAS (Legacy CRUD)
+// ITEMS SCHEMAS (Legacy)
 // =============================================================================
 
 export const ItemSchema = z.object({

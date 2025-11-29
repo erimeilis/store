@@ -59,7 +59,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
               onClick={() => window.location.href = '/dashboard'}
               className="text-lg font-semibold"
             >
-              Store CRUD
+              Store
             </Button>
           </NavbarBrand>
         }
@@ -207,7 +207,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                   }}
                   className="text-lg font-semibold"
                 >
-                  Store CRUD
+                  Store
                 </Button>
                 <Button
                   size="icon"
