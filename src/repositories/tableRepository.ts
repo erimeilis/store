@@ -1,6 +1,7 @@
 import { getPrismaClient } from '@/lib/database.js'
 import type { Bindings } from '@/types/bindings.js'
-import type { UserTable, TableColumn, TableSchema, CreateTableRequest, UpdateTableRequest, TableMassAction, TableVisibility } from '@/types/dynamic-tables.js'
+import type { UserTable, TableColumn, TableSchema, CreateTableRequest, UpdateTableRequest, TableMassAction, TableVisibility, TableType, RentalPeriod } from '@/types/dynamic-tables.js'
+import { isProtectedColumn, getDefaultColumns } from '@/types/dynamic-tables.js'
 import type { PrismaClient } from '@prisma/client'
 import { validateSortColumn, validateSortDirection } from '@/utils/common.js'
 
@@ -27,13 +28,13 @@ export class TableRepository {
       visibility?: string
       createdAt?: string
       updatedAt?: string
-      forSale?: string
+      tableType?: string
     },
     sort: { column: string; direction: string },
     pagination: { page: number; limit: number; offset: number },
     isAdmin: boolean = false
   ): Promise<{ tables: UserTable[]; totalCount: number }> {
-    const allowedSortColumns = ['name', 'description', 'createdBy', 'visibility', 'forSale', 'createdAt', 'updatedAt']
+    const allowedSortColumns = ['name', 'description', 'createdBy', 'visibility', 'tableType', 'createdAt', 'updatedAt']
     // Note: rowCount sorting is not supported as it's computed after the query
     const safeSortColumn = validateSortColumn(sort.column, allowedSortColumns)
     const safeSortDirection = validateSortDirection(sort.direction)
@@ -92,10 +93,14 @@ export class TableRepository {
       }
     }
 
-    if (filters.forSale === 'true') {
-      where.forSale = true
-    } else if (filters.forSale === 'false') {
-      where.forSale = false
+    // Filter by tableType ('default', 'sale', 'rent') - supports comma-separated values
+    if (filters.tableType) {
+      const types = filters.tableType.toLowerCase().split(',').map(t => t.trim())
+      if (types.length === 1) {
+        where.tableType = types[0]
+      } else {
+        where.tableType = { in: types }
+      }
     }
 
     // Get tables and total count
@@ -122,6 +127,8 @@ export class TableRepository {
     const tablesWithOwner = tables.map((table, index) => ({
       ...table,
       visibility: table.visibility as TableVisibility,
+      tableType: table.tableType as TableType,
+      rentalPeriod: table.rentalPeriod as RentalPeriod | null,
       ownerDisplayName: this.getOwnerDisplayName(table.createdBy, userId, userEmail),
       rowCount: rowCounts[index]
     })) as UserTable[]
@@ -158,7 +165,12 @@ export class TableRepository {
         ]
       }
     })
-    return table ? { ...table, visibility: table.visibility as TableVisibility } as UserTable : null
+    return table ? {
+      ...table,
+      visibility: table.visibility as TableVisibility,
+      tableType: table.tableType as TableType,
+      rentalPeriod: table.rentalPeriod as RentalPeriod | null
+    } as UserTable : null
   }
 
   /**
@@ -168,7 +180,12 @@ export class TableRepository {
     const table = await this.prisma.userTable.findUnique({
       where: { id: tableId }
     })
-    return table ? { ...table, visibility: table.visibility as TableVisibility } as UserTable : null
+    return table ? {
+      ...table,
+      visibility: table.visibility as TableVisibility,
+      tableType: table.tableType as TableType,
+      rentalPeriod: table.rentalPeriod as RentalPeriod | null
+    } as UserTable : null
   }
 
   /**
@@ -220,7 +237,8 @@ export class TableRepository {
       requestUserId: (tableData as any).user_id,
       paramUserId: userId,
       finalUserId,
-      userEmail
+      userEmail,
+      tableType: tableData.tableType || 'default'
     })
 
     // Create table first
@@ -232,7 +250,9 @@ export class TableRepository {
         createdBy: userEmail,
         userId: finalUserId,
         visibility: tableData.visibility,
-        forSale: tableData.forSale || false
+        tableType: tableData.tableType || 'default',
+        productIdColumn: tableData.productIdColumn || null,
+        rentalPeriod: tableData.rentalPeriod || (tableData.tableType === 'rent' ? 'month' : null)
       }
     })
 
@@ -247,7 +267,8 @@ export class TableRepository {
           type: col.type,
           isRequired: col.isRequired || false,
           allowDuplicates: col.allowDuplicates ?? true,
-          defaultValue: col.defaultValue || null,
+          // Convert defaultValue to string for DB storage (preserves 'false', '0' as strings)
+          defaultValue: col.defaultValue != null ? String(col.defaultValue) : null,
           position: col.position || i
         }
       })
@@ -257,7 +278,12 @@ export class TableRepository {
     const columns = await this.prisma.$transaction(columnCreates)
 
     const result = {
-      table: { ...table, visibility: table.visibility as TableVisibility } as UserTable,
+      table: {
+        ...table,
+        visibility: table.visibility as TableVisibility,
+        tableType: table.tableType as TableType,
+        rentalPeriod: table.rentalPeriod as RentalPeriod | null
+      } as UserTable,
       columns: columns.map(col => ({
         ...col,
         type: col.type as any // Type assertion for ColumnType
@@ -291,8 +317,16 @@ export class TableRepository {
       updateData.visibility = updates.visibility
     }
 
-    if (updates.forSale !== undefined) {
-      updateData.forSale = updates.forSale
+    if (updates.tableType !== undefined) {
+      updateData.tableType = updates.tableType
+    }
+
+    if (updates.productIdColumn !== undefined) {
+      updateData.productIdColumn = updates.productIdColumn
+    }
+
+    if (updates.rentalPeriod !== undefined) {
+      updateData.rentalPeriod = updates.rentalPeriod
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -314,7 +348,15 @@ export class TableRepository {
     // Fetch columns
     const columns = await this.getTableColumns(tableId)
 
-    return { table: { ...table, visibility: table.visibility as TableVisibility } as UserTable, columns }
+    return {
+      table: {
+        ...table,
+        visibility: table.visibility as TableVisibility,
+        tableType: table.tableType as TableType,
+        rentalPeriod: table.rentalPeriod as RentalPeriod | null
+      } as UserTable,
+      columns
+    }
   }
 
   /**
@@ -610,56 +652,49 @@ export class TableRepository {
   }
 
   /**
-   * Check if required sale columns (price, qty) exist in table
+   * Check if required columns exist for a specific table type
    */
-  async checkSaleColumnsExist(tableId: string): Promise<{ hasPrice: boolean; hasQty: boolean }> {
+  async checkTypeColumnsExist(tableId: string, tableType: TableType): Promise<Record<string, boolean>> {
     const columns = await this.getTableColumns(tableId)
-    return {
-      hasPrice: columns.some(col => col.name === 'price'),
-      hasQty: columns.some(col => col.name === 'qty')
+    const defaultColumns = getDefaultColumns(tableType)
+
+    const result: Record<string, boolean> = {}
+    for (const col of defaultColumns) {
+      result[col.name] = columns.some(c => c.name === col.name)
     }
+    return result
   }
 
   /**
-   * Create missing sale columns for a table using Prisma ORM
+   * Create missing columns for a table type using Prisma ORM
    */
-  async createMissingSaleColumns(tableId: string): Promise<void> {
-    const { hasPrice, hasQty } = await this.checkSaleColumnsExist(tableId)
+  async createMissingTypeColumns(tableId: string, tableType: TableType): Promise<void> {
+    const existingCheck = await this.checkTypeColumnsExist(tableId, tableType)
+    const defaultColumns = getDefaultColumns(tableType)
 
-    // Get the current max position to add sale columns at the end following 10, 20, 30, 40... pattern
+    // Get the current max position to add columns at the end following 10, 20, 30, 40... pattern
     const maxPositionResult = await this.prisma.tableColumn.aggregate({
       where: { tableId },
       _max: { position: true }
     })
-    const nextPosition = (maxPositionResult._max.position ?? 0) + 10
+    let nextPosition = (maxPositionResult._max.position ?? 0) + 10
     const columnsToCreate = []
 
-    if (!hasPrice) {
-      columnsToCreate.push({
-        id: crypto.randomUUID(),
-        tableId: tableId,
-        name: 'price',
-        type: 'number',
-        isRequired: true,
-        allowDuplicates: true,
-        defaultValue: null,
-        position: nextPosition
-      })
-    }
-
-    if (!hasQty) {
-      // If price was just added, qty position should be nextPosition + 10, otherwise nextPosition
-      const qtyPosition = !hasPrice ? nextPosition + 10 : nextPosition
-      columnsToCreate.push({
-        id: crypto.randomUUID(),
-        tableId: tableId,
-        name: 'qty',
-        type: 'number',
-        isRequired: true,
-        allowDuplicates: true,
-        defaultValue: '1',
-        position: qtyPosition
-      })
+    for (const col of defaultColumns) {
+      if (!existingCheck[col.name]) {
+        columnsToCreate.push({
+          id: crypto.randomUUID(),
+          tableId: tableId,
+          name: col.name,
+          type: col.type,
+          isRequired: col.isRequired,
+          allowDuplicates: col.allowDuplicates ?? true,
+          // Convert defaultValue to string for DB storage
+          defaultValue: col.defaultValue != null ? String(col.defaultValue) : null,
+          position: nextPosition
+        })
+        nextPosition += 10
+      }
     }
 
     // Create all missing columns
@@ -671,24 +706,23 @@ export class TableRepository {
   }
 
   /**
-   * Check if a column is protected (price/qty for for_sale tables)
+   * Check if a column is protected based on table type
    */
-  async isColumnProtected(tableId: string, columnName: string): Promise<boolean> {
+  async isColumnProtectedByType(tableId: string, columnName: string): Promise<boolean> {
     const table = await this.findTableByIdInternal(tableId)
-    if (!table || !table.forSale) {
+    if (!table) {
       return false
     }
-
-    return columnName === 'price' || columnName === 'qty'
+    return isProtectedColumn(columnName, table.tableType)
   }
 
   /**
-   * Find public tables that are for sale using Prisma ORM
+   * Find public tables by type using Prisma ORM
    */
-  async findPublicSaleTables(limit: number = 1000): Promise<{ tables: UserTable[]; totalCount: number }> {
+  async findPublicTablesByType(tableType: TableType, limit: number = 1000): Promise<{ tables: UserTable[]; totalCount: number }> {
     const where = {
       visibility: { in: ['public', 'shared'] },
-      forSale: true
+      tableType: tableType
     }
 
     const [tables, totalCount] = await Promise.all([
@@ -703,7 +737,39 @@ export class TableRepository {
     // Type cast the results
     const typedTables = tables.map(table => ({
       ...table,
-      visibility: table.visibility as TableVisibility
+      visibility: table.visibility as TableVisibility,
+      tableType: table.tableType as TableType,
+      rentalPeriod: table.rentalPeriod as RentalPeriod | null
+    })) as UserTable[]
+
+    return { tables: typedTables, totalCount }
+  }
+
+  /**
+   * Find all public tables (both sale and rent types) using Prisma ORM
+   * Used for unified /api/public/tables endpoint
+   */
+  async findAllPublicTables(limit: number = 1000): Promise<{ tables: UserTable[]; totalCount: number }> {
+    const where = {
+      visibility: { in: ['public', 'shared'] },
+      tableType: { in: ['sale', 'rent'] }
+    }
+
+    const [tables, totalCount] = await Promise.all([
+      this.prisma.userTable.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: limit
+      }),
+      this.prisma.userTable.count({ where })
+    ])
+
+    // Type cast the results
+    const typedTables = tables.map(table => ({
+      ...table,
+      visibility: table.visibility as TableVisibility,
+      tableType: table.tableType as TableType,
+      rentalPeriod: table.rentalPeriod as RentalPeriod | null
     })) as UserTable[]
 
     return { tables: typedTables, totalCount }
@@ -884,5 +950,41 @@ export class TableRepository {
     }
 
     return updatedCount
+  }
+
+  // ============================================================================
+  // Legacy compatibility methods - deprecated, use tableType-based methods
+  // ============================================================================
+
+  /**
+   * @deprecated Use checkTypeColumnsExist(tableId, 'sale') instead
+   */
+  async checkSaleColumnsExist(tableId: string): Promise<{ hasPrice: boolean; hasQty: boolean }> {
+    const result = await this.checkTypeColumnsExist(tableId, 'sale')
+    return {
+      hasPrice: result['price'] || false,
+      hasQty: result['qty'] || false
+    }
+  }
+
+  /**
+   * @deprecated Use createMissingTypeColumns(tableId, 'sale') instead
+   */
+  async createMissingSaleColumns(tableId: string): Promise<void> {
+    await this.createMissingTypeColumns(tableId, 'sale')
+  }
+
+  /**
+   * @deprecated Use isColumnProtectedByType instead
+   */
+  async isColumnProtected(tableId: string, columnName: string): Promise<boolean> {
+    return this.isColumnProtectedByType(tableId, columnName)
+  }
+
+  /**
+   * @deprecated Use findPublicTablesByType('sale') instead
+   */
+  async findPublicSaleTables(limit: number = 1000): Promise<{ tables: UserTable[]; totalCount: number }> {
+    return this.findPublicTablesByType('sale', limit)
   }
 }

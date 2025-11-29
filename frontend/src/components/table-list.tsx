@@ -10,7 +10,7 @@ import { IColumnDefinition, IRowAction, ModelList } from '@/components/model/mod
 import { IPaginatedResponse } from '@/types/models'
 import { UserTable } from '@/types/dynamic-tables'
 import { formatApiDate } from '@/lib/date-utils'
-import { IconColumns3, IconCopy, IconDatabase, IconShoppingCart, IconWand } from '@tabler/icons-react'
+import { IconColumns3, IconCopy, IconDatabase, IconClockDollar, IconShoppingCart, IconWand } from '@tabler/icons-react'
 import { TableCloneModal } from '@/components/table-clone-modal'
 import { generateDummyTables } from '@/handlers/admin'
 import { toast } from '@/components/ui/toast'
@@ -23,7 +23,8 @@ export interface TableListProps {
   user?: { id: string; email: string; name: string; role?: string }
 
   // Configuration options
-  showForSaleFilter?: boolean  // Filter to only "for sale" tables
+  showForSaleFilter?: boolean  // Filter to only "for sale" tables (legacy)
+  tableTypeFilter?: 'sale' | 'rent' | 'default'  // Filter by table type
   enableMassActions?: boolean  // Enable mass action functionality
   enableCloning?: boolean      // Show clone buttons
   createRoute?: string | null  // Route for "Create New" button
@@ -36,6 +37,7 @@ export function TableList({
   filters = {},
   user,
   showForSaleFilter = false,
+  tableTypeFilter,
   enableMassActions = true,
   enableCloning = true,
   createRoute = '/dashboard/tables/create',
@@ -47,6 +49,8 @@ export function TableList({
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [showForSaleConfirmModal, setShowForSaleConfirmModal] = useState(false)
   const [isGeneratingForSale, setIsGeneratingForSale] = useState(false)
+  const [showForRentConfirmModal, setShowForRentConfirmModal] = useState(false)
+  const [isGeneratingForRent, setIsGeneratingForRent] = useState(false)
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin'
@@ -144,30 +148,51 @@ export function TableList({
   // Add Type column if enabled
   if (showTypeColumn) {
     baseColumns.push({
-      key: 'forSale',
+      key: 'tableType',
       label: 'Type',
       sortable: true,
       filterable: true,
       filterType: 'select',
       filterOptions: [
-        { value: 'true', label: 'For Sale' },
-        { value: 'false', label: 'Regular' }
+        { value: 'sale', label: 'For Sale' },
+        { value: 'rent', label: 'For Rent' },
+        { value: 'default', label: 'Regular' }
       ],
       editableInline: true,
-      editType: 'toggle',
+      editType: 'select',
       editOptions: [
-        { value: 'false', label: 'No' },
-        { value: 'true', label: 'Yes' }
+        { value: 'sale', label: 'For Sale' },
+        { value: 'rent', label: 'For Rent' },
+        { value: 'default', label: 'Regular' }
       ],
-      render: (table) => (
-        <div className="flex justify-center">
-          <BooleanCircle
-            value={table.forSale}
-            size="md"
-            title={table.forSale ? 'For Sale' : 'Regular'}
-          />
-        </div>
-      )
+      render: (table) => {
+        const tableType = table.tableType || (table.forSale ? 'sale' : 'default')
+        if (tableType === 'sale') {
+          return (
+            <div className="flex justify-center">
+              <span className="badge badge-success gap-1">
+                <IconShoppingCart className="h-3 w-3" />
+                Sale
+              </span>
+            </div>
+          )
+        }
+        if (tableType === 'rent') {
+          return (
+            <div className="flex justify-center">
+              <span className="badge badge-info gap-1">
+                <IconClockDollar className="h-3 w-3" />
+                Rent
+              </span>
+            </div>
+          )
+        }
+        return (
+          <div className="flex justify-center">
+            <span className="badge badge-neutral">Regular</span>
+          </div>
+        )
+      }
     })
   }
 
@@ -258,10 +283,19 @@ export function TableList({
     }
   ] : undefined
 
-  // Apply forSale filter if needed
-  const effectiveFilters = showForSaleFilter
-    ? { ...filters, forSale: 'true' }
-    : filters
+  // Apply table type filter if needed
+  const effectiveFilters = (() => {
+    let result = { ...filters }
+    // Legacy forSale filter support
+    if (showForSaleFilter) {
+      result = { ...result, forSale: 'true' }
+    }
+    // New tableType filter support
+    if (tableTypeFilter) {
+      result = { ...result, tableType: tableTypeFilter }
+    }
+    return result
+  })()
 
   const handleCloneSuccess = () => {
     // Refresh the page to show the new table
@@ -288,7 +322,7 @@ export function TableList({
     setShowConfirmModal(false)
 
     try {
-      const result = await generateDummyTables(user.id, 100, 200, false)
+      const result = await generateDummyTables(user.id, 100, 200, 'default')
 
       if (result.success) {
         toast.success(`Success! Generated ${result.tablesCreated} tables with ${result.rowsCreated} total rows.`, {
@@ -316,7 +350,7 @@ export function TableList({
     setShowForSaleConfirmModal(false)
 
     try {
-      const result = await generateDummyTables(user.id, 20, 50, true)
+      const result = await generateDummyTables(user.id, 20, 50, 'sale')
 
       if (result.success) {
         toast.success(`Success! Generated ${result.tablesCreated} FOR SALE tables with ${result.rowsCreated} total rows.`, {
@@ -331,6 +365,34 @@ export function TableList({
       toast.error('Failed to generate for-sale tables. Check console for details.')
     } finally {
       setIsGeneratingForSale(false)
+    }
+  }
+
+  const handleGenerateForRentTables = async () => {
+    if (!user?.id) {
+      toast.error('User ID is required to generate tables')
+      return
+    }
+
+    setIsGeneratingForRent(true)
+    setShowForRentConfirmModal(false)
+
+    try {
+      const result = await generateDummyTables(user.id, 20, 50, 'rent')
+
+      if (result.success) {
+        toast.success(`Success! Generated ${result.tablesCreated} FOR RENT tables with ${result.rowsCreated} total rows.`, {
+          duration: 5000
+        })
+        window.location.reload()
+      } else {
+        toast.error(`Error: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Error generating for-rent tables:', error)
+      toast.error('Failed to generate for-rent tables. Check console for details.')
+    } finally {
+      setIsGeneratingForRent(false)
     }
   }
 
@@ -365,7 +427,7 @@ export function TableList({
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setShowForSaleConfirmModal(true)}
-                disabled={isGeneratingForSale || isGenerating}
+                disabled={isGeneratingForSale || isGenerating || isGeneratingForRent}
                 className="btn btn-success btn-sm"
               >
                 {isGeneratingForSale ? (
@@ -381,8 +443,25 @@ export function TableList({
                 )}
               </button>
               <button
+                onClick={() => setShowForRentConfirmModal(true)}
+                disabled={isGeneratingForRent || isGenerating || isGeneratingForSale}
+                className="btn btn-info btn-sm"
+              >
+                {isGeneratingForRent ? (
+                  <>
+                    <span className="loading loading-spinner loading-xs"></span>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <IconClockDollar className="h-4 w-4" />
+                    Generate 20 For Rent Tables
+                  </>
+                )}
+              </button>
+              <button
                 onClick={() => setShowConfirmModal(true)}
-                disabled={isGenerating || isGeneratingForSale}
+                disabled={isGenerating || isGeneratingForSale || isGeneratingForRent}
                 className="btn btn-warning btn-sm"
               >
                 {isGenerating ? (
@@ -486,6 +565,46 @@ export function TableList({
           </div>
           <form method="dialog" className="modal-backdrop">
             <button onClick={() => setShowForSaleConfirmModal(false)}>close</button>
+          </form>
+        </dialog>
+      )}
+
+      {/* Confirmation Modal for For-Rent Tables Generation */}
+      {showForRentConfirmModal && (
+        <dialog id="confirm-forrent-modal" className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg flex items-center gap-2">
+              <IconClockDollar className="h-6 w-6 text-info" />
+              Confirm For-Rent Tables Generation
+            </h3>
+            <p className="py-4">
+              This will generate <strong>20 tables marked "For Rent"</strong> with <strong>50 test records</strong> each.
+            </p>
+            <p className="text-info text-sm">
+              ✓ This action will create a total of <strong>1,000 test records</strong> in your database.
+            </p>
+            <p className="text-secondary text-sm mt-2">
+              🔑 All generated tables will support rental operations (rent/release lifecycle).
+            </p>
+            <div className="modal-action">
+              <button
+                onClick={() => setShowForRentConfirmModal(false)}
+                className="btn btn-ghost"
+                disabled={isGeneratingForRent}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGenerateForRentTables}
+                className="btn btn-info"
+                disabled={isGeneratingForRent}
+              >
+                {isGeneratingForRent ? 'Generating...' : 'Yes, Generate For-Rent Tables'}
+              </button>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={() => setShowForRentConfirmModal(false)}>close</button>
           </form>
         </dialog>
       )}

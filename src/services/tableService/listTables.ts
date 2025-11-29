@@ -28,8 +28,11 @@ export async function listTables(
     if (query.filterVisibility !== undefined) filters.visibility = query.filterVisibility
     if (query.filterCreatedAt !== undefined) filters.createdAt = query.filterCreatedAt
     if (query.filterUpdatedAt !== undefined) filters.updatedAt = query.filterUpdatedAt
-    if (query.filterForSale !== undefined) filters.forSale = query.filterForSale
-    if (query.forSale !== undefined) filters.forSale = query.forSale
+    if (query.filterTableType !== undefined) filters.tableType = query.filterTableType
+    if (query.tableType !== undefined) filters.tableType = query.tableType
+    // Legacy support for forSale filter
+    if (query.filterForSale !== undefined) filters.tableType = query.filterForSale === 'true' ? 'sale' : 'default'
+    if (query.forSale !== undefined) filters.tableType = query.forSale === 'true' ? 'sale' : 'default'
 
     const sort: TableSort = {
       column: query.sort || 'updatedAt',

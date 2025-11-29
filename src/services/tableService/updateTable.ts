@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import type { UserContext } from '@/types/database.js'
-import type { UpdateTableRequest } from '@/types/dynamic-tables.js'
+import type { UpdateTableRequest, TableType, hasSpecialColumns, getProtectedColumns } from '@/types/dynamic-tables.js'
 import type { TableRepository } from '@/repositories/tableRepository.js'
 import type { ZodCompatibleValidator } from '@/validators/zodCompatibleValidator.js'
 import { getUserInfo, isUserAdmin, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
@@ -59,59 +59,29 @@ export async function updateTable(
       return createErrorResponse('Table not found', 'Table does not exist', 404)
     }
 
-    // Handle conversion to "for sale" mode - validate columns exist with correct settings
-    if (data.forSale === true && !currentTable.forSale) {
-      console.log('🔄 Validating conversion to "for sale" mode')
+    // Handle conversion to special table types - validate columns exist or auto-create them
+    const newTableType = data.tableType as TableType | undefined
+    if (newTableType && newTableType !== 'default' && newTableType !== currentTable.tableType) {
+      console.log(`🔄 Converting table to "${newTableType}" type`)
 
-      // Check if price and qty columns exist with correct settings
-      const columns = await repository.getTableColumns(tableId)
-      const priceColumn = columns.find(col => col.name === 'price')
-      const qtyColumn = columns.find(col => col.name === 'qty')
+      // Check if required columns exist for the new table type
+      const columnsExist = await repository.checkTypeColumnsExist(tableId, newTableType)
 
-      const missingColumns: string[] = []
-      const invalidColumns: string[] = []
-
-      // Validate price column
-      if (!priceColumn) {
-        missingColumns.push('price')
-      } else {
-        if (priceColumn.type !== 'number') {
-          invalidColumns.push(`price (must be type "number", got "${priceColumn.type}")`)
-        }
-        if (!priceColumn.isRequired) {
-          invalidColumns.push('price (must be required)')
-        }
+      if (!columnsExist) {
+        // Auto-create missing columns for the table type
+        console.log(`📦 Creating missing columns for "${newTableType}" type`)
+        await repository.createMissingTypeColumns(tableId, newTableType)
       }
 
-      // Validate qty column
-      if (!qtyColumn) {
-        missingColumns.push('qty')
-      } else {
-        if (qtyColumn.type !== 'number') {
-          invalidColumns.push(`qty (must be type "number", got "${qtyColumn.type}")`)
-        }
-        if (!qtyColumn.isRequired) {
-          invalidColumns.push('qty (must be required)')
-        }
-      }
+      console.log(`✅ Table type "${newTableType}" columns validated/created successfully`)
+    }
 
-      // Return error if columns are missing or invalid
-      if (missingColumns.length > 0 || invalidColumns.length > 0) {
-        const errors: string[] = []
-        if (missingColumns.length > 0) {
-          errors.push(`Missing required columns: ${missingColumns.join(', ')}`)
-        }
-        if (invalidColumns.length > 0) {
-          errors.push(`Invalid column configuration: ${invalidColumns.join(', ')}`)
-        }
-        return createErrorResponse(
-          'Cannot mark table as "for sale"',
-          `Tables marked for sale require "price" and "qty" columns with type "number" and required=true. ${errors.join('. ')}. Please add or fix these columns before enabling "for sale" mode.`,
-          400
-        )
-      }
-
-      console.log('✅ Sale columns validated successfully')
+    // Legacy support: Handle forSale boolean for backward compatibility
+    if (data.forSale !== undefined && data.tableType === undefined) {
+      console.log('⚠️ Using deprecated forSale field - please use tableType instead')
+      // Convert forSale to tableType
+      ;(data as any).tableType = data.forSale ? 'sale' : 'default'
+      delete data.forSale
     }
 
     // Update table

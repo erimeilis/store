@@ -46,14 +46,14 @@ export async function deleteDataRow(
       )
     }
 
-    // Get table info to check for_sale status
+    // Get table info to check tableType (sale/rent)
     const tableInfo = await repository.getTableInfo(tableId)
 
     // Delete data row
     const deletedRow = await repository.deleteDataRow(rowId, tableId)
 
-    // Track inventory for for_sale tables
-    if (tableInfo?.forSale && existingRow) {
+    // Track inventory for 'sale' type tables
+    if (tableInfo?.tableType === 'sale' && existingRow) {
       try {
         const inventoryService = new InventoryTrackingService(c.env.DB)
         await inventoryService.trackItemDeletion(

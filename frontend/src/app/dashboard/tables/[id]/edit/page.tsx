@@ -1,6 +1,6 @@
 /**
  * Table Edit Page
- * Edit table metadata (name, description, visibility)
+ * Edit table metadata (name, description, visibility) and e-commerce settings
  */
 
 'use client'
@@ -8,10 +8,10 @@
 import React, {useEffect, useState} from 'react'
 import {Button} from '@/components/ui/button'
 import {Alert} from '@/components/ui/alert'
-import {TableInfoForm} from '@/components/table-info-form'
-import {ForSaleConversionDialog} from '@/components/for-sale-conversion-dialog'
+import {TableInfoForm, TableInfoData} from '@/components/table-info-form'
+import {TableTypeConversionDialog} from '@/components/table-type-conversion-dialog'
 import {TablePageHeader} from '@/components/table-page-header'
-import {TableSchema, UpdateTableRequest} from '@/types/dynamic-tables'
+import {TableSchema, UpdateTableRequest, TableType, RentalPeriod} from '@/types/dynamic-tables'
 import {clientApiRequest} from '@/lib/client-api'
 
 interface TableEditPageProps {
@@ -31,21 +31,32 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [errors, setErrors] = useState<ValidationErrors>({})
     const [showConversionDialog, setShowConversionDialog] = useState(false)
-    const [pendingForSaleValue, setPendingForSaleValue] = useState<boolean | null>(null)
+    const [pendingTableType, setPendingTableType] = useState<TableType | null>(null)
     const [currentSchema, setCurrentSchema] = useState<TableSchema | null>(tableSchema)
 
-    const [formData, setFormData] = useState({
+    // Derive tableType from forSale or tableType field
+    const getTableType = (table: any): TableType => {
+        if (table.tableType) return table.tableType as TableType
+        // Legacy: convert forSale to tableType
+        return table.forSale ? 'sale' : 'default'
+    }
+
+    const [formData, setFormData] = useState<TableInfoData>({
         name: tableSchema?.table.name || '',
         description: tableSchema?.table.description || '',
         visibility: (tableSchema?.table.visibility as 'private' | 'public' | 'shared') || 'private',
+        tableType: tableSchema ? getTableType(tableSchema.table) : 'default',
+        productIdColumn: (tableSchema?.table as any)?.productIdColumn || '',
+        rentalPeriod: ((tableSchema?.table as any)?.rentalPeriod as RentalPeriod) || 'month',
         forSale: Boolean(tableSchema?.table.forSale)
     })
 
     console.log('🔍 Initial form data from props:', {
         tableSchema,
         tableName: tableSchema?.table.name,
-        forSale: tableSchema?.table.forSale,
-        formDataForSale: formData.forSale
+        tableType: formData.tableType,
+        productIdColumn: formData.productIdColumn,
+        rentalPeriod: formData.rentalPeriod
     })
 
     // Load table data if not provided
@@ -65,20 +76,25 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
                 const result = await response.json() as any
                 const schema = result.table  // This is the TableSchema object
                 setCurrentSchema(schema)
+
+                const tableType = getTableType(schema.table)
                 setFormData({
                     name: schema.table.name,
                     description: schema.table.description || '',
                     visibility: (schema.table.visibility as 'private' | 'public' | 'shared') || 'private',
-                    forSale: Boolean(schema.table.forSale)
+                    tableType: tableType,
+                    productIdColumn: schema.table.productIdColumn || '',
+                    rentalPeriod: (schema.table.rentalPeriod as RentalPeriod) || 'month',
+                    forSale: tableType === 'sale'
                 })
 
                 console.log('🔍 Loaded table data via API:', {
                     result,
                     schema,
                     tableInfo: schema.table,
-                    tableName: schema.table.name,
-                    forSale: schema.table.forSale,
-                    visibility: schema.table.visibility
+                    tableType,
+                    productIdColumn: schema.table.productIdColumn,
+                    rentalPeriod: schema.table.rentalPeriod
                 })
             } else {
                 const errorData = await response.json() as any
@@ -91,12 +107,18 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
         }
     }
 
-    const handleInputChange = (field: string, value: any) => {
-        // Special handling for forSale changes - show confirmation dialog
-        if (field === 'forSale' && value !== formData.forSale) {
-            setPendingForSaleValue(value)
-            setShowConversionDialog(true)
-            return
+    const handleInputChange = (field: keyof TableInfoData, value: any) => {
+        // Special handling for tableType changes - show confirmation dialog
+        if (field === 'tableType' && value !== formData.tableType) {
+            // Only show dialog when changing to/from e-commerce types
+            const currentIsEcommerce = formData.tableType === 'sale' || formData.tableType === 'rent'
+            const newIsEcommerce = value === 'sale' || value === 'rent'
+
+            if (currentIsEcommerce || newIsEcommerce) {
+                setPendingTableType(value)
+                setShowConversionDialog(true)
+                return
+            }
         }
 
         setFormData(prev => ({...prev, [field]: value}))
@@ -104,17 +126,23 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
         setErrors(prev => ({...prev, [field]: undefined, general: undefined}))
     }
 
-    const handleForSaleConversion = () => {
-        if (pendingForSaleValue !== null) {
-            setFormData(prev => ({...prev, forSale: pendingForSaleValue}))
+    const handleTableTypeConversion = () => {
+        if (pendingTableType !== null) {
+            setFormData(prev => ({
+                ...prev,
+                tableType: pendingTableType,
+                forSale: pendingTableType === 'sale',
+                // Set default rental period when switching to rent
+                rentalPeriod: pendingTableType === 'rent' && !prev.rentalPeriod ? 'month' : prev.rentalPeriod
+            }))
             setShowConversionDialog(false)
-            setPendingForSaleValue(null)
+            setPendingTableType(null)
         }
     }
 
     const handleCancelConversion = () => {
         setShowConversionDialog(false)
-        setPendingForSaleValue(null)
+        setPendingTableType(null)
     }
 
     const validateForm = (): boolean => {
@@ -146,7 +174,10 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
                 name: formData.name.trim(),
                 description: formData.description.trim() || undefined,
                 visibility: formData.visibility,
-                forSale: formData.forSale
+                tableType: formData.tableType,
+                productIdColumn: formData.productIdColumn || null,
+                rentalPeriod: formData.tableType === 'rent' ? formData.rentalPeriod : undefined,
+                forSale: formData.tableType === 'sale' // Backwards compatibility
             }
 
             const response = await clientApiRequest(`/api/tables/${tableId}`, {
@@ -190,7 +221,7 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
     return (
         <div className="container mx-auto sm:p-4">
             <TablePageHeader
-                subtitle="Update table information and access settings"
+                subtitle="Update table information and e-commerce settings"
                 tableId={tableId || ''}
                 activePage="edit"
                 tableName={currentSchema?.table.name || formData.name}
@@ -207,6 +238,7 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
                     data={formData}
                     errors={errors}
                     onChange={handleInputChange}
+                    availableColumns={currentSchema?.columns || []}
                 />
 
                 {/* Actions */}
@@ -237,17 +269,21 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
                 </div>
             </form>
 
-            {/* Conversion Confirmation Dialog */}
-            {showConversionDialog && pendingForSaleValue !== null && (
-                <ForSaleConversionDialog
+            {/* Table Type Conversion Confirmation Dialog */}
+            {showConversionDialog && pendingTableType !== null && (
+                <TableTypeConversionDialog
                     isOpen={showConversionDialog}
                     onClose={handleCancelConversion}
-                    onConfirm={handleForSaleConversion}
+                    onConfirm={handleTableTypeConversion}
                     isLoading={false}
-                    conversionType={pendingForSaleValue ? 'toSale' : 'fromSale'}
+                    currentType={formData.tableType}
+                    newType={pendingTableType}
                     tableName={formData.name}
                     hasExistingPriceColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'price') || false}
                     hasExistingQtyColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'qty') || false}
+                    hasExistingFeeColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'fee') || false}
+                    hasExistingUsedColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'used') || false}
+                    hasExistingAvailableColumn={currentSchema?.columns.some(col => col.name.toLowerCase() === 'available') || false}
                 />
             )}
         </div>

@@ -4,7 +4,7 @@ import type { CreateTableRequest } from '@/types/dynamic-tables.js'
 import type { TableRepository } from '@/repositories/tableRepository.js'
 import type { ZodCompatibleValidator } from '@/validators/zodCompatibleValidator.js'
 import { getUserInfo, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
-import { DEFAULT_SALE_COLUMNS } from '@/types/dynamic-tables.js'
+import { DEFAULT_SALE_COLUMNS, DEFAULT_RENT_COLUMNS, TableType, getDefaultColumns, hasSpecialColumns } from '@/types/dynamic-tables.js'
 import { InventoryTrackingService } from '@/services/inventoryTrackingService/index.js'
 
 /**
@@ -26,35 +26,38 @@ export async function createTable(
 
     const { userId, userEmail } = getUserInfo(c, user)
 
-    // If table is marked for sale, automatically add price/qty columns if not present
-    if (data.forSale) {
-      const existingPriceCol = data.columns.find(col => col.name === 'price')
-      const existingQtyCol = data.columns.find(col => col.name === 'qty')
+    // Handle legacy forSale field - convert to tableType
+    if (data.forSale !== undefined && data.tableType === undefined) {
+      console.log('⚠️ Using deprecated forSale field - please use tableType instead')
+      ;(data as any).tableType = data.forSale ? 'sale' : 'default'
+    }
 
-      // Calculate next available positions following 10, 20, 30, 40... pattern
+    const tableType = (data.tableType || 'default') as TableType
+
+    // If table has a special type, automatically add required columns if not present
+    if (hasSpecialColumns(tableType)) {
+      const defaultColumns = getDefaultColumns(tableType)
       const maxPosition = Math.max(...data.columns.map(col => col.position || 0))
-      const nextPosition = maxPosition + 10
+      let nextPosition = maxPosition + 10
 
-      // Add missing sale columns with proper positions
-      if (!existingPriceCol) {
-        data.columns.push({
-          ...DEFAULT_SALE_COLUMNS[0]!,
-          position: nextPosition
-        })
-      }
-      if (!existingQtyCol) {
-        data.columns.push({
-          ...DEFAULT_SALE_COLUMNS[1]!,
-          position: nextPosition + 10
-        })
+      // Add missing type-specific columns
+      for (const defaultCol of defaultColumns) {
+        const exists = data.columns.find(col => col.name === defaultCol.name)
+        if (!exists) {
+          data.columns.push({
+            ...defaultCol,
+            position: nextPosition
+          })
+          nextPosition += 10
+        }
       }
     }
 
     // Create table
     const tableSchema = await repository.createTable(data, userId, userEmail)
 
-    // Track inventory for for_sale tables
-    if (data.forSale) {
+    // Track inventory for 'sale' type tables
+    if (tableType === 'sale') {
       try {
         const inventoryService = new InventoryTrackingService(c.env.DB)
         await inventoryService.trackTableCreation(

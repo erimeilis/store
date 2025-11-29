@@ -1,5 +1,5 @@
 // Dynamic Tables System Types
-// Based on migration 004_dynamic_tables.sql schema
+// Based on migration 002_dynamic_tables.sql schema
 
 /**
  * Supported column types for user-created tables
@@ -60,6 +60,19 @@ export type ColumnType =
 export type TableVisibility = 'private' | 'public' | 'shared'
 
 /**
+ * Table type - determines special behavior and protected columns
+ * - 'default': Regular table with no special behavior
+ * - 'sale': E-commerce table with price/qty columns, supports purchasing
+ * - 'rent': Rental table with price/fee/used/available columns, supports renting/releasing
+ */
+export type TableType = 'default' | 'sale' | 'rent'
+
+/**
+ * Rental period options for rent-type tables
+ */
+export type RentalPeriod = 'hour' | 'day' | 'week' | 'month' | 'year'
+
+/**
  * User-created table metadata
  * Corresponds to user_tables table
  */
@@ -70,7 +83,9 @@ export interface UserTable {
   createdBy: string // User email or token ID
   userId: string | null // Session user ID (OAuth user ID from users table) - nullable for API token users
   visibility: TableVisibility // 'private' | 'public' | 'shared'
-  forSale: boolean // Whether table is configured for e-commerce with protected price/qty columns
+  tableType: TableType // 'default' | 'sale' | 'rent'
+  productIdColumn: string | null // Column name that serves as product identifier/title for e-commerce tables
+  rentalPeriod: RentalPeriod | null // Billing period for rent tables (default: 'month')
   createdAt: Date
   updatedAt: Date
   rowCount?: number // Optional: Total number of data rows in this table
@@ -149,7 +164,11 @@ export interface CreateTableRequest {
   name: string
   description?: string
   visibility: TableVisibility // 'private' | 'public' | 'shared'
-  forSale?: boolean // Whether to create table as "for sale" with auto price/qty columns
+  tableType?: TableType // 'default' | 'sale' | 'rent' - determines auto-created columns
+  productIdColumn?: string // Column name that serves as product identifier/title
+  rentalPeriod?: RentalPeriod // Billing period for rent tables (default: 'month')
+  /** @deprecated Use tableType instead. Will be converted to tableType='sale' if true */
+  forSale?: boolean
   userId?: string  // Optional user ID for session-based creation
   columns: CreateColumnRequest[]
 }
@@ -162,7 +181,7 @@ export interface CreateColumnRequest {
   type: ColumnType
   isRequired: boolean
   allowDuplicates?: boolean
-  defaultValue?: string
+  defaultValue?: string | number | boolean
   position: number
 }
 
@@ -173,7 +192,11 @@ export interface UpdateTableRequest {
   name?: string
   description?: string
   visibility?: TableVisibility // 'private' | 'public' | 'shared'
-  forSale?: boolean // Whether to convert table to/from "for sale" mode
+  tableType?: TableType // 'default' | 'sale' | 'rent' - can convert between types
+  productIdColumn?: string | null // Column name that serves as product identifier/title
+  rentalPeriod?: RentalPeriod // Billing period for rent tables
+  /** @deprecated Use tableType instead. Will be converted to tableType='sale' if true */
+  forSale?: boolean
 }
 
 /**
@@ -281,7 +304,7 @@ export interface CloneTableRequest {
   newTableName: string
   description?: string
   visibility?: TableVisibility // Defaults to 'private'
-  forSale?: boolean // Defaults to false
+  tableType?: TableType // Defaults to 'default'
 }
 
 /**
@@ -309,39 +332,153 @@ export interface MassActionResult {
   data?: TableDataRow[]
 }
 
+// ============================================================================
+// SALE TABLE TYPE - Protected columns and defaults
+// ============================================================================
+
 /**
- * Special column names that are protected when table is for_sale
+ * Protected column names for 'sale' type tables
  */
 export const PROTECTED_SALE_COLUMNS = ['price', 'qty'] as const
 
 /**
- * Type for protected column names
+ * Type for protected sale column names
  */
 export type ProtectedSaleColumn = typeof PROTECTED_SALE_COLUMNS[number]
 
 /**
- * Check if a column is protected based on table forSale status
- */
-export function isProtectedSaleColumn(columnName: string, tableForSale: boolean): boolean {
-  return tableForSale && PROTECTED_SALE_COLUMNS.includes(columnName as ProtectedSaleColumn)
-}
-
-/**
- * Default column definitions for "for sale" tables
+ * Default column definitions for 'sale' type tables
  */
 export const DEFAULT_SALE_COLUMNS: Omit<CreateColumnRequest, 'position'>[] = [
   {
     name: 'price',
-    type: 'number',
+    type: 'number',  // Use 'number' - DB CHECK constraint doesn't allow 'currency'
     isRequired: true,
     allowDuplicates: true,
-    // no defaultValue for price (undefined, not null)
   },
   {
     name: 'qty',
-    type: 'number',
+    type: 'integer',
     isRequired: true,
     allowDuplicates: true,
     defaultValue: '1',
   }
 ]
+
+// ============================================================================
+// RENT TABLE TYPE - Protected columns and defaults
+// ============================================================================
+
+/**
+ * Protected column names for 'rent' type tables
+ * - price: Rental price per period
+ * - fee: One-time rental fee/deposit
+ * - used: Whether item has been used (rented at least once and released)
+ * - available: Whether item is currently available for rent
+ *
+ * Rental lifecycle:
+ * 1. Initial state: used=false, available=true
+ * 2. When rented (via API): available=false (used stays same)
+ * 3. When released (via API/admin): used=true, available=false
+ * 4. Cannot make available again once used (one-time rental items)
+ */
+export const PROTECTED_RENT_COLUMNS = ['price', 'fee', 'used', 'available'] as const
+
+/**
+ * Type for protected rent column names
+ */
+export type ProtectedRentColumn = typeof PROTECTED_RENT_COLUMNS[number]
+
+/**
+ * Default column definitions for 'rent' type tables
+ */
+export const DEFAULT_RENT_COLUMNS: Omit<CreateColumnRequest, 'position'>[] = [
+  {
+    name: 'price',
+    type: 'number',  // Use 'number' - DB CHECK constraint doesn't allow 'currency'
+    isRequired: true,
+    allowDuplicates: true,
+  },
+  {
+    name: 'fee',
+    type: 'number',  // One-time rental fee/deposit
+    isRequired: true,
+    allowDuplicates: true,
+    defaultValue: '0',
+  },
+  {
+    name: 'used',
+    type: 'boolean',
+    isRequired: true,
+    allowDuplicates: true,
+    defaultValue: 'false',
+  },
+  {
+    name: 'available',
+    type: 'boolean',
+    isRequired: true,
+    allowDuplicates: true,
+    defaultValue: 'true',
+  }
+]
+
+// ============================================================================
+// Helper functions for table type handling
+// ============================================================================
+
+/**
+ * Check if a column is protected based on table type
+ */
+export function isProtectedColumn(columnName: string, tableType: TableType): boolean {
+  if (tableType === 'sale') {
+    return PROTECTED_SALE_COLUMNS.includes(columnName as ProtectedSaleColumn)
+  }
+  if (tableType === 'rent') {
+    return PROTECTED_RENT_COLUMNS.includes(columnName as ProtectedRentColumn)
+  }
+  return false
+}
+
+/**
+ * Get protected columns for a table type
+ */
+export function getProtectedColumns(tableType: TableType): readonly string[] {
+  if (tableType === 'sale') {
+    return PROTECTED_SALE_COLUMNS
+  }
+  if (tableType === 'rent') {
+    return PROTECTED_RENT_COLUMNS
+  }
+  return []
+}
+
+/**
+ * Get default columns for a table type
+ */
+export function getDefaultColumns(tableType: TableType): Omit<CreateColumnRequest, 'position'>[] {
+  if (tableType === 'sale') {
+    return DEFAULT_SALE_COLUMNS
+  }
+  if (tableType === 'rent') {
+    return DEFAULT_RENT_COLUMNS
+  }
+  return []
+}
+
+/**
+ * Check if table type requires special columns
+ */
+export function hasSpecialColumns(tableType: TableType): boolean {
+  return tableType === 'sale' || tableType === 'rent'
+}
+
+// ============================================================================
+// Legacy compatibility - deprecated, use tableType instead
+// ============================================================================
+
+/**
+ * @deprecated Use isProtectedColumn(columnName, tableType) instead
+ */
+export function isProtectedSaleColumn(columnName: string, tableForSale: boolean): boolean {
+  return tableForSale && PROTECTED_SALE_COLUMNS.includes(columnName as ProtectedSaleColumn)
+}

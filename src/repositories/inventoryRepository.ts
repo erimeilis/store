@@ -264,6 +264,8 @@ export class InventoryRepository {
     // Convert to record format
     const transactionsByType: Record<InventoryTransactionType, number> = {
       sale: 0,
+      rent: 0,
+      release: 0,
       add: 0,
       remove: 0,
       update: 0,
@@ -271,6 +273,8 @@ export class InventoryRepository {
     }
     const quantityChangesByType: Record<InventoryTransactionType, number> = {
       sale: 0,
+      rent: 0,
+      release: 0,
       add: 0,
       remove: 0,
       update: 0,

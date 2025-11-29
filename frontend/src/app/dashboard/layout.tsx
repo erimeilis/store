@@ -8,7 +8,7 @@ import { LayoutProps } from '@/types/layout'
 import { Navbar, NavbarBrand } from '@/components/ui/navbar'
 import { Button } from '@/components/ui/button'
 import { HorizontalMenu, MenuItem, MenuDetails } from '@/components/ui/menu'
-import { IconLogout, IconLayoutDashboard, IconUsers, IconKey, IconMail, IconBox, IconUser, IconTable, IconApi, IconMenu2, IconX, IconShoppingCart } from '@tabler/icons-react'
+import { IconLogout, IconLayoutDashboard, IconUsers, IconKey, IconMail, IconBox, IconUser, IconTable, IconApi, IconMenu2, IconX, IconShoppingCart, IconHelpCircle } from '@tabler/icons-react'
 import { useThemeStore } from '@/stores/useThemeStore'
 
 interface DashboardLayoutProps extends LayoutProps {
@@ -87,7 +87,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                   icon={IconShoppingCart}
                   href="/dashboard/sales"
                 >
-                  Sales Transactions
+                  Transactions
                 </MenuItem>
                 <MenuItem
                   icon={IconTable}
@@ -101,6 +101,12 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                 href="/dashboard/docs"
               >
                 API Docs
+              </MenuItem>
+              <MenuItem
+                icon={IconHelpCircle}
+                href="/dashboard/help"
+              >
+                Help
               </MenuItem>
               <MenuItem
                 icon={IconUsers}
@@ -261,7 +267,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                     className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300 transition-colors"
                   >
                     <IconShoppingCart size={20} />
-                    <span>Sales Transactions</span>
+                    <span>Transactions</span>
                   </a>
                   <a
                     href="/dashboard/sales/inventory"
@@ -280,6 +286,14 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                 >
                   <IconApi size={20} />
                   <span>API Docs</span>
+                </a>
+                <a
+                  href="/dashboard/help"
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300 transition-colors"
+                >
+                  <IconHelpCircle size={20} />
+                  <span>Help</span>
                 </a>
                 <a
                   href="/dashboard/users"

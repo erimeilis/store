@@ -13,7 +13,11 @@ export interface ListTablesQuery {
     filterVisibility?: string | undefined
     filterCreatedAt?: string | undefined
     filterUpdatedAt?: string | undefined
+    filterTableType?: string | undefined
+    tableType?: string | undefined
+    /** @deprecated Use filterTableType instead */
     filterForSale?: string | undefined
+    /** @deprecated Use tableType instead */
     forSale?: string | undefined
 }
 
@@ -24,6 +28,8 @@ export interface TableFilters {
     visibility?: string
     createdAt?: string
     updatedAt?: string
+    tableType?: string
+    /** @deprecated Use tableType instead */
     forSale?: string
 }
 

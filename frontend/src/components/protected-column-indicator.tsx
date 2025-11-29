@@ -1,11 +1,13 @@
 import React from 'react';
 import { Icon } from '@/components/icon';
-import { IconLock, IconShoppingCart } from '@tabler/icons-react';
+import { IconLock, IconShoppingCart, IconClockDollar } from '@tabler/icons-react';
 
 export interface ProtectedColumnIndicatorProps {
   columnName: string;
   isProtected: boolean;
-  protectionReason?: 'forSale' | 'system';
+  protectionReason?: 'forSale' | 'forRent' | 'system';
+  /** Context determines icon: 'name' shows cart/clock, 'other' shows lock */
+  context?: 'name' | 'other';
   size?: 'sm' | 'md' | 'lg';
   showTooltip?: boolean;
   className?: string;
@@ -15,6 +17,7 @@ export function ProtectedColumnIndicator({
   columnName,
   isProtected,
   protectionReason = 'forSale',
+  context = 'name',
   size = 'sm',
   showTooltip = true,
   className = ''
@@ -29,10 +32,19 @@ export function ProtectedColumnIndicator({
     switch (protectionReason) {
       case 'forSale':
         return {
-          icon: IconShoppingCart,
+          // Name column: cart icon, other columns (req/dupes): lock icon
+          icon: context === 'name' ? IconShoppingCart : IconLock,
           color: 'text-warning',
           message: `The "${columnName}" column is protected because the table is configured for sale. Price and quantity columns cannot be deleted or renamed while the table is "for sale".`,
           badgeText: 'For Sale Protected'
+        };
+      case 'forRent':
+        return {
+          // Name column: clock-dollar icon, other columns (req/dupes): lock icon
+          icon: context === 'name' ? IconClockDollar : IconLock,
+          color: 'text-info',
+          message: `The "${columnName}" column is protected because the table is configured for rent. Price, fee, used, and available columns cannot be deleted or renamed while the table is "for rent".`,
+          badgeText: 'For Rent Protected'
         };
       case 'system':
         return {
@@ -81,7 +93,9 @@ export function ProtectedColumnIndicator({
 export interface ProtectedColumnBadgeProps {
   columnName: string;
   isProtected: boolean;
-  protectionReason?: 'forSale' | 'system';
+  protectionReason?: 'forSale' | 'forRent' | 'system';
+  /** Context determines icon: 'name' shows cart/clock, 'other' shows lock */
+  context?: 'name' | 'other';
   variant?: 'icon' | 'badge' | 'full';
 }
 
@@ -89,14 +103,15 @@ export function ProtectedColumnBadge({
   columnName,
   isProtected,
   protectionReason = 'forSale',
+  context = 'name',
   variant = 'icon'
 }: ProtectedColumnBadgeProps) {
   if (!isProtected) {
     return null;
   }
 
-  const isForSale = protectionReason === 'forSale';
-  const isPriceOrQty = ['price', 'qty'].includes(columnName.toLowerCase());
+  const isEcommerce = protectionReason === 'forSale' || protectionReason === 'forRent';
+  const isProtectedName = ['price', 'qty', 'fee', 'used', 'available'].includes(columnName.toLowerCase());
 
   if (variant === 'icon') {
     return (
@@ -104,6 +119,7 @@ export function ProtectedColumnBadge({
         columnName={columnName}
         isProtected={isProtected}
         protectionReason={protectionReason}
+        context={context}
         size="sm"
         showTooltip={true}
       />
@@ -112,8 +128,8 @@ export function ProtectedColumnBadge({
 
   if (variant === 'badge') {
     return (
-      <span className={`badge badge-outline ${isForSale ? 'badge-warning' : 'badge-info'} badge-sm`}>
-        {isForSale && isPriceOrQty ? 'Protected' : 'System'}
+      <span className={`badge badge-outline ${isEcommerce ? 'badge-warning' : 'badge-info'} badge-sm`}>
+        {isEcommerce && isProtectedName ? 'Protected' : 'System'}
       </span>
     );
   }
@@ -123,6 +139,7 @@ export function ProtectedColumnBadge({
       columnName={columnName}
       isProtected={isProtected}
       protectionReason={protectionReason}
+      context={context}
       size="md"
       showTooltip={true}
     />

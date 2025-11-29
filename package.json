@@ -1,6 +1,6 @@
 {
   "name": "store-crud-api",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "description": "Store CRUD API built with Hono and Cloudflare infrastructure",
   "type": "module",
   "main": "src/index.ts",

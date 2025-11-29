@@ -26,13 +26,85 @@ export interface PublicTable {
   id: string
   name: string
   description: string | null
+  tableType: 'sale' | 'rent' | 'default'
   itemCount: number
   createdAt: Date
   updatedAt: Date
 }
 
 /**
+ * Get all public tables that token has access to
+ * When token has explicit tableAccess, returns those tables (any type)
+ * When token has unrestricted access, returns sale/rent tables only
+ *
+ * @param env - Bindings
+ * @param c - Context
+ * @param allowedTableIds - Array of table IDs the token has access to, or null for unrestricted
+ */
+export async function getAllPublicTables(
+  env: Bindings,
+  c: Context,
+  allowedTableIds: string[] | null = null
+): Promise<PublicTable[]> {
+  const tableRepo = new TableRepository(env)
+
+  try {
+    const publicTables: PublicTable[] = []
+
+    // If token has explicit table access, fetch those specific tables by ID
+    // Token with explicit tableAccess can see those tables regardless of visibility
+    if (allowedTableIds !== null && allowedTableIds.length > 0) {
+      for (const tableId of allowedTableIds) {
+        const table = await tableRepo.findTableByIdInternal(tableId)
+
+        // Skip if table doesn't exist
+        if (!table) {
+          continue
+        }
+
+        const itemCount = await getTableItemCount(env, table.id)
+
+        publicTables.push({
+          id: table.id,
+          name: table.name,
+          description: table.description,
+          tableType: table.tableType as 'sale' | 'rent' | 'default',
+          itemCount: itemCount,
+          createdAt: table.createdAt,
+          updatedAt: table.updatedAt
+        })
+      }
+    } else if (allowedTableIds === null) {
+      // Unrestricted access (admin/frontend token) - show all sale/rent tables
+      const tables = await tableRepo.findAllPublicTables(1000)
+
+      for (const table of tables.tables) {
+        const itemCount = await getTableItemCount(env, table.id)
+
+        publicTables.push({
+          id: table.id,
+          name: table.name,
+          description: table.description,
+          tableType: table.tableType as 'sale' | 'rent' | 'default',
+          itemCount: itemCount,
+          createdAt: table.createdAt,
+          updatedAt: table.updatedAt
+        })
+      }
+    }
+    // If allowedTableIds is empty array, return empty (no access)
+
+    return publicTables
+
+  } catch (error) {
+    console.error('Error fetching public tables:', error)
+    throw new Error('Failed to fetch available tables')
+  }
+}
+
+/**
  * Get all public tables that are configured for sales
+ * @deprecated Use getAllPublicTables for unified endpoint
  */
 export async function getForSaleTables(
   env: Bindings,
@@ -54,6 +126,7 @@ export async function getForSaleTables(
         id: table.id,
         name: table.name,
         description: table.description,
+        tableType: 'sale',
         itemCount: itemCount,
         createdAt: table.createdAt,
         updatedAt: table.updatedAt
@@ -86,7 +159,7 @@ export async function getTableItems(
       return { error: 'Table not found', status: 404 }
     }
 
-    if (!['public', 'shared'].includes(table.visibility) || !table.forSale) {
+    if (!['public', 'shared'].includes(table.visibility) || table.tableType !== 'sale') {
       return { error: 'Table is not available for public sales', status: 403 }
     }
 
@@ -111,7 +184,8 @@ export async function getTableItems(
     const publicItems: PublicItem[] = []
 
     for (const row of tableData.data) {
-      const parsedData = JSON.parse(row.data) as ParsedTableData
+      // row.data is already parsed by the repository
+      const parsedData = row.data as ParsedTableData
 
       // Extract required fields for sales
       const priceValue = parsedData.price
@@ -140,6 +214,7 @@ export async function getTableItems(
       id: table.id,
       name: table.name,
       description: table.description,
+      tableType: 'sale',
       itemCount: publicItems.length,
       createdAt: table.createdAt,
       updatedAt: table.updatedAt
@@ -158,6 +233,7 @@ export async function getTableItems(
       id: tableId,
       name: 'Unknown Table',
       description: 'Unable to fetch table details',
+      tableType: 'sale',
       itemCount: 0,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -189,7 +265,7 @@ export async function getItem(
       return { error: 'Table not found', status: 404 }
     }
 
-    if (!['public', 'shared'].includes(table.visibility) || !table.forSale) {
+    if (!['public', 'shared'].includes(table.visibility) || table.tableType !== 'sale') {
       return { error: 'Table is not available for public sales', status: 403 }
     }
 
@@ -228,6 +304,7 @@ export async function getItem(
       id: table.id,
       name: table.name,
       description: table.description,
+      tableType: 'sale',
       itemCount: 0, // Not calculating for single item request
       createdAt: table.createdAt,
       updatedAt: table.updatedAt
@@ -264,7 +341,8 @@ async function getTableItemCount(env: Bindings, tableId: string): Promise<number
     // Count only items with valid price and quantity > 0
     let count = 0
     for (const row of result.data) {
-      const parsedData = JSON.parse(row.data) as ParsedTableData
+      // row.data is already parsed by the repository
+      const parsedData = row.data as ParsedTableData
 
       const priceValue = parsedData.price
       const qtyValue = parsedData.qty

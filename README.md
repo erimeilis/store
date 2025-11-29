@@ -101,10 +101,12 @@ Single source of truth: all config is generated from `.env`
 - **Permissions**: Private, public, and shared visibility levels
 - **Cloning**: Duplicate tables with data or schema only
 
-### Inventory & Sales
+### Commerce System
+- **Table Types**: Three types - `default` (simple data), `sale` (commerce), `rent` (rentals)
 - **For Sale Tables**: Special tables with protected `price` and `qty` columns
-- **Inventory Tracking**: Automatic quantity management on sales
-- **Public Sales**: Public API for purchasing items from "for sale" tables
+- **Rental Tables**: Rental-enabled tables with period settings (day/week/month/year)
+- **Inventory Tracking**: Automatic quantity management on sales and rentals
+- **Public API**: Unified `/api/public/*` endpoints for browsing and purchasing
 - **Sales Analytics**: Dashboard with revenue tracking and insights
 
 ### Access Control
@@ -234,10 +236,14 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8787/api/items
 - `DELETE /api/tables/:tableId/data/:id` - Delete data row
 - `POST /api/tables/mass-action` - Bulk operations (with selectAll support)
 
-### Public Sales API
-- `GET /api/public/tables` - List public "for sale" tables
-- `GET /api/public/tables/:tableId/items` - List items for sale
-- `POST /api/public/purchase` - Purchase an item
+### Public API (Token-Filtered)
+- `GET /api/public/tables` - List tables token has access to
+- `GET /api/public/tables/:tableId/items` - List items in a table
+- `GET /api/public/tables/:tableId/items/:itemId` - Get item details
+- `GET /api/public/tables/:tableId/items/:itemId/availability` - Check item availability
+- `POST /api/public/buy` - Purchase an item (sale tables)
+- `POST /api/public/rent` - Rent an item (rental tables)
+- `POST /api/public/release` - Return a rental
 
 ### Token Management API
 - `GET /api/tokens` - List tokens
@@ -257,10 +263,14 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8787/api/items
 - **allowed_emails**: Email whitelist for user access
 
 ### Dynamic Tables System
-- **user_tables**: Metadata for user-created tables
+- **user_tables**: Metadata for user-created tables (includes tableType: default/sale/rent)
 - **table_columns**: Column definitions
 - **table_data**: Actual data storage (JSON format)
-- **token_table_access**: Token-specific table permissions
+
+### Commerce System
+- **sales**: Sales transactions from sale-type tables
+- **rentals**: Rental transactions from rent-type tables
+- **inventory_transactions**: Inventory change audit trail
 
 ## 🚨 Troubleshooting
 

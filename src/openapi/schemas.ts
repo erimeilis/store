@@ -311,3 +311,159 @@ export const HealthResponseSchema = z.object({
     description: 'Current environment'
   })
 }).openapi('HealthResponse')
+
+// =============================================================================
+// RENTAL SCHEMAS
+// =============================================================================
+
+export const RentalStatusEnum = z.enum(['active', 'released', 'cancelled']).openapi({
+  description: 'Rental transaction status'
+})
+
+export const RentalSchema = z.object({
+  id: z.string().openapi({
+    example: 'rental_123',
+    description: 'Unique rental identifier'
+  }),
+  rentalNumber: z.string().openapi({
+    example: 'RENT-2024-001',
+    description: 'Human-readable rental number'
+  }),
+  tableId: z.string().openapi({
+    example: 'table_123',
+    description: 'Source table ID'
+  }),
+  tableName: z.string().openapi({
+    example: 'Equipment Rentals',
+    description: 'Table name at time of rental'
+  }),
+  itemId: z.string().openapi({
+    example: 'item_123',
+    description: 'Rented item ID'
+  }),
+  itemSnapshot: z.record(z.string(), z.any()).openapi({
+    example: { name: 'Power Drill', price: 25.00, available: false, used: false },
+    description: 'Complete item data at time of rental'
+  }),
+  customerId: z.string().openapi({
+    example: 'customer_456',
+    description: 'Customer identifier'
+  }),
+  unitPrice: z.number().openapi({
+    example: 25.00,
+    description: 'Rental price'
+  }),
+  rentalStatus: RentalStatusEnum,
+  rentedAt: z.string().openapi({
+    example: '2024-01-15T10:00:00Z',
+    description: 'When the item was rented'
+  }),
+  releasedAt: z.string().nullable().openapi({
+    example: '2024-01-16T14:30:00Z',
+    description: 'When the item was released (null if still active)'
+  }),
+  notes: z.string().nullable().openapi({
+    example: 'Picked up at store',
+    description: 'Optional rental notes'
+  }),
+  createdAt: z.string().openapi({
+    example: '2024-01-15T10:00:00Z',
+    description: 'Record creation timestamp'
+  }),
+  updatedAt: z.string().openapi({
+    example: '2024-01-15T10:00:00Z',
+    description: 'Record update timestamp'
+  })
+}).openapi('Rental')
+
+export const CreateRentalRequestSchema = z.object({
+  tableId: z.string().min(1).openapi({
+    example: 'table_123',
+    description: 'Table ID containing the item to rent'
+  }),
+  itemId: z.string().min(1).openapi({
+    example: 'item_123',
+    description: 'Item ID to rent'
+  }),
+  customerId: z.string().min(1).openapi({
+    example: 'customer_456',
+    description: 'Customer identifier'
+  }),
+  notes: z.string().optional().openapi({
+    example: 'Rush order',
+    description: 'Optional rental notes'
+  })
+}).openapi('CreateRentalRequest')
+
+export const ReleaseRentalRequestSchema = z.object({
+  rentalId: z.string().optional().openapi({
+    example: 'rental_123',
+    description: 'Rental ID to release (alternative to tableId+itemId)'
+  }),
+  tableId: z.string().optional().openapi({
+    example: 'table_123',
+    description: 'Table ID (required if using itemId)'
+  }),
+  itemId: z.string().optional().openapi({
+    example: 'item_123',
+    description: 'Item ID to release (alternative to rentalId)'
+  }),
+  notes: z.string().optional().openapi({
+    example: 'Returned in good condition',
+    description: 'Optional release notes'
+  })
+}).openapi('ReleaseRentalRequest')
+
+export const UpdateRentalRequestSchema = z.object({
+  rentalStatus: RentalStatusEnum.optional(),
+  notes: z.string().optional()
+}).openapi('UpdateRentalRequest')
+
+export const RentalIdParamSchema = z.object({
+  id: z.string().min(1).openapi({
+    param: { name: 'id', in: 'path' },
+    example: 'rental_123',
+    description: 'Rental ID'
+  })
+})
+
+export const RentalTableSchema = z.object({
+  id: z.string().openapi({ example: 'table_123' }),
+  name: z.string().openapi({ example: 'Equipment Rentals' }),
+  description: z.string().nullable().openapi({ example: 'Rental equipment inventory' }),
+  itemCount: z.number().openapi({ example: 25 }),
+  availableCount: z.number().openapi({ example: 18 })
+}).openapi('RentalTable')
+
+export const RentalItemSchema = z.object({
+  id: z.string().openapi({ example: 'item_123' }),
+  data: z.record(z.string(), z.any()).openapi({
+    example: { name: 'Power Drill', price: 25.00, available: true, used: false }
+  }),
+  available: z.boolean().openapi({ example: true }),
+  used: z.boolean().openapi({ example: false }),
+  price: z.number().openapi({ example: 25.00 })
+}).openapi('RentalItem')
+
+export const RentalAvailabilitySchema = z.object({
+  available: z.boolean().openapi({
+    example: true,
+    description: 'Can be rented'
+  }),
+  used: z.boolean().openapi({
+    example: false,
+    description: 'Has been used before'
+  }),
+  currentlyRented: z.boolean().openapi({
+    example: false,
+    description: 'Is currently rented out'
+  }),
+  rentalPrice: z.number().openapi({
+    example: 25.00,
+    description: 'Rental price'
+  }),
+  activeRentalId: z.string().optional().openapi({
+    example: 'rental_123',
+    description: 'ID of active rental if currently rented'
+  })
+}).openapi('RentalAvailability')

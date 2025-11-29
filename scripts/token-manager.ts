@@ -69,20 +69,22 @@ export function loadOrGenerateTokens(environment: string, forceRegenerate = fals
 }
 
 export function saveTokensToEnvFile(tokenSet: TokenSet): void {
-  const { environment, frontendToken } = tokenSet;
+  const { environment, frontendToken, adminToken } = tokenSet;
 
   // For local environment, we can save to .dev.vars
   if (environment === 'local') {
     const devVarsPath = './.dev.vars';
     const frontendDevVarsPath = './frontend/.dev.vars';
 
-    // Update backend .dev.vars
+    // Update backend .dev.vars with both tokens
     updateEnvFile(devVarsPath, 'FRONTEND_ACCESS_TOKEN', frontendToken);
+    updateEnvFile(devVarsPath, 'ADMIN_ACCESS_TOKEN', adminToken);
 
-    // Update frontend .dev.vars
+    // Update frontend .dev.vars (needs both tokens - ADMIN for API proxy, FRONTEND for client)
     updateEnvFile(frontendDevVarsPath, 'FRONTEND_ACCESS_TOKEN', frontendToken);
+    updateEnvFile(frontendDevVarsPath, 'ADMIN_ACCESS_TOKEN', adminToken);
 
-    console.log(`💾 Updated .dev.vars files with frontend token`);
+    console.log(`💾 Updated .dev.vars files with tokens`);
   } else {
     console.log(`ℹ️  For ${environment} environment, tokens should be set as Wrangler secrets:`);
     console.log(`   wrangler secret put FRONTEND_ACCESS_TOKEN --env ${environment}`);
@@ -107,8 +109,9 @@ export function saveTokensToDevVars(environment: string, frontendToken: string, 
   updateEnvFile(devVarsPath, 'FRONTEND_ACCESS_TOKEN', frontendToken);
   updateEnvFile(devVarsPath, 'ADMIN_ACCESS_TOKEN', adminToken);
 
-  // Update frontend .dev.vars
+  // Update frontend .dev.vars (needs both tokens - ADMIN for API proxy, FRONTEND for client)
   updateEnvFile(frontendDevVarsPath, 'FRONTEND_ACCESS_TOKEN', frontendToken);
+  updateEnvFile(frontendDevVarsPath, 'ADMIN_ACCESS_TOKEN', adminToken);
 
   console.log(`💾 Updated .dev.vars files with new tokens`);
 }

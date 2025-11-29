@@ -31,7 +31,11 @@ const CreateTableRequestSchema = z.object({
   visibility: z.enum(['private', 'public', 'shared'], {
     message: "Visibility must be one of: private, public, shared"
   }).default('private'),
-  forSale: z.boolean().default(false),
+  tableType: z.enum(['default', 'sale', 'rent'], {
+    message: "Table type must be one of: default, sale, rent"
+  }).default('default'),
+  /** @deprecated Use tableType instead */
+  forSale: z.boolean().optional(),
   user_id: z.string().optional(), // For compatibility
   columns: z.array(ColumnSchema).min(1, 'At least one column is required')
 })
@@ -42,6 +46,10 @@ const UpdateTableRequestSchema = z.object({
   visibility: z.enum(['private', 'public', 'shared'], {
     message: "Visibility must be one of: private, public, shared"
   }).optional(),
+  tableType: z.enum(['default', 'sale', 'rent'], {
+    message: "Table type must be one of: default, sale, rent"
+  }).optional(),
+  /** @deprecated Use tableType instead */
   forSale: z.boolean().optional()
 }).refine(
   (data) => Object.keys(data).length > 0,

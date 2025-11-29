@@ -146,7 +146,7 @@ export const createTableAccessMiddleware = (
           createdBy: true,
           userId: true,
           visibility: true,
-          forSale: true,
+          tableType: true,
           createdAt: true,
           updatedAt: true,
         }

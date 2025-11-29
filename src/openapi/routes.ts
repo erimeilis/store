@@ -32,7 +32,18 @@ import {
   RowIdParamSchema,
 
   // Auth schemas
-  AuthTokenSchema
+  AuthTokenSchema,
+
+  // Rental schemas
+  RentalSchema,
+  CreateRentalRequestSchema,
+  ReleaseRentalRequestSchema,
+  UpdateRentalRequestSchema,
+  RentalIdParamSchema,
+  RentalTableSchema,
+  RentalItemSchema,
+  RentalAvailabilitySchema,
+  RentalStatusEnum
 } from './schemas.js'
 
 // =============================================================================
@@ -105,7 +116,7 @@ Retrieve a paginated list of all store items with optional filtering and sorting
 - Search and filter product catalogs
 - Generate reports and analytics
 
-**Authentication:** Bearer token required with 'read' or 'full' permissions.
+**Authentication:** Bearer token required with 'read' or 'write' permissions.
   `,
   request: {
     query: PaginationQuerySchema.extend({
@@ -182,7 +193,7 @@ Create a new item in the store inventory.
 - Create product catalogs
 - Manage inventory updates
 
-**Authentication:** Bearer token required with 'full' permissions.
+**Authentication:** Bearer token required with 'write' permissions.
   `,
   request: {
     body: {
@@ -253,7 +264,7 @@ Retrieve detailed information about a specific item by its unique identifier.
 - Verify item existence
 - Generate item reports
 
-**Authentication:** Bearer token required with 'read' or 'full' permissions.
+**Authentication:** Bearer token required with 'read' or 'write' permissions.
   `,
   request: {
     params: ItemIdParamSchema,
@@ -312,7 +323,7 @@ Update an existing item's information. All fields are optional - only provided f
 - Modify descriptions and images
 - Bulk update operations
 
-**Authentication:** Bearer token required with 'full' permissions.
+**Authentication:** Bearer token required with 'write' permissions.
   `,
   request: {
     params: ItemIdParamSchema,
@@ -394,7 +405,7 @@ Permanently delete an item from the store inventory.
 - Backup data before deletion
 - Verify item is not referenced elsewhere
 
-**Authentication:** Bearer token required with 'full' permissions.
+**Authentication:** Bearer token required with 'write' permissions.
   `,
   request: {
     params: ItemIdParamSchema,
@@ -466,7 +477,7 @@ Retrieve a paginated list of dynamic tables owned by the authenticated user.
 - Generate table reports
 - Backup and synchronization
 
-**Authentication:** Bearer token required with 'read' or 'full' permissions.
+**Authentication:** Bearer token required with 'read' or 'write' permissions.
   `,
   request: {
     query: PaginationQuerySchema.extend({
@@ -529,7 +540,7 @@ When \`for_sale: true\`, automatically creates:
 - Set up inventory management systems
 - Create survey and feedback tables
 
-**Authentication:** Bearer token required with 'full' permissions.
+**Authentication:** Bearer token required with 'write' permissions.
   `,
   request: {
     body: {
@@ -565,6 +576,751 @@ When \`for_sale: true\`, automatically creates:
         },
       },
       description: 'Unauthorized - Requires full access token',
+    },
+  },
+  security: [{ BearerAuth: [] }],
+})
+
+// =============================================================================
+// RENTALS ROUTES (Admin Management)
+// =============================================================================
+
+export const listRentalsRoute = createRoute({
+  method: 'get',
+  path: '/api/rentals',
+  tags: ['Rentals'],
+  summary: 'List Rental Transactions',
+  description: `
+Retrieve a paginated list of rental transactions with filtering and sorting options.
+
+**Features:**
+- **Pagination**: Control page size and navigate through results
+- **Filtering**: Filter by table, customer, status, date range
+- **Sorting**: Sort by rented date, released date, price, rental number
+- **Search**: Search in rental number, customer ID, notes
+
+**Query Parameters:**
+- **page**: Page number (default: 1)
+- **limit**: Items per page (default: 50)
+- **tableId**: Filter by source table
+- **customerId**: Filter by customer
+- **rentalStatus**: Filter by status (active, released, cancelled)
+- **dateFrom/dateTo**: Date range filter
+- **search**: Text search
+- **sortBy**: Field to sort by
+- **sortOrder**: asc or desc
+
+**Authentication:** Bearer token required with 'read' or 'write' permissions.
+  `,
+  request: {
+    query: PaginationQuerySchema.extend({
+      tableId: z.string().optional().openapi({
+        param: { name: 'tableId', in: 'query' },
+        description: 'Filter by table ID'
+      }),
+      customerId: z.string().optional().openapi({
+        param: { name: 'customerId', in: 'query' },
+        description: 'Filter by customer ID'
+      }),
+      rentalStatus: RentalStatusEnum.optional().openapi({
+        param: { name: 'rentalStatus', in: 'query' },
+        description: 'Filter by rental status'
+      }),
+      dateFrom: z.string().optional().openapi({
+        param: { name: 'dateFrom', in: 'query' },
+        description: 'Start date for date range filter (ISO format)'
+      }),
+      dateTo: z.string().optional().openapi({
+        param: { name: 'dateTo', in: 'query' },
+        description: 'End date for date range filter (ISO format)'
+      }),
+      search: z.string().optional().openapi({
+        param: { name: 'search', in: 'query' },
+        description: 'Search in rental number, customer ID, notes'
+      }),
+      sortBy: z.enum(['rentedAt', 'releasedAt', 'createdAt', 'updatedAt', 'unitPrice', 'rentalNumber']).optional().openapi({
+        param: { name: 'sortBy', in: 'query' },
+        description: 'Field to sort by'
+      }),
+      sortOrder: z.enum(['asc', 'desc']).optional().openapi({
+        param: { name: 'sortOrder', in: 'query' },
+        description: 'Sort direction'
+      })
+    })
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            data: z.array(RentalSchema),
+            total: z.number(),
+            pagination: z.object({
+              page: z.number(),
+              limit: z.number(),
+              total: z.number(),
+              totalPages: z.number(),
+              hasNextPage: z.boolean(),
+              hasPrevPage: z.boolean()
+            })
+          }).openapi('RentalsResponse'),
+        },
+      },
+      description: 'Successfully retrieved rentals list',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Invalid or missing Bearer token',
+    },
+  },
+  security: [{ BearerAuth: [] }],
+})
+
+export const getRentalRoute = createRoute({
+  method: 'get',
+  path: '/api/rentals/{id}',
+  tags: ['Rentals'],
+  summary: 'Get Rental by ID',
+  description: `
+Retrieve detailed information about a specific rental transaction.
+
+**Response includes:**
+- Complete rental details
+- Item snapshot at time of rental
+- Rental status and timestamps
+- Customer and notes information
+
+**Authentication:** Bearer token required with 'read' or 'write' permissions.
+  `,
+  request: {
+    params: RentalIdParamSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            rental: RentalSchema
+          }),
+        },
+      },
+      description: 'Rental retrieved successfully',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Invalid or missing Bearer token',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Rental not found',
+    },
+  },
+  security: [{ BearerAuth: [] }],
+})
+
+export const updateRentalRoute = createRoute({
+  method: 'put',
+  path: '/api/rentals/{id}',
+  tags: ['Rentals'],
+  summary: 'Update Rental (Admin)',
+  description: `
+Update a rental transaction. Only status and notes can be updated.
+
+**Updatable Fields:**
+- **rentalStatus**: Change status (active, released, cancelled)
+- **notes**: Update notes
+
+**Note:** Financial and item data cannot be updated for audit compliance.
+
+**Authentication:** Bearer token required with 'write' permissions.
+  `,
+  request: {
+    params: RentalIdParamSchema,
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateRentalRequestSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string(),
+            rental: RentalSchema
+          }),
+        },
+      },
+      description: 'Rental updated successfully',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Requires full access token',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Rental not found',
+    },
+  },
+  security: [{ BearerAuth: [] }],
+})
+
+export const deleteRentalRoute = createRoute({
+  method: 'delete',
+  path: '/api/rentals/{id}',
+  tags: ['Rentals'],
+  summary: 'Delete Rental (Admin)',
+  description: `
+Delete a rental transaction record.
+
+**Warning:** This is a permanent deletion. Consider using status update instead.
+
+**Authentication:** Bearer token required with 'write' permissions.
+  `,
+  request: {
+    params: RentalIdParamSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string(),
+            rental: RentalSchema
+          }),
+        },
+      },
+      description: 'Rental deleted successfully',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Requires full access token',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Rental not found',
+    },
+  },
+  security: [{ BearerAuth: [] }],
+})
+
+export const getRentalsByCustomerRoute = createRoute({
+  method: 'get',
+  path: '/api/rentals/customer/{customerId}',
+  tags: ['Rentals'],
+  summary: 'Get Rentals by Customer',
+  description: `
+Retrieve all rental transactions for a specific customer.
+
+**Use Cases:**
+- View customer rental history
+- Check active rentals for a customer
+- Generate customer reports
+
+**Authentication:** Bearer token required with 'read' or 'write' permissions.
+  `,
+  request: {
+    params: z.object({
+      customerId: z.string().min(1).openapi({
+        param: { name: 'customerId', in: 'path' },
+        example: 'customer_456',
+        description: 'Customer ID'
+      })
+    }),
+    query: z.object({
+      limit: z.string().optional().openapi({
+        param: { name: 'limit', in: 'query' },
+        example: '50',
+        description: 'Maximum results to return'
+      })
+    })
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            data: z.array(RentalSchema),
+            total: z.number()
+          }),
+        },
+      },
+      description: 'Successfully retrieved customer rentals',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Invalid or missing Bearer token',
+    },
+  },
+  security: [{ BearerAuth: [] }],
+})
+
+export const getRentalsByTableRoute = createRoute({
+  method: 'get',
+  path: '/api/rentals/table/{tableId}',
+  tags: ['Rentals'],
+  summary: 'Get Rentals by Table',
+  description: `
+Retrieve all rental transactions for a specific table.
+
+**Use Cases:**
+- View table rental history
+- Check active rentals from a table
+- Generate inventory reports
+
+**Authentication:** Bearer token required with 'read' or 'write' permissions.
+  `,
+  request: {
+    params: TableIdParamSchema,
+    query: z.object({
+      limit: z.string().optional().openapi({
+        param: { name: 'limit', in: 'query' },
+        example: '50',
+        description: 'Maximum results to return'
+      })
+    })
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            data: z.array(RentalSchema),
+            total: z.number()
+          }),
+        },
+      },
+      description: 'Successfully retrieved table rentals',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Invalid or missing Bearer token',
+    },
+  },
+  security: [{ BearerAuth: [] }],
+})
+
+export const getRentalAnalyticsRoute = createRoute({
+  method: 'get',
+  path: '/api/rentals/analytics',
+  tags: ['Rentals'],
+  summary: 'Get Rental Analytics',
+  description: `
+Retrieve rental analytics and statistics.
+
+**Analytics includes:**
+- Total, active, released, cancelled rental counts
+- Total and average revenue
+- Top rented items
+- Rentals by date
+
+**Query Parameters:**
+- **dateFrom/dateTo**: Date range for analytics
+- **tableId**: Filter analytics by table
+
+**Authentication:** Bearer token required with 'read' or 'write' permissions.
+  `,
+  request: {
+    query: z.object({
+      dateFrom: z.string().optional().openapi({
+        param: { name: 'dateFrom', in: 'query' },
+        description: 'Start date (ISO format)'
+      }),
+      dateTo: z.string().optional().openapi({
+        param: { name: 'dateTo', in: 'query' },
+        description: 'End date (ISO format)'
+      }),
+      tableId: z.string().optional().openapi({
+        param: { name: 'tableId', in: 'query' },
+        description: 'Filter by table ID'
+      })
+    })
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            totalRentals: z.number(),
+            activeRentals: z.number(),
+            releasedRentals: z.number(),
+            cancelledRentals: z.number(),
+            totalRevenue: z.number(),
+            averageRentalPrice: z.number()
+          }).openapi('RentalAnalytics'),
+        },
+      },
+      description: 'Successfully retrieved rental analytics',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Invalid or missing Bearer token',
+    },
+  },
+  security: [{ BearerAuth: [] }],
+})
+
+// =============================================================================
+// PUBLIC RENTALS ROUTES (Customer-facing)
+// =============================================================================
+
+export const listRentalTablesRoute = createRoute({
+  method: 'get',
+  path: '/api/public/rental-tables',
+  tags: ['Public Rentals'],
+  summary: 'List Available Rental Tables',
+  description: `
+Get a list of public tables configured for rentals.
+
+**No authentication required** - This is a public endpoint for browsing rental catalogs.
+
+**Response includes:**
+- Table name and description
+- Item count and available count
+  `,
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            tables: z.array(RentalTableSchema),
+            count: z.number()
+          }),
+        },
+      },
+      description: 'Successfully retrieved rental tables',
+    },
+  },
+})
+
+export const getRentalTableItemsRoute = createRoute({
+  method: 'get',
+  path: '/api/public/rental-tables/{tableId}/items',
+  tags: ['Public Rentals'],
+  summary: 'List Items in Rental Table',
+  description: `
+Get all items from a public rental table.
+
+**No authentication required** - This is a public endpoint for browsing items.
+
+**Response includes:**
+- Item data with all columns
+- Availability and used status
+- Rental price
+  `,
+  request: {
+    params: TableIdParamSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            items: z.array(RentalItemSchema),
+            columns: z.array(z.object({
+              name: z.string(),
+              type: z.string()
+            })),
+            table: z.object({
+              id: z.string(),
+              name: z.string()
+            })
+          }),
+        },
+      },
+      description: 'Successfully retrieved table items',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Table not found or not public',
+    },
+  },
+})
+
+export const getRentalItemRoute = createRoute({
+  method: 'get',
+  path: '/api/public/rental-tables/{tableId}/items/{itemId}',
+  tags: ['Public Rentals'],
+  summary: 'Get Rental Item Details',
+  description: `
+Get detailed information about a specific rental item.
+
+**No authentication required** - This is a public endpoint.
+  `,
+  request: {
+    params: z.object({
+      tableId: z.string().min(1).openapi({
+        param: { name: 'tableId', in: 'path' },
+        description: 'Table ID'
+      }),
+      itemId: z.string().min(1).openapi({
+        param: { name: 'itemId', in: 'path' },
+        description: 'Item ID'
+      })
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            item: RentalItemSchema,
+            table: z.object({
+              id: z.string(),
+              name: z.string()
+            })
+          }),
+        },
+      },
+      description: 'Successfully retrieved item details',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Item or table not found',
+    },
+  },
+})
+
+export const checkRentalAvailabilityRoute = createRoute({
+  method: 'get',
+  path: '/api/public/rental-tables/{tableId}/items/{itemId}/availability',
+  tags: ['Public Rentals'],
+  summary: 'Check Item Rental Availability',
+  description: `
+Check if an item is available for rental and get its current state.
+
+**No authentication required** - This is a public endpoint.
+
+**Response includes:**
+- Whether item can be rented
+- Whether item has been used
+- Whether item is currently rented
+- Rental price
+- Active rental ID if currently rented
+  `,
+  request: {
+    params: z.object({
+      tableId: z.string().min(1).openapi({
+        param: { name: 'tableId', in: 'path' },
+        description: 'Table ID'
+      }),
+      itemId: z.string().min(1).openapi({
+        param: { name: 'itemId', in: 'path' },
+        description: 'Item ID'
+      })
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: RentalAvailabilitySchema,
+        },
+      },
+      description: 'Successfully retrieved availability',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Item or table not found',
+    },
+  },
+})
+
+export const rentItemRoute = createRoute({
+  method: 'post',
+  path: '/api/public/rent',
+  tags: ['Public Rentals'],
+  summary: 'Rent an Item',
+  description: `
+Create a rental transaction for an item.
+
+**Rental Lifecycle:**
+1. Initial state: \`used=false, available=true\` (item can be rented)
+2. After rent: \`used=false, available=false\` (item is rented)
+3. After release: \`used=true, available=false\` (item cannot be rented again)
+
+**Request body:**
+- **tableId**: Table containing the item
+- **itemId**: Item to rent
+- **customerId**: Customer identifier
+- **notes**: Optional notes
+
+**Authentication:** Bearer token required with 'read' or 'write' permissions.
+  `,
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateRentalRequestSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    201: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string(),
+            rental: RentalSchema
+          }),
+        },
+      },
+      description: 'Item rented successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Invalid request or item not available',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Bearer token required',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Item or table not found',
+    },
+  },
+  security: [{ BearerAuth: [] }],
+})
+
+export const releaseItemRoute = createRoute({
+  method: 'post',
+  path: '/api/public/release',
+  tags: ['Public Rentals'],
+  summary: 'Release a Rented Item',
+  description: `
+Release a rental and mark the item as used.
+
+**Important:** After release, the item cannot be rented again (one-time rental items).
+
+**Request body (option 1 - by rental ID):**
+- **rentalId**: Rental transaction ID
+- **notes**: Optional notes
+
+**Request body (option 2 - by item):**
+- **tableId**: Table containing the item
+- **itemId**: Item to release
+- **notes**: Optional notes
+
+**State change:** \`available=false, used=false\` → \`available=false, used=true\`
+
+**Authentication:** Bearer token required with 'read' or 'write' permissions.
+  `,
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ReleaseRentalRequestSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string(),
+            rental: RentalSchema
+          }),
+        },
+      },
+      description: 'Item released successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Invalid request or item not currently rented',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Bearer token required',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Rental, item, or table not found',
     },
   },
   security: [{ BearerAuth: [] }],

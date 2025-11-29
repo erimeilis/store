@@ -59,7 +59,7 @@ export async function updateDataRow(
     // Get table columns for validation
     const tableColumns = await repository.getTableColumns(tableId)
 
-    // Get table info to check for_sale status
+    // Get table info to check tableType (sale/rent)
     const tableInfo = await repository.getTableInfo(tableId)
 
     // Apply default values from column definitions
@@ -107,8 +107,8 @@ export async function updateDataRow(
       dataValidation.validatedData!
     )
 
-    // Track inventory for for_sale tables
-    if (tableInfo?.forSale) {
+    // Track inventory for 'sale' type tables
+    if (tableInfo?.tableType === 'sale') {
       try {
         const inventoryService = new InventoryTrackingService(c.env.DB)
         await inventoryService.trackItemUpdate(

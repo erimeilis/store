@@ -1,7 +1,7 @@
 import type { Bindings } from '@/types/bindings.js'
 import type { Context } from 'hono'
 import type { UserContext } from '@/types/database.js'
-import type { CloneTableRequest, TableSchema, TableVisibility } from '@/types/dynamic-tables.js'
+import type { CloneTableRequest, TableSchema, TableVisibility, TableType } from '@/types/dynamic-tables.js'
 import { TableRepository } from '@/repositories/tableRepository.js'
 import { isUserAdmin, getUserInfo } from '@/utils/common.js'
 
@@ -57,7 +57,7 @@ export async function cloneTable(
       name: finalTableName,
       description: request.description || `Clone of ${sourceSchema.table.name}`,
       visibility: request.visibility || 'private' as TableVisibility,
-      forSale: request.forSale || false,
+      tableType: request.tableType || 'default' as TableType,
       userId: userId,
       columns: sourceSchema.columns.map((col: any) => ({
         name: col.name,

@@ -4,7 +4,7 @@
 /**
  * Inventory transaction types
  */
-export type InventoryTransactionType = 'sale' | 'add' | 'remove' | 'update' | 'adjust'
+export type InventoryTransactionType = 'sale' | 'rent' | 'release' | 'add' | 'remove' | 'update' | 'adjust'
 
 /**
  * Inventory transaction record
@@ -31,6 +31,9 @@ export interface ParsedInventoryData {
   [columnName: string]: any
   price?: number
   qty?: number
+  // Rental-specific fields
+  used?: boolean
+  available?: boolean
 }
 
 /**
@@ -220,6 +223,8 @@ export function getQuantityChangeDescription(transaction: InventoryTransaction):
 export function getTransactionTypeDisplayName(type: InventoryTransactionType): string {
   switch (type) {
     case 'sale': return 'Sale'
+    case 'rent': return 'Rented'
+    case 'release': return 'Released'
     case 'add': return 'Added'
     case 'remove': return 'Removed'
     case 'update': return 'Updated'

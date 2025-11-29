@@ -5,6 +5,7 @@ interface Table {
   name: string;
   description?: string;
   forSale?: boolean;
+  tableType?: 'default' | 'sale' | 'rent';
   visibility?: string;
 }
 
@@ -16,7 +17,13 @@ interface TableSelectorProps {
   error?: string;
 }
 
-type FilterType = 'all' | 'for-sale' | 'not-for-sale';
+type FilterType = 'all' | 'for-sale' | 'for-rent' | 'regular';
+
+// Helper to get effective table type (supports both legacy forSale and new tableType)
+function getTableType(table: Table): 'sale' | 'rent' | 'default' {
+  if (table.tableType) return table.tableType;
+  return table.forSale ? 'sale' : 'default';
+}
 
 export function TableSelector({ tables, selectedIds, onChange, disabled, error }: TableSelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,11 +33,13 @@ export function TableSelector({ tables, selectedIds, onChange, disabled, error }
   const filteredTables = useMemo(() => {
     let result = tables;
 
-    // Apply filter
+    // Apply filter based on effective table type
     if (filterType === 'for-sale') {
-      result = result.filter(table => table.forSale === true);
-    } else if (filterType === 'not-for-sale') {
-      result = result.filter(table => table.forSale !== true);
+      result = result.filter(table => getTableType(table) === 'sale');
+    } else if (filterType === 'for-rent') {
+      result = result.filter(table => getTableType(table) === 'rent');
+    } else if (filterType === 'regular') {
+      result = result.filter(table => getTableType(table) === 'default');
     }
 
     // Apply search
@@ -95,7 +104,8 @@ export function TableSelector({ tables, selectedIds, onChange, disabled, error }
           >
             <option value="all">All Tables</option>
             <option value="for-sale">For Sale</option>
-            <option value="not-for-sale">Not For Sale</option>
+            <option value="for-rent">For Rent</option>
+            <option value="regular">Regular</option>
           </select>
 
           {/* Bulk Selection Buttons */}
@@ -177,8 +187,11 @@ export function TableSelector({ tables, selectedIds, onChange, disabled, error }
                     )}
 
                     <div className="flex gap-2 mt-2">
-                      {table.forSale && (
+                      {getTableType(table) === 'sale' && (
                         <span className="badge badge-success badge-xs">For Sale</span>
+                      )}
+                      {getTableType(table) === 'rent' && (
+                        <span className="badge badge-info badge-xs">For Rent</span>
                       )}
                       {table.visibility && (
                         <span className="badge badge-ghost badge-xs capitalize">

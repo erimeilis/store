@@ -5,7 +5,8 @@
 
 import { faker } from '@faker-js/faker'
 import type { Bindings } from '@/types/bindings'
-import type { ColumnType, CreateTableRequest, CreateColumnRequest } from '@/types/dynamic-tables'
+import type { ColumnType, CreateTableRequest, CreateColumnRequest, TableType } from '@/types/dynamic-tables'
+import { DEFAULT_SALE_COLUMNS, DEFAULT_RENT_COLUMNS, getDefaultColumns } from '@/types/dynamic-tables'
 import { getPrismaClient } from '@/lib/database'
 
 /**
@@ -87,8 +88,9 @@ function generateColumn(position: number, existingNames: Set<string>): CreateCol
 
 /**
  * Generate faker value based on column type
+ * Returns proper types (string, number, boolean) for JSON storage
  */
-function generateFakerValue(type: ColumnType): string {
+function generateFakerValue(type: ColumnType): string | number | boolean {
   switch (type) {
     // Text types
     case 'text':
@@ -110,17 +112,17 @@ function generateFakerValue(type: ColumnType): string {
       // Use ISO 3166-1 alpha-2 country codes (e.g., "US", "GB", "DE") for proper display with flags
       return faker.location.countryCode('alpha-2')
 
-    // Numeric types
+    // Numeric types - return actual numbers for JSON storage
     case 'integer':
-      return faker.number.int({ min: 1, max: 1000 }).toString()
+      return faker.number.int({ min: 1, max: 1000 })
     case 'float':
-      return faker.number.float({ min: 0.1, max: 100, fractionDigits: 2 }).toString()
+      return faker.number.float({ min: 0.1, max: 100, fractionDigits: 2 })
     case 'currency':
-      return faker.number.float({ min: 0.99, max: 999.99, fractionDigits: 2 }).toString()
+      return faker.number.float({ min: 0.99, max: 999.99, fractionDigits: 2 })
     case 'percentage':
-      return faker.number.int({ min: 0, max: 100 }).toString()
+      return faker.number.int({ min: 0, max: 100 })
     case 'number': // deprecated - use integer or float
-      return faker.number.int({ min: 1, max: 1000 }).toString()
+      return faker.number.int({ min: 1, max: 1000 })
 
     // Date/Time types
     case 'date':
@@ -132,12 +134,12 @@ function generateFakerValue(type: ColumnType): string {
 
     // Other types
     case 'boolean':
-      return faker.datatype.boolean().toString()
+      return faker.datatype.boolean()
     case 'select':
       // Should not be called for select type (requires options)
       return faker.lorem.word()
     case 'rating':
-      return faker.number.int({ min: 1, max: 5 }).toString()
+      return faker.number.int({ min: 1, max: 5 })
     case 'color':
       return faker.color.rgb({ format: 'hex' })
 
@@ -147,31 +149,37 @@ function generateFakerValue(type: ColumnType): string {
 }
 
 /**
- * Generate required sale columns (price and qty) for forSale tables
- * These columns are always required and allow duplicates
+ * Generate required columns based on table type
+ * For 'sale' tables: price, qty
+ * For 'rent' tables: price, used, available
+ */
+function generateTypeColumns(tableType: TableType, startPosition: number, existingNames: Set<string>): CreateColumnRequest[] {
+  if (tableType === 'default') return []
+
+  const defaultColumns = getDefaultColumns(tableType)
+
+  return defaultColumns.map((col, index) => {
+    existingNames.add(col.name)
+    const result: CreateColumnRequest = {
+      name: col.name,
+      type: col.type,
+      isRequired: col.isRequired,
+      allowDuplicates: col.allowDuplicates ?? true,
+      position: startPosition + index
+    }
+    if (col.defaultValue !== undefined) {
+      result.defaultValue = col.defaultValue
+    }
+    return result
+  })
+}
+
+/**
+ * @deprecated Use generateTypeColumns instead
+ * Generate required sale columns (price and qty) for sale tables
  */
 function generateSaleColumns(startPosition: number, existingNames: Set<string>): CreateColumnRequest[] {
-  // Mark these names as used
-  existingNames.add('price')
-  existingNames.add('qty')
-
-  return [
-    {
-      name: 'price',
-      type: 'number',
-      isRequired: true,
-      allowDuplicates: true,
-      position: startPosition
-    },
-    {
-      name: 'qty',
-      type: 'number',
-      isRequired: true,
-      allowDuplicates: true,
-      defaultValue: '1',
-      position: startPosition + 1
-    }
-  ]
+  return generateTypeColumns('sale', startPosition, existingNames)
 }
 
 /**
@@ -186,12 +194,13 @@ const PHONE_PROVIDERS = [
 /**
  * Generate phone number table columns
  * Includes conditional columns based on voice/sms/tollfree settings
+ * @param tableType - 'sale' or 'rent' - determines which protected columns to include
  */
-function generatePhoneTableColumns(existingNames: Set<string>): CreateColumnRequest[] {
+function generatePhoneTableColumns(existingNames: Set<string>, tableType: TableType = 'sale'): CreateColumnRequest[] {
   const columns: CreateColumnRequest[] = []
   let position = 0
 
-  // Price and qty first (required for forSale)
+  // Protected columns based on table type
   // Using 'number' type as it's the only numeric type allowed by DB CHECK constraint
   columns.push({
     name: 'price',
@@ -202,15 +211,49 @@ function generatePhoneTableColumns(existingNames: Set<string>): CreateColumnRequ
   })
   existingNames.add('price')
 
-  columns.push({
-    name: 'qty',
-    type: 'number',
-    isRequired: true,
-    allowDuplicates: true,
-    defaultValue: '1',
-    position: position++
-  })
-  existingNames.add('qty')
+  if (tableType === 'sale') {
+    // Sale tables have qty column
+    columns.push({
+      name: 'qty',
+      type: 'number',
+      isRequired: true,
+      allowDuplicates: true,
+      defaultValue: '1',
+      position: position++
+    })
+    existingNames.add('qty')
+  } else if (tableType === 'rent') {
+    // Rent tables have fee, used, and available columns
+    columns.push({
+      name: 'fee',
+      type: 'number',
+      isRequired: true,
+      allowDuplicates: true,
+      defaultValue: '0',
+      position: position++
+    })
+    existingNames.add('fee')
+
+    columns.push({
+      name: 'used',
+      type: 'boolean',
+      isRequired: true,
+      allowDuplicates: true,
+      defaultValue: 'false',
+      position: position++
+    })
+    existingNames.add('used')
+
+    columns.push({
+      name: 'available',
+      type: 'boolean',
+      isRequired: true,
+      allowDuplicates: true,
+      defaultValue: 'true',
+      position: position++
+    })
+    existingNames.add('available')
+  }
 
   // Core phone columns
   columns.push({
@@ -282,15 +325,6 @@ function generatePhoneTableColumns(existingNames: Set<string>): CreateColumnRequ
 
   // Rate columns (using 'number' type for DB compatibility)
   columns.push({
-    name: 'fixRate',
-    type: 'number',
-    isRequired: false,
-    allowDuplicates: true,
-    position: position++
-  })
-  existingNames.add('fixRate')
-
-  columns.push({
     name: 'incomingPerMinute',
     type: 'number',
     isRequired: false,
@@ -341,13 +375,25 @@ function generatePhoneTableColumns(existingNames: Set<string>): CreateColumnRequ
 
 /**
  * Generate data row for phone number table with conditional logic
+ * @param tableType - 'sale' or 'rent' - determines which protected columns to generate
  */
-function generatePhoneDataRow(): Record<string, any> {
+function generatePhoneDataRow(tableType: TableType = 'sale'): Record<string, any> {
   const row: Record<string, any> = {}
 
-  // Price and qty
+  // Price - common to both sale and rent
   row.price = faker.commerce.price({ min: 0.50, max: 50.00, dec: 2 })
-  row.qty = faker.number.int({ min: 1, max: 1000 }).toString()
+
+  if (tableType === 'sale') {
+    // Sale tables have qty
+    row.qty = faker.number.int({ min: 1, max: 1000 })
+  } else if (tableType === 'rent') {
+    // Rent tables have fee, used, and available
+    // Fee is a deposit or one-time rental fee
+    row.fee = faker.number.float({ min: 5, max: 50, fractionDigits: 2 })
+    // Fresh inventory: all items are unused and available
+    row.used = false
+    row.available = true
+  }
 
   // Generate phone number (just digits)
   const countryCode = faker.helpers.arrayElement(['1', '44', '49', '33', '39', '34', '81', '86', '91', '7'])
@@ -368,35 +414,34 @@ function generatePhoneDataRow(): Record<string, any> {
   // Boolean features with realistic distribution
   const voice = faker.datatype.boolean(0.7) // 70% have voice
   const sms = faker.datatype.boolean(0.5) // 50% have SMS
-  row.voice = voice.toString()
-  row.sms = sms.toString()
+  row.voice = voice
+  row.sms = sms
 
   // Conditional: reg only if sms is true
+  let reg = false
   if (sms) {
-    row.reg = faker.datatype.boolean(0.6).toString() // 60% of SMS numbers support registration
+    reg = faker.datatype.boolean(0.6) // 60% of SMS numbers support registration
+    row.reg = reg
   }
 
   // Conditional: tollfree only if voice, sms, and reg are ALL false
-  const reg = row.reg === 'true'
+  let tollfree = false
   if (!voice && !sms && !reg) {
-    row.tollfree = 'true' // If no other features, make it tollfree
+    tollfree = true // If no other features, make it tollfree
+    row.tollfree = true
   } else if (!voice && !sms) {
-    row.tollfree = faker.datatype.boolean(0.3).toString() // 30% chance otherwise
+    tollfree = faker.datatype.boolean(0.3) // 30% chance otherwise
+    row.tollfree = tollfree
   }
-
-  const tollfree = row.tollfree === 'true'
-
-  // Fix rate (monthly fee)
-  row.fixRate = faker.commerce.price({ min: 0.50, max: 10.00, dec: 2 })
 
   // Conditional: incomingPerMinute only if voice or tollfree
   if (voice || tollfree) {
-    row.incomingPerMinute = faker.commerce.price({ min: 0.001, max: 0.10, dec: 4 })
+    row.incomingPerMinute = faker.commerce.price({ min: 0.01, max: 0.10, dec: 2 })
   }
 
   // Conditional: incomingRateSms only if sms
   if (sms) {
-    row.incomingRateSms = faker.commerce.price({ min: 0.001, max: 0.05, dec: 4 })
+    row.incomingRateSms = faker.commerce.price({ min: 0.01, max: 0.05, dec: 2 })
   }
 
   // Documentation URL
@@ -421,39 +466,65 @@ function generatePhoneDataRow(): Record<string, any> {
 
 /**
  * Generate a phone number table
+ * @param tableType - 'sale' or 'rent' - determines which protected columns to include
  */
-function generatePhoneTable(userId: string, index: number): CreateTableRequest {
+function generatePhoneTable(userId: string, index: number, tableType: TableType = 'sale'): CreateTableRequest {
   const existingNames = new Set<string>()
-  const columns = generatePhoneTableColumns(existingNames)
+  const columns = generatePhoneTableColumns(existingNames, tableType)
 
   const phoneTypes = [
     'Phone Numbers', 'Virtual Numbers', 'DID Numbers', 'VoIP Numbers',
     'Business Phone', 'Mobile Numbers', 'Toll-Free Numbers', 'Local Numbers'
   ]
 
+  // Add rent-specific names
+  if (tableType === 'rent') {
+    phoneTypes.push('Rental Numbers', 'Temporary Numbers', 'Short-Term Numbers')
+  }
+
   const phoneType = faker.helpers.arrayElement(phoneTypes)
   const timestamp = Date.now().toString(36).slice(-5).toUpperCase()
 
-  return {
+  const result: CreateTableRequest = {
     name: `${phoneType} #${index}-${timestamp}`,
-    description: `${phoneType} inventory with voice, SMS, and pricing information`,
+    description: `${phoneType} ${tableType === 'rent' ? 'rental' : 'inventory'} with voice, SMS, and pricing information`,
     visibility: faker.helpers.arrayElement(['private', 'public', 'shared'] as const),
-    forSale: true, // Phone tables are always for sale
+    tableType: tableType,
     userId,
     columns
   }
+
+  // Phone tables use 'number' column as the product identifier
+  if (tableType === 'sale' || tableType === 'rent') {
+    result.productIdColumn = 'number'
+  }
+
+  return result
 }
 
 /**
  * Generate a complete table with random schema
- * For forSale tables, 50% will be phone number tables
+ * @param userId - Owner user ID
+ * @param index - Table index for naming
+ * @param forceTableType - Force a specific table type ('sale', 'rent', or 'default')
  */
-export function generateDummyTable(userId: string, index: number, forceForSale?: boolean): CreateTableRequest {
-  const isForSale = forceForSale !== undefined ? forceForSale : faker.datatype.boolean(0.2)
+export function generateDummyTable(userId: string, index: number, forceTableType?: TableType): CreateTableRequest {
+  // Determine table type: forced, or random (20% sale, 10% rent, 70% default)
+  let tableType: TableType = 'default'
+  if (forceTableType !== undefined) {
+    tableType = forceTableType
+  } else {
+    const random = faker.number.float({ min: 0, max: 1 })
+    if (random < 0.2) {
+      tableType = 'sale'
+    } else if (random < 0.3) {
+      tableType = 'rent'
+    }
+  }
 
-  // For "for sale" tables, 50% chance to generate phone table
-  if (isForSale && faker.datatype.boolean(0.5)) {
-    return generatePhoneTable(userId, index)
+  // For "sale" or "rent" tables, 50% chance to generate phone table
+  if ((tableType === 'sale' || tableType === 'rent') && faker.datatype.boolean(0.5)) {
+    return generatePhoneTable(userId, index, tableType)
   }
 
   const columnCount = faker.number.int({ min: 3, max: 8 })
@@ -462,55 +533,102 @@ export function generateDummyTable(userId: string, index: number, forceForSale?:
   const columns: CreateColumnRequest[] = []
   let positionOffset = 0
 
-  // For "for sale" tables, add required price/qty columns first
-  if (isForSale) {
-    const saleColumns = generateSaleColumns(0, existingNames)
-    columns.push(...saleColumns)
-    positionOffset = saleColumns.length
+  // For special table types, add required columns first
+  if (tableType !== 'default') {
+    const typeColumns = generateTypeColumns(tableType, 0, existingNames)
+    columns.push(...typeColumns)
+    positionOffset = typeColumns.length
   }
 
-  // Generate random columns after sale columns
+  // Generate random columns after type-specific columns
   for (let i = 0; i < columnCount; i++) {
     columns.push(generateColumn(i + positionOffset, existingNames))
   }
 
-  const tableTypes = [
+  const tableNames = [
     'Products', 'Customers', 'Orders', 'Inventory', 'Employees',
     'Projects', 'Tasks', 'Events', 'Contacts', 'Assets',
     'Campaigns', 'Reports', 'Analytics', 'Feedback', 'Leads'
   ]
 
-  const tableType = faker.helpers.arrayElement(tableTypes)
+  // Add type-specific table names
+  if (tableType === 'rent') {
+    tableNames.push('Equipment', 'Vehicles', 'Tools', 'Machinery', 'Spaces', 'Rooms')
+  }
+
+  const tableName = faker.helpers.arrayElement(tableNames)
   const timestamp = Date.now().toString(36).slice(-5).toUpperCase()
 
-  return {
-    name: `${tableType} #${index}-${timestamp}`,
+  const result: CreateTableRequest = {
+    name: `${tableName} #${index}-${timestamp}`,
     description: faker.company.catchPhrase(),
     visibility: faker.helpers.arrayElement(['private', 'public', 'shared'] as const),
-    forSale: isForSale,
+    tableType: tableType,
     userId,
     columns
   }
+
+  // For sale/rent tables, find a suitable text column as productIdColumn
+  // Prefer 'title' or 'name' columns, otherwise use first text column
+  if (tableType !== 'default') {
+    const textColumns = columns.filter(col => col.type === 'text')
+    const preferredColumn = textColumns.find(col =>
+      col.name.toLowerCase().includes('title') ||
+      col.name.toLowerCase().includes('name')
+    )
+    const productIdColumn = preferredColumn?.name || textColumns[0]?.name
+    if (productIdColumn) {
+      result.productIdColumn = productIdColumn
+    }
+  }
+
+  return result
 }
 
 /**
  * Generate sale-specific value for price or qty columns
  */
-function generateSaleValue(columnName: string): string {
+function generateSaleValue(columnName: string): string | number {
   if (columnName === 'price') {
     // Generate realistic price between $0.99 and $999.99
-    return faker.commerce.price({ min: 0.99, max: 999.99, dec: 2 })
+    return faker.number.float({ min: 0.99, max: 999.99, fractionDigits: 2 })
   } else if (columnName === 'qty') {
     // Generate realistic quantity between 1 and 100
-    return faker.number.int({ min: 1, max: 100 }).toString()
+    return faker.number.int({ min: 1, max: 100 })
   }
-  return faker.number.int({ min: 1, max: 1000 }).toString()
+  return faker.number.int({ min: 1, max: 1000 })
+}
+
+/**
+ * Generate rent-specific value for price, fee, used, and available columns
+ * All generated items are fresh inventory: used=false, available=true
+ */
+function generateRentValue(columnName: string): string | number | boolean {
+  if (columnName === 'price') {
+    // Generate realistic rental price between $5 and $500
+    return faker.number.float({ min: 5, max: 500, fractionDigits: 2 })
+  } else if (columnName === 'fee') {
+    // Generate realistic deposit/one-time fee between $5 and $50
+    return faker.number.float({ min: 5, max: 50, fractionDigits: 2 })
+  } else if (columnName === 'used') {
+    // Fresh inventory: never been rented before
+    return false
+  } else if (columnName === 'available') {
+    // Fresh inventory: ready to rent
+    return true
+  }
+  return faker.datatype.boolean()
 }
 
 /**
  * Generate data row for a table based on its columns
+ * @param columns - Column definitions
+ * @param tableType - Type of table ('default', 'sale', 'rent') for specialized value generation
  */
-export function generateDataRow(columns: Array<{ name: string; type: ColumnType; isRequired: boolean; defaultValue: string | null }>): Record<string, any> {
+export function generateDataRow(
+  columns: Array<{ name: string; type: ColumnType; isRequired: boolean; defaultValue: string | number | boolean | null }>,
+  tableType: TableType = 'default'
+): Record<string, any> {
   const row: Record<string, any> = {}
 
   for (const column of columns) {
@@ -520,8 +638,14 @@ export function generateDataRow(columns: Array<{ name: string; type: ColumnType;
     }
 
     // Special handling for sale columns (price, qty) - generate realistic values
-    if (column.name === 'price' || column.name === 'qty') {
+    if (tableType === 'sale' && (column.name === 'price' || column.name === 'qty')) {
       row[column.name] = generateSaleValue(column.name)
+      continue
+    }
+
+    // Special handling for rent columns (price, fee, used, available) - generate realistic values
+    if (tableType === 'rent' && (column.name === 'price' || column.name === 'fee' || column.name === 'used' || column.name === 'available')) {
+      row[column.name] = generateRentValue(column.name)
       continue
     }
 
@@ -544,26 +668,27 @@ export function generateDataRow(columns: Array<{ name: string; type: ColumnType;
  * @param userId - User ID to assign as table owner
  * @param tableCount - Number of tables to generate (default: 100)
  * @param rowsPerTable - Number of rows per table (default: 200)
- * @param forSaleOnly - If true, all generated tables will be marked as "for sale" (default: false)
+ * @param forceTableType - Force a specific table type for all generated tables (default: undefined = random mix)
  */
 export async function generateDummyTables(
   env: Bindings,
   userId: string,
   tableCount: number = 100,
   rowsPerTable: number = 200,
-  forSaleOnly: boolean = false
+  forceTableType?: TableType
 ): Promise<{ success: true; tablesCreated: number; rowsCreated: number } | { success: false; error: string }> {
   try {
     const database = getPrismaClient(env)
     let totalTablesCreated = 0
     let totalRowsCreated = 0
 
-    console.log(`🎲 Starting generation of ${tableCount} tables with ${rowsPerTable} rows each${forSaleOnly ? ' (FOR SALE ONLY)' : ''}...`)
+    const typeLabel = forceTableType ? ` (${forceTableType.toUpperCase()} ONLY)` : ''
+    console.log(`🎲 Starting generation of ${tableCount} tables with ${rowsPerTable} rows each${typeLabel}...`)
 
     for (let i = 1; i <= tableCount; i++) {
       try {
         // Generate table schema
-        const tableRequest = generateDummyTable(userId, i, forSaleOnly)
+        const tableRequest = generateDummyTable(userId, i, forceTableType)
 
         // Create UserTable in database
         const userTable = await database.userTable.create({
@@ -573,7 +698,8 @@ export async function generateDummyTables(
             createdBy: 'system', // System generated
             userId: userId, // Assign to admin user
             visibility: tableRequest.visibility,
-            forSale: tableRequest.forSale || false
+            tableType: tableRequest.tableType || 'default',
+            productIdColumn: tableRequest.productIdColumn || null
           }
         })
 
@@ -586,7 +712,8 @@ export async function generateDummyTables(
           type: column.type,
           isRequired: column.isRequired,
           allowDuplicates: column.allowDuplicates !== undefined ? column.allowDuplicates : true,
-          defaultValue: column.defaultValue || null,
+          // Convert defaultValue to string for DB storage
+          defaultValue: column.defaultValue != null ? String(column.defaultValue) : null,
           position: column.position
         }))
         await database.tableColumn.createMany({ data: columnData })
@@ -598,19 +725,23 @@ export async function generateDummyTables(
           console.log(`📱 Creating phone table: ${tableRequest.name}`)
         }
 
+        // Get table type for proper data generation
+        const currentTableType = (tableRequest.tableType || 'default') as TableType
+
         // Generate data rows in batch (critical for avoiding Worker timeout)
         const dataRows = []
         for (let j = 0; j < rowsPerTable; j++) {
           // Use phone data generator for phone tables, standard generator for others
           const rowData = isPhoneTable
-            ? generatePhoneDataRow()
+            ? generatePhoneDataRow(currentTableType)
             : generateDataRow(
                 tableRequest.columns.map(col => ({
                   name: col.name,
                   type: col.type,
                   isRequired: col.isRequired,
                   defaultValue: col.defaultValue || null
-                }))
+                })),
+                currentTableType
               )
 
           dataRows.push({

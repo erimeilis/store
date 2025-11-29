@@ -241,8 +241,8 @@ export async function importTableData(
       )
     }
 
-    // Track inventory for for_sale tables
-    if (table.forSale && importedRows > 0) {
+    // Track inventory for 'sale' type tables
+    if (table.tableType === 'sale' && importedRows > 0) {
       try {
         const inventoryService = new InventoryTrackingService(c.env.DB)
         const successfulRows = processedRows.slice(0, importedRows) // Only track successfully imported rows

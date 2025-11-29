@@ -49,6 +49,13 @@ export const routes: RouteConfig[] = [
     requiresAuth: true
   },
   {
+    path: '/dashboard/help',
+    handler: async (c) => (await import('@/handlers/help')).handleHelpPage(c),
+    layout: 'dashboard',
+    segment: 'help',
+    requiresAuth: true
+  },
+  {
     path: '/dashboard/users',
     handler: async (c) => (await import('@/handlers/users')).handleUsersPage(c),
     layout: 'dashboard',
@@ -107,20 +114,6 @@ export const routes: RouteConfig[] = [
   {
     path: '/dashboard/allowed-emails/edit/:id',
     handler: async (c) => (await import('@/handlers/allowed-emails')).handleEditAllowedEmailPage(c),
-    layout: 'dashboard',
-    segment: 'edit',
-    requiresAuth: true
-  },
-  {
-    path: '/dashboard/items/create',
-    handler: async (c) => (await import('@/handlers/items')).handleCreateItemPage(c),
-    layout: 'dashboard',
-    segment: 'create',
-    requiresAuth: true
-  },
-  {
-    path: '/dashboard/items/edit/:id',
-    handler: async (c) => (await import('@/handlers/items')).handleEditItemPage(c),
     layout: 'dashboard',
     segment: 'edit',
     requiresAuth: true
@@ -233,11 +226,10 @@ export const pageComponents = {
   '/error': async () => (await import('@/app/error/page')).default,
   '/dashboard': async () => (await import('@/app/dashboard/page')).default,
   '/dashboard/docs': async () => (await import('@/app/dashboard/docs/page')).default,
+  '/dashboard/help': async () => (await import('@/app/dashboard/help/page')).default,
   '/dashboard/users': async () => (await import('@/app/dashboard/users/page')).default,
   '/dashboard/users/create': async () => (await import('@/app/dashboard/users/create/page')).default,
   '/dashboard/users/edit/[id]': async () => (await import('@/app/dashboard/users/edit/[id]/page')).default,
-  '/dashboard/items/create': async () => (await import('@/app/dashboard/items/create/page')).default,
-  '/dashboard/items/edit/[id]': async () => (await import('@/app/dashboard/items/edit/[id]/page')).default,
   '/dashboard/tokens': async () => (await import('@/app/dashboard/tokens/page')).default,
   '/dashboard/tokens/create': async () => (await import('@/app/dashboard/tokens/create/page')).default,
   '/dashboard/tokens/edit/[id]': async () => (await import('@/app/dashboard/tokens/edit/[id]/page')).default,
