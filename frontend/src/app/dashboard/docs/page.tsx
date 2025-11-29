@@ -115,7 +115,7 @@ export default function DocsPage() {
     return (
         <div className="container mx-auto px-4 py-4">
             <div className="mb-4">
-                <h1 className="text-3xl font-bold mb-2">Store CRUD API Documentation</h1>
+                <h1 className="text-3xl font-bold mb-2">Store API Documentation</h1>
                 <p className="text-base-content/70 mb-4">
                     Interactive API documentation with live testing capabilities
                 </p>

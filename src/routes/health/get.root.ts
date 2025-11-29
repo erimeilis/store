@@ -10,7 +10,7 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.get('/', (c) => {
   return c.json({
     status: 'healthy',
-    message: 'Store CRUD API is running',
+    message: 'Store API is running',
     timestamp: new Date().toISOString(),
     version: c.env.APP_VERSION || '0.0.0',
     environment: c.env.NODE_ENV || 'unknown',

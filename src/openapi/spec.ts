@@ -1,16 +1,12 @@
 /**
  * OpenAPI 3.1 Specification
- * Public API documentation for Store CRUD API
- *
- * Note: Admin routes are not documented here as regular API tokens
- * can only access /api/public/* endpoints.
  */
 
 export function generateOpenAPISpec(baseUrl: string, version: string = '1.0.0') {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'Store CRUD API',
+      title: 'Store API',
       version,
       description: `Public REST API for e-commerce and rental operations.
 

@@ -14,12 +14,8 @@ import patchDataRow from './patch.rowId.js';
 import deleteDataRow from './delete.rowId.js';
 
 /**
- * Table Data CRUD Routes
- * Handles operations for data within user-created dynamic tables
- * All routes are protected with appropriate authentication middleware
- * Includes data validation based on column definitions
- *
- * Note: This router is mounted at /api/tables/:tableId/data
+ * Table Data Routes
+ * Mounted at /api/tables/:tableId/data
  */
 const app = new Hono<{
   Bindings: Bindings;

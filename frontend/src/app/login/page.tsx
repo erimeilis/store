@@ -63,7 +63,7 @@ export default function LoginPage({ params: _params, searchParams: _searchParams
         <Card shadow="xl" size="xl">
           <CardBody className="items-center text-center">
             {/* Title */}
-            <CardTitle className="text-3xl mb-2">Store CRUD</CardTitle>
+            <CardTitle className="text-3xl mb-2">Store</CardTitle>
             
             {/* Description */}
             <p className="text-base-content/70 mb-6">

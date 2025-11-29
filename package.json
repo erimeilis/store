@@ -1,7 +1,7 @@
 {
-  "name": "store-crud-api",
-  "version": "1.4.0",
-  "description": "Store CRUD API built with Hono and Cloudflare infrastructure",
+  "name": "store-api",
+  "version": "2.0.0",
+  "description": "Serverless inventory management platform on Cloudflare's edge",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
@@ -30,9 +30,11 @@
   "keywords": [
     "hono",
     "cloudflare",
-    "crud",
+    "inventory",
+    "serverless",
     "api",
-    "typescript"
+    "typescript",
+    "edge"
   ],
   "author": "Eri <eri@redshoes.pro>",
   "license": "MIT",

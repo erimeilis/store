@@ -1,5 +1,5 @@
 /**
- * Hono Context Variables for Store CRUD API
+ * Hono Context Variables
  */
 
 export interface HonoVariables {

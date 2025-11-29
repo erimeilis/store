@@ -20,7 +20,7 @@ export const corsMiddleware = cors({
     if (allowedOrigins.includes(origin)) return origin
     
     // Allow Cloudflare Pages preview deployments
-    if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.store-crud-front\.pages\.dev$/)) return origin
+    if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.store-frontend\.pages\.dev$/)) return origin
     // Allow Workers dev deployments  
     if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.workers\.dev$/)) return origin
     // Allow other Pages deployments
