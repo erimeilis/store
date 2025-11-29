@@ -9,7 +9,7 @@ let testEnv: any
 const ADMIN_ACCESS_TOKEN = 'dev-full-access-token'
 const READ_ONLY_TOKEN = 'dev-read-only-token'
 
-describe('Store CRUD API', () => {
+describe('Store API', () => {
   beforeEach(() => {
     // Create fresh test bindings for each test
     testEnv = createTestBindings()
@@ -29,7 +29,7 @@ describe('Store CRUD API', () => {
       expect(data).toHaveProperty('message')
       expect(data).toHaveProperty('timestamp')
       expect(data).toHaveProperty('version')
-      expect(data.message).toBe('Store CRUD API is running')
+      expect(data.message).toBe('Store API is running')
       expect(data.version).toBe('1.0.0')
     })
   })

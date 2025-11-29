@@ -28,11 +28,12 @@ import parseImportFile from './post.id.parse-import-file.js';
 import parseGoogleSheets from './post.id.parse-google-sheets.js';
 import importData from './post.id.import-data.js';
 
+// Type change routes
+import previewTypeChange from './post.id.preview-type-change.js';
+import applyTypeChange from './post.id.apply-type-change.js';
+
 /**
- * Table Management CRUD Routes
- * Handles operations for user-created dynamic tables: Create, Read, Update, Delete
- * All routes are protected with appropriate authentication middleware
- * Uses raw SQL queries since tables are not in Prisma schema
+ * Table Management Routes
  */
 const app = new Hono<{
   Bindings: Bindings;
@@ -64,6 +65,10 @@ app.route('/', addColumn);            // POST /:id/columns
 app.route('/', parseImportFile);      // POST /:id/parse-import-file
 app.route('/', parseGoogleSheets);    // POST /:id/parse-google-sheets
 app.route('/', importData);           // POST /:id/import-data
+
+// Type change routes (before /:id single table routes)
+app.route('/', previewTypeChange);    // POST /:id/preview-type-change
+app.route('/', applyTypeChange);      // POST /:id/apply-type-change
 
 // Single table routes (must be last - /:id is catch-all)
 app.route('/', getTable);             // GET /:id

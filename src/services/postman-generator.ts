@@ -158,7 +158,7 @@ export class PostmanGeneratorService {
       `Public API Collection for token: ${token.name}`,
       '',
       '**Note:** This collection includes only PUBLIC routes accessible to regular API tokens.',
-      'Admin-only routes (table management, data CRUD) are not included.',
+      'Admin-only routes (table management, data operations) are not included.',
       '',
       '**Permissions:**',
       ...Array.from(permissions).map((p) => `- ${p}`),

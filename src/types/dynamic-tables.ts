@@ -482,3 +482,75 @@ export function hasSpecialColumns(tableType: TableType): boolean {
 export function isProtectedSaleColumn(columnName: string, tableForSale: boolean): boolean {
   return tableForSale && PROTECTED_SALE_COLUMNS.includes(columnName as ProtectedSaleColumn)
 }
+
+// ============================================================================
+// Type Change Preview & Mapping
+// ============================================================================
+
+/**
+ * Request to preview a table type change
+ */
+export interface TypeChangePreviewRequest {
+  targetType: TableType
+}
+
+/**
+ * Required column info for type change preview
+ */
+export interface RequiredColumnInfo {
+  name: string
+  type: ColumnType
+  isRequired: boolean
+  defaultValue?: string | null
+}
+
+/**
+ * Suggested mapping for a required column
+ */
+export interface TypeChangeMappingItem {
+  /** Required column name for target type */
+  requiredColumn: string
+  /** Existing column ID to map (null = create new) */
+  existingColumnId: string | null
+  /** Existing column name (for display) */
+  existingColumnName: string | null
+  /** Match confidence score (0-100) */
+  confidence: number
+}
+
+/**
+ * Response from type change preview endpoint
+ */
+export interface TypeChangePreviewResponse {
+  /** Current table type */
+  currentType: TableType
+  /** Target table type */
+  targetType: TableType
+  /** Required columns for target type */
+  requiredColumns: RequiredColumnInfo[]
+  /** Existing columns in the table */
+  existingColumns: Array<{
+    id: string
+    name: string
+    type: ColumnType
+    isRequired: boolean
+  }>
+  /** Suggested mappings (pre-filled based on name matching) */
+  suggestedMappings: TypeChangeMappingItem[]
+  /** Whether all required columns have suggested matches */
+  allMapped: boolean
+}
+
+/**
+ * Request to apply type change with column mappings
+ */
+export interface TypeChangeApplyRequest {
+  targetType: TableType
+  /** Column mappings: requiredColumn -> existingColumnId (null = create new) */
+  columnMappings: Array<{
+    requiredColumn: string
+    existingColumnId: string | null
+  }>
+  /** Optional: rental period for rent tables */
+  rentalPeriod?: RentalPeriod
+}
