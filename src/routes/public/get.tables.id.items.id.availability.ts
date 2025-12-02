@@ -4,6 +4,7 @@ import type { UserContext } from '@/types/database.js';
 import { PublicSalesService } from '@/services/publicSalesService/index.js';
 import { PublicRentService } from '@/services/publicRentService/index.js';
 import { TableRepository } from '@/repositories/tableRepository.js';
+import { hasTableAccess } from '@/utils/tableAccess.js';
 
 const app = new Hono<{
   Bindings: Bindings;
@@ -18,12 +19,17 @@ const app = new Hono<{
  * Response format depends on tableType:
  * - sale: { available, currentStock, requestedQuantity, canFulfill }
  * - rent: { available, used, currentlyRented, rentalPrice, activeRentalId? }
+ *
+ * Access is granted if:
+ * - Token has explicit tableAccess for this table
+ * - Table visibility is public/shared
  */
 app.get('/tables/:tableId/items/:itemId/availability', async (c) => {
   const tableId = c.req.param('tableId');
   const itemId = c.req.param('itemId');
   const quantity = parseInt(c.req.query('quantity') || '1');
   const tableRepo = new TableRepository(c.env);
+  const user = c.get('user');
 
   try {
     // First, get table to determine its type
@@ -32,8 +38,9 @@ app.get('/tables/:tableId/items/:itemId/availability', async (c) => {
       return c.json({ error: 'Table not found' }, 404);
     }
 
-    if (!['public', 'shared'].includes(table.visibility)) {
-      return c.json({ error: 'Table is not publicly accessible' }, 403);
+    // Check access: token tableAccess OR public/shared visibility
+    if (!hasTableAccess(user, table)) {
+      return c.json({ error: 'Table is not accessible with this token' }, 403);
     }
 
     // Route to appropriate service based on table type
