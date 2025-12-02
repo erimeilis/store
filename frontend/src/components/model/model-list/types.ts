@@ -128,6 +128,8 @@ export interface TableHeaderProps<T extends IModel> {
     onToggleDateFilter?: (columnKey: string) => void;
     // Mass actions props for checkbox column visibility
     hasMassActions?: boolean;
+    // Actions column visibility
+    hasActions?: boolean;
 }
 
 // Ordering handlers interface
@@ -174,6 +176,8 @@ export interface TableBodyProps<T extends IModel> {
     orderingHandlers?: IOrderingHandlers<T>;
     // Mass actions props for checkbox column visibility
     hasMassActions?: boolean;
+    // Actions column visibility
+    hasActions?: boolean;
 }
 
 export interface FiltersRowProps<T extends IModel> {
@@ -184,6 +188,7 @@ export interface FiltersRowProps<T extends IModel> {
     onColumnFilter: (columnKey: string, value: string, filterType?: 'text' | 'select' | 'date') => void;
     onToggleDateFilter: (columnKey: string) => void;
     hasMassActions?: boolean;
+    hasActions?: boolean;
 }
 
 export interface InlineEditComponentProps<T extends IModel> {
