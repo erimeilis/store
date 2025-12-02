@@ -52,6 +52,7 @@ export function TableHeader<T extends IModel>({
     onColumnFilter,
     onToggleDateFilter,
     hasMassActions = true, // Default to true for backward compatibility
+    hasActions = true, // Default to true for backward compatibility
 }: TableHeaderProps<T>) {
     const isAllSelected = items?.data ? selectedItems.size === items.data.length && items.data.length > 0 : false;
     const isIndeterminate = selectedItems.size > 0 && selectedItems.size < (items?.data?.length || 0);
@@ -78,11 +79,13 @@ export function TableHeader<T extends IModel>({
                 {useLegacyRendering
                     ? renderHeader && renderHeader()
                     : columns.map((column) => <ColumnHeaderCell key={String(column.key)} column={column} filters={filters} onSort={onSort} />)}
-                <TableHeaderCell scope="col" className="text-right">
-                    <div className="flex justify-end">
-                        <IconDots />
-                    </div>
-                </TableHeaderCell>
+                {hasActions && (
+                    <TableHeaderCell scope="col" className="text-right">
+                        <div className="flex justify-end">
+                            <IconDots />
+                        </div>
+                    </TableHeaderCell>
+                )}
             </TableRow>
             {showFilters && hasFilterableColumns && !useLegacyRendering && columnFilters && openDateFilters && calendarTriggersRef && onColumnFilter && onToggleDateFilter && (
                 <FiltersRow
@@ -93,6 +96,7 @@ export function TableHeader<T extends IModel>({
                     onColumnFilter={onColumnFilter}
                     onToggleDateFilter={onToggleDateFilter}
                     hasMassActions={hasMassActions}
+                    hasActions={hasActions}
                 />
             )}
         </TableHead>

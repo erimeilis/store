@@ -140,7 +140,7 @@ export default function UsersPage({
     items: users || null,
     filters: filters || {},
     columns: visibleColumns,
-    createRoute: isAdmin ? "/dashboard/users/create" : "",
+    createRoute: isAdmin ? "/dashboard/users/create" : undefined,
     editRoute: isAdmin ? (id: string | number) => `/dashboard/users/edit/${id}` : () => "",
     deleteRoute: isAdmin ? (id: string | number) => `/api/users/${id}` : () => "",
     inlineEditRoute: isAdmin ? (id: string | number) => `/api/users/${id}` : () => "",

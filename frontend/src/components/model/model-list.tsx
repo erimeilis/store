@@ -183,6 +183,16 @@ export function ModelList<T extends IModel>({
     const useLegacyRendering = !columns || columns.length === 0
     const hasFilterableColumns = columns?.some((col) => col.filterable) || false
 
+    // Determine if actions column should be shown
+    // Actions are available if editRoute or deleteRoute return non-empty/non-# strings, or if there are rowActions
+    const testEditRoute = editRoute ? editRoute('test') : ''
+    const testDeleteRoute = deleteRoute ? deleteRoute('test') : ''
+    const hasActions = !!(
+        (testEditRoute && testEditRoute !== '' && testEditRoute !== '#') ||
+        (testDeleteRoute && testDeleteRoute !== '' && testDeleteRoute !== '#') ||
+        (rowActions && rowActions.length > 0)
+    )
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -212,7 +222,7 @@ export function ModelList<T extends IModel>({
                     >
                         Clear All
                     </Button>
-                ) : createRoute === null ? null : (
+                ) : createRoute === null || createRoute === undefined ? null : (
                     <Button icon={IconPlus} onClick={() => startAddingNewRow()}>
                         Add Row
                     </Button>
@@ -324,6 +334,7 @@ export function ModelList<T extends IModel>({
                                 onColumnFilter={handleColumnFilter}
                                 onToggleDateFilter={toggleDateFilter}
                                 hasMassActions={massActions && massActions.length > 0}
+                                hasActions={hasActions}
                             />
                             <ModelTableBody
                                 items={displayData ? {data: displayData.data, last_page: displayData.lastPage} : null}
@@ -359,6 +370,8 @@ export function ModelList<T extends IModel>({
                                 orderingHandlers={orderingHandlers}
                                 // Mass actions props for checkbox column visibility
                                 hasMassActions={massActions && massActions.length > 0}
+                                // Actions column visibility
+                                hasActions={hasActions}
                             />
                         </Table>
                     </TableWrapper>

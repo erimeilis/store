@@ -21,6 +21,7 @@ function AddNewRowComponent<T extends IModel>({
     onSaveNewRow,
     onCancelAddingNewRow,
     hasMassActions = true,
+    hasActions = true,
 }: {
     columns: IColumnDefinition<T>[];
     newRowData: Record<string, string>;
@@ -30,6 +31,7 @@ function AddNewRowComponent<T extends IModel>({
     onSaveNewRow: () => Promise<void>;
     onCancelAddingNewRow: () => void;
     hasMassActions?: boolean;
+    hasActions?: boolean;
 }) {
     const handleInputChange = (columnKey: string, value: string) => {
         onUpdateNewRowData(columnKey, value);
@@ -185,34 +187,36 @@ function AddNewRowComponent<T extends IModel>({
                     {renderInputForColumn(column)}
                 </TableCell>
             ))}
-            <TableHeaderCell className="text-right">
-                <div className="flex items-center justify-end gap-1">
-                    {isSavingNewRow ? (
-                        <span className="loading loading-spinner loading-sm"></span>
-                    ) : (
-                        <>
-                            <Button
-                                size="icon"
-                                color="success"
-                                style="soft"
-                                icon={IconCheck}
-                                title="Save new row"
-                                onClick={() => onSaveNewRow()}
-                                disabled={isSavingNewRow}
-                            />
-                            <Button
-                                size="icon"
-                                color="default"
-                                style="ghost"
-                                icon={IconX}
-                                title="Cancel"
-                                onClick={onCancelAddingNewRow}
-                                disabled={isSavingNewRow}
-                            />
-                        </>
-                    )}
-                </div>
-            </TableHeaderCell>
+            {hasActions && (
+                <TableHeaderCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                        {isSavingNewRow ? (
+                            <span className="loading loading-spinner loading-sm"></span>
+                        ) : (
+                            <>
+                                <Button
+                                    size="icon"
+                                    color="success"
+                                    style="soft"
+                                    icon={IconCheck}
+                                    title="Save new row"
+                                    onClick={() => onSaveNewRow()}
+                                    disabled={isSavingNewRow}
+                                />
+                                <Button
+                                    size="icon"
+                                    color="default"
+                                    style="ghost"
+                                    icon={IconX}
+                                    title="Cancel"
+                                    onClick={onCancelAddingNewRow}
+                                    disabled={isSavingNewRow}
+                                />
+                            </>
+                        )}
+                    </div>
+                </TableHeaderCell>
+            )}
         </TableRow>
     );
 }
@@ -392,6 +396,7 @@ function ModelTableRow<T extends IModel>({
     rowActions,
     orderingHandlers,
     hasMassActions = true,
+    hasActions = true,
 }: {
     item: T;
     columns: IColumnDefinition<T>[];
@@ -416,6 +421,7 @@ function ModelTableRow<T extends IModel>({
     rowActions?: IRowAction<T>[];
     orderingHandlers?: any;
     hasMassActions?: boolean;
+    hasActions?: boolean;
 }) {
     return (
         <TableRow
@@ -460,25 +466,27 @@ function ModelTableRow<T extends IModel>({
                           />
                       </TableCell>
                   ))}
-            <TableHeaderCell className="text-right">
-                <div className="flex items-center justify-end gap-1">
-                    {/* Custom row actions */}
-                    {rowActions?.map((action, index) => (
-                        <Button
-                            key={index}
-                            size="icon"
-                            color={action.color || 'primary'}
-                            style={action.style || 'soft'}
-                            icon={action.icon}
-                            title={action.title}
-                            onClick={() => action.onClick(item)}
-                        />
-                    ))}
-                    {/* Standard actions */}
-                    {editRoute && editRoute(item.id) !== '#' && <Button size="icon" color="primary" style="soft" icon={IconEdit} title="Edit" onClick={() => window.location.href = (editRoute as any)(item.id)} />}
-                    {deleteRoute(item.id) !== '#' && <Button size="icon" color="error" style="soft" icon={IconTrash} title="Delete" onClick={() => onDeleteItem(item)} />}
-                </div>
-            </TableHeaderCell>
+            {hasActions && (
+                <TableHeaderCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                        {/* Custom row actions */}
+                        {rowActions?.map((action, index) => (
+                            <Button
+                                key={index}
+                                size="icon"
+                                color={action.color || 'primary'}
+                                style={action.style || 'soft'}
+                                icon={action.icon}
+                                title={action.title}
+                                onClick={() => action.onClick(item)}
+                            />
+                        ))}
+                        {/* Standard actions */}
+                        {editRoute && editRoute(item.id) !== '#' && <Button size="icon" color="primary" style="soft" icon={IconEdit} title="Edit" onClick={() => window.location.href = (editRoute as any)(item.id)} />}
+                        {deleteRoute(item.id) !== '#' && <Button size="icon" color="error" style="soft" icon={IconTrash} title="Delete" onClick={() => onDeleteItem(item)} />}
+                    </div>
+                </TableHeaderCell>
+            )}
         </TableRow>
     );
 }
@@ -518,6 +526,8 @@ export function ModelTableBody<T extends IModel>({
     orderingHandlers,
     // Mass actions props for checkbox column visibility
     hasMassActions = true,
+    // Actions column visibility
+    hasActions = true,
 }: TableBodyProps<T>) {
     return (
         <TableBody>
@@ -555,6 +565,7 @@ export function ModelTableBody<T extends IModel>({
                             rowActions={rowActions}
                             orderingHandlers={orderingHandlers}
                             hasMassActions={hasMassActions}
+                            hasActions={hasActions}
                         />
                         {/* Show error message below the row if editing this row and there's an error */}
                         {editingError && editingCell && editingCell.itemId === item.id && (
@@ -580,6 +591,7 @@ export function ModelTableBody<T extends IModel>({
                         onSaveNewRow={onSaveNewRow}
                         onCancelAddingNewRow={onCancelAddingNewRow}
                         hasMassActions={hasMassActions}
+                        hasActions={hasActions}
                     />
                     {/* Show error message below the add row if there is one */}
                     {newRowError && (

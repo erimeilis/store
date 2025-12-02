@@ -51,6 +51,7 @@ export function FiltersRow<T extends IModel>({
     onColumnFilter,
     onToggleDateFilter,
     hasMassActions = true,
+    hasActions = true,
 }: FiltersRowProps<T>) {
     return (
         <TableRow>
@@ -68,7 +69,7 @@ export function FiltersRow<T extends IModel>({
                     />
                 );
             })}
-            <TableHeaderCell>{/* Empty cell for actions column */}</TableHeaderCell>
+            {hasActions && <TableHeaderCell>{/* Empty cell for actions column */}</TableHeaderCell>}
         </TableRow>
     );
 }
