@@ -5,7 +5,7 @@ import { TableRepository } from '@/repositories/tableRepository.js'
 import { TableDataRepository } from '@/repositories/tableDataRepository.js'
 
 /**
- * Public item representation for API responses
+ * Public item representation for API responses (nested data)
  */
 export interface PublicItem {
   id: string
@@ -17,6 +17,58 @@ export interface PublicItem {
   data: ParsedTableData
   createdAt: Date
   updatedAt: Date
+}
+
+/**
+ * Flat public item - all data fields at top level
+ * Used when ?flat=true query parameter is passed
+ */
+export interface FlatPublicItem {
+  id: string
+  tableId: string
+  tableName: string
+  tableType: string
+  name: string
+  description?: string | undefined
+  price: number
+  qty: number
+  available: boolean
+  // All other data fields are spread at top level (dynamic)
+  [key: string]: any
+  createdAt: Date
+  updatedAt: Date
+}
+
+/**
+ * Convert PublicItem to FlatPublicItem
+ */
+export function flattenPublicItem(
+  item: PublicItem,
+  tableInfo: { id: string; name: string; tableType: string }
+): FlatPublicItem {
+  const flat: FlatPublicItem = {
+    id: item.id,
+    tableId: tableInfo.id,
+    tableName: tableInfo.name,
+    tableType: tableInfo.tableType,
+    name: item.name,
+    description: item.description,
+    price: item.price,
+    qty: item.qty,
+    available: item.available,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt
+  }
+
+  // Spread all data fields to top level
+  for (const [key, value] of Object.entries(item.data)) {
+    // Don't override existing keys
+    if (!(key in flat)) {
+      flat[key] = value
+    }
+  }
+
+  return flat
 }
 
 /**

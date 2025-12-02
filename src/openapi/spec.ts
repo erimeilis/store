@@ -26,13 +26,21 @@ Tokens are created via the admin interface and provide access to specific tables
 
 ## Table Types
 - **Sale tables**: E-commerce with inventory tracking and quantity-based purchases
-- **Rent tables**: Rental inventory with availability tracking (used/available states)`,
+- **Rent tables**: Rental inventory with availability tracking (used/available states)
+
+## Search & Filtering
+Advanced querying capabilities:
+- Search tables by column presence
+- Get distinct column values across tables
+- Filter records with multiple conditions (where[column]=value)
+- Flattened data response (use ?flat=true)`,
       contact: { name: 'API Support' },
     },
     servers: [{ url: baseUrl, description: 'Current environment' }],
     tags: [
       { name: 'Health', description: 'API health and status' },
       { name: 'Tables', description: 'Browse public tables and items' },
+      { name: 'Search & Filtering', description: 'Advanced search, filtering, and data querying across tables' },
       { name: 'Sales', description: 'Purchase items from sale-type tables' },
       { name: 'Rentals', description: 'Rent and release items from rent-type tables' },
     ],
@@ -86,10 +94,11 @@ Tokens are created via the admin interface and provide access to specific tables
         get: {
           tags: ['Tables'],
           summary: 'Get Table Items',
-          description: 'Get all items from a table. Response includes availability status based on table type.',
+          description: 'Get all items from a table. Response includes availability status based on table type. Use flat=true to get data fields at top level.',
           security: [{ BearerAuth: [] }],
           parameters: [
             { name: 'tableId', in: 'path', required: true, description: 'Table UUID', schema: { type: 'string', format: 'uuid' } },
+            { name: 'flat', in: 'query', description: 'Flatten data.* fields to top level in response', schema: { type: 'boolean', default: false } },
           ],
           responses: {
             200: {
@@ -149,6 +158,81 @@ Tokens are created via the admin interface and provide access to specific tables
               },
             },
             404: { description: 'Item not found' },
+          },
+        },
+      },
+
+      // ===== SEARCH & FILTERING =====
+      '/api/public/tables/search': {
+        get: {
+          tags: ['Search & Filtering'],
+          summary: 'Search Tables by Columns',
+          description: 'Find tables that have ALL specified columns. Returns tables accessible by your token that contain all requested column names.',
+          security: [{ BearerAuth: [] }],
+          parameters: [
+            { name: 'columns', in: 'query', required: true, description: 'Comma-separated list of required column names', schema: { type: 'string' }, example: 'number,country' },
+          ],
+          responses: {
+            200: {
+              description: 'Tables matching column criteria',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/TableSearchResponse' },
+                },
+              },
+            },
+            400: { description: 'Missing columns parameter' },
+            401: { description: 'Unauthorized - invalid or missing token' },
+          },
+        },
+      },
+      '/api/public/values/{columnName}': {
+        get: {
+          tags: ['Search & Filtering'],
+          summary: 'Get Distinct Column Values',
+          description: 'Get all distinct values for a column across all accessible tables. Optionally filter by conditions using where[column]=value query parameters.',
+          security: [{ BearerAuth: [] }],
+          parameters: [
+            { name: 'columnName', in: 'path', required: true, description: 'Column name to get values for', schema: { type: 'string' }, example: 'country' },
+            { name: 'where[column]', in: 'query', description: 'Filter conditions (e.g., where[country]=UK)', schema: { type: 'string' } },
+          ],
+          responses: {
+            200: {
+              description: 'Distinct column values',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ColumnValuesResponse' },
+                },
+              },
+            },
+            400: { description: 'Invalid column name' },
+            401: { description: 'Unauthorized - invalid or missing token' },
+          },
+        },
+      },
+      '/api/public/records': {
+        get: {
+          tags: ['Search & Filtering'],
+          summary: 'Get Filtered Records',
+          description: 'Get records matching ALL specified conditions across accessible tables. Response has flattened data structure with all fields at top level.',
+          security: [{ BearerAuth: [] }],
+          parameters: [
+            { name: 'where[column]', in: 'query', description: 'Filter conditions (e.g., where[country]=UK&where[area]=London)', schema: { type: 'string' } },
+            { name: 'columns', in: 'query', description: 'Comma-separated list of columns to include in response', schema: { type: 'string' }, example: 'number,country,price' },
+            { name: 'limit', in: 'query', description: 'Maximum records to return (default: 100, max: 1000)', schema: { type: 'integer', minimum: 1, maximum: 1000, default: 100 } },
+            { name: 'offset', in: 'query', description: 'Pagination offset', schema: { type: 'integer', minimum: 0, default: 0 } },
+          ],
+          responses: {
+            200: {
+              description: 'Filtered records with flattened data',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/RecordsResponse' },
+                },
+              },
+            },
+            400: { description: 'Invalid filter parameters' },
+            401: { description: 'Unauthorized - invalid or missing token' },
           },
         },
       },
@@ -392,6 +476,65 @@ Tokens are created via the admin interface and provide access to specific tables
               },
             },
           },
+        },
+        TableSearchResponse: {
+          type: 'object',
+          properties: {
+            tables: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string', format: 'uuid' },
+                  name: { type: 'string' },
+                  description: { type: 'string', nullable: true },
+                  tableType: { type: 'string', enum: ['sale', 'rent', 'default'] },
+                  matchingColumns: { type: 'array', items: { type: 'string' }, description: 'List of matched column names' },
+                },
+              },
+            },
+            searchedColumns: { type: 'array', items: { type: 'string' }, description: 'Columns that were searched for' },
+            count: { type: 'integer' },
+          },
+        },
+        ColumnValuesResponse: {
+          type: 'object',
+          properties: {
+            column: { type: 'string', description: 'Column name queried' },
+            values: { type: 'array', items: { type: 'string' }, description: 'Distinct values found' },
+            count: { type: 'integer', description: 'Number of distinct values' },
+            filters: { type: 'object', description: 'Applied where conditions', additionalProperties: { type: 'string' } },
+          },
+        },
+        RecordsResponse: {
+          type: 'object',
+          properties: {
+            records: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/FlatRecord' },
+            },
+            filters: { type: 'object', description: 'Applied where conditions', additionalProperties: { type: 'string' } },
+            count: { type: 'integer' },
+            limit: { type: 'integer' },
+            offset: { type: 'integer' },
+          },
+        },
+        FlatRecord: {
+          type: 'object',
+          description: 'Record with all data fields at top level (flattened structure)',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            tableId: { type: 'string', format: 'uuid' },
+            tableName: { type: 'string' },
+            tableType: { type: 'string', enum: ['sale', 'rent', 'default'] },
+            name: { type: 'string' },
+            price: { type: 'number', format: 'float' },
+            qty: { type: 'integer' },
+            available: { type: 'boolean' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+          additionalProperties: true,
         },
       },
     },
