@@ -120,6 +120,9 @@ export class PostmanGeneratorService {
     // Add system folder (health check, list tables)
     collection.item.push(this.createSystemFolder());
 
+    // Add Search & Filtering folder (new advanced query endpoints)
+    collection.item.push(this.createSearchFolder());
+
     // Add sale tables folder if any
     if (saleTables.length > 0) {
       collection.item.push(this.createSalesFolder(saleTables, permissions));
@@ -210,6 +213,114 @@ export class PostmanGeneratorService {
               path: ['api', 'public', 'tables'],
             },
             description: 'List all public tables (both sale and rent types). Use the tableType field to determine which item endpoints to use.',
+          },
+        },
+      ],
+    };
+  }
+
+  /**
+   * Create Search & Filtering folder with new advanced query endpoints
+   */
+  private createSearchFolder(): PostmanFolder {
+    return {
+      name: 'Search & Filtering',
+      item: [
+        {
+          name: 'Search Tables by Columns',
+          request: {
+            method: 'GET',
+            header: [],
+            url: {
+              raw: '{{api_url}}/api/public/tables/search?columns=number,country',
+              host: ['{{api_url}}'],
+              path: ['api', 'public', 'tables', 'search'],
+              query: [
+                { key: 'columns', value: 'number,country', description: 'Comma-separated list of required column names' },
+              ],
+            },
+            description: 'Find tables that have ALL specified columns. Example: ?columns=number,country returns only tables that have both number and country columns.',
+          },
+        },
+        {
+          name: 'Get Column Values',
+          request: {
+            method: 'GET',
+            header: [],
+            url: {
+              raw: '{{api_url}}/api/public/values/country',
+              host: ['{{api_url}}'],
+              path: ['api', 'public', 'values', 'country'],
+            },
+            description: 'Get all distinct values for a column across all accessible tables. Replace "country" with any column name.',
+          },
+        },
+        {
+          name: 'Get Column Values with Conditions',
+          request: {
+            method: 'GET',
+            header: [],
+            url: {
+              raw: '{{api_url}}/api/public/values/area?where[country]=UK',
+              host: ['{{api_url}}'],
+              path: ['api', 'public', 'values', 'area'],
+              query: [
+                { key: 'where[country]', value: 'UK', description: 'Filter by country before getting area values' },
+              ],
+            },
+            description: 'Get all distinct values for a column, filtered by conditions. Example: Get all area values where country = UK.',
+          },
+        },
+        {
+          name: 'Get Records with Filters',
+          request: {
+            method: 'GET',
+            header: [],
+            url: {
+              raw: '{{api_url}}/api/public/records?where[country]=UK&where[area]=London&limit=100',
+              host: ['{{api_url}}'],
+              path: ['api', 'public', 'records'],
+              query: [
+                { key: 'where[country]', value: 'UK', description: 'Filter by country' },
+                { key: 'where[area]', value: 'London', description: 'Filter by area' },
+                { key: 'limit', value: '100', description: 'Max records to return (default: 100, max: 1000)' },
+                { key: 'offset', value: '0', description: 'Pagination offset' },
+              ],
+            },
+            description: 'Get records matching ALL conditions. Response has flattened data (number, country, area, price etc. at top level).',
+          },
+        },
+        {
+          name: 'Get Records with Selected Columns',
+          request: {
+            method: 'GET',
+            header: [],
+            url: {
+              raw: '{{api_url}}/api/public/records?where[country]=UK&columns=number,area,price',
+              host: ['{{api_url}}'],
+              path: ['api', 'public', 'records'],
+              query: [
+                { key: 'where[country]', value: 'UK', description: 'Filter by country' },
+                { key: 'columns', value: 'number,area,price', description: 'Only include these columns in response' },
+              ],
+            },
+            description: 'Get records with only specified columns included in the response.',
+          },
+        },
+        {
+          name: 'Get Table Items (Flat)',
+          request: {
+            method: 'GET',
+            header: [],
+            url: {
+              raw: '{{api_url}}/api/public/tables/:tableId/items?flat=true',
+              host: ['{{api_url}}'],
+              path: ['api', 'public', 'tables', ':tableId', 'items'],
+              query: [
+                { key: 'flat', value: 'true', description: 'Flatten data.* fields to top level in response' },
+              ],
+            },
+            description: 'Get items from a table with flattened data structure (number, country, area, price etc. at top level instead of nested in data object).',
           },
         },
       ],
