@@ -5,7 +5,7 @@
 
 import React from 'react'
 import { MenuItem, MenuDetails } from '@/components/ui/menu'
-import { IconLayoutDashboard, IconUsers, IconKey, IconMail, IconTable, IconApi, IconLogout, IconUser, IconShoppingCart, IconTestPipe } from '@tabler/icons-react'
+import { IconLayoutDashboard, IconUsers, IconKey, IconMail, IconTable, IconApi, IconLogout, IconUser, IconShoppingCart, IconTestPipe, IconPlug } from '@tabler/icons-react'
 
 interface NavigationMenuProps {
   className?: string
@@ -50,6 +50,12 @@ export function MainNavigationMenu({ className, isMobile }: NavigationMenuProps)
         href="/dashboard/users"
       >
         Users
+      </MenuItem>
+      <MenuItem
+        icon={IconPlug}
+        href="/dashboard/modules"
+      >
+        Modules
       </MenuItem>
       {isMobile ? (
         // In mobile, show security items as regular menu items
