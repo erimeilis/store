@@ -522,8 +522,12 @@ export function generateDummyTable(userId: string, index: number, forceTableType
     }
   }
 
-  // For "sale" or "rent" tables, 50% chance to generate phone table
-  if ((tableType === 'sale' || tableType === 'rent') && faker.datatype.boolean(0.5)) {
+  // Rent tables ALWAYS generate phone tables (with number column)
+  // Sale tables have 50% chance to generate phone table
+  if (tableType === 'rent') {
+    return generatePhoneTable(userId, index, tableType)
+  }
+  if (tableType === 'sale' && faker.datatype.boolean(0.5)) {
     return generatePhoneTable(userId, index, tableType)
   }
 
@@ -551,10 +555,7 @@ export function generateDummyTable(userId: string, index: number, forceTableType
     'Campaigns', 'Reports', 'Analytics', 'Feedback', 'Leads'
   ]
 
-  // Add type-specific table names
-  if (tableType === 'rent') {
-    tableNames.push('Equipment', 'Vehicles', 'Tools', 'Machinery', 'Spaces', 'Rooms')
-  }
+  // Note: rent tables always return as phone tables above, so no rent-specific names needed here
 
   const tableName = faker.helpers.arrayElement(tableNames)
   const timestamp = Date.now().toString(36).slice(-5).toUpperCase()
