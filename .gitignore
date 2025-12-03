@@ -36,3 +36,4 @@ storybook-static
 frontend/src/config/is_prod.ts
 frontend/src/config/build_time.ts
 frontend/tsconfig.tsbuildinfo
+/docs/
