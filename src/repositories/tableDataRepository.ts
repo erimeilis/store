@@ -490,4 +490,114 @@ export class TableDataRepository {
             }
         })
     }
+
+    /**
+     * Get distinct values for a specific column using optimized SQL
+     * Uses json_extract() to directly query JSON column values
+     * Much faster than fetching all rows and extracting in memory
+     *
+     * @param tableId - The table to query
+     * @param columnName - The JSON column name to extract
+     * @param filters - Optional filters to apply (column:value pairs)
+     * @returns Array of distinct values
+     */
+    async getDistinctColumnValues(
+        tableId: string,
+        columnName: string,
+        filters?: Record<string, string>
+    ): Promise<any[]> {
+        // Build the SQL query with json_extract
+        // SQLite's json_extract returns the value at the given path
+        let sql = `
+            SELECT DISTINCT json_extract(data, '$.${columnName}') as value
+            FROM table_data
+            WHERE table_id = ?
+            AND json_extract(data, '$.${columnName}') IS NOT NULL
+            AND json_extract(data, '$.${columnName}') != ''
+        `;
+
+        const params: any[] = [tableId];
+
+        // Add filter conditions
+        if (filters && Object.keys(filters).length > 0) {
+            for (const [filterCol, filterValue] of Object.entries(filters)) {
+                sql += ` AND (
+                    LOWER(json_extract(data, '$.${filterCol}')) = LOWER(?)
+                    OR json_extract(data, '$.${filterCol}') = ?
+                )`;
+                params.push(filterValue, filterValue);
+            }
+        }
+
+        sql += ' LIMIT 10000'; // Safety limit
+
+        try {
+            const results = await this.prisma.$queryRawUnsafe<Array<{ value: any }>>(sql, ...params);
+            return results
+                .map(r => r.value)
+                .filter(v => v !== null && v !== undefined && v !== '');
+        } catch (error) {
+            console.error('getDistinctColumnValues error:', error);
+            // Fallback to null - caller should handle by using legacy method
+            return [];
+        }
+    }
+
+    /**
+     * Get distinct values for a column across multiple tables
+     * Optimized batch query that combines results from multiple tables
+     *
+     * @param tableIds - Array of table IDs to query
+     * @param columnName - The JSON column name to extract
+     * @param filters - Optional filters to apply
+     * @returns Array of distinct values (deduplicated across all tables)
+     */
+    async getDistinctColumnValuesMultiTable(
+        tableIds: string[],
+        columnName: string,
+        filters?: Record<string, string>
+    ): Promise<any[]> {
+        if (tableIds.length === 0) return [];
+
+        // For a single table, use the simpler method
+        if (tableIds.length === 1 && tableIds[0]) {
+            return this.getDistinctColumnValues(tableIds[0], columnName, filters);
+        }
+
+        // Build placeholders for table IDs
+        const placeholders = tableIds.map(() => '?').join(',');
+
+        let sql = `
+            SELECT DISTINCT json_extract(data, '$.${columnName}') as value
+            FROM table_data
+            WHERE table_id IN (${placeholders})
+            AND json_extract(data, '$.${columnName}') IS NOT NULL
+            AND json_extract(data, '$.${columnName}') != ''
+        `;
+
+        const params: any[] = [...tableIds];
+
+        // Add filter conditions
+        if (filters && Object.keys(filters).length > 0) {
+            for (const [filterCol, filterValue] of Object.entries(filters)) {
+                sql += ` AND (
+                    LOWER(json_extract(data, '$.${filterCol}')) = LOWER(?)
+                    OR json_extract(data, '$.${filterCol}') = ?
+                )`;
+                params.push(filterValue, filterValue);
+            }
+        }
+
+        sql += ' LIMIT 10000'; // Safety limit
+
+        try {
+            const results = await this.prisma.$queryRawUnsafe<Array<{ value: any }>>(sql, ...params);
+            return results
+                .map(r => r.value)
+                .filter(v => v !== null && v !== undefined && v !== '');
+        } catch (error) {
+            console.error('getDistinctColumnValuesMultiTable error:', error);
+            return [];
+        }
+    }
 }
