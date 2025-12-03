@@ -39,12 +39,25 @@ app.get('/:id', adminWriteAuthMiddleware, async (c) => {
       return c.json({ error: 'Token not found' }, 404);
     }
 
+    // Filter tableAccess to only include existing tables
+    let validTableAccess: string[] = [];
+    if (token.tableAccess) {
+      const tableIds: string[] = JSON.parse(token.tableAccess);
+      if (tableIds.length > 0) {
+        const existingTables = await database.userTable.findMany({
+          where: { id: { in: tableIds } },
+          select: { id: true }
+        });
+        validTableAccess = existingTables.map(t => t.id);
+      }
+    }
+
     const response = {
       ...token,
       is_admin: token.isAdmin,
       allowedIps: token.allowedIps,
       allowedDomains: token.allowedDomains,
-      tableAccess: token.tableAccess ? JSON.parse(token.tableAccess) : [],
+      tableAccess: validTableAccess,
       expiresAt: token.expiresAt ? token.expiresAt.toISOString() : null,
       createdAt: formatApiDate(token.createdAt),
       updatedAt: formatApiDate(token.updatedAt),

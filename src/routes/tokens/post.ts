@@ -32,14 +32,24 @@ app.post('/', adminWriteAuthMiddleware, zValidator('json', CreateTokenSchema), a
       }, 400);
     }
 
+    // Filter tableAccess to only include existing tables
+    let validTableAccess: string[] = [];
+    if (tokenData.tableAccess && tokenData.tableAccess.length > 0) {
+      const existingTables = await database.userTable.findMany({
+        where: { id: { in: tokenData.tableAccess } },
+        select: { id: true }
+      });
+      validTableAccess = existingTables.map(t => t.id);
+    }
+
     // Validate that at least one table is selected (unless no tables exist in system)
-    if (!tokenData.tableAccess || tokenData.tableAccess.length === 0) {
+    if (validTableAccess.length === 0) {
       // Check if there are any tables in the system
       const tablesCount = await database.userTable.count();
       if (tablesCount > 0) {
         return c.json({
           error: 'Table access required',
-          errors: { tableAccess: 'At least one table must be selected for token access' }
+          errors: { tableAccess: 'At least one valid table must be selected for token access' }
         }, 400);
       }
     }
@@ -52,7 +62,7 @@ app.post('/', adminWriteAuthMiddleware, zValidator('json', CreateTokenSchema), a
         isAdmin: tokenData.isAdmin || false, // Default: regular API tokens can only access /api/public/*
         allowedIps: tokenData.allowedIps || null,
         allowedDomains: tokenData.allowedDomains || null,
-        tableAccess: JSON.stringify(tokenData.tableAccess),
+        tableAccess: JSON.stringify(validTableAccess),
         expiresAt: tokenData.expiresAt ? new Date(tokenData.expiresAt) : null,
       },
       select: {

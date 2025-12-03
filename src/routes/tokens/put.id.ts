@@ -44,6 +44,31 @@ app.put('/:id', adminWriteAuthMiddleware, zValidator('json', UpdateTokenSchema),
       }
     }
 
+    // Filter tableAccess to only include existing tables
+    let validTableAccess: string[] | undefined;
+    if (tokenData.tableAccess !== undefined) {
+      if (tokenData.tableAccess.length > 0) {
+        const existingTables = await database.userTable.findMany({
+          where: { id: { in: tokenData.tableAccess } },
+          select: { id: true }
+        });
+        validTableAccess = existingTables.map(t => t.id);
+
+        // Require at least one valid table if tables exist in system
+        if (validTableAccess.length === 0) {
+          const tablesCount = await database.userTable.count();
+          if (tablesCount > 0) {
+            return c.json({
+              error: 'Table access required',
+              errors: { tableAccess: 'At least one valid table must be selected for token access' }
+            }, 400);
+          }
+        }
+      } else {
+        validTableAccess = [];
+      }
+    }
+
     const token = await database.token.update({
       where: { id },
       data: {
@@ -52,7 +77,7 @@ app.put('/:id', adminWriteAuthMiddleware, zValidator('json', UpdateTokenSchema),
         ...(tokenData.isAdmin !== undefined && { isAdmin: tokenData.isAdmin }),
         ...(tokenData.allowedIps !== undefined && { allowedIps: tokenData.allowedIps }),
         ...(tokenData.allowedDomains !== undefined && { allowedDomains: tokenData.allowedDomains }),
-        ...(tokenData.tableAccess !== undefined && { tableAccess: JSON.stringify(tokenData.tableAccess) }),
+        ...(validTableAccess !== undefined && { tableAccess: JSON.stringify(validTableAccess) }),
         ...(tokenData.expiresAt !== undefined && {
           expiresAt: tokenData.expiresAt ? new Date(tokenData.expiresAt) : null
         }),

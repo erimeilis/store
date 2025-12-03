@@ -510,8 +510,8 @@ export class TableDataRepository {
         // SQLite's json_extract returns the value at the given path
         let sql = `
             SELECT DISTINCT json_extract(data, '$.${columnName}') as value
-            FROM table_data
-            WHERE table_id = ?
+            FROM tableData
+            WHERE tableId = ?
             AND json_extract(data, '$.${columnName}') IS NOT NULL
             AND json_extract(data, '$.${columnName}') != ''
         `;
@@ -569,8 +569,8 @@ export class TableDataRepository {
 
         let sql = `
             SELECT DISTINCT json_extract(data, '$.${columnName}') as value
-            FROM table_data
-            WHERE table_id IN (${placeholders})
+            FROM tableData
+            WHERE tableId IN (${placeholders})
             AND json_extract(data, '$.${columnName}') IS NOT NULL
             AND json_extract(data, '$.${columnName}') != ''
         `;
