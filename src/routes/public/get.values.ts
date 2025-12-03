@@ -55,62 +55,91 @@ app.get('/values/:columnName', async (c) => {
     const allValues: Set<any> = new Set();
     const tablesSampled: string[] = [];
 
-    // Get accessible tables and collect values
-    const tablesToProcess: string[] = [];
+    // Get accessible tables with their info in a single query batch
+    interface TableInfo {
+      id: string;
+      name: string;
+      tableType: string;
+    }
+    const tablesToProcess: TableInfo[] = [];
 
     if (allowedTableIds === null) {
       // Unrestricted access - get all public sale/rent tables
       const result = await tableRepo.findAllPublicTables(1000);
       for (const table of result.tables) {
-        tablesToProcess.push(table.id);
+        tablesToProcess.push({
+          id: table.id,
+          name: table.name,
+          tableType: table.tableType
+        });
       }
     } else if (allowedTableIds.length > 0) {
-      // Token has explicit tableAccess
-      for (const tableId of allowedTableIds) {
-        const table = await tableRepo.findTableByIdInternal(tableId);
+      // Token has explicit tableAccess - fetch all tables in parallel
+      const tablePromises = allowedTableIds.map(tableId =>
+        tableRepo.findTableByIdInternal(tableId)
+      );
+      const tables = await Promise.all(tablePromises);
+
+      for (const table of tables) {
         if (table && isSupportedTableType(table.tableType)) {
-          tablesToProcess.push(tableId);
+          tablesToProcess.push({
+            id: table.id,
+            name: table.name,
+            tableType: table.tableType
+          });
         }
       }
     }
 
-    // Process each table
-    for (const tableId of tablesToProcess) {
-      const columns = await tableRepo.getTableColumns(tableId);
-      const columnNames = columns.map(col => col.name.toLowerCase());
+    // Fetch columns for all tables in parallel
+    const columnsPromises = tablesToProcess.map(t =>
+      tableRepo.getTableColumns(t.id).then(cols => ({ tableId: t.id, columns: cols }))
+    );
+    const allColumns = await Promise.all(columnsPromises);
+
+    // Build a map of tableId -> column names
+    const tableColumnsMap = new Map<string, string[]>();
+    for (const { tableId, columns } of allColumns) {
+      tableColumnsMap.set(tableId, columns.map(col => col.name.toLowerCase()));
+    }
+
+    // Filter tables that have the requested column and all filter columns
+    const eligibleTables = tablesToProcess.filter(t => {
+      const columnNames = tableColumnsMap.get(t.id) || [];
 
       // Check if table has the requested column
       if (!columnNames.includes(columnName.toLowerCase())) {
-        continue;
+        return false;
       }
 
       // Check if table has all filter columns
-      const hasAllFilterColumns = Object.keys(whereConditions).every(
+      return Object.keys(whereConditions).every(
         filterCol => columnNames.includes(filterCol.toLowerCase())
       );
-      if (!hasAllFilterColumns) {
-        continue;
-      }
+    });
 
-      // Get table data
-      const result = await dataRepo.findTableData(
-        tableId,
+    // Fetch data for eligible tables in parallel (with reasonable limit)
+    const dataPromises = eligibleTables.map(tableInfo =>
+      dataRepo.findTableData(
+        tableInfo.id,
         {}, // We'll filter in memory for flexibility
-        { page: 1, limit: 10000, offset: 0 }
-      );
+        { page: 1, limit: 5000, offset: 0 }
+      ).then(result => ({ tableInfo, data: result.data }))
+    );
 
-      const table = await tableRepo.findTableByIdInternal(tableId);
-      if (table) {
-        tablesSampled.push(table.name);
-      }
+    const allTableData = await Promise.all(dataPromises);
 
-      for (const row of result.data) {
-        const data = row.data as Record<string, any>;
+    // Process data from all tables
+    for (const { tableInfo, data } of allTableData) {
+      tablesSampled.push(tableInfo.name);
+
+      for (const row of data) {
+        const rowData = row.data as Record<string, any>;
 
         // Apply where conditions
         let matchesConditions = true;
         for (const [filterCol, filterValue] of Object.entries(whereConditions)) {
-          const actualValue = data[filterCol];
+          const actualValue = rowData[filterCol];
           if (String(actualValue).toLowerCase() !== String(filterValue).toLowerCase()) {
             matchesConditions = false;
             break;
@@ -118,7 +147,7 @@ app.get('/values/:columnName', async (c) => {
         }
 
         if (matchesConditions) {
-          const value = data[columnName];
+          const value = rowData[columnName];
           if (value !== undefined && value !== null && value !== '') {
             allValues.add(value);
           }
@@ -144,7 +173,8 @@ app.get('/values/:columnName', async (c) => {
 
   } catch (error) {
     console.error('Error fetching column values:', error);
-    return c.json({ error: 'Failed to fetch column values' }, 500);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return c.json({ error: 'Failed to fetch column values', details: errorMessage }, 500);
   }
 });
 

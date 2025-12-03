@@ -2,8 +2,7 @@ import { Hono } from 'hono';
 import type { Bindings } from '@/types/bindings.js';
 import type { UserContext } from '@/types/database.js';
 import { TableRepository } from '@/repositories/tableRepository.js';
-import { TableDataRepository } from '@/repositories/tableDataRepository.js';
-import { hasTableAccess, getAllowedTableIds, isSupportedTableType } from '@/utils/tableAccess.js';
+import { getAllowedTableIds, isSupportedTableType } from '@/utils/tableAccess.js';
 
 const app = new Hono<{
   Bindings: Bindings;
@@ -41,58 +40,74 @@ app.get('/tables/search', async (c) => {
     const matchingTables: any[] = [];
 
     // Get accessible tables based on token
+    interface TableInfo {
+      id: string;
+      name: string;
+      description: string | null;
+      tableType: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }
+    const tablesToProcess: TableInfo[] = [];
+
     if (allowedTableIds === null) {
       // Unrestricted access - get all public sale/rent tables
       const result = await tableRepo.findAllPublicTables(1000);
-
       for (const table of result.tables) {
-        const columns = await tableRepo.getTableColumns(table.id);
-        const columnNames = columns.map(col => col.name.toLowerCase());
+        tablesToProcess.push({
+          id: table.id,
+          name: table.name,
+          description: table.description,
+          tableType: table.tableType,
+          createdAt: table.createdAt,
+          updatedAt: table.updatedAt
+        });
+      }
+    } else if (allowedTableIds.length > 0) {
+      // Token has explicit tableAccess - fetch all tables in parallel
+      const tablePromises = allowedTableIds.map(tableId =>
+        tableRepo.findTableByIdInternal(tableId)
+      );
+      const tables = await Promise.all(tablePromises);
 
-        // Check if table has all required columns
-        const hasAllColumns = requiredColumns.every(reqCol => columnNames.includes(reqCol));
-
-        if (hasAllColumns) {
-          matchingTables.push({
+      for (const table of tables) {
+        if (table && isSupportedTableType(table.tableType)) {
+          tablesToProcess.push({
             id: table.id,
             name: table.name,
             description: table.description,
             tableType: table.tableType,
-            columns: columns.map(col => ({
-              name: col.name,
-              type: col.type
-            })),
             createdAt: table.createdAt,
             updatedAt: table.updatedAt
           });
         }
       }
-    } else if (allowedTableIds.length > 0) {
-      // Token has explicit tableAccess
-      for (const tableId of allowedTableIds) {
-        const table = await tableRepo.findTableByIdInternal(tableId);
-        if (!table || !isSupportedTableType(table.tableType)) continue;
+    }
 
-        const columns = await tableRepo.getTableColumns(table.id);
-        const columnNames = columns.map(col => col.name.toLowerCase());
+    // Fetch columns for all tables in parallel
+    const columnsPromises = tablesToProcess.map(table =>
+      tableRepo.getTableColumns(table.id).then(cols => ({ table, columns: cols }))
+    );
+    const allColumns = await Promise.all(columnsPromises);
 
-        // Check if table has all required columns
-        const hasAllColumns = requiredColumns.every(reqCol => columnNames.includes(reqCol));
+    // Check which tables have all required columns
+    for (const { table, columns } of allColumns) {
+      const columnNames = columns.map(col => col.name.toLowerCase());
+      const hasAllColumns = requiredColumns.every(reqCol => columnNames.includes(reqCol));
 
-        if (hasAllColumns) {
-          matchingTables.push({
-            id: table.id,
-            name: table.name,
-            description: table.description,
-            tableType: table.tableType,
-            columns: columns.map(col => ({
-              name: col.name,
-              type: col.type
-            })),
-            createdAt: table.createdAt,
-            updatedAt: table.updatedAt
-          });
-        }
+      if (hasAllColumns) {
+        matchingTables.push({
+          id: table.id,
+          name: table.name,
+          description: table.description,
+          tableType: table.tableType,
+          columns: columns.map(col => ({
+            name: col.name,
+            type: col.type
+          })),
+          createdAt: table.createdAt,
+          updatedAt: table.updatedAt
+        });
       }
     }
 
@@ -104,7 +119,8 @@ app.get('/tables/search', async (c) => {
 
   } catch (error) {
     console.error('Error searching tables by columns:', error);
-    return c.json({ error: 'Failed to search tables' }, 500);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return c.json({ error: 'Failed to search tables', details: errorMessage }, 500);
   }
 });
 
