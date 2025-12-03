@@ -1,6 +1,6 @@
 {
   "name": "store-api",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Serverless inventory management platform on Cloudflare's edge",
   "type": "module",
   "main": "src/index.ts",
@@ -50,6 +50,7 @@
     "@types/react-dom": "^19.2.3",
     "country-data-list": "^1.5.5",
     "hono": "^4.10.6",
+    "libphonenumber-js": "^1.12.31",
     "playwright": "^1.55.0",
     "prisma": "^6.19.0",
     "react": "^19.1.1",

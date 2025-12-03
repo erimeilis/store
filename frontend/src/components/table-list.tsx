@@ -381,7 +381,7 @@ export function TableList({
       const result = await generateDummyTables(user.id, 20, 50, 'rent')
 
       if (result.success) {
-        toast.success(`Success! Generated ${result.tablesCreated} FOR RENT tables with ${result.rowsCreated} total rows.`, {
+        toast.success(`Success! Generated ${result.tablesCreated} phone rental tables with ${result.rowsCreated} total rows.`, {
           duration: 5000
         })
         window.location.reload()
@@ -455,7 +455,7 @@ export function TableList({
                 ) : (
                   <>
                     <IconClockDollar className="h-4 w-4" />
-                    Generate 20 For Rent Tables
+                    Generate 20 Phone Rental Tables
                   </>
                 )}
               </button>
@@ -569,22 +569,22 @@ export function TableList({
         </dialog>
       )}
 
-      {/* Confirmation Modal for For-Rent Tables Generation */}
+      {/* Confirmation Modal for Phone Rental Tables Generation */}
       {showForRentConfirmModal && (
         <dialog id="confirm-forrent-modal" className="modal modal-open">
           <div className="modal-box">
             <h3 className="font-bold text-lg flex items-center gap-2">
               <IconClockDollar className="h-6 w-6 text-info" />
-              Confirm For-Rent Tables Generation
+              Confirm Phone Rental Tables Generation
             </h3>
             <p className="py-4">
-              This will generate <strong>20 tables marked "For Rent"</strong> with <strong>50 test records</strong> each.
+              This will generate <strong>20 phone number tables</strong> with <strong>50 test records</strong> each.
             </p>
             <p className="text-info text-sm">
-              ✓ This action will create a total of <strong>1,000 test records</strong> in your database.
+              ✓ This action will create a total of <strong>1,000 phone number records</strong> in your database.
             </p>
             <p className="text-secondary text-sm mt-2">
-              🔑 All generated tables will support rental operations (rent/release lifecycle).
+              🔑 All tables will be marked as "For Rent" and contain phone numbers with country/area info.
             </p>
             <div className="modal-action">
               <button
@@ -599,7 +599,7 @@ export function TableList({
                 className="btn btn-info"
                 disabled={isGeneratingForRent}
               >
-                {isGeneratingForRent ? 'Generating...' : 'Yes, Generate For-Rent Tables'}
+                {isGeneratingForRent ? 'Generating...' : 'Yes, Generate Phone Rental Tables'}
               </button>
             </div>
           </div>
