@@ -4,15 +4,24 @@ import type { UserContext } from '@/types/database.js';
 import { TableRepository } from '@/repositories/tableRepository.js';
 import { TableDataRepository } from '@/repositories/tableDataRepository.js';
 import { getAllowedTableIds, isSupportedTableType } from '@/utils/tableAccess.js';
+import { CacheService } from '@/utils/cache.js';
 
 const app = new Hono<{
   Bindings: Bindings;
   Variables: { user?: UserContext };
 }>();
 
+// Cache TTL in seconds (5 minutes)
+const CACHE_TTL = 300;
+
 /**
  * Get distinct values for a column across all accessible tables
  * GET /api/public/values/:columnName
+ *
+ * OPTIMIZATIONS:
+ * - Uses KV caching (5 min TTL) to avoid repeated DB queries
+ * - Uses SQL DISTINCT with json_extract() instead of fetching all rows
+ * - Single query across all eligible tables instead of per-table queries
  *
  * Returns all unique values for the specified column
  * Query params (optional):
@@ -49,13 +58,12 @@ app.get('/values/:columnName', async (c) => {
 
   const tableRepo = new TableRepository(c.env);
   const dataRepo = new TableDataRepository(c.env);
+  const cache = new CacheService(c.env, 'values');
 
   try {
     const allowedTableIds = getAllowedTableIds(user);
-    const allValues: Set<any> = new Set();
-    const tablesSampled: string[] = [];
 
-    // Get accessible tables with their info in a single query batch
+    // Get accessible tables with their info
     interface TableInfo {
       id: string;
       name: string;
@@ -91,7 +99,17 @@ app.get('/values/:columnName', async (c) => {
       }
     }
 
-    // Fetch columns for all tables in parallel
+    if (tablesToProcess.length === 0) {
+      return c.json({
+        column: columnName,
+        values: [],
+        count: 0,
+        filters: Object.keys(whereConditions).length > 0 ? whereConditions : undefined,
+        tablesSampled: []
+      });
+    }
+
+    // Fetch columns for all tables in parallel to check which have the requested column
     const columnsPromises = tablesToProcess.map(t =>
       tableRepo.getTableColumns(t.id).then(cols => ({ tableId: t.id, columns: cols }))
     );
@@ -118,57 +136,59 @@ app.get('/values/:columnName', async (c) => {
       );
     });
 
-    // Fetch data for eligible tables in parallel (with reasonable limit)
-    const dataPromises = eligibleTables.map(tableInfo =>
-      dataRepo.findTableData(
-        tableInfo.id,
-        {}, // We'll filter in memory for flexibility
-        { page: 1, limit: 5000, offset: 0 }
-      ).then(result => ({ tableInfo, data: result.data }))
-    );
-
-    const allTableData = await Promise.all(dataPromises);
-
-    // Process data from all tables
-    for (const { tableInfo, data } of allTableData) {
-      tablesSampled.push(tableInfo.name);
-
-      for (const row of data) {
-        const rowData = row.data as Record<string, any>;
-
-        // Apply where conditions
-        let matchesConditions = true;
-        for (const [filterCol, filterValue] of Object.entries(whereConditions)) {
-          const actualValue = rowData[filterCol];
-          if (String(actualValue).toLowerCase() !== String(filterValue).toLowerCase()) {
-            matchesConditions = false;
-            break;
-          }
-        }
-
-        if (matchesConditions) {
-          const value = rowData[columnName];
-          if (value !== undefined && value !== null && value !== '') {
-            allValues.add(value);
-          }
-        }
-      }
+    if (eligibleTables.length === 0) {
+      return c.json({
+        column: columnName,
+        values: [],
+        count: 0,
+        filters: Object.keys(whereConditions).length > 0 ? whereConditions : undefined,
+        tablesSampled: []
+      });
     }
 
-    // Convert Set to sorted array
-    const valuesArray = Array.from(allValues).sort((a, b) => {
+    const eligibleTableIds = eligibleTables.map(t => t.id);
+    const tablesSampled = eligibleTables.map(t => t.name);
+
+    // Generate cache key
+    const cacheKey = CacheService.columnValuesKey(columnName, eligibleTableIds, whereConditions);
+
+    // Try to get from cache first
+    const cachedValues = await cache.get<any[]>(cacheKey);
+    if (cachedValues !== null) {
+      return c.json({
+        column: columnName,
+        values: cachedValues,
+        count: cachedValues.length,
+        filters: Object.keys(whereConditions).length > 0 ? whereConditions : undefined,
+        tablesSampled,
+        cached: true
+      });
+    }
+
+    // Use optimized SQL DISTINCT query across all eligible tables
+    const distinctValues = await dataRepo.getDistinctColumnValuesMultiTable(
+      eligibleTableIds,
+      columnName,
+      whereConditions
+    );
+
+    // Sort the values
+    const sortedValues = distinctValues.sort((a, b) => {
       if (typeof a === 'number' && typeof b === 'number') {
         return a - b;
       }
       return String(a).localeCompare(String(b));
     });
 
+    // Cache the result
+    await cache.set(cacheKey, sortedValues, CACHE_TTL);
+
     return c.json({
       column: columnName,
-      values: valuesArray,
-      count: valuesArray.length,
+      values: sortedValues,
+      count: sortedValues.length,
       filters: Object.keys(whereConditions).length > 0 ? whereConditions : undefined,
-      tablesSampled: tablesSampled
+      tablesSampled
     });
 
   } catch (error) {
