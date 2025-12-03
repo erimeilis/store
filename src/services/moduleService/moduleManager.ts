@@ -244,7 +244,8 @@ export class ModuleManagerService implements ModuleManager {
         this.env,
         moduleId,
         module.version,
-        module.settings
+        module.settings,
+        this.repository
       )
       this.moduleContexts.set(moduleId, context)
 
@@ -491,7 +492,8 @@ export class ModuleManagerService implements ModuleManager {
           this.env,
           moduleId,
           toVersion,
-          module.settings
+          module.settings,
+          this.repository
         )
 
         if (instance.onUpgrade) {
@@ -573,7 +575,8 @@ export class ModuleManagerService implements ModuleManager {
         this.env,
         moduleId,
         module.version,
-        newSettings
+        newSettings,
+        this.repository
       )
       this.moduleContexts.set(moduleId, newContext)
     }

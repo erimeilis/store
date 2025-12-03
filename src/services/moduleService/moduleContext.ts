@@ -3,18 +3,42 @@ import type {
   ModuleContext,
   ModuleDatabase,
   ModuleCache,
+  ModuleStorage,
   ModuleHttp,
   ModuleLogger,
   ModuleEvents,
+  ModuleAnalyticsTracker,
+  StoragePutOptions,
+  StorageObject,
+  StorageListOptions,
+  StorageListResult,
 } from '@/types/modules.js'
+import { ModuleRepository } from '@/repositories/moduleRepository.js'
 
 /**
  * Event emitter for module events
  */
 class ModuleEventEmitter implements ModuleEvents {
   private handlers: Map<string, Set<(data: unknown) => void>> = new Map()
+  private moduleId: string
+  private repository: ModuleRepository | null
+
+  constructor(moduleId: string, repository: ModuleRepository | null) {
+    this.moduleId = moduleId
+    this.repository = repository
+  }
 
   emit(event: string, data?: unknown): void {
+    // Log event to database for persistence
+    if (this.repository) {
+      this.repository.logEvent(this.moduleId, 'settings_change', {
+        details: { customEvent: event, data },
+      }).catch(err => {
+        console.error(`Failed to log event ${event}:`, err)
+      })
+    }
+
+    // Dispatch to in-memory handlers
     const eventHandlers = this.handlers.get(event)
     if (eventHandlers) {
       eventHandlers.forEach(handler => {
@@ -48,7 +72,7 @@ class ModuleEventEmitter implements ModuleEvents {
  */
 function createModuleDatabase(env: Bindings, moduleId: string): ModuleDatabase {
   // Convert module ID to safe prefix: @store/phone-numbers -> modulePhoneNumbers
-  const prefix = moduleId
+  const _prefix = moduleId
     .replace(/^@\w+\//, '') // Remove @scope/
     .replace(/-([a-z])/g, (_, c) => c.toUpperCase()) // kebab-case to camelCase
     .replace(/^./, c => c.toUpperCase()) // Capitalize first letter
@@ -114,12 +138,140 @@ function createModuleCache(env: Bindings, moduleId: string): ModuleCache {
 }
 
 /**
+ * Create a storage interface for a module
+ * Uses R2 with module-prefixed keys
+ */
+function createModuleStorage(env: Bindings, moduleId: string): ModuleStorage {
+  const keyPrefix = `modules/${moduleId.replace(/^@\w+\//, '')}/files/`
+
+  return {
+    async put(key: string, data: ArrayBuffer | Blob | string, options?: StoragePutOptions): Promise<void> {
+      if (!env.BUCKET) {
+        throw new Error('Storage not available')
+      }
+
+      const fullKey = keyPrefix + key
+      const r2Options: R2PutOptions = {}
+
+      // Build httpMetadata only with defined values
+      const httpMetadata: R2HTTPMetadata = {}
+      if (options?.contentType) {
+        httpMetadata.contentType = options.contentType
+      }
+      if (options?.cacheControl) {
+        httpMetadata.cacheControl = options.cacheControl
+      }
+      if (Object.keys(httpMetadata).length > 0) {
+        r2Options.httpMetadata = httpMetadata
+      }
+
+      if (options?.metadata) {
+        r2Options.customMetadata = options.metadata
+      }
+
+      await env.BUCKET.put(fullKey, data, r2Options)
+    },
+
+    async get(key: string): Promise<StorageObject | null> {
+      if (!env.BUCKET) return null
+
+      const fullKey = keyPrefix + key
+      const object = await env.BUCKET.get(fullKey)
+
+      if (!object) return null
+
+      const result: StorageObject = {
+        key,
+        data: await object.arrayBuffer(),
+        contentType: object.httpMetadata?.contentType || 'application/octet-stream',
+        size: object.size,
+        etag: object.etag,
+        uploaded: object.uploaded,
+      }
+
+      if (object.customMetadata) {
+        result.metadata = object.customMetadata
+      }
+
+      return result
+    },
+
+    async delete(key: string): Promise<void> {
+      if (!env.BUCKET) return
+
+      const fullKey = keyPrefix + key
+      await env.BUCKET.delete(fullKey)
+    },
+
+    async list(options?: StorageListOptions): Promise<StorageListResult> {
+      if (!env.BUCKET) {
+        return { objects: [], truncated: false }
+      }
+
+      const fullPrefix = keyPrefix + (options?.prefix || '')
+      const listOptions: R2ListOptions = { prefix: fullPrefix }
+
+      if (options?.limit !== undefined) {
+        listOptions.limit = options.limit
+      }
+      if (options?.cursor !== undefined) {
+        listOptions.cursor = options.cursor
+      }
+
+      const result = await env.BUCKET.list(listOptions)
+
+      const listResult: StorageListResult = {
+        objects: result.objects.map(obj => ({
+          key: obj.key.slice(keyPrefix.length),
+          size: obj.size,
+          uploaded: obj.uploaded,
+        })),
+        truncated: result.truncated,
+      }
+
+      if (result.truncated && result.cursor) {
+        listResult.cursor = result.cursor
+      }
+
+      return listResult
+    },
+
+    getPublicUrl(key: string): string | null {
+      // This would need to be configured per environment
+      // For now, return null as R2 doesn't have built-in public URLs
+      // without custom domain configuration
+      if (!env.R2_PUBLIC_URL) return null
+      return `${env.R2_PUBLIC_URL}/${keyPrefix}${key}`
+    },
+  }
+}
+
+/**
  * Create an HTTP client for a module
  */
-function createModuleHttp(): ModuleHttp {
+function createModuleHttp(moduleId: string, logger: ModuleLogger): ModuleHttp {
   return {
     async fetch(url: string, options?: RequestInit): Promise<Response> {
-      return globalThis.fetch(url, options)
+      const startTime = Date.now()
+
+      try {
+        const response = await globalThis.fetch(url, {
+          ...options,
+          headers: {
+            ...options?.headers,
+            'X-Module-Id': moduleId,
+          },
+        })
+
+        const duration = Date.now() - startTime
+        logger.debug(`HTTP ${options?.method || 'GET'} ${url} - ${response.status} (${duration}ms)`)
+
+        return response
+      } catch (error) {
+        const duration = Date.now() - startTime
+        logger.error(`HTTP ${options?.method || 'GET'} ${url} - FAILED (${duration}ms)`, error)
+        throw error
+      }
     },
   }
 }
@@ -151,15 +303,58 @@ function createModuleLogger(moduleId: string): ModuleLogger {
 }
 
 /**
+ * Create an analytics tracker for a module
+ */
+function createModuleAnalyticsTracker(
+  moduleId: string,
+  repository: ModuleRepository | null
+): ModuleAnalyticsTracker {
+  // Store custom metrics in memory for batching
+  const customMetrics: Map<string, number> = new Map()
+
+  return {
+    async trackColumnTypeUsage(typeId: string): Promise<void> {
+      if (repository) {
+        await repository.recordColumnTypeUsage(moduleId, typeId)
+      }
+    },
+
+    async trackGeneratorInvocation(): Promise<void> {
+      if (repository) {
+        await repository.recordGeneratorInvocation(moduleId)
+      }
+    },
+
+    async trackApiCall(responseTimeMs: number): Promise<void> {
+      if (repository) {
+        await repository.recordApiCall(moduleId, responseTimeMs)
+      }
+    },
+
+    async trackCustomMetric(name: string, value: number): Promise<void> {
+      // Accumulate custom metrics
+      const current = customMetrics.get(name) || 0
+      customMetrics.set(name, current + value)
+
+      // In a production system, you'd want to batch these and flush periodically
+      // For now, we just track in memory
+    },
+  }
+}
+
+/**
  * Create a module execution context
  */
 export function createModuleContext(
   env: Bindings,
   moduleId: string,
   version: string,
-  settings: Record<string, unknown>
+  settings: Record<string, unknown>,
+  repository?: ModuleRepository
 ): ModuleContext {
   const isDevelopment = env.NODE_ENV === 'development'
+  const logger = createModuleLogger(moduleId)
+  const repo = repository || null
 
   return {
     moduleId,
@@ -167,9 +362,11 @@ export function createModuleContext(
     settings,
     db: createModuleDatabase(env, moduleId),
     cache: createModuleCache(env, moduleId),
-    http: createModuleHttp(),
-    logger: createModuleLogger(moduleId),
-    events: new ModuleEventEmitter(),
+    storage: createModuleStorage(env, moduleId),
+    http: createModuleHttp(moduleId, logger),
+    logger,
+    events: new ModuleEventEmitter(moduleId, repo),
+    analytics: createModuleAnalyticsTracker(moduleId, repo),
     env: {
       isDevelopment,
       isProduction: !isDevelopment,

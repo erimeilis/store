@@ -23,4 +23,7 @@ export type Bindings = {
   GOOGLE_CLIENT_SECRET?: string
   GOOGLE_API_KEY?: string
   GOOGLE_SHEETS_API_KEY?: string
+
+  // Storage
+  R2_PUBLIC_URL?: string
 }
