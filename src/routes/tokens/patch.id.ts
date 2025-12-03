@@ -29,7 +29,7 @@ app.patch('/:id', adminWriteAuthMiddleware, async (c) => {
     }
 
     // Validate specific field updates for inline editing
-    const allowedFields = ['name', 'permissions', 'isAdmin', 'allowedIps', 'allowedDomains', 'expiresAt'];
+    const allowedFields = ['name', 'permissions', 'isAdmin', 'allowedIps', 'allowedDomains', 'tableAccess', 'expiresAt'];
     const updateData: any = {};
 
     for (const [key, value] of Object.entries(updates)) {
@@ -52,7 +52,17 @@ app.patch('/:id', adminWriteAuthMiddleware, async (c) => {
         } else if (key === 'allowedIps' || key === 'allowedDomains') {
           updateData[key] = value || null;
         } else if (key === 'tableAccess') {
-          updateData[key] = value ? JSON.stringify(value) : null;
+          // Filter to only include existing tables
+          if (value && Array.isArray(value) && value.length > 0) {
+            const existingTables = await database.userTable.findMany({
+              where: { id: { in: value as string[] } },
+              select: { id: true }
+            });
+            const validTableIds = existingTables.map(t => t.id);
+            updateData[key] = validTableIds.length > 0 ? JSON.stringify(validTableIds) : null;
+          } else {
+            updateData[key] = null;
+          }
         } else if (key === 'expiresAt') {
           updateData[key] = value ? new Date(value as string) : null;
         }

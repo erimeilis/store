@@ -342,10 +342,10 @@ function generatePhoneTableColumns(existingNames: Set<string>, tableType: TableT
   })
   existingNames.add('incomingRateSms')
 
-  // Info columns
+  // Info columns - docs contains required document types (comma-separated)
   columns.push({
     name: 'docs',
-    type: 'url',
+    type: 'text',
     isRequired: false,
     allowDuplicates: true,
     position: position++
@@ -395,21 +395,146 @@ function generatePhoneDataRow(tableType: TableType = 'sale'): Record<string, any
     row.available = true
   }
 
-  // Generate phone number (just digits)
-  const countryCode = faker.helpers.arrayElement(['1', '44', '49', '33', '39', '34', '81', '86', '91', '7'])
-  const areaCode = faker.string.numeric(3)
+  // Generate phone number with real area codes per country (no RU)
+  // Each country has calling code, ISO code, and real areas with codes and cities
+  const countryData: Array<{
+    calling: string
+    iso: string
+    areas: Array<{ code: string; city: string }>
+  }> = [
+    { calling: '1', iso: 'US', areas: [
+      { code: '212', city: 'New York' }, { code: '310', city: 'Los Angeles' }, { code: '312', city: 'Chicago' },
+      { code: '415', city: 'San Francisco' }, { code: '305', city: 'Miami' }, { code: '713', city: 'Houston' },
+      { code: '206', city: 'Seattle' }, { code: '617', city: 'Boston' }, { code: '404', city: 'Atlanta' },
+    ]},
+    { calling: '44', iso: 'GB', areas: [
+      { code: '20', city: 'London' }, { code: '121', city: 'Birmingham' }, { code: '161', city: 'Manchester' },
+      { code: '141', city: 'Glasgow' }, { code: '113', city: 'Leeds' }, { code: '117', city: 'Bristol' },
+    ]},
+    { calling: '49', iso: 'DE', areas: [
+      { code: '30', city: 'Berlin' }, { code: '89', city: 'Munich' }, { code: '40', city: 'Hamburg' },
+      { code: '69', city: 'Frankfurt' }, { code: '221', city: 'Cologne' }, { code: '211', city: 'Dusseldorf' },
+    ]},
+    { calling: '33', iso: 'FR', areas: [
+      { code: '1', city: 'Paris' }, { code: '4', city: 'Lyon' }, { code: '4', city: 'Marseille' },
+      { code: '5', city: 'Bordeaux' }, { code: '3', city: 'Lille' }, { code: '2', city: 'Nantes' },
+    ]},
+    { calling: '39', iso: 'IT', areas: [
+      { code: '02', city: 'Milan' }, { code: '06', city: 'Rome' }, { code: '011', city: 'Turin' },
+      { code: '055', city: 'Florence' }, { code: '041', city: 'Venice' }, { code: '081', city: 'Naples' },
+    ]},
+    { calling: '34', iso: 'ES', areas: [
+      { code: '91', city: 'Madrid' }, { code: '93', city: 'Barcelona' }, { code: '96', city: 'Valencia' },
+      { code: '95', city: 'Seville' }, { code: '94', city: 'Bilbao' }, { code: '952', city: 'Malaga' },
+    ]},
+    { calling: '81', iso: 'JP', areas: [
+      { code: '3', city: 'Tokyo' }, { code: '6', city: 'Osaka' }, { code: '52', city: 'Nagoya' },
+      { code: '11', city: 'Sapporo' }, { code: '92', city: 'Fukuoka' }, { code: '78', city: 'Kobe' },
+    ]},
+    { calling: '86', iso: 'CN', areas: [
+      { code: '10', city: 'Beijing' }, { code: '21', city: 'Shanghai' }, { code: '20', city: 'Guangzhou' },
+      { code: '755', city: 'Shenzhen' }, { code: '28', city: 'Chengdu' }, { code: '571', city: 'Hangzhou' },
+    ]},
+    { calling: '91', iso: 'IN', areas: [
+      { code: '11', city: 'Delhi' }, { code: '22', city: 'Mumbai' }, { code: '80', city: 'Bangalore' },
+      { code: '44', city: 'Chennai' }, { code: '33', city: 'Kolkata' }, { code: '40', city: 'Hyderabad' },
+    ]},
+    { calling: '61', iso: 'AU', areas: [
+      { code: '2', city: 'Sydney' }, { code: '3', city: 'Melbourne' }, { code: '7', city: 'Brisbane' },
+      { code: '8', city: 'Perth' }, { code: '8', city: 'Adelaide' }, { code: '2', city: 'Canberra' },
+    ]},
+    { calling: '55', iso: 'BR', areas: [
+      { code: '11', city: 'Sao Paulo' }, { code: '21', city: 'Rio de Janeiro' }, { code: '31', city: 'Belo Horizonte' },
+      { code: '61', city: 'Brasilia' }, { code: '41', city: 'Curitiba' }, { code: '51', city: 'Porto Alegre' },
+    ]},
+    { calling: '52', iso: 'MX', areas: [
+      { code: '55', city: 'Mexico City' }, { code: '33', city: 'Guadalajara' }, { code: '81', city: 'Monterrey' },
+      { code: '222', city: 'Puebla' }, { code: '664', city: 'Tijuana' }, { code: '998', city: 'Cancun' },
+    ]},
+    { calling: '31', iso: 'NL', areas: [
+      { code: '20', city: 'Amsterdam' }, { code: '10', city: 'Rotterdam' }, { code: '70', city: 'The Hague' },
+      { code: '30', city: 'Utrecht' }, { code: '40', city: 'Eindhoven' },
+    ]},
+    { calling: '46', iso: 'SE', areas: [
+      { code: '8', city: 'Stockholm' }, { code: '31', city: 'Gothenburg' }, { code: '40', city: 'Malmo' },
+      { code: '18', city: 'Uppsala' }, { code: '90', city: 'Umea' },
+    ]},
+    { calling: '47', iso: 'NO', areas: [
+      { code: '22', city: 'Oslo' }, { code: '55', city: 'Bergen' }, { code: '73', city: 'Trondheim' },
+      { code: '51', city: 'Stavanger' },
+    ]},
+    { calling: '48', iso: 'PL', areas: [
+      { code: '22', city: 'Warsaw' }, { code: '12', city: 'Krakow' }, { code: '61', city: 'Poznan' },
+      { code: '71', city: 'Wroclaw' }, { code: '58', city: 'Gdansk' },
+    ]},
+    { calling: '41', iso: 'CH', areas: [
+      { code: '44', city: 'Zurich' }, { code: '22', city: 'Geneva' }, { code: '61', city: 'Basel' },
+      { code: '31', city: 'Bern' }, { code: '21', city: 'Lausanne' },
+    ]},
+    { calling: '43', iso: 'AT', areas: [
+      { code: '1', city: 'Vienna' }, { code: '316', city: 'Graz' }, { code: '732', city: 'Linz' },
+      { code: '662', city: 'Salzburg' }, { code: '512', city: 'Innsbruck' },
+    ]},
+    { calling: '32', iso: 'BE', areas: [
+      { code: '2', city: 'Brussels' }, { code: '3', city: 'Antwerp' }, { code: '9', city: 'Ghent' },
+      { code: '4', city: 'Liege' }, { code: '50', city: 'Bruges' },
+    ]},
+    { calling: '351', iso: 'PT', areas: [
+      { code: '21', city: 'Lisbon' }, { code: '22', city: 'Porto' }, { code: '239', city: 'Coimbra' },
+      { code: '289', city: 'Faro' },
+    ]},
+    { calling: '353', iso: 'IE', areas: [
+      { code: '1', city: 'Dublin' }, { code: '21', city: 'Cork' }, { code: '91', city: 'Galway' },
+      { code: '61', city: 'Limerick' },
+    ]},
+    { calling: '82', iso: 'KR', areas: [
+      { code: '2', city: 'Seoul' }, { code: '51', city: 'Busan' }, { code: '53', city: 'Daegu' },
+      { code: '32', city: 'Incheon' }, { code: '62', city: 'Gwangju' },
+    ]},
+    { calling: '65', iso: 'SG', areas: [
+      { code: '6', city: 'Singapore Central' }, { code: '6', city: 'Singapore East' },
+      { code: '6', city: 'Singapore West' }, { code: '6', city: 'Singapore North' },
+    ]},
+    { calling: '852', iso: 'HK', areas: [
+      { code: '2', city: 'Hong Kong Island' }, { code: '2', city: 'Kowloon' },
+      { code: '2', city: 'New Territories' },
+    ]},
+    { calling: '971', iso: 'AE', areas: [
+      { code: '4', city: 'Dubai' }, { code: '2', city: 'Abu Dhabi' }, { code: '6', city: 'Sharjah' },
+      { code: '7', city: 'Ras Al Khaimah' },
+    ]},
+    { calling: '972', iso: 'IL', areas: [
+      { code: '3', city: 'Tel Aviv' }, { code: '2', city: 'Jerusalem' }, { code: '4', city: 'Haifa' },
+      { code: '8', city: 'Beer Sheva' },
+    ]},
+    { calling: '64', iso: 'NZ', areas: [
+      { code: '9', city: 'Auckland' }, { code: '4', city: 'Wellington' }, { code: '3', city: 'Christchurch' },
+      { code: '7', city: 'Hamilton' },
+    ]},
+    { calling: '45', iso: 'DK', areas: [
+      { code: '33', city: 'Copenhagen' }, { code: '86', city: 'Aarhus' }, { code: '66', city: 'Odense' },
+      { code: '98', city: 'Aalborg' },
+    ]},
+    { calling: '358', iso: 'FI', areas: [
+      { code: '9', city: 'Helsinki' }, { code: '2', city: 'Turku' }, { code: '3', city: 'Tampere' },
+      { code: '8', city: 'Oulu' },
+    ]},
+    { calling: '420', iso: 'CZ', areas: [
+      { code: '2', city: 'Prague' }, { code: '5', city: 'Brno' }, { code: '69', city: 'Ostrava' },
+      { code: '37', city: 'Plzen' },
+    ]},
+  ]
+
+  // Pick random country, then random area within that country
+  const selectedCountry = faker.helpers.arrayElement(countryData)
+  const selectedArea = faker.helpers.arrayElement(selectedCountry.areas)
   const localNumber = faker.string.numeric(7)
-  row.number = `${countryCode}${areaCode}${localNumber}`
+  row.number = `${selectedCountry.calling}${selectedArea.code}${localNumber}`
 
-  // Country (use ISO code matching the country code when possible)
-  const countryMap: Record<string, string> = {
-    '1': 'US', '44': 'GB', '49': 'DE', '33': 'FR', '39': 'IT',
-    '34': 'ES', '81': 'JP', '86': 'CN', '91': 'IN', '7': 'RU'
-  }
-  row.country = countryMap[countryCode] || faker.location.countryCode('alpha-2')
+  row.country = selectedCountry.iso
 
-  // Area name
-  row.area = faker.location.city()
+  // Area name matches the selected area's city
+  row.area = selectedArea.city
 
   // Boolean features with realistic distribution
   const voice = faker.datatype.boolean(0.7) // 70% have voice
@@ -444,9 +569,13 @@ function generatePhoneDataRow(tableType: TableType = 'sale'): Record<string, any
     row.incomingRateSms = faker.commerce.price({ min: 0.01, max: 0.05, dec: 2 })
   }
 
-  // Documentation URL
-  if (faker.datatype.boolean(0.7)) {
-    row.docs = faker.internet.url()
+  // Required documents (comma-separated list or empty)
+  // Possible values: name-lastname, birth, phone-number, address, address-proof-city
+  if (faker.datatype.boolean(0.6)) {
+    const docTypes = ['name-lastname', 'birth', 'phone-number', 'address', 'address-proof-city']
+    const selectedCount = faker.number.int({ min: 1, max: 3 })
+    const selectedDocs = faker.helpers.arrayElements(docTypes, selectedCount)
+    row.docs = selectedDocs.join(', ')
   }
 
   // Description
@@ -720,7 +849,8 @@ export async function generateDummyTables(
         await database.tableColumn.createMany({ data: columnData })
 
         // Detect if this is a phone table by checking for phone-related name keywords
-        const isPhoneTable = /phone|virtual|did|voip|toll-?free|mobile|local/i.test(tableRequest.name)
+        // Includes rent-specific patterns: rental, temporary, short-term
+        const isPhoneTable = /phone|virtual|did|voip|toll-?free|mobile|local|rental|temporary|short-?term/i.test(tableRequest.name)
 
         if (isPhoneTable) {
           console.log(`📱 Creating phone table: ${tableRequest.name}`)
