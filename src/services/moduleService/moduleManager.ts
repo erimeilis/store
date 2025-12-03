@@ -777,3 +777,13 @@ export class ModuleManagerService implements ModuleManager {
     return false
   }
 }
+
+/**
+ * Factory function to create a module manager
+ */
+export function createModuleManager(
+  env: Bindings,
+  _repository?: ModuleRepository
+): ModuleManagerService {
+  return new ModuleManagerService(env)
+}
