@@ -143,11 +143,15 @@ export interface ModuleContext {
   // Core services
   db: ModuleDatabase
   cache: ModuleCache
+  storage: ModuleStorage
   http: ModuleHttp
   logger: ModuleLogger
 
   // Events
   events: ModuleEvents
+
+  // Analytics
+  analytics: ModuleAnalyticsTracker
 
   // Environment info
   env: {
@@ -201,6 +205,105 @@ export interface ModuleEvents {
   emit(event: string, data?: unknown): void
   on(event: string, handler: (data: unknown) => void): void
   off(event: string, handler: (data: unknown) => void): void
+}
+
+/**
+ * Storage interface for modules (R2-backed file storage)
+ */
+export interface ModuleStorage {
+  /**
+   * Upload a file to module storage
+   */
+  put(key: string, data: ArrayBuffer | Blob | string, options?: StoragePutOptions): Promise<void>
+
+  /**
+   * Get a file from module storage
+   */
+  get(key: string): Promise<StorageObject | null>
+
+  /**
+   * Delete a file from module storage
+   */
+  delete(key: string): Promise<void>
+
+  /**
+   * List files in module storage
+   */
+  list(options?: StorageListOptions): Promise<StorageListResult>
+
+  /**
+   * Get a public URL for a file (if bucket is configured for public access)
+   */
+  getPublicUrl(key: string): string | null
+}
+
+/**
+ * Options for storage put operation
+ */
+export interface StoragePutOptions {
+  contentType?: string
+  metadata?: Record<string, string>
+  cacheControl?: string
+}
+
+/**
+ * Storage object returned from get operation
+ */
+export interface StorageObject {
+  key: string
+  data: ArrayBuffer
+  contentType: string
+  size: number
+  etag: string
+  uploaded: Date
+  metadata?: Record<string, string>
+}
+
+/**
+ * Options for storage list operation
+ */
+export interface StorageListOptions {
+  prefix?: string
+  limit?: number
+  cursor?: string
+}
+
+/**
+ * Result of storage list operation
+ */
+export interface StorageListResult {
+  objects: Array<{
+    key: string
+    size: number
+    uploaded: Date
+  }>
+  truncated: boolean
+  cursor?: string
+}
+
+/**
+ * Analytics tracking for modules
+ */
+export interface ModuleAnalyticsTracker {
+  /**
+   * Track a column type being used
+   */
+  trackColumnTypeUsage(typeId: string): Promise<void>
+
+  /**
+   * Track a data generator being invoked
+   */
+  trackGeneratorInvocation(): Promise<void>
+
+  /**
+   * Track an API call
+   */
+  trackApiCall(responseTimeMs: number): Promise<void>
+
+  /**
+   * Track a custom metric
+   */
+  trackCustomMetric(name: string, value: number): Promise<void>
 }
 
 // ============================================================================
