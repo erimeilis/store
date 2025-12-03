@@ -5,6 +5,7 @@ import type { HonoVariables } from '@/types/hono.js';
 // Import individual route handlers
 import postGenerateDummyTables from './post.generate-dummy-tables.js';
 import getStats from './get.stats.js';
+import moduleRoutes from './modules/index.js';
 
 /**
  * Admin Routes
@@ -15,5 +16,6 @@ const app = new Hono<{ Bindings: Bindings; Variables: HonoVariables }>();
 // Mount routes
 app.route('/', postGenerateDummyTables);
 app.route('/', getStats);
+app.route('/modules', moduleRoutes);
 
 export default app;
