@@ -4,16 +4,20 @@
  * Store - Unified Deployment Script
  *
  * This script handles the complete deployment process:
+ * 0. Update wrangler to latest version
  * 1. Load environment variables from .env
  * 2. Generate wrangler.toml files from templates
- * 3. Upload secrets to Cloudflare
- * 4. Deploy workers
+ * 3. Scan modules (JSON manifests)
+ * 4. Apply database migrations to production (idempotent, uses IF NOT EXISTS)
+ * 5. Upload secrets to Cloudflare
+ * 6. Deploy workers
  *
  * Usage:
- *   node scripts/deploy.js              # Deploy both backend and frontend
- *   node scripts/deploy.js backend      # Deploy backend only
- *   node scripts/deploy.js frontend     # Deploy frontend only
- *   node scripts/deploy.js --dry-run    # Show what would be deployed
+ *   node scripts/deploy.js                    # Deploy both backend and frontend
+ *   node scripts/deploy.js backend            # Deploy backend only
+ *   node scripts/deploy.js frontend           # Deploy frontend only
+ *   node scripts/deploy.js --dry-run          # Show what would be deployed
+ *   node scripts/deploy.js --skip-migrations  # Skip database migrations
  */
 
 import { execSync, spawnSync } from 'child_process'
@@ -69,6 +73,27 @@ function exec(command, options = {}) {
       return error.stdout || ''
     }
     throw error
+  }
+}
+
+/**
+ * Update wrangler to latest version in all directories
+ */
+function updateWrangler() {
+  log('  Updating wrangler to latest version...', 'blue')
+
+  const directories = [
+    { name: 'root', path: ROOT_DIR },
+    { name: 'frontend', path: resolve(ROOT_DIR, 'frontend') },
+  ]
+
+  for (const dir of directories) {
+    try {
+      exec('npm update wrangler', { cwd: dir.path, silent: true })
+      logSuccess(`Updated wrangler in ${dir.name}`)
+    } catch (error) {
+      logWarning(`Failed to update wrangler in ${dir.name}: ${error.message}`)
+    }
   }
 }
 
@@ -315,6 +340,46 @@ function uploadFrontendSecrets(env, dryRun = false) {
 }
 
 /**
+ * Scan modules and generate manifest
+ * Modules are pure JSON - no compilation needed
+ */
+function scanModules(dryRun = false) {
+  if (dryRun) {
+    logSuccess('Would run: npm run scan:modules')
+    return true
+  }
+
+  try {
+    exec('npm run scan:modules', { silent: false })
+    logSuccess('Modules scanned successfully')
+    return true
+  } catch (error) {
+    logWarning(`Module scan failed: ${error.message}`)
+    return false
+  }
+}
+
+/**
+ * Apply database migrations to production
+ * Uses IF NOT EXISTS so migrations are idempotent and safe to re-run
+ */
+function applyMigrations(dryRun = false) {
+  if (dryRun) {
+    logSuccess('Would run: npm run db:migrate:prod')
+    return true
+  }
+
+  try {
+    exec('npm run db:migrate:prod', { silent: false })
+    logSuccess('Migrations applied successfully')
+    return true
+  } catch (error) {
+    logWarning(`Migration may have partially failed: ${error.message}`)
+    return true // Continue deployment - migrations are idempotent
+  }
+}
+
+/**
  * Deploy backend worker
  */
 function deployBackend(appVersion, dryRun = false) {
@@ -375,8 +440,10 @@ async function main() {
 
   const deployBackendFlag = !target || target === 'backend'
   const deployFrontendFlag = !target || target === 'frontend'
+  const skipMigrations = args.includes('--skip-migrations')
 
-  const totalSteps = (deployBackendFlag ? 2 : 0) + (deployFrontendFlag ? 2 : 0)
+  // Calculate total steps: config + modules + migrations (if backend) + secrets + deploy for each target
+  const totalSteps = 1 + (deployBackendFlag ? 1 : 0) + (deployBackendFlag && !skipMigrations ? 1 : 0) + (deployBackendFlag ? 2 : 0) + (deployFrontendFlag ? 2 : 0)
   let currentStep = 0
 
   log('\n========================================', 'bright')
@@ -385,6 +452,10 @@ async function main() {
     log('  (DRY RUN - no changes will be made)', 'yellow')
   }
   log('========================================\n', 'bright')
+
+  // Step 0: Update wrangler
+  logStep(0, totalSteps, 'Updating wrangler...')
+  updateWrangler()
 
   // Load environment
   const env = loadEnv()
@@ -406,10 +477,22 @@ async function main() {
 
   // Deploy backend
   if (deployBackendFlag) {
-    logStep(++currentStep, totalSteps + 1, 'Uploading backend secrets...')
+    // Scan modules (JSON manifests, no compilation needed)
+    logStep(++currentStep, totalSteps, 'Scanning modules...')
+    scanModules(dryRun)
+
+    // Apply database migrations BEFORE deploying new code
+    if (!skipMigrations) {
+      logStep(++currentStep, totalSteps, 'Applying database migrations...')
+      applyMigrations(dryRun)
+    } else {
+      logWarning('Skipping database migrations (--skip-migrations flag)')
+    }
+
+    logStep(++currentStep, totalSteps, 'Uploading backend secrets...')
     uploadBackendSecrets(env, dryRun)
 
-    logStep(++currentStep, totalSteps + 1, 'Deploying backend...')
+    logStep(++currentStep, totalSteps, 'Deploying backend...')
     if (!deployBackend(appVersion, dryRun)) {
       process.exit(1)
     }

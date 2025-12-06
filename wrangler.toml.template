@@ -78,23 +78,23 @@ workers_dev = true
 binding = "DB"
 database_name = "{{D1_PREVIEW_DATABASE_NAME}}"
 database_id = "{{D1_PREVIEW_DATABASE_ID}}"
-experimental_remote = true
+preview_database_id = "{{D1_PREVIEW_DATABASE_ID}}"
 
 [[env.preview.r2_buckets]]
 binding = "BUCKET"
 bucket_name = "{{R2_PREVIEW_BUCKET_NAME}}"
-experimental_remote = true
+preview_bucket_name = "{{R2_PREVIEW_BUCKET_NAME}}"
 
 [[env.preview.kv_namespaces]]
 binding = "KV"
 id = "{{KV_PREVIEW_NAMESPACE_ID}}"
-experimental_remote = true
+preview_id = "{{KV_PREVIEW_NAMESPACE_ID}}"
 
 [env.preview.vars]
 NODE_ENV = "preview"
 APP_VERSION = "{{APP_VERSION}}"
 API_URL = "http://localhost:8787"
-ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:8787"
+ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:8787,https://store-api-preview.eri-42e.workers.dev,https://store-frontend-preview.eri-42e.workers.dev"
 PAGE_SIZE = "{{PAGE_SIZE_PREVIEW}}"
 
 [env.preview.observability]
