@@ -1,4 +1,4 @@
-import Heading from '@/components/heading';
+import Heading from '@/components/page/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardActions, CardBody, CardTitle } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';

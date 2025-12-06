@@ -204,3 +204,91 @@ model TableData {
 
   @@map("tableData")
 }
+
+// ============================================================================
+// MODULE SYSTEM - Extension modules for custom column types and data generators
+// ============================================================================
+
+// InstalledModule - Tracks installed modules and their state
+model InstalledModule {
+  id          String    @id // Module ID (e.g., '@store/phone-numbers')
+  name        String // Package name
+  version     String // Semantic version
+  displayName String
+  description String?
+  author      String // JSON: { name, email?, url? }
+  source      String // JSON: { type, url?, version?, branch?, auth? }
+  status      String    @default("installed") // installing, installed, activating, active, deactivating, disabled, error, updating, uninstalling
+  manifest    String // Full manifest JSON
+  settings    String    @default("{}") // Module settings JSON
+  error       String? // Last error message
+  errorAt     DateTime? // When error occurred
+  installedAt DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  activatedAt DateTime? // When last activated
+
+  // Relationships
+  capabilities ModuleCapability[]
+  analytics    ModuleAnalytics?
+  events       ModuleEvent[]
+
+  @@map("installedModules")
+}
+
+// ModuleCapability - Index of what each module provides
+model ModuleCapability {
+  id         String   @id @default(cuid())
+  moduleId   String
+  type       String // 'columnType' | 'dataGenerator' | 'api'
+  identifier String // typeId, generatorId, or basePath
+  metadata   String? // Additional capability metadata JSON
+  createdAt  DateTime @default(now())
+
+  // Relationships
+  module InstalledModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([moduleId, type, identifier])
+  @@map("moduleCapabilities")
+}
+
+// ModuleAnalytics - Usage tracking (opt-out capable)
+model ModuleAnalytics {
+  id                    String   @id @default(cuid())
+  moduleId              String   @unique
+  installCount          Int      @default(1)
+  activationCount       Int      @default(0)
+  errorCount            Int      @default(0)
+  lastErrorMessage      String?
+  lastErrorAt           DateTime?
+  totalActivationTimeMs Int      @default(0)
+  totalApiCalls         Int      @default(0)
+  totalApiTimeMs        Int      @default(0)
+  columnTypeUsage       String   @default("{}") // JSON: { typeId: count }
+  generatorInvocations  Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relationships
+  module InstalledModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@map("moduleAnalytics")
+}
+
+// ModuleEvent - Audit log for module lifecycle events
+model ModuleEvent {
+  id              String   @id @default(cuid())
+  moduleId        String
+  eventType       String // 'install' | 'activate' | 'deactivate' | 'update' | 'uninstall' | 'error' | 'settings_change' | 'reload'
+  previousVersion String?
+  newVersion      String?
+  previousStatus  String?
+  newStatus       String?
+  details         String? // Additional JSON details
+  createdBy       String? // User who triggered event
+  createdAt       DateTime @default(now())
+
+  // Relationships
+  module InstalledModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@map("moduleEvents")
+}

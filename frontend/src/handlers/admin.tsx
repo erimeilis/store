@@ -3,6 +3,72 @@
  * Handles admin-only operations like dummy data generation
  */
 
+/**
+ * Table generator definition from the API
+ */
+export interface TableGenerator {
+  id: string
+  displayName: string
+  description: string
+  icon?: string
+  category?: string
+  tableType: 'sale' | 'rent' | 'default'
+  defaultTableCount: number
+  defaultRowCount: number
+  color?: 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'error'
+  customGenerator?: boolean
+  moduleId?: string
+  moduleName?: string
+}
+
+interface TableGeneratorsResponse {
+  data: TableGenerator[]
+  meta: {
+    builtInCount: number
+    moduleCount: number
+    totalCount: number
+  }
+}
+
+/**
+ * Fetch available table generators from the API
+ */
+export async function fetchTableGenerators(): Promise<{
+  success: true
+  generators: TableGenerator[]
+  meta: { builtInCount: number; moduleCount: number; totalCount: number }
+} | { success: false; error: string }> {
+  try {
+    const response = await fetch('/api/schema/table-generators', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    const data = await response.json() as TableGeneratorsResponse
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: 'Failed to fetch table generators'
+      }
+    }
+
+    return {
+      success: true,
+      generators: data.data,
+      meta: data.meta
+    }
+  } catch (error) {
+    console.error('Error fetching table generators:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error'
+    }
+  }
+}
+
 interface GenerateDummyTablesResponse {
   message?: string
   tablesCreated: number

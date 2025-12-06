@@ -1,0 +1,29 @@
+{
+  "name": "@store/phone-numbers",
+  "version": "1.0.0",
+  "description": "Phone number column types and data generators for Store",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "store-module.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "store",
+    "module",
+    "phone-numbers",
+    "did",
+    "telecom"
+  ],
+  "author": "Store Team",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

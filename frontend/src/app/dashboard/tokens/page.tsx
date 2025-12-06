@@ -2,6 +2,8 @@ import React from 'react';
 import { ModelList, IColumnDefinition } from '@/components/model/model-list';
 import { IPaginatedResponse } from '@/types/models';
 import { formatApiDate } from '@/lib/date-utils';
+import { PageHeader, createBreadcrumbs } from '@/components/page/page-header';
+import { IconKey } from '@tabler/icons-react';
 
 // Token interface based on the Prisma schema
 interface Token {
@@ -198,6 +200,12 @@ export default function TokensPage({
 
   return (
     <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={createBreadcrumbs.section('API Tokens')}
+        icon={IconKey}
+        title="API Tokens"
+        subtitle="Manage API authentication tokens"
+      />
       <ModelList<Token>
         title="API Tokens"
         items={{

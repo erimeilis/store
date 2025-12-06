@@ -1,6 +1,6 @@
 import { Select } from '@/components/ui/select';
 import { IModel } from '@/types/models';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { InlineEditComponentProps } from '@/components/model/model-list/types';
 
 export function SelectEditComponent<T extends IModel>({
@@ -15,6 +15,19 @@ export function SelectEditComponent<T extends IModel>({
     onSetIsClickingSaveButton,
 }: InlineEditComponentProps<T>) {
     if (!column.editOptions) return null;
+
+    // Group options by group field if any options have groups
+    const groupedOptions = useMemo(() => {
+        const hasGroups = column.editOptions?.some(opt => opt.group);
+        if (!hasGroups) return null;
+
+        return column.editOptions!.reduce((acc, opt) => {
+            const group = opt.group || '__default__';
+            if (!acc[group]) acc[group] = [];
+            acc[group].push(opt);
+            return acc;
+        }, {} as Record<string, typeof column.editOptions>);
+    }, [column.editOptions]);
 
     const handleSelectChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newValue = e.target.value;
@@ -42,11 +55,34 @@ export function SelectEditComponent<T extends IModel>({
             autoFocus
         >
             <option value="">Select...</option>
-            {column.editOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                    {option.label}
-                </option>
-            ))}
+            {groupedOptions ? (
+                // Render with optgroups
+                Object.entries(groupedOptions).map(([groupName, options]) => (
+                    groupName === '__default__' ? (
+                        // Options without a group - render directly
+                        options!.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))
+                    ) : (
+                        <optgroup key={groupName} label={groupName}>
+                            {options!.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </optgroup>
+                    )
+                ))
+            ) : (
+                // Flat options without groups
+                column.editOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                        {option.label}
+                    </option>
+                ))
+            )}
         </Select>
     );
 }

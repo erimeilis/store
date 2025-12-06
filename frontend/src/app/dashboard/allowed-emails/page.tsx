@@ -2,6 +2,8 @@ import React from 'react';
 import { ModelList, IColumnDefinition } from '@/components/model/model-list';
 import { IPaginatedResponse } from '@/types/models';
 import { formatApiDate } from '@/lib/date-utils';
+import { PageHeader, createBreadcrumbs } from '@/components/page/page-header';
+import { IconMail } from '@tabler/icons-react';
 
 // AllowedEmail interface based on the Prisma schema
 interface AllowedEmail {
@@ -113,15 +115,22 @@ const allowedEmailMassActions = [
   }
 ];
 
-export default function AllowedEmailsPage({ 
-  allowedEmails, 
-  filters 
-}: { 
-  allowedEmails?: IPaginatedResponse<AllowedEmail> | null, 
-  filters?: { sort?: string, direction?: 'asc' | 'desc' } 
+export default function AllowedEmailsPage({
+  allowedEmails,
+  filters
+}: {
+  allowedEmails?: IPaginatedResponse<AllowedEmail> | null,
+  filters?: { sort?: string, direction?: 'asc' | 'desc' }
 }) {
   return (
-    <ModelList<AllowedEmail>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={createBreadcrumbs.section('Allowed Emails')}
+        icon={IconMail}
+        title="Allowed Emails"
+        subtitle="Manage access control whitelist for user authentication"
+      />
+      <ModelList<AllowedEmail>
       title="Allowed Emails"
       items={allowedEmails || null}
       filters={filters || {}}
@@ -135,5 +144,6 @@ export default function AllowedEmailsPage({
       dataEndpoint="/api/allowed-emails"
       compactPagination={true}
     />
+    </div>
   );
 }
