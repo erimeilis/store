@@ -7,8 +7,8 @@
 
 import React, {useEffect, useState} from 'react'
 import {Card, CardBody, CardTitle} from '@/components/ui/card'
-import {TableImportManager} from '@/components/table-import-manager'
-import {TablePageHeader} from '@/components/table-page-header'
+import {TableImportManager} from '@/components/tables/import-manager'
+import {TablePageHeader} from '@/components/tables/page-header'
 import {TableSchema} from '@/types/dynamic-tables'
 import {clientApiRequest} from '@/lib/client-api'
 import {Alert} from '@/components/ui/alert'
@@ -47,7 +47,7 @@ export default function ImportPage({params}: ImportPageProps) {
 
     if (isLoading) {
         return (
-            <div className="container mx-auto sm:p-4">
+            <div className="space-y-6">
                 <div className="flex justify-center items-center h-64">
                     <span className="loading loading-spinner loading-lg"></span>
                 </div>
@@ -57,7 +57,7 @@ export default function ImportPage({params}: ImportPageProps) {
 
     if (error || !schema) {
         return (
-            <div className="container mx-auto sm:p-4">
+            <div className="space-y-6">
                 <Alert color="error">
                     {error || 'Failed to load table data'}
                 </Alert>
@@ -66,7 +66,7 @@ export default function ImportPage({params}: ImportPageProps) {
     }
 
     return (
-        <div className="container mx-auto sm:p-4">
+        <div className="space-y-6">
             <TablePageHeader
                 subtitle={<>Upload and import data into <strong className="truncate">{schema.table.name}</strong></>}
                 description={schema.table.description || undefined}

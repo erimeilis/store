@@ -1,0 +1,104 @@
+[
+  {
+    "path": "modules/phone-numbers",
+    "manifest": {
+      "id": "@store/phone-numbers",
+      "name": "Phone Numbers",
+      "version": "1.0.0",
+      "description": "Phone number column types and data generators for telecommunications data",
+      "icon": "phone",
+      "author": {
+        "name": "Store Team",
+        "email": "team@store.app"
+      },
+      "license": "MIT",
+      "engines": {
+        "store": ">=1.0.0",
+        "moduleApi": "v1"
+      },
+      "capabilities": [
+        {
+          "type": "columnType",
+          "typeId": "did"
+        },
+        {
+          "type": "columnType",
+          "typeId": "phone"
+        },
+        {
+          "type": "columnType",
+          "typeId": "carrier"
+        },
+        {
+          "type": "dataGenerator",
+          "generatorId": "phone-number"
+        },
+        {
+          "type": "dataGenerator",
+          "generatorId": "did-number"
+        }
+      ],
+      "settings": [
+        {
+          "id": "defaultCountry",
+          "type": "select",
+          "displayName": "Default Country",
+          "description": "Default country code for phone number generation",
+          "default": "US",
+          "options": [
+            {
+              "value": "US",
+              "label": "United States (+1)"
+            },
+            {
+              "value": "GB",
+              "label": "United Kingdom (+44)"
+            },
+            {
+              "value": "DE",
+              "label": "Germany (+49)"
+            },
+            {
+              "value": "FR",
+              "label": "France (+33)"
+            },
+            {
+              "value": "AU",
+              "label": "Australia (+61)"
+            },
+            {
+              "value": "JP",
+              "label": "Japan (+81)"
+            }
+          ]
+        },
+        {
+          "id": "formatStyle",
+          "type": "select",
+          "displayName": "Format Style",
+          "description": "How phone numbers should be formatted",
+          "default": "international",
+          "options": [
+            {
+              "value": "international",
+              "label": "International (+1 555-123-4567)"
+            },
+            {
+              "value": "national",
+              "label": "National ((555) 123-4567)"
+            },
+            {
+              "value": "e164",
+              "label": "E.164 (+15551234567)"
+            }
+          ]
+        }
+      ],
+      "main": "dist/index.js",
+      "trust": {
+        "official": true,
+        "verified": true
+      }
+    }
+  }
+]

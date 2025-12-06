@@ -8,9 +8,9 @@
 import React, {useEffect, useState} from 'react'
 import {Button} from '@/components/ui/button'
 import {Alert} from '@/components/ui/alert'
-import {TableInfoForm, TableInfoData} from '@/components/table-info-form'
-import {TableTypeConversionDialog} from '@/components/table-type-conversion-dialog'
-import {TablePageHeader} from '@/components/table-page-header'
+import {TableInfoForm, TableInfoData} from '@/components/tables/info-form'
+import {TableTypeConversionDialog} from '@/components/tables/type-conversion-dialog'
+import {TablePageHeader} from '@/components/tables/page-header'
 import {TableSchema, UpdateTableRequest, TableType, RentalPeriod, TypeChangeApplyRequest} from '@/types/dynamic-tables'
 import {clientApiRequest} from '@/lib/client-api'
 
@@ -271,7 +271,7 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
 
     if (isLoading) {
         return (
-            <div className="container mx-auto sm:p-4">
+            <div className="space-y-6">
                 <div className="flex justify-center items-center h-64">
                     <span className="loading loading-spinner loading-lg"></span>
                 </div>
@@ -280,7 +280,7 @@ export default function TableEditPage({tableSchema = null, tableId}: TableEditPa
     }
 
     return (
-        <div className="container mx-auto sm:p-4">
+        <div className="space-y-6">
             <TablePageHeader
                 subtitle="Update table information and e-commerce settings"
                 tableId={tableId || ''}

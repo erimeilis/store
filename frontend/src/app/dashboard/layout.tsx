@@ -8,7 +8,7 @@ import { LayoutProps } from '@/types/layout'
 import { Navbar, NavbarBrand } from '@/components/ui/navbar'
 import { Button } from '@/components/ui/button'
 import { HorizontalMenu, MenuItem, MenuDetails } from '@/components/ui/menu'
-import { IconLogout, IconLayoutDashboard, IconUsers, IconKey, IconMail, IconBox, IconUser, IconTable, IconApi, IconMenu2, IconX, IconShoppingCart, IconHelpCircle } from '@tabler/icons-react'
+import { IconLogout, IconLayoutDashboard, IconUsers, IconKey, IconMail, IconBox, IconUser, IconTable, IconApi, IconMenu2, IconX, IconShoppingCart, IconHelpCircle, IconPlug } from '@tabler/icons-react'
 import { useThemeStore } from '@/stores/useThemeStore'
 
 interface DashboardLayoutProps extends LayoutProps {
@@ -113,6 +113,12 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                 href="/dashboard/users"
               >
                 Users
+              </MenuItem>
+              <MenuItem
+                icon={IconPlug}
+                href="/dashboard/modules"
+              >
+                Modules
               </MenuItem>
               <MenuDetails
                 summary="Security"
@@ -302,6 +308,14 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                 >
                   <IconUsers size={20} />
                   <span>Users</span>
+                </a>
+                <a
+                  href="/dashboard/modules"
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300 transition-colors"
+                >
+                  <IconPlug size={20} />
+                  <span>Modules</span>
                 </a>
 
                 {/* Security Section */}
