@@ -22,10 +22,6 @@ import {
   IconClock,
   IconColumns,
   IconWand,
-  IconApi,
-  IconPackage,
-  IconExternalLink,
-  IconBrandGit,
   IconLicense,
   IconUser,
 } from '@tabler/icons-react'
@@ -35,14 +31,12 @@ import type {
   ModuleEvent,
   ModuleAnalytics,
   ModuleSettingDefinition,
-  ModuleCapability,
   ModuleStatus,
   PaginatedModuleEventsResponse,
 } from '@/types/modules'
 import {
   moduleStatusBadgeVariant,
   moduleStatusLabel,
-  capabilityLabel,
 } from '@/types/modules'
 import { formatApiDate } from '@/lib/date-utils'
 
@@ -53,26 +47,6 @@ interface ModuleDetailPageProps {
   moduleId: string
   apiUrl?: string
   apiToken?: string
-}
-
-function getCapabilityIcon(type: string) {
-  switch (type) {
-    case 'columnType':
-      return <IconColumns size={16} />
-    case 'dataGenerator':
-      return <IconWand size={16} />
-    case 'api':
-      return <IconApi size={16} />
-    default:
-      return <IconPackage size={16} />
-  }
-}
-
-function getCapabilityId(cap: ModuleCapability): string | undefined {
-  if (cap.type === 'columnType') return cap.typeId
-  if (cap.type === 'dataGenerator') return cap.generatorId
-  if (cap.type === 'api') return cap.basePath
-  return undefined
 }
 
 function getEventIcon(eventType: string) {
@@ -517,22 +491,34 @@ export default function ModuleDetailPage({
           <CardBody>
             <CardTitle className="text-sm mb-3">Capabilities</CardTitle>
             <div className="space-y-2">
-              {moduleData.manifest.capabilities.map((cap: ModuleCapability, idx: number) => {
-                const capId = getCapabilityId(cap)
-                return (
-                  <div key={idx} className="flex items-center gap-2">
-                    {getCapabilityIcon(cap.type)}
-                    <span className="text-sm">
-                      {capabilityLabel[cap.type]}
-                      {capId && (
-                        <span className="text-base-content/60 ml-1">
-                          ({capId})
-                        </span>
-                      )}
+              {/* Column Types */}
+              {moduleData.manifest.columnTypes?.map((ct) => (
+                <div key={`ct-${ct.id}`} className="flex items-center gap-2">
+                  <IconColumns size={16} />
+                  <span className="text-sm">
+                    Column Type
+                    <span className="text-base-content/60 ml-1">
+                      ({ct.displayName})
                     </span>
-                  </div>
-                )
-              })}
+                  </span>
+                </div>
+              ))}
+              {/* Table Generators */}
+              {moduleData.manifest.tableGenerators?.map((tg) => (
+                <div key={`tg-${tg.id}`} className="flex items-center gap-2">
+                  <IconWand size={16} />
+                  <span className="text-sm">
+                    Table Generator
+                    <span className="text-base-content/60 ml-1">
+                      ({tg.displayName})
+                    </span>
+                  </span>
+                </div>
+              ))}
+              {/* No capabilities */}
+              {!moduleData.manifest.columnTypes?.length && !moduleData.manifest.tableGenerators?.length && (
+                <span className="text-sm text-base-content/60">No capabilities defined</span>
+              )}
             </div>
           </CardBody>
         </Card>
@@ -553,29 +539,6 @@ export default function ModuleDetailPage({
                   <IconLicense size={14} className="text-base-content/50" />
                   {moduleData.manifest.license}
                 </div>
-              )}
-              {moduleData.manifest.repository && (
-                <a
-                  href={moduleData.manifest.repository}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-primary hover:underline"
-                >
-                  <IconBrandGit size={14} />
-                  Repository
-                  <IconExternalLink size={12} />
-                </a>
-              )}
-              {moduleData.manifest.homepage && (
-                <a
-                  href={moduleData.manifest.homepage}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-primary hover:underline"
-                >
-                  <IconExternalLink size={14} />
-                  Homepage
-                </a>
               )}
             </div>
           </CardBody>

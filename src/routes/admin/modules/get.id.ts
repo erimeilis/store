@@ -20,17 +20,22 @@ app.get('/:id', adminOnlyMiddleware, async (c) => {
       return c.json({ error: 'Module not found' }, 404)
     }
 
-    const [analytics, capabilities, events] = await Promise.all([
+    const [analytics, events] = await Promise.all([
       repository.getAnalytics(moduleId),
-      repository.getCapabilities(moduleId),
       repository.getEvents(moduleId, { limit: 10 }),
     ])
+
+    // Derive capabilities from manifest
+    const capabilities = {
+      columnTypes: module.manifest.columnTypes?.map(ct => ct.id) || [],
+      tableGenerators: module.manifest.tableGenerators?.map(tg => tg.id) || [],
+    }
 
     return c.json({
       id: module.id,
       name: module.name,
       version: module.version,
-      displayName: module.displayName,
+      displayName: module.displayName || module.manifest.name,
       description: module.description,
       author: module.author,
       source: module.source,

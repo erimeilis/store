@@ -3,13 +3,19 @@ import type { Bindings } from '@/types/bindings.js'
 import type {
   InstalledModule,
   ModuleStatus,
-  ModuleCapabilityDeclaration,
   ModuleManifest,
   ModuleSource,
   ModuleAuthor,
   ModuleAnalytics,
 } from '@/types/modules.js'
 import type { PrismaClient } from '@prisma/client'
+
+// KV key prefixes for module storage
+const KV_PREFIX_MANIFEST = 'module:manifest:'
+const KV_PREFIX_DATA = 'module:data:'
+
+// Cache TTL for manifests (1 week - they rarely change)
+const MANIFEST_CACHE_TTL = 60 * 60 * 24 * 7
 
 /**
  * Database row type for installed modules
@@ -18,7 +24,7 @@ interface InstalledModuleRow {
   id: string
   name: string
   version: string
-  displayName: string
+  displayName?: string | null
   description: string | null
   author: string
   source: string
@@ -30,18 +36,6 @@ interface InstalledModuleRow {
   installedAt: Date
   updatedAt: Date
   activatedAt: Date | null
-}
-
-/**
- * Database row type for module capabilities
- */
-interface ModuleCapabilityRow {
-  id: string
-  moduleId: string
-  type: string
-  identifier: string
-  metadata: string | null
-  createdAt: Date
 }
 
 /**
@@ -66,12 +60,126 @@ interface ModuleAnalyticsRow {
 
 /**
  * Repository for module operations
+ * Uses D1 for metadata/queries and KV for fast manifest access
  */
 export class ModuleRepository {
   private prisma: PrismaClient
+  private kv: KVNamespace
+  private r2: R2Bucket
 
   constructor(env: Bindings) {
     this.prisma = getPrismaClient(env)
+    this.kv = env.KV
+    this.r2 = env.BUCKET
+  }
+
+  // ============================================================================
+  // KV CACHE OPERATIONS - Fast manifest access
+  // ============================================================================
+
+  /**
+   * Get manifest from KV cache
+   */
+  async getManifestFromKV(moduleId: string): Promise<ModuleManifest | null> {
+    const key = `${KV_PREFIX_MANIFEST}${moduleId}`
+    const cached = await this.kv.get(key, 'json')
+    return cached as ModuleManifest | null
+  }
+
+  /**
+   * Save manifest to KV cache
+   */
+  async saveManifestToKV(moduleId: string, manifest: ModuleManifest): Promise<void> {
+    const key = `${KV_PREFIX_MANIFEST}${moduleId}`
+    await this.kv.put(key, JSON.stringify(manifest), {
+      expirationTtl: MANIFEST_CACHE_TTL,
+    })
+  }
+
+  /**
+   * Delete manifest from KV cache
+   */
+  async deleteManifestFromKV(moduleId: string): Promise<void> {
+    const key = `${KV_PREFIX_MANIFEST}${moduleId}`
+    await this.kv.delete(key)
+  }
+
+  /**
+   * Get manifest with KV-first strategy
+   * Returns from KV cache if available, otherwise fetches from D1 and caches
+   */
+  async getManifest(moduleId: string): Promise<ModuleManifest | null> {
+    // Try KV first (fast path)
+    const cached = await this.getManifestFromKV(moduleId)
+    if (cached) {
+      return cached
+    }
+
+    // Fallback to D1
+    const module = await this.get(moduleId)
+    if (!module) {
+      return null
+    }
+
+    // Cache in KV for next time
+    await this.saveManifestToKV(moduleId, module.manifest)
+    return module.manifest
+  }
+
+  /**
+   * Get all active module manifests from KV/D1
+   * Optimized for cold starts - tries KV first
+   */
+  async getActiveManifests(): Promise<Map<string, ModuleManifest>> {
+    const manifests = new Map<string, ModuleManifest>()
+
+    // Get list of active modules from D1 (just IDs)
+    const activeModules = await this.findByStatus('active')
+
+    // Fetch manifests - try KV first for each
+    for (const module of activeModules) {
+      const manifest = await this.getManifest(module.id)
+      if (manifest) {
+        manifests.set(module.id, manifest)
+      }
+    }
+
+    return manifests
+  }
+
+  // ============================================================================
+  // R2 OPERATIONS - Large module data storage
+  // ============================================================================
+
+  /**
+   * Store large module data in R2
+   */
+  async storeModuleData(moduleId: string, filename: string, data: ArrayBuffer | string): Promise<string> {
+    const key = `modules/${moduleId}/data/${filename}`
+    await this.r2.put(key, data)
+    return key
+  }
+
+  /**
+   * Get module data from R2
+   */
+  async getModuleData(moduleId: string, filename: string): Promise<ArrayBuffer | null> {
+    const key = `modules/${moduleId}/data/${filename}`
+    const object = await this.r2.get(key)
+    if (!object) return null
+    return object.arrayBuffer()
+  }
+
+  /**
+   * Delete module data from R2
+   */
+  async deleteModuleData(moduleId: string): Promise<void> {
+    const prefix = `modules/${moduleId}/`
+    const listed = await this.r2.list({ prefix })
+
+    for (const object of listed.objects) {
+      await this.r2.delete(object.key)
+    }
   }
 
   // ============================================================================
@@ -100,14 +208,16 @@ export class ModuleRepository {
 
   /**
    * Add a new installed module
+   * Stores metadata in D1 and manifest in KV for fast access
    */
   async add(module: InstalledModule): Promise<void> {
+    // Store in D1
     await this.prisma.installedModule.create({
       data: {
         id: module.id,
         name: module.name,
         version: module.version,
-        displayName: module.displayName,
+        displayName: module.manifest.name, // Use manifest name as displayName
         description: module.description || null,
         author: JSON.stringify(module.author),
         source: JSON.stringify(module.source),
@@ -122,10 +232,8 @@ export class ModuleRepository {
       },
     })
 
-    // Add capabilities
-    if (module.manifest.capabilities.length > 0) {
-      await this.syncCapabilities(module.id, module.manifest.capabilities)
-    }
+    // Cache manifest in KV for fast access
+    await this.saveManifestToKV(module.id, module.manifest)
 
     // Initialize analytics
     await this.initializeAnalytics(module.id)
@@ -133,39 +241,51 @@ export class ModuleRepository {
 
   /**
    * Remove a module
+   * Cleans up from D1, KV cache, and R2 data storage
    */
   async remove(moduleId: string): Promise<void> {
+    // Remove from D1
     await this.prisma.installedModule.delete({
       where: { id: moduleId },
     })
+
+    // Remove from KV cache
+    await this.deleteManifestFromKV(moduleId)
+
+    // Remove any R2 data files
+    await this.deleteModuleData(moduleId)
   }
 
   /**
    * Update a module
+   * Also syncs manifest to KV if manifest is updated
    */
   async update(moduleId: string, updates: Partial<InstalledModule>): Promise<void> {
     const data: Record<string, unknown> = {}
 
     if (updates.version !== undefined) data.version = updates.version
-    if (updates.displayName !== undefined) data.displayName = updates.displayName
     if (updates.description !== undefined) data.description = updates.description
     if (updates.author !== undefined) data.author = JSON.stringify(updates.author)
     if (updates.source !== undefined) data.source = JSON.stringify(updates.source)
     if (updates.status !== undefined) data.status = updates.status
-    if (updates.manifest !== undefined) data.manifest = JSON.stringify(updates.manifest)
+    if (updates.manifest !== undefined) {
+      data.manifest = JSON.stringify(updates.manifest)
+      data.displayName = updates.manifest.name // Sync displayName with manifest
+    }
     if (updates.settings !== undefined) data.settings = JSON.stringify(updates.settings)
     if (updates.error !== undefined) data.error = updates.error
     if (updates.errorAt !== undefined) data.errorAt = updates.errorAt
     if (updates.activatedAt !== undefined) data.activatedAt = updates.activatedAt
 
+    // Update in D1
     await this.prisma.installedModule.update({
       where: { id: moduleId },
       data,
     })
 
-    // Sync capabilities if manifest was updated
+    // Sync manifest to KV if it was updated
     if (updates.manifest) {
-      await this.syncCapabilities(moduleId, updates.manifest.capabilities)
+      await this.saveManifestToKV(moduleId, updates.manifest)
     }
   }
 
@@ -185,56 +305,18 @@ export class ModuleRepository {
   }
 
   /**
-   * Find modules by capability
-   */
-  async findByCapability(capability: ModuleCapabilityDeclaration): Promise<InstalledModule[]> {
-    const capabilities = await this.prisma.moduleCapability.findMany({
-      where: {
-        type: capability.type,
-        identifier: 'typeId' in capability ? capability.typeId :
-                    'generatorId' in capability ? capability.generatorId :
-                    capability.basePath,
-      },
-      include: {
-        module: true,
-      },
-    })
-
-    return capabilities.map(cap => this.mapRowToModule(cap.module as InstalledModuleRow))
-  }
-
-  /**
    * Get the module that provides a specific column type
+   * Searches through active module manifests for the column type
    */
   async getColumnTypeProvider(typeId: string): Promise<InstalledModule | null> {
-    const capability = await this.prisma.moduleCapability.findFirst({
-      where: {
-        type: 'columnType',
-        identifier: typeId,
-      },
-      include: {
-        module: true,
-      },
-    })
+    // Parse typeId which is in format 'moduleId:columnTypeId'
+    const colonIndex = typeId.indexOf(':')
+    if (colonIndex === -1) {
+      return null // Not a module-provided column type
+    }
 
-    return capability ? this.mapRowToModule(capability.module as InstalledModuleRow) : null
-  }
-
-  /**
-   * Get the module that provides a specific data generator
-   */
-  async getDataGeneratorProvider(generatorId: string): Promise<InstalledModule | null> {
-    const capability = await this.prisma.moduleCapability.findFirst({
-      where: {
-        type: 'dataGenerator',
-        identifier: generatorId,
-      },
-      include: {
-        module: true,
-      },
-    })
-
-    return capability ? this.mapRowToModule(capability.module as InstalledModuleRow) : null
+    const moduleId = typeId.substring(0, colonIndex)
+    return this.get(moduleId)
   }
 
   /**
@@ -242,89 +324,6 @@ export class ModuleRepository {
    */
   async getActiveModules(): Promise<InstalledModule[]> {
     return this.findByStatus('active')
-  }
-
-  // ============================================================================
-  // CAPABILITIES
-  // ============================================================================
-
-  /**
-   * Sync capabilities for a module
-   */
-  private async syncCapabilities(
-    moduleId: string,
-    capabilities: ModuleCapabilityDeclaration[]
-  ): Promise<void> {
-    // Delete existing capabilities
-    await this.prisma.moduleCapability.deleteMany({
-      where: { moduleId },
-    })
-
-    // Add new capabilities
-    if (capabilities.length > 0) {
-      await this.prisma.moduleCapability.createMany({
-        data: capabilities.map(cap => ({
-          moduleId,
-          type: cap.type,
-          identifier: 'typeId' in cap ? cap.typeId :
-                      'generatorId' in cap ? cap.generatorId :
-                      cap.basePath,
-        })),
-      })
-    }
-  }
-
-  /**
-   * Get all capabilities for a module
-   */
-  async getCapabilities(moduleId: string): Promise<ModuleCapabilityDeclaration[]> {
-    const rows = await this.prisma.moduleCapability.findMany({
-      where: { moduleId },
-    })
-
-    return rows.map(row => {
-      if (row.type === 'columnType') {
-        return { type: 'columnType' as const, typeId: row.identifier }
-      } else if (row.type === 'dataGenerator') {
-        return { type: 'dataGenerator' as const, generatorId: row.identifier }
-      } else {
-        return { type: 'api' as const, basePath: row.identifier }
-      }
-    })
-  }
-
-  /**
-   * Get all registered column types across all active modules
-   */
-  async getAllColumnTypes(): Promise<Array<{ moduleId: string; typeId: string }>> {
-    const capabilities = await this.prisma.moduleCapability.findMany({
-      where: {
-        type: 'columnType',
-        module: { status: 'active' },
-      },
-    })
-
-    return capabilities.map(cap => ({
-      moduleId: cap.moduleId,
-      typeId: cap.identifier,
-    }))
-  }
-
-  /**
-   * Get all registered data generators across all active modules
-   */
-  async getAllDataGenerators(): Promise<Array<{ moduleId: string; generatorId: string }>> {
-    const capabilities = await this.prisma.moduleCapability.findMany({
-      where: {
-        type: 'dataGenerator',
-        module: { status: 'active' },
-      },
-    })
-
-    return capabilities.map(cap => ({
-      moduleId: cap.moduleId,
-      generatorId: cap.identifier,
-    }))
   }
 
   // ============================================================================

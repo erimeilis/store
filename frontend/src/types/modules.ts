@@ -1,6 +1,7 @@
 /**
  * Frontend Module System Types
  * MUST match backend src/types/modules.ts exactly!
+ * JSON-Only Architecture - modules are pure configuration
  */
 
 import type { PaginatedResponse } from './models'
@@ -12,20 +13,7 @@ import type { PaginatedResponse } from './models'
 /**
  * Module status - matches backend ModuleStatus
  */
-export type ModuleStatus = 'installed' | 'active' | 'disabled' | 'error'
-
-/**
- * Module capability types
- */
-export type ModuleCapabilityType = 'columnType' | 'dataGenerator' | 'api'
-
-/**
- * Capability declaration - matches backend ModuleCapabilityDeclaration
- */
-export type ModuleCapability =
-  | { type: 'columnType'; typeId: string }
-  | { type: 'dataGenerator'; generatorId: string }
-  | { type: 'api'; basePath: string }
+export type ModuleStatus = 'installing' | 'installed' | 'active' | 'disabled' | 'error' | 'updating' | 'uninstalling'
 
 /**
  * Module author - matches backend ModuleAuthor
@@ -40,15 +28,38 @@ export interface ModuleAuthor {
  * Module source - matches backend ModuleSource
  */
 export interface ModuleSource {
-  type: 'npm' | 'url' | 'local'
-  package?: string
-  version?: string
-  url?: string
+  type: 'local' | 'url' | 'upload'
   path?: string
+  url?: string
+  manifest?: ModuleManifest // For upload sources - the manifest content directly
 }
 
 /**
- * Module manifest - matches backend ModuleManifest
+ * Column type definition from module manifest
+ */
+export interface ColumnTypeDefinition {
+  id: string
+  displayName: string
+  description?: string
+  icon?: string
+  category?: string
+  baseType: 'string' | 'number' | 'boolean' | 'json'
+}
+
+/**
+ * Table generator definition from module manifest
+ */
+export interface TableGeneratorDefinition {
+  id: string
+  displayName: string
+  description?: string
+  icon?: string
+  category?: string
+  tableType: 'sale' | 'rent' | 'default'
+}
+
+/**
+ * Module manifest - matches backend ModuleManifest (JSON-only)
  */
 export interface ModuleManifest {
   id: string
@@ -58,21 +69,18 @@ export interface ModuleManifest {
   icon?: string
   author: ModuleAuthor
   license?: string
-  repository?: string
-  homepage?: string
   engines: {
     store: string
     moduleApi: 'v1'
   }
-  capabilities: ModuleCapability[]
-  dependencies?: Record<string, string>
   settings?: ModuleSettingDefinition[]
-  main: string
   trust?: {
     official?: boolean
     verified?: boolean
   }
-  permissions?: string[]
+  // JSON-only capabilities
+  columnTypes?: ColumnTypeDefinition[]
+  tableGenerators?: TableGeneratorDefinition[]
 }
 
 /**
@@ -95,7 +103,7 @@ export interface InstalledModule {
   id: string
   name: string
   version: string
-  displayName: string
+  displayName?: string | null
   description: string
   author: ModuleAuthor
   source: ModuleSource
@@ -189,27 +197,24 @@ export type PaginatedModuleEventsResponse = PaginatedResponse<ModuleEvent>
  * Status badge color mapping
  */
 export const moduleStatusBadgeVariant: Record<ModuleStatus, string> = {
+  installing: 'badge-info',
   installed: 'badge-secondary',
   active: 'badge-success',
   disabled: 'badge-ghost',
   error: 'badge-error',
+  updating: 'badge-warning',
+  uninstalling: 'badge-warning',
 }
 
 /**
  * Status display labels
  */
 export const moduleStatusLabel: Record<ModuleStatus, string> = {
+  installing: 'Installing',
   installed: 'Installed',
   active: 'Active',
   disabled: 'Disabled',
   error: 'Error',
-}
-
-/**
- * Capability display labels
- */
-export const capabilityLabel: Record<ModuleCapabilityType, string> = {
-  columnType: 'Column Type',
-  dataGenerator: 'Data Generator',
-  api: 'API Extension',
+  updating: 'Updating',
+  uninstalling: 'Uninstalling',
 }

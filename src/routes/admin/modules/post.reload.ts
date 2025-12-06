@@ -2,7 +2,6 @@ import { Hono } from 'hono'
 import type { Bindings } from '@/types/bindings.js'
 import type { HonoVariables } from '@/types/hono.js'
 import { adminOnlyMiddleware } from '@/middleware/admin.js'
-import { ModuleRepository } from '@/repositories/moduleRepository.js'
 import { createModuleManager } from '@/services/moduleService/moduleManager.js'
 
 const app = new Hono<{ Bindings: Bindings; Variables: HonoVariables }>()
@@ -13,11 +12,10 @@ const app = new Hono<{ Bindings: Bindings; Variables: HonoVariables }>()
  */
 app.post('/reload', adminOnlyMiddleware, async (c) => {
   try {
-    const repository = new ModuleRepository(c.env)
-    const manager = createModuleManager(c.env, repository)
+    const manager = createModuleManager(c.env)
 
     // Get all active modules
-    const activeModules = await repository.findByStatus('active')
+    const activeModules = await manager.registry.findByStatus('active')
 
     if (activeModules.length === 0) {
       return c.json({

@@ -222,6 +222,7 @@ custom_domain = true`
 
   const replacements = {
     '{{KV_NAMESPACE_ID}}': env.KV_NAMESPACE_ID || '',
+    '{{KV_PREVIEW_NAMESPACE_ID}}': env.KV_PREVIEW_NAMESPACE_ID || '',
     '{{KV_FRONTEND_DEV_ID}}': env.KV_FRONTEND_DEV_ID || env.KV_PREVIEW_NAMESPACE_ID || '',
     '{{API_URL}}': env.API_DOMAIN ? `https://${env.API_DOMAIN}` : '',
     '{{FRONTEND_URL}}': env.FRONTEND_DOMAIN ? `https://${env.FRONTEND_DOMAIN}` : '',
@@ -239,7 +240,7 @@ custom_domain = true`
  * Generate backend .dev.vars (secrets for Wrangler)
  * In dev mode, loads tokens from token-manager files
  */
-function generateBackendDevVars(env, forDev = false) {
+function generateBackendDevVars(env, forDev = false, tokenEnv = 'local') {
   log('\n🔐 Generating backend .dev.vars...', 'cyan')
 
   const outputPath = resolve(ROOT_DIR, '.dev.vars')
@@ -247,7 +248,7 @@ function generateBackendDevVars(env, forDev = false) {
 
   // In dev mode, load tokens from token-manager (single source of truth)
   if (forDev) {
-    const tokens = loadTokensFromManager('local')
+    const tokens = loadTokensFromManager(tokenEnv)
     if (tokens) {
       secrets.push(`ADMIN_ACCESS_TOKEN=${tokens.adminToken}`)
       secrets.push(`FRONTEND_ACCESS_TOKEN=${tokens.frontendToken}`)
@@ -277,7 +278,7 @@ ${secrets.join('\n')}
  * Generate frontend .dev.vars (secrets for Wrangler)
  * In dev mode, loads tokens from token-manager files
  */
-function generateFrontendDevVars(env, forDev = false) {
+function generateFrontendDevVars(env, forDev = false, tokenEnv = 'local') {
   log('\n🔐 Generating frontend .dev.vars...', 'cyan')
 
   const outputPath = resolve(ROOT_DIR, 'frontend/.dev.vars')
@@ -285,7 +286,7 @@ function generateFrontendDevVars(env, forDev = false) {
 
   // In dev mode, load tokens from token-manager (single source of truth)
   if (forDev) {
-    const tokens = loadTokensFromManager('local')
+    const tokens = loadTokensFromManager(tokenEnv)
     if (tokens) {
       secrets.push(`FRONTEND_ACCESS_TOKEN=${tokens.frontendToken}`)
       secrets.push(`ADMIN_ACCESS_TOKEN=${tokens.adminToken}`)  // Needed for API proxy
@@ -343,12 +344,14 @@ function validateEnv(env) {
 function main() {
   const args = process.argv.slice(2)
   const forDev = args.includes('--dev')
+  const forPreview = args.includes('--preview')
+  const tokenEnv = forPreview ? 'preview' : 'local'
   const target = args.find(arg => !arg.startsWith('--')) // backend, frontend, or empty for both
 
   log('\n========================================', 'bright')
   log('  Store - Config Generator', 'bright')
   if (forDev) {
-    log('  (Dev Mode - using .env.local overrides)', 'yellow')
+    log(`  (Dev Mode - ${forPreview ? 'preview' : 'local'} tokens)`, 'yellow')
   }
   log('========================================', 'bright')
 
@@ -363,12 +366,12 @@ function main() {
 
   if (!target || target === 'backend') {
     success = generateBackendConfig(env) && success
-    success = generateBackendDevVars(env, forDev) && success
+    success = generateBackendDevVars(env, forDev, tokenEnv) && success
   }
 
   if (!target || target === 'frontend') {
     success = generateFrontendConfig(env) && success
-    success = generateFrontendDevVars(env, forDev) && success
+    success = generateFrontendDevVars(env, forDev, tokenEnv) && success
   }
 
   if (success) {

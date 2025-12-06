@@ -3,7 +3,6 @@ import type { Bindings } from '@/types/bindings.js'
 import type { HonoVariables } from '@/types/hono.js'
 import type { ModuleSource } from '@/types/modules.js'
 import { adminOnlyMiddleware } from '@/middleware/admin.js'
-import { ModuleRepository } from '@/repositories/moduleRepository.js'
 import { createModuleManager } from '@/services/moduleService/moduleManager.js'
 
 const app = new Hono<{ Bindings: Bindings; Variables: HonoVariables }>()
@@ -27,7 +26,7 @@ app.post('/install', adminOnlyMiddleware, async (c) => {
       return c.json({ error: 'Source with type is required' }, 400)
     }
 
-    const validTypes = ['npm', 'git', 'url', 'local', 'upload']
+    const validTypes: ModuleSource['type'][] = ['url', 'local', 'upload']
     if (!validTypes.includes(source.type)) {
       return c.json({
         error: 'Invalid source type',
@@ -36,18 +35,14 @@ app.post('/install', adminOnlyMiddleware, async (c) => {
     }
 
     // Validate required fields based on source type
-    if (source.type === 'npm' && !source.package) {
-      return c.json({ error: 'Package name is required for npm source' }, 400)
-    }
-    if ((source.type === 'git' || source.type === 'url') && !source.url) {
-      return c.json({ error: 'URL is required for this source type' }, 400)
+    if (source.type === 'url' && !source.url) {
+      return c.json({ error: 'URL is required for url source type' }, 400)
     }
     if (source.type === 'local' && !source.path) {
       return c.json({ error: 'Path is required for local source' }, 400)
     }
 
-    const repository = new ModuleRepository(c.env)
-    const manager = createModuleManager(c.env, repository)
+    const manager = createModuleManager(c.env)
 
     // Install the module
     const result = await manager.install(source)
@@ -63,14 +58,14 @@ app.post('/install', adminOnlyMiddleware, async (c) => {
     if (activate && result.moduleId) {
       try {
         await manager.activate(result.moduleId)
-        const updated = await repository.get(result.moduleId)
+        const updated = await manager.registry.get(result.moduleId)
         return c.json({
           message: 'Module installed and activated successfully',
           module: updated,
         }, 201)
       } catch (activateError) {
         // Module installed but activation failed
-        const installed = await repository.get(result.moduleId)
+        const installed = await manager.registry.get(result.moduleId)
         return c.json({
           message: 'Module installed but activation failed',
           module: installed,
@@ -79,7 +74,7 @@ app.post('/install', adminOnlyMiddleware, async (c) => {
       }
     }
 
-    const installed = await repository.get(result.moduleId)
+    const installed = await manager.registry.get(result.moduleId)
     return c.json({
       message: 'Module installed successfully',
       module: installed,
