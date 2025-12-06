@@ -2,7 +2,6 @@ import { Hono } from 'hono'
 import type { Bindings } from '@/types/bindings.js'
 import type { HonoVariables } from '@/types/hono.js'
 import { adminOnlyMiddleware } from '@/middleware/admin.js'
-import { ModuleRepository } from '@/repositories/moduleRepository.js'
 import { createModuleManager } from '@/services/moduleService/moduleManager.js'
 
 const app = new Hono<{ Bindings: Bindings; Variables: HonoVariables }>()
@@ -16,11 +15,10 @@ app.delete('/:id', adminOnlyMiddleware, async (c) => {
     const moduleId = decodeURIComponent(c.req.param('id'))
     const force = c.req.query('force') === 'true'
 
-    const repository = new ModuleRepository(c.env)
-    const manager = createModuleManager(c.env, repository)
+    const manager = createModuleManager(c.env)
 
     // Check if module exists
-    const module = await repository.get(moduleId)
+    const module = await manager.registry.get(moduleId)
     if (!module) {
       return c.json({ error: 'Module not found' }, 404)
     }

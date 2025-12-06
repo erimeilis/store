@@ -5,7 +5,7 @@
       "id": "@store/phone-numbers",
       "name": "Phone Numbers",
       "version": "1.0.0",
-      "description": "Phone number column types and data generators for telecommunications data",
+      "description": "Phone rental table columns for DID management, pricing, and provider integration",
       "icon": "phone",
       "author": {
         "name": "Store Team",
@@ -16,34 +16,16 @@
         "store": ">=1.0.0",
         "moduleApi": "v1"
       },
-      "capabilities": [
-        {
-          "type": "columnType",
-          "typeId": "did"
-        },
-        {
-          "type": "columnType",
-          "typeId": "phone"
-        },
-        {
-          "type": "columnType",
-          "typeId": "carrier"
-        },
-        {
-          "type": "dataGenerator",
-          "generatorId": "phone-number"
-        },
-        {
-          "type": "dataGenerator",
-          "generatorId": "did-number"
-        }
-      ],
+      "trust": {
+        "official": true,
+        "verified": true
+      },
       "settings": [
         {
           "id": "defaultCountry",
           "type": "select",
           "displayName": "Default Country",
-          "description": "Default country code for phone number generation",
+          "description": "Default country for phone number validation and formatting",
           "default": "US",
           "options": [
             {
@@ -73,32 +55,271 @@
           ]
         },
         {
-          "id": "formatStyle",
-          "type": "select",
-          "displayName": "Format Style",
-          "description": "How phone numbers should be formatted",
-          "default": "international",
+          "id": "providersApiUrl",
+          "type": "string",
+          "displayName": "Providers API URL",
+          "description": "API endpoint to fetch provider list",
+          "default": "/api/providers"
+        },
+        {
+          "id": "docsApiUrl",
+          "type": "string",
+          "displayName": "Documentation API URL",
+          "description": "API endpoint to fetch provider documentation",
+          "default": "/api/docs"
+        }
+      ],
+      "columnTypes": [
+        {
+          "id": "phone",
+          "displayName": "Phone Number",
+          "description": "Phone number with E.164 validation and formatting",
+          "icon": "phone",
+          "category": "Telecom",
+          "baseType": "string",
+          "validation": {
+            "handler": "phone",
+            "allowExtension": false
+          },
+          "format": {
+            "handler": "phone",
+            "style": "international"
+          },
           "options": [
             {
-              "value": "international",
-              "label": "International (+1 555-123-4567)"
+              "id": "country",
+              "type": "select",
+              "displayName": "Country",
+              "default": "US",
+              "options": [
+                {
+                  "value": "US",
+                  "label": "United States"
+                },
+                {
+                  "value": "GB",
+                  "label": "United Kingdom"
+                },
+                {
+                  "value": "DE",
+                  "label": "Germany"
+                },
+                {
+                  "value": "FR",
+                  "label": "France"
+                },
+                {
+                  "value": "AU",
+                  "label": "Australia"
+                },
+                {
+                  "value": "JP",
+                  "label": "Japan"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "voice",
+          "displayName": "Voice",
+          "description": "Indicates if number supports voice calls",
+          "icon": "phone-call",
+          "category": "Telecom",
+          "baseType": "boolean",
+          "default": true,
+          "format": {
+            "handler": "boolean",
+            "trueLabel": "Yes",
+            "falseLabel": "No"
+          }
+        },
+        {
+          "id": "sms",
+          "displayName": "SMS",
+          "description": "Indicates if number supports SMS messaging",
+          "icon": "message",
+          "category": "Telecom",
+          "baseType": "boolean",
+          "default": true,
+          "format": {
+            "handler": "boolean",
+            "trueLabel": "Yes",
+            "falseLabel": "No"
+          }
+        },
+        {
+          "id": "tollfree",
+          "displayName": "Toll-Free",
+          "description": "Indicates if number is toll-free",
+          "icon": "coin-off",
+          "category": "Telecom",
+          "baseType": "boolean",
+          "default": false,
+          "format": {
+            "handler": "boolean",
+            "trueLabel": "Yes",
+            "falseLabel": "No"
+          }
+        },
+        {
+          "id": "incoming_per_minute",
+          "displayName": "Incoming $/min",
+          "description": "Price per minute for incoming calls",
+          "icon": "currency-dollar",
+          "category": "Pricing",
+          "baseType": "number",
+          "default": 0,
+          "validation": {
+            "handler": "range",
+            "min": 0
+          },
+          "format": {
+            "handler": "currency",
+            "currency": "USD",
+            "decimals": 4
+          }
+        },
+        {
+          "id": "incoming_sms_price",
+          "displayName": "Incoming SMS $",
+          "description": "Price per incoming SMS message",
+          "icon": "currency-dollar",
+          "category": "Pricing",
+          "baseType": "number",
+          "default": 0,
+          "validation": {
+            "handler": "range",
+            "min": 0
+          },
+          "format": {
+            "handler": "currency",
+            "currency": "USD",
+            "decimals": 4
+          }
+        },
+        {
+          "id": "provider",
+          "displayName": "Provider",
+          "description": "Telecom provider/carrier",
+          "icon": "building",
+          "category": "Telecom",
+          "baseType": "string",
+          "source": {
+            "type": "api",
+            "endpoint": "/api/providers",
+            "valueField": "id",
+            "labelField": "name",
+            "cache": "24h"
+          }
+        },
+        {
+          "id": "docs",
+          "displayName": "Documentation",
+          "description": "Provider documentation and requirements",
+          "icon": "file-text",
+          "category": "Reference",
+          "baseType": "json",
+          "source": {
+            "type": "api",
+            "endpoint": "/api/docs",
+            "cache": "1h"
+          },
+          "format": {
+            "handler": "json",
+            "pretty": true
+          }
+        }
+      ],
+      "tableGenerators": [
+        {
+          "id": "phone-rental-tables",
+          "displayName": "Phone Rental Tables",
+          "description": "Generate rental tables with phone numbers, pricing, and provider data",
+          "icon": "phone",
+          "category": "Telecom",
+          "tableType": "rent",
+          "defaultTableCount": 20,
+          "defaultRowCount": 50,
+          "color": "info",
+          "columns": [
+            {
+              "name": "phone",
+              "displayName": "Phone Number",
+              "type": "phone",
+              "required": true,
+              "generate": {
+                "handler": "faker",
+                "method": "phone.number"
+              }
             },
             {
-              "value": "national",
-              "label": "National ((555) 123-4567)"
+              "name": "voice",
+              "displayName": "Voice",
+              "type": "voice",
+              "generate": {
+                "handler": "random-boolean",
+                "probability": 0.9
+              }
             },
             {
-              "value": "e164",
-              "label": "E.164 (+15551234567)"
+              "name": "sms",
+              "displayName": "SMS",
+              "type": "sms",
+              "generate": {
+                "handler": "random-boolean",
+                "probability": 0.85
+              }
+            },
+            {
+              "name": "tollfree",
+              "displayName": "Toll-Free",
+              "type": "tollfree",
+              "generate": {
+                "handler": "random-boolean",
+                "probability": 0.15
+              }
+            },
+            {
+              "name": "incoming_per_minute",
+              "displayName": "Incoming $/min",
+              "type": "incoming_per_minute",
+              "generate": {
+                "handler": "random-float",
+                "min": 0.001,
+                "max": 0.05,
+                "decimals": 4
+              }
+            },
+            {
+              "name": "incoming_sms_price",
+              "displayName": "Incoming SMS $",
+              "type": "incoming_sms_price",
+              "generate": {
+                "handler": "random-float",
+                "min": 0.005,
+                "max": 0.02,
+                "decimals": 4
+              }
+            },
+            {
+              "name": "provider",
+              "displayName": "Provider",
+              "type": "provider",
+              "generate": {
+                "handler": "random-enum",
+                "values": [
+                  "twilio",
+                  "vonage",
+                  "bandwidth",
+                  "telnyx",
+                  "plivo"
+                ]
+              }
             }
           ]
         }
-      ],
-      "main": "dist/index.js",
-      "trust": {
-        "official": true,
-        "verified": true
-      }
+      ]
     }
   }
 ]

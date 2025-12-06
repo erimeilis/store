@@ -52,8 +52,8 @@ workers_dev = true
 
 [[env.preview.kv_namespaces]]
 binding = "KV"
-id = "{{KV_FRONTEND_DEV_ID}}"
-preview_id = "{{KV_FRONTEND_DEV_ID}}"
+id = "{{KV_PREVIEW_NAMESPACE_ID}}"
+preview_id = "{{KV_PREVIEW_NAMESPACE_ID}}"
 
 [env.preview.vars]
 API_URL = "http://localhost:8787"

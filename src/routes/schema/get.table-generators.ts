@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import type { Bindings } from '@/types/bindings.js'
 import type { HonoVariables } from '@/types/hono.js'
-import { getLocalModuleTableGenerators } from '@/services/moduleService/localModuleRegistry.js'
-import { ModuleRepository } from '@/repositories/moduleRepository.js'
+import type { TableGeneratorDefinition } from '@/types/modules.js'
+import { createModuleManager } from '@/services/moduleService/index.js'
 
 /**
  * Built-in table generators that are always available
@@ -77,34 +77,28 @@ app.get('/table-generators', async (c) => {
     customGenerator: undefined,
   }))
 
-  // Get ALL module table generators from local registry (bundled at build time)
-  const allModuleTableGenerators = getLocalModuleTableGenerators()
+  // Get table generators from active modules via module manager
+  const moduleManager = createModuleManager(c.env)
+  await moduleManager.initialize()
+  const moduleGenerators: TableGeneratorDefinition[] = moduleManager.getTableGenerators()
 
-  // Get active modules from database to filter
-  const repository = new ModuleRepository(c.env)
-  const activeModules = await repository.getActiveModules()
-  const activeModuleIds = new Set(activeModules.map(m => m.id))
-
-  // Filter to only include generators from ACTIVE modules
-  const activeModuleGenerators = allModuleTableGenerators.filter(
-    mtg => activeModuleIds.has(mtg.moduleId)
-  )
-
-  // Add active module generators with module info
-  for (const mtg of activeModuleGenerators) {
+  // Add module generators with module info
+  for (const mtg of moduleGenerators) {
+    // Module generators are prefixed with moduleId, e.g., '@store/phone-numbers:phone-rental-tables'
+    const [moduleId] = mtg.id.split(':')
     tableGenerators.push({
       id: mtg.id,
       displayName: mtg.displayName,
-      description: mtg.description,
+      description: mtg.description || '',
       icon: mtg.icon,
       category: mtg.category,
       tableType: mtg.tableType,
       defaultTableCount: mtg.defaultTableCount,
       defaultRowCount: mtg.defaultRowCount,
       color: mtg.color,
-      customGenerator: mtg.customGenerator,
-      moduleId: mtg.moduleId,
-      moduleName: mtg.moduleName,
+      customGenerator: true, // Module generators have custom column definitions
+      moduleId: moduleId,
+      moduleName: moduleId,
     })
   }
 
@@ -112,7 +106,7 @@ app.get('/table-generators', async (c) => {
     data: tableGenerators,
     meta: {
       builtInCount: BUILT_IN_TABLE_GENERATORS.length,
-      moduleCount: activeModuleGenerators.length,
+      moduleCount: moduleGenerators.length,
       totalCount: tableGenerators.length,
     },
   })

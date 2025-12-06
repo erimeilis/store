@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import type { Bindings } from '@/types/bindings.js'
 import type { HonoVariables } from '@/types/hono.js'
-import { getLocalModuleColumnTypes } from '@/services/moduleService/localModuleRegistry.js'
-import { ModuleRepository } from '@/repositories/moduleRepository.js'
+import type { ColumnTypeDefinition } from '@/types/modules.js'
+import { createModuleManager } from '@/services/moduleService/index.js'
 
 /**
  * Built-in column types that are always available
@@ -172,29 +172,23 @@ app.get('/column-types', async (c) => {
     moduleName: undefined,
   }))
 
-  // Get ALL module column types from local registry (bundled at build time)
-  const allModuleColumnTypes = getLocalModuleColumnTypes()
+  // Get column types from active modules via module manager
+  const moduleManager = createModuleManager(c.env)
+  await moduleManager.initialize()
+  const moduleColumnTypes: ColumnTypeDefinition[] = moduleManager.getColumnTypes()
 
-  // Get active modules from database to filter
-  const repository = new ModuleRepository(c.env)
-  const activeModules = await repository.getActiveModules()
-  const activeModuleIds = new Set(activeModules.map(m => m.id))
-
-  // Filter to only include types from ACTIVE modules
-  const activeModuleColumnTypes = allModuleColumnTypes.filter(
-    mct => activeModuleIds.has(mct.moduleId)
-  )
-
-  // Add active module types with module info
-  for (const mct of activeModuleColumnTypes) {
+  // Add module types with module info
+  for (const mct of moduleColumnTypes) {
+    // Module types are prefixed with moduleId, e.g., '@store/phone-numbers:phone'
+    const [moduleId] = mct.id.split(':')
     columnTypes.push({
       id: mct.id,
       displayName: mct.displayName,
-      description: mct.description,
-      category: mct.category,
+      description: mct.description || '',
+      category: mct.category || 'Module',
       icon: mct.icon,
-      moduleId: mct.moduleId,
-      moduleName: mct.moduleName,
+      moduleId: moduleId,
+      moduleName: moduleId,
       options: mct.options,
     })
   }
@@ -203,7 +197,7 @@ app.get('/column-types', async (c) => {
     data: columnTypes,
     meta: {
       builtInCount: BUILT_IN_COLUMN_TYPES.length,
-      moduleCount: activeModuleColumnTypes.length,
+      moduleCount: moduleColumnTypes.length,
       totalCount: columnTypes.length,
     },
   })

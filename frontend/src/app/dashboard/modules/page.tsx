@@ -12,7 +12,6 @@ import {ModuleInstallModal} from '@/components/modules/install-modal'
 import {PageHeader, createBreadcrumbs} from '@/components/page/page-header'
 import {
     IconAlertCircle,
-    IconApi,
     IconColumns,
     IconPackage,
     IconPlug,
@@ -24,41 +23,13 @@ import {
     IconTrash,
     IconWand,
 } from '@tabler/icons-react'
-import type {InstalledModule, ModuleCapability, ModuleSource, ModuleStatus, PaginatedModulesResponse,} from '@/types/modules'
+import type {InstalledModule, ModuleSource, ModuleStatus, PaginatedModulesResponse,} from '@/types/modules'
 import {moduleStatusBadgeVariant, moduleStatusLabel,} from '@/types/modules'
 
 interface ModulesPageProps {
     modules?: PaginatedModulesResponse | null
     apiUrl?: string
     apiToken?: string
-}
-
-function getCapabilityIcon(type: string) {
-    switch (type) {
-        case 'columnType':
-            return <IconColumns size={14}/>
-        case 'dataGenerator':
-            return <IconWand size={14}/>
-        case 'api':
-            return <IconApi size={14}/>
-        default:
-            return <IconPackage size={14}/>
-    }
-}
-
-function getCapabilityId(cap: ModuleCapability): string {
-    switch (cap.type) {
-        case 'columnType':
-            return cap.typeId
-        case 'dataGenerator':
-            return cap.generatorId
-        case 'api':
-            return cap.basePath
-        default: {
-            const _exhaustive: never = cap
-            return String(_exhaustive)
-        }
-    }
 }
 
 export default function ModulesPage({modules, apiUrl, apiToken}: ModulesPageProps) {
@@ -201,10 +172,18 @@ export default function ModulesPage({modules, apiUrl, apiToken}: ModulesPageProp
                     )}
 
                     <div className="flex flex-wrap gap-1 mb-3">
-                        {module.manifest.capabilities.map((cap: ModuleCapability, idx: number) => (
-                            <Badge key={idx} variant="ghost" size="sm" className="gap-1">
-                                {getCapabilityIcon(cap.type)}
-                                {getCapabilityId(cap)}
+                        {/* Column Types */}
+                        {module.manifest.columnTypes?.map((ct) => (
+                            <Badge key={`ct-${ct.id}`} variant="ghost" size="sm" className="gap-1">
+                                <IconColumns size={14}/>
+                                {ct.displayName}
+                            </Badge>
+                        ))}
+                        {/* Table Generators */}
+                        {module.manifest.tableGenerators?.map((tg) => (
+                            <Badge key={`tg-${tg.id}`} variant="ghost" size="sm" className="gap-1">
+                                <IconWand size={14}/>
+                                {tg.displayName}
                             </Badge>
                         ))}
                     </div>

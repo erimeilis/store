@@ -3,7 +3,7 @@ export type Bindings = {
   // Resources
   DB: D1Database
   BUCKET: R2Bucket
-  KV?: KVNamespace
+  KV: KVNamespace
 
   // Environment variables
   NODE_ENV?: string

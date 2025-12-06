@@ -1,3 +1,10 @@
+/**
+ * Module Manager Service - JSON-Only Architecture
+ *
+ * Manages module lifecycle for JSON-based modules.
+ * Modules are pure configuration - no executable code.
+ */
+
 import type { Bindings } from '@/types/bindings.js'
 import type {
   ModuleManager,
@@ -6,66 +13,33 @@ import type {
   InstalledModule,
   ModuleStatus,
   ModuleManifest,
-  ModuleCapabilityDeclaration,
-  ModuleColumnType,
-  ModuleDataGenerator,
-  ModuleApiRoute,
-  StoreModule,
-  ModuleContext,
+  ColumnTypeDefinition,
+  TableGeneratorDefinition,
   InstallResult,
-  UpdateInfo,
-  UpdateResult,
 } from '@/types/modules.js'
-import modulesManifest from '@/data/modules-manifest.json'
 import { MODULE_STATUS_TRANSITIONS } from '@/types/modules.js'
 import { ModuleRepository } from '@/repositories/moduleRepository.js'
-import { createModuleContext } from './moduleContext.js'
-import {
-  type ModuleLoader,
-  createLocalModuleLoader,
-  createR2ModuleLoader,
-  unloadModule,
-  unloadAllModules,
-} from './moduleLoader.js'
 
 /**
  * Global module cache - persists across requests within a Worker isolate
- * This prevents re-initializing modules on every request
- *
- * IMPORTANT: We use module IDs list as the "lock" to prevent races.
- * Cloudflare Workers doesn't allow sharing I/O operations across requests,
- * but we CAN share the final cached module instances (which are just JS objects).
- *
- * Strategy: Pre-populate moduleIds synchronously at Worker startup,
- * then each request can check if modules are already cached.
  */
 const globalModuleCache = {
-  instances: new Map<string, StoreModule>(),
-  // Use a string token as atomic initialization marker
-  // First request to successfully complete sets this to 'done'
+  manifests: new Map<string, ModuleManifest>(),
   initState: 'pending' as 'pending' | 'running' | 'done',
 }
 
 /**
  * Module Manager Service
- * Implements the ModuleManager interface for module lifecycle management
+ * Simplified for JSON-only modules - no code execution
  */
 export class ModuleManagerService implements ModuleManager {
   private env: Bindings
   private repository: ModuleRepository
-  private loader: ModuleLoader
-  private moduleInstances: Map<string, StoreModule> = new Map()
-  private moduleContexts: Map<string, ModuleContext> = new Map()
+  private loadedManifests: Map<string, ModuleManifest> = new Map()
 
   constructor(env: Bindings) {
     this.env = env
     this.repository = new ModuleRepository(env)
-
-    // Use local loader in development, R2 loader in production
-    const isDevelopment = env.NODE_ENV === 'development'
-    this.loader = isDevelopment
-      ? createLocalModuleLoader(env)
-      : createR2ModuleLoader(env)
   }
 
   /**
@@ -74,14 +48,12 @@ export class ModuleManagerService implements ModuleManager {
   get registry(): ModuleRegistry {
     return {
       list: () => this.repository.list(),
-      get: (moduleId) => this.repository.get(moduleId),
-      add: (module) => this.repository.add(module),
-      remove: (moduleId) => this.repository.remove(moduleId),
+      get: moduleId => this.repository.get(moduleId),
+      add: module => this.repository.add(module),
+      remove: moduleId => this.repository.remove(moduleId),
       update: (moduleId, updates) => this.repository.update(moduleId, updates),
-      findByStatus: (status) => this.repository.findByStatus(status),
-      findByCapability: (cap) => this.repository.findByCapability(cap),
-      getColumnTypeProvider: (typeId) => this.repository.getColumnTypeProvider(typeId),
-      getDataGeneratorProvider: (genId) => this.repository.getDataGeneratorProvider(genId),
+      findByStatus: status => this.repository.findByStatus(status),
+      getColumnTypeProvider: typeId => this.repository.getColumnTypeProvider(typeId),
     }
   }
 
@@ -96,8 +68,18 @@ export class ModuleManagerService implements ModuleManager {
     let moduleId: string | undefined
 
     try {
-      // Resolve module ID from source
-      moduleId = await this.resolveModuleId(source)
+      // Fetch manifest
+      const manifest = await this.fetchManifest(source)
+      if (!manifest) {
+        return {
+          success: false,
+          moduleId: '',
+          version: '',
+          error: 'Failed to fetch module manifest',
+        }
+      }
+
+      moduleId = manifest.id
 
       // Check if already installed
       const existing = await this.repository.get(moduleId)
@@ -110,27 +92,15 @@ export class ModuleManagerService implements ModuleManager {
         }
       }
 
-      // Update status to installing
-      const manifest = await this.fetchManifest(source)
-      if (!manifest) {
-        return {
-          success: false,
-          moduleId,
-          version: '',
-          error: 'Failed to fetch module manifest',
-        }
-      }
-
       // Create installed module record
       const installedModule: InstalledModule = {
         id: manifest.id,
         name: manifest.name,
         version: manifest.version,
-        displayName: manifest.name,
         description: manifest.description,
         author: manifest.author,
         source,
-        status: 'installing',
+        status: 'installed',
         installedAt: new Date(),
         updatedAt: new Date(),
         activatedAt: null,
@@ -141,17 +111,6 @@ export class ModuleManagerService implements ModuleManager {
       await this.repository.add(installedModule)
       await this.repository.logEvent(manifest.id, 'install', {
         newVersion: manifest.version,
-        newStatus: 'installing',
-      })
-
-      // Download/copy module files (for R2 storage in production)
-      await this.downloadModuleFiles(source, manifest)
-
-      // Update status to installed
-      await this.repository.update(manifest.id, { status: 'installed' })
-      await this.repository.logEvent(manifest.id, 'install', {
-        newVersion: manifest.version,
-        previousStatus: 'installing',
         newStatus: 'installed',
       })
 
@@ -190,50 +149,28 @@ export class ModuleManagerService implements ModuleManager {
       throw new Error(`Module ${moduleId} is not installed`)
     }
 
-    // Deactivate first if active
-    if (module.status === 'active') {
-      await this.deactivate(moduleId)
-    }
-
     await this.repository.update(moduleId, { status: 'uninstalling' })
     await this.repository.logEvent(moduleId, 'uninstall', {
       previousStatus: module.status,
       newStatus: 'uninstalling',
     })
 
-    // Call module's onUninstall hook
-    const instance = this.moduleInstances.get(moduleId)
-    const context = this.moduleContexts.get(moduleId)
-    if (instance?.onUninstall && context) {
-      try {
-        await instance.onUninstall(context)
-      } catch (error) {
-        console.error(`Error in onUninstall for ${moduleId}:`, error)
-      }
-    }
-
-    // Clean up module files from R2 (in production)
-    await this.cleanupModuleFiles(moduleId)
-
     // Remove from registry
     await this.repository.remove(moduleId)
 
-    // Clean up runtime state
-    this.moduleInstances.delete(moduleId)
-    this.moduleContexts.delete(moduleId)
-    unloadModule(moduleId)
+    // Clean up cache
+    this.loadedManifests.delete(moduleId)
+    globalModuleCache.manifests.delete(moduleId)
   }
 
   // ============================================================================
-  // LIFECYCLE
+  // LIFECYCLE (simplified - just enable/disable)
   // ============================================================================
 
   /**
-   * Activate a module
+   * Activate a module (make it available)
    */
   async activate(moduleId: string): Promise<void> {
-    const startTime = Date.now()
-
     const module = await this.repository.get(moduleId)
     if (!module) {
       throw new Error(`Module ${moduleId} is not installed`)
@@ -243,70 +180,26 @@ export class ModuleManagerService implements ModuleManager {
       return // Already active
     }
 
-    if (!this.canTransition(module.status, 'activating')) {
+    if (!this.canTransition(module.status, 'active')) {
       throw new Error(`Cannot activate module in status: ${module.status}`)
     }
 
-    await this.repository.update(moduleId, { status: 'activating' })
-    await this.repository.logEvent(moduleId, 'activate', {
-      previousStatus: module.status,
-      newStatus: 'activating',
+    // Cache the manifest
+    this.loadedManifests.set(moduleId, module.manifest)
+    globalModuleCache.manifests.set(moduleId, module.manifest)
+
+    // Update status
+    await this.repository.update(moduleId, {
+      status: 'active',
+      activatedAt: new Date(),
+      error: undefined,
+      errorAt: undefined,
     })
 
-    try {
-      // Load module code
-      const instance = await this.loader.load(moduleId)
-      this.moduleInstances.set(moduleId, instance)
-
-      // Create module context
-      const context = createModuleContext(
-        this.env,
-        moduleId,
-        module.version,
-        module.settings,
-        this.repository
-      )
-      this.moduleContexts.set(moduleId, context)
-
-      // Call onActivate hook
-      if (instance.onActivate) {
-        await instance.onActivate(context)
-      }
-
-      // Update status
-      const activatedAt = new Date()
-      await this.repository.update(moduleId, {
-        status: 'active',
-        activatedAt,
-        error: undefined,
-        errorAt: undefined,
-      })
-
-      // Record analytics
-      const activationTime = Date.now() - startTime
-      await this.repository.recordActivation(moduleId, activationTime)
-
-      await this.repository.logEvent(moduleId, 'activate', {
-        previousStatus: 'activating',
-        newStatus: 'active',
-      })
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-
-      await this.repository.update(moduleId, {
-        status: 'error',
-        error: errorMessage,
-        errorAt: new Date(),
-      })
-      await this.repository.recordError(moduleId, errorMessage)
-      await this.repository.logEvent(moduleId, 'error', {
-        previousStatus: 'activating',
-        newStatus: 'error',
-        details: { error: errorMessage },
-      })
-
-      throw new Error(`Failed to activate module ${moduleId}: ${errorMessage}`)
-    }
+    await this.repository.logEvent(moduleId, 'activate', {
+      previousStatus: module.status,
+      newStatus: 'active',
+    })
   }
 
   /**
@@ -322,45 +215,19 @@ export class ModuleManagerService implements ModuleManager {
       return // Not active
     }
 
-    await this.repository.update(moduleId, { status: 'deactivating' })
+    // Remove from cache
+    this.loadedManifests.delete(moduleId)
+    globalModuleCache.manifests.delete(moduleId)
+
+    await this.repository.update(moduleId, { status: 'disabled' })
     await this.repository.logEvent(moduleId, 'deactivate', {
       previousStatus: 'active',
-      newStatus: 'deactivating',
+      newStatus: 'disabled',
     })
-
-    try {
-      // Call onDeactivate hook
-      const instance = this.moduleInstances.get(moduleId)
-      const context = this.moduleContexts.get(moduleId)
-      if (instance?.onDeactivate && context) {
-        await instance.onDeactivate(context)
-      }
-
-      // Clean up runtime state
-      this.moduleInstances.delete(moduleId)
-      this.moduleContexts.delete(moduleId)
-
-      await this.repository.update(moduleId, { status: 'disabled' })
-      await this.repository.logEvent(moduleId, 'deactivate', {
-        previousStatus: 'deactivating',
-        newStatus: 'disabled',
-      })
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-
-      await this.repository.update(moduleId, {
-        status: 'error',
-        error: errorMessage,
-        errorAt: new Date(),
-      })
-      await this.repository.recordError(moduleId, errorMessage)
-
-      throw new Error(`Failed to deactivate module ${moduleId}: ${errorMessage}`)
-    }
   }
 
   /**
-   * Reload a single module
+   * Reload a module - re-fetch manifest from source
    */
   async reload(moduleId: string): Promise<void> {
     const module = await this.repository.get(moduleId)
@@ -370,191 +237,45 @@ export class ModuleManagerService implements ModuleManager {
 
     const wasActive = module.status === 'active'
 
-    if (wasActive) {
-      await this.deactivate(moduleId)
-    }
-
-    // Clear cached module code (both local and global)
-    unloadModule(moduleId)
-    globalModuleCache.instances.delete(moduleId)
-
-    if (wasActive) {
-      await this.activate(moduleId)
-    }
-
-    await this.repository.logEvent(moduleId, 'reload')
-  }
-
-  /**
-   * Reload all modules
-   */
-  async reloadAll(): Promise<void> {
-    const activeModules = await this.repository.findByStatus('active')
-
-    // Deactivate all
-    for (const module of activeModules) {
-      await this.deactivate(module.id)
-    }
-
-    // Clear all cached modules (both local and global)
-    unloadAllModules()
-    globalModuleCache.instances.clear()
-    globalModuleCache.initState = 'pending'
-
-    // Reactivate all
-    for (const module of activeModules) {
-      await this.activate(module.id)
-    }
-  }
-
-  // ============================================================================
-  // UPDATES
-  // ============================================================================
-
-  /**
-   * Check for updates for all installed modules
-   */
-  async checkUpdates(): Promise<UpdateInfo[]> {
-    const modules = await this.repository.list()
-    const updates: UpdateInfo[] = []
-
-    for (const module of modules) {
-      const update = await this.checkModuleUpdate(module.id)
-      if (update) {
-        updates.push(update)
-      }
-    }
-
-    return updates
-  }
-
-  /**
-   * Check for update for a specific module
-   */
-  async checkModuleUpdate(moduleId: string): Promise<UpdateInfo | null> {
-    const module = await this.repository.get(moduleId)
-    if (!module) return null
-
     try {
-      // Fetch latest manifest from source
-      const latestManifest = await this.fetchManifest(module.source)
-      if (!latestManifest) return null
-
-      // Compare versions
-      if (this.isNewerVersion(latestManifest.version, module.version)) {
-        return {
-          moduleId,
-          currentVersion: module.version,
-          latestVersion: latestManifest.version,
-        }
-      }
-
-      return null
-    } catch {
-      return null
-    }
-  }
-
-  /**
-   * Update a module to a new version
-   */
-  async update(moduleId: string, version?: string): Promise<UpdateResult> {
-    const module = await this.repository.get(moduleId)
-    if (!module) {
-      return {
-        success: false,
-        moduleId,
-        fromVersion: '',
-        toVersion: '',
-        error: 'Module not found',
-      }
-    }
-
-    const fromVersion = module.version
-    const wasActive = module.status === 'active'
-
-    try {
-      await this.repository.update(moduleId, { status: 'updating' })
-      await this.repository.logEvent(moduleId, 'update', {
-        previousVersion: fromVersion,
-        previousStatus: wasActive ? 'active' : module.status,
-        newStatus: 'updating',
-      })
-
-      // Deactivate if active
-      if (wasActive) {
-        await this.deactivate(moduleId)
-      }
-
-      // Fetch new manifest
+      // Re-fetch the manifest from the source
       const newManifest = await this.fetchManifest(module.source)
       if (!newManifest) {
-        throw new Error('Failed to fetch updated manifest')
+        throw new Error('Failed to fetch module manifest')
       }
 
-      const toVersion = version || newManifest.version
+      // Validate the manifest ID matches
+      if (newManifest.id !== moduleId) {
+        throw new Error(`Module ID mismatch: expected ${moduleId}, got ${newManifest.id}`)
+      }
 
-      // Download new module files
-      await this.downloadModuleFiles(module.source, newManifest)
-
-      // Clear cached module
-      unloadModule(moduleId)
-
-      // Update registry
+      // Update the module with new manifest
       await this.repository.update(moduleId, {
-        version: toVersion,
+        version: newManifest.version,
         manifest: newManifest,
-        status: 'installed',
+        updatedAt: new Date(),
+        error: undefined,
+        errorAt: undefined,
       })
 
-      // Call onUpgrade hook if reactivating
+      // Update cache if was active
       if (wasActive) {
-        const instance = await this.loader.load(moduleId)
-        const context = createModuleContext(
-          this.env,
-          moduleId,
-          toVersion,
-          module.settings,
-          this.repository
-        )
-
-        if (instance.onUpgrade) {
-          await instance.onUpgrade(context, fromVersion)
-        }
-
-        await this.activate(moduleId)
+        this.loadedManifests.set(moduleId, newManifest)
+        globalModuleCache.manifests.set(moduleId, newManifest)
       }
 
-      await this.repository.logEvent(moduleId, 'update', {
-        previousVersion: fromVersion,
-        newVersion: toVersion,
-        previousStatus: 'updating',
-        newStatus: wasActive ? 'active' : 'installed',
+      await this.repository.logEvent(moduleId, 'reload', {
+        previousVersion: module.version,
+        newVersion: newManifest.version,
       })
-
-      return {
-        success: true,
-        moduleId,
-        fromVersion,
-        toVersion,
-      }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-
+      // Record the error
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       await this.repository.update(moduleId, {
-        status: 'error',
         error: errorMessage,
         errorAt: new Date(),
       })
-      await this.repository.recordError(moduleId, errorMessage)
-
-      return {
-        success: false,
-        moduleId,
-        fromVersion,
-        toVersion: version || '',
-        error: errorMessage,
-      }
+      throw error
     }
   }
 
@@ -588,38 +309,24 @@ export class ModuleManagerService implements ModuleManager {
     await this.repository.logEvent(moduleId, 'settings_change', {
       details: { changedKeys: Object.keys(settings) },
     })
-
-    // Update context if module is active
-    const context = this.moduleContexts.get(moduleId)
-    if (context) {
-      // Create new context with updated settings
-      const newContext = createModuleContext(
-        this.env,
-        moduleId,
-        module.version,
-        newSettings,
-        this.repository
-      )
-      this.moduleContexts.set(moduleId, newContext)
-    }
   }
 
   // ============================================================================
-  // QUERIES
+  // QUERIES - Returns JSON definitions
   // ============================================================================
 
   /**
    * Get all column types from active modules
    */
-  getColumnTypes(): ModuleColumnType[] {
-    const columnTypes: ModuleColumnType[] = []
+  getColumnTypes(): ColumnTypeDefinition[] {
+    const columnTypes: ColumnTypeDefinition[] = []
 
-    for (const [moduleId, instance] of this.moduleInstances) {
-      if (instance.columnTypes) {
+    for (const [moduleId, manifest] of this.loadedManifests) {
+      if (manifest.columnTypes) {
         columnTypes.push(
-          ...instance.columnTypes.map(ct => ({
+          ...manifest.columnTypes.map(ct => ({
             ...ct,
-            // Add module ID for tracking
+            // Prefix ID with module ID for uniqueness
             id: `${moduleId}:${ct.id}`,
           }))
         )
@@ -630,18 +337,18 @@ export class ModuleManagerService implements ModuleManager {
   }
 
   /**
-   * Get all data generators from active modules
+   * Get all table generators from active modules
    */
-  getDataGenerators(): ModuleDataGenerator[] {
-    const generators: ModuleDataGenerator[] = []
+  getTableGenerators(): TableGeneratorDefinition[] {
+    const generators: TableGeneratorDefinition[] = []
 
-    for (const [moduleId, instance] of this.moduleInstances) {
-      if (instance.dataGenerators) {
+    for (const [moduleId, manifest] of this.loadedManifests) {
+      if (manifest.tableGenerators) {
         generators.push(
-          ...instance.dataGenerators.map(dg => ({
-            ...dg,
-            // Add module ID for tracking
-            id: `${moduleId}:${dg.id}`,
+          ...manifest.tableGenerators.map(tg => ({
+            ...tg,
+            // Prefix ID with module ID for uniqueness
+            id: `${moduleId}:${tg.id}`,
           }))
         )
       }
@@ -650,78 +357,32 @@ export class ModuleManagerService implements ModuleManager {
     return generators
   }
 
-  /**
-   * Get all API routes from active modules
-   */
-  getApiRoutes(): Array<ModuleApiRoute & { moduleId: string }> {
-    const routes: Array<ModuleApiRoute & { moduleId: string }> = []
-
-    for (const [moduleId, instance] of this.moduleInstances) {
-      if (instance.apiRoutes) {
-        routes.push(
-          ...instance.apiRoutes.map(route => ({
-            ...route,
-            moduleId,
-          }))
-        )
-      }
-    }
-
-    return routes
-  }
-
   // ============================================================================
-  // RUNTIME
+  // INITIALIZATION
   // ============================================================================
-
-  /**
-   * Get a module instance
-   */
-  getModuleInstance(moduleId: string): StoreModule | null {
-    return this.moduleInstances.get(moduleId) || null
-  }
-
-  /**
-   * Get a module's context
-   */
-  getModuleContext(moduleId: string): ModuleContext | null {
-    return this.moduleContexts.get(moduleId) || null
-  }
 
   /**
    * Initialize the module manager
-   * Loads all modules that should be active (for use in request handlers)
-   * Uses global cache to avoid re-initializing on every request
-   *
-   * IMPORTANT: Due to Cloudflare Workers I/O isolation, we CANNOT share
-   * I/O operations across requests. Each request must use its own I/O context.
-   *
-   * Strategy:
-   * 1. If cache is 'done' → use cached instances immediately (no I/O)
-   * 2. If cache is 'running' → return empty (graceful degradation, retry next request)
-   * 3. If cache is 'pending' → this request does the initialization
+   * Loads all active module manifests into cache
    */
   async initialize(): Promise<void> {
-    // Fast path: Already initialized - copy cached instances (no I/O needed)
+    // Fast path: Already initialized
     if (globalModuleCache.initState === 'done') {
-      for (const [id, instance] of globalModuleCache.instances) {
-        if (!this.moduleInstances.has(id)) {
-          this.moduleInstances.set(id, instance)
+      // Copy from global cache
+      for (const [id, manifest] of globalModuleCache.manifests) {
+        if (!this.loadedManifests.has(id)) {
+          this.loadedManifests.set(id, manifest)
         }
       }
       return
     }
 
     // Concurrent path: Another request is initializing
-    // Return immediately WITHOUT any I/O to avoid cross-request I/O errors
-    // Trade-off: This request won't have module types, but won't crash either
     if (globalModuleCache.initState === 'running') {
       return
     }
 
-    // First request path: Mark as running and do initialization
-    // Note: This isn't perfectly atomic, but it's good enough for cold start races
-    // Multiple requests might set this, but only one will complete first
+    // First request: Do initialization
     globalModuleCache.initState = 'running'
 
     try {
@@ -729,58 +390,21 @@ export class ModuleManagerService implements ModuleManager {
       globalModuleCache.initState = 'done'
     } catch (error) {
       console.error('Module initialization failed:', error)
-      // Reset to pending so next request can try again
       globalModuleCache.initState = 'pending'
-      // Don't throw - let the app work without modules
     }
   }
 
-  /**
-   * Internal initialization logic
-   */
   private async doInitialize(): Promise<void> {
-    let modules: InstalledModule[]
     try {
-      modules = await this.repository.list()
-    } catch (error) {
-      console.error('Failed to fetch module list:', error)
-      return // Continue without modules
-    }
+      // Use KV-first reads for faster cold starts
+      const activeManifests = await this.repository.getActiveManifests()
 
-    for (const module of modules) {
-      // Load modules that should be active
-      if (module.status === 'active') {
-        try {
-          // Skip if already loaded in global cache
-          if (globalModuleCache.instances.has(module.id)) {
-            this.moduleInstances.set(module.id, globalModuleCache.instances.get(module.id)!)
-            continue
-          }
-
-          // Skip if already loaded in this instance
-          if (this.moduleInstances.has(module.id)) {
-            continue
-          }
-
-          // Load module code
-          const instance = await this.loader.load(module.id)
-          this.moduleInstances.set(module.id, instance)
-          globalModuleCache.instances.set(module.id, instance)
-
-          // Create module context
-          const context = createModuleContext(
-            this.env,
-            module.id,
-            module.version,
-            module.settings,
-            this.repository
-          )
-          this.moduleContexts.set(module.id, context)
-        } catch (error) {
-          console.error(`Failed to load module ${module.id}:`, error)
-          // Continue loading other modules
-        }
+      for (const [moduleId, manifest] of activeManifests) {
+        this.loadedManifests.set(moduleId, manifest)
+        globalModuleCache.manifests.set(moduleId, manifest)
       }
+    } catch (error) {
+      console.error('Failed to initialize modules:', error)
     }
   }
 
@@ -788,86 +412,45 @@ export class ModuleManagerService implements ModuleManager {
   // HELPERS
   // ============================================================================
 
-  private async resolveModuleId(source: ModuleSource): Promise<string> {
-    // For npm packages, the ID is the package name
-    if (source.type === 'npm') {
-      return source.package || ''
-    }
-
-    // For git/url repos, try to fetch manifest and get ID
-    if (source.type === 'git' || source.type === 'url') {
-      const manifest = await this.fetchManifest(source)
-      return manifest?.id || ''
-    }
-
-    // For local/upload, we need the manifest
-    const manifest = await this.fetchManifest(source)
-    return manifest?.id || ''
-  }
-
   private async fetchManifest(source: ModuleSource): Promise<ModuleManifest | null> {
-    // For local modules, use the full manifest from build-time scan
+    // For local modules, read from bundled manifest data
     if (source.type === 'local' && source.path) {
-      // Find module in the bundled manifest (now includes full manifest data)
-      const scannedModule = modulesManifest.find(
-        (m: { path: string }) => m.path === source.path
-      ) as { path: string; manifest: ModuleManifest } | undefined
+      try {
+        // Import the modules manifest that was scanned at build time
+        const { default: modulesManifest } = await import('@/data/modules-manifest.json')
 
-      if (scannedModule?.manifest) {
-        return scannedModule.manifest
+        const scannedModule = modulesManifest.find(
+          (m: { path: string }) => m.path === source.path
+        ) as { path: string; manifest: ModuleManifest } | undefined
+
+        if (scannedModule?.manifest) {
+          return scannedModule.manifest
+        }
+      } catch (error) {
+        console.error('Error loading module manifest:', error)
       }
-
-      // Fallback: try to use loader's getManifest
-      const moduleName = source.path.replace(/^modules\//, '')
-      const moduleId = `@store/${moduleName}`
-      const loaderManifest = await this.loader.getManifest(moduleId)
-      if (loaderManifest) {
-        return loaderManifest
-      }
-
       return null
     }
 
-    // For url/git sources
-    if ((source.type === 'url' || source.type === 'git') && source.url) {
-      return this.loader.getManifest(source.url)
+    // For URL sources, fetch the manifest
+    if (source.type === 'url' && source.url) {
+      try {
+        const response = await fetch(source.url)
+        if (!response.ok) {
+          return null
+        }
+        return (await response.json()) as ModuleManifest
+      } catch {
+        return null
+      }
     }
 
-    // For npm sources
-    if (source.type === 'npm' && source.package) {
-      // TODO: Fetch from npm registry
-      return null
+    // For upload sources, the manifest is provided directly
+    if (source.type === 'upload' && source.manifest) {
+      return source.manifest
     }
 
-    // For other sources, we'd need to implement fetching
     return null
-  }
-
-  private async downloadModuleFiles(
-    _source: ModuleSource,
-    _manifest: ModuleManifest
-  ): Promise<void> {
-    // Placeholder - real implementation would:
-    // 1. Download from git/npm
-    // 2. Upload to R2 bucket (in production)
-    // 3. Or copy to local modules directory (in development)
-  }
-
-  private async cleanupModuleFiles(moduleId: string): Promise<void> {
-    // Placeholder - real implementation would:
-    // 1. Delete from R2 bucket (in production)
-    // 2. Or delete from local modules directory (in development)
-    const moduleName = moduleId.replace(/^@\w+\//, '')
-
-    if (this.env.NODE_ENV !== 'development') {
-      // Delete from R2
-      const prefix = `modules/${moduleName}/`
-      const objects = await this.env.BUCKET.list({ prefix })
-
-      for (const obj of objects.objects) {
-        await this.env.BUCKET.delete(obj.key)
-      }
-    }
   }
 
   private getDefaultSettings(manifest: ModuleManifest): Record<string, unknown> {
@@ -888,30 +471,11 @@ export class ModuleManagerService implements ModuleManager {
     const transitions = MODULE_STATUS_TRANSITIONS[current]
     return transitions.includes(target)
   }
-
-  private isNewerVersion(version1: string, version2: string): boolean {
-    // Simple semver comparison
-    const v1Parts = version1.split('.').map(Number)
-    const v2Parts = version2.split('.').map(Number)
-
-    for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
-      const v1Part = v1Parts[i] || 0
-      const v2Part = v2Parts[i] || 0
-
-      if (v1Part > v2Part) return true
-      if (v1Part < v2Part) return false
-    }
-
-    return false
-  }
 }
 
 /**
  * Factory function to create a module manager
  */
-export function createModuleManager(
-  env: Bindings,
-  _repository?: ModuleRepository
-): ModuleManagerService {
+export function createModuleManager(env: Bindings): ModuleManagerService {
   return new ModuleManagerService(env)
 }

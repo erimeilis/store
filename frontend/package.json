@@ -1,14 +1,15 @@
 {
   "name": "store-frontend",
-  "version": "2.0.0",
+  "version": "2.3.0",
   "description": "Store dashboard - React SSR on Cloudflare Workers",
   "private": true,
   "type": "module",
   "scripts": {
     "config:generate": "node ../scripts/generate-config.js frontend",
     "config:generate:dev": "node ../scripts/generate-config.js frontend --dev",
+    "config:generate:dev:preview": "node ../scripts/generate-config.js frontend --dev --preview",
     "dev": "npm run config:generate:dev && echo \"export default false\" > ./src/config/is_prod.ts && npm run build:css && npm run build:client && wrangler dev --env local --port 5173",
-    "dev:preview": "npm run config:generate:dev && echo \"export default false\" > ./src/config/is_prod.ts && npm run build:css && npm run build:client && wrangler dev --env preview --x-remote-bindings --port 5173",
+    "dev:preview": "npm run config:generate:dev:preview && echo \"export default false\" > ./src/config/is_prod.ts && npm run build:css && npm run build:client && wrangler dev --env preview --remote --port 5173",
     "build": "npm run config:generate && npm run version && npm run build:css && npm run build:client && wrangler deploy",
     "deploy": "npm run build",
     "version": "echo \"export default `date +'%s'`\" > ./src/config/build_time.ts && echo \"export default true\" > ./src/config/is_prod.ts",

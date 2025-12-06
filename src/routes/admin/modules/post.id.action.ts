@@ -2,7 +2,6 @@ import { Hono } from 'hono'
 import type { Bindings } from '@/types/bindings.js'
 import type { HonoVariables } from '@/types/hono.js'
 import { adminOnlyMiddleware } from '@/middleware/admin.js'
-import { ModuleRepository } from '@/repositories/moduleRepository.js'
 import { createModuleManager } from '@/services/moduleService/moduleManager.js'
 
 const app = new Hono<{ Bindings: Bindings; Variables: HonoVariables }>()
@@ -32,11 +31,10 @@ app.post('/:id/action', adminOnlyMiddleware, async (c) => {
       }, 400)
     }
 
-    const repository = new ModuleRepository(c.env)
-    const manager = createModuleManager(c.env, repository)
+    const manager = createModuleManager(c.env)
 
     // Check if module exists
-    const module = await repository.get(moduleId)
+    const module = await manager.registry.get(moduleId)
     if (!module) {
       return c.json({ error: 'Module not found' }, 404)
     }
@@ -45,7 +43,7 @@ app.post('/:id/action', adminOnlyMiddleware, async (c) => {
     switch (action) {
       case 'activate': {
         await manager.activate(moduleId)
-        const updated = await repository.get(moduleId)
+        const updated = await manager.registry.get(moduleId)
         return c.json({
           message: 'Module activated successfully',
           module: updated,
@@ -54,7 +52,7 @@ app.post('/:id/action', adminOnlyMiddleware, async (c) => {
 
       case 'deactivate': {
         await manager.deactivate(moduleId)
-        const updated = await repository.get(moduleId)
+        const updated = await manager.registry.get(moduleId)
         return c.json({
           message: 'Module deactivated successfully',
           module: updated,
@@ -63,7 +61,7 @@ app.post('/:id/action', adminOnlyMiddleware, async (c) => {
 
       case 'reload': {
         await manager.reload(moduleId)
-        const updated = await repository.get(moduleId)
+        const updated = await manager.registry.get(moduleId)
         return c.json({
           message: 'Module reloaded successfully',
           module: updated,

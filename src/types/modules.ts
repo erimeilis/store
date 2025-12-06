@@ -1,5 +1,5 @@
-// Module System Types
-// Based on MODULE_SYSTEM_ARCHITECTURE.md specification
+// Module System Types - JSON-Only Architecture
+// Modules are pure JSON configuration, no executable code
 
 // ============================================================================
 // MODULE MANIFEST - store-module.json schema
@@ -7,48 +7,42 @@
 
 /**
  * Module manifest file (store-module.json)
- * Required in every module's root directory
+ * This IS the entire module - no separate JS files
  */
 export interface ModuleManifest {
   // Identity
-  id: string                       // e.g., '@store/phone-numbers'
-  name: string                     // Human-readable name
-  version: string                  // Semantic version
-  description: string              // Module description
-  icon?: string                    // Icon identifier or URL
+  id: string // e.g., '@store/phone-numbers'
+  name: string // Human-readable name
+  version: string // Semantic version
+  description: string // Module description
+  icon?: string // Tabler icon name
 
   // Authorship
   author: ModuleAuthor
-  license?: string                 // e.g., 'MIT', 'proprietary'
-  repository?: string              // Git repository URL
-  homepage?: string                // Documentation URL
+  license?: string // e.g., 'MIT', 'proprietary'
 
   // Compatibility
   engines: {
-    store: string                  // Store version requirement, e.g., '>=1.0.0'
-    moduleApi: 'v1'                // API version this module targets
+    store: string // Store version requirement, e.g., '>=1.0.0'
+    moduleApi: 'v1' // API version this module targets
   }
 
-  // Capabilities declaration
-  capabilities: ModuleCapabilityDeclaration[]
-
-  // Dependencies (other modules this depends on)
-  dependencies?: Record<string, string>  // moduleId -> version requirement
-
-  // Module settings schema
+  // Module settings schema (user-configurable options)
   settings?: ModuleSettingDefinition[]
-
-  // Entry points
-  main: string                     // Main entry file, e.g., 'dist/index.js'
 
   // Trust indicators
   trust?: {
-    official?: boolean             // Built by Store team
-    verified?: boolean             // Verified publisher
+    official?: boolean // Built by Store team
+    verified?: boolean // Verified publisher
   }
 
-  // Permissions required
-  permissions?: ModulePermission[]
+  // ========== CAPABILITIES (JSON declarations) ==========
+
+  // Column type definitions
+  columnTypes?: ColumnTypeDefinition[]
+
+  // Table generator definitions
+  tableGenerators?: TableGeneratorDefinition[]
 }
 
 /**
@@ -61,14 +55,6 @@ export interface ModuleAuthor {
 }
 
 /**
- * Capability declaration in manifest
- */
-export type ModuleCapabilityDeclaration =
-  | { type: 'columnType'; typeId: string }
-  | { type: 'dataGenerator'; generatorId: string }
-  | { type: 'api'; basePath: string }
-
-/**
  * Module setting definition (for settings UI)
  */
 export interface ModuleSettingDefinition {
@@ -78,7 +64,7 @@ export interface ModuleSettingDefinition {
   description?: string
   default?: unknown
   required?: boolean
-  options?: { value: string; label: string }[]  // For select type
+  options?: { value: string; label: string }[] // For select type
   validation?: {
     min?: number
     max?: number
@@ -87,532 +73,169 @@ export interface ModuleSettingDefinition {
   }
 }
 
-/**
- * Permissions a module can request
- */
-export type ModulePermission =
-  | 'network'          // Make HTTP requests
-  | 'storage'          // Use KV/R2 storage
-  | 'database'         // Create/modify own tables
-  | 'scheduler'        // Schedule tasks
-  | 'notifications'    // Send notifications
-
 // ============================================================================
-// MODULE RUNTIME - Execution context and lifecycle
+// COLUMN TYPE DEFINITIONS - JSON-based column type declarations
 // ============================================================================
 
 /**
- * The main module interface that modules must implement
+ * Base types that columns can be stored as
  */
-export interface StoreModule {
-  // Identity (from manifest)
-  id: string
-  version: string
-
-  // Lifecycle hooks (can be sync or async)
-  onInstall?(context: ModuleContext): Promise<void> | void
-  onActivate?(context: ModuleContext): Promise<void> | void
-  onDeactivate?(context: ModuleContext): Promise<void> | void
-  onUpgrade?(context: ModuleContext, fromVersion: string): Promise<void> | void
-  onUninstall?(context: ModuleContext): Promise<void> | void
-
-  // Column type definitions
-  columnTypes?: ModuleColumnType[]
-
-  // Data generator definitions (for individual cell values)
-  dataGenerators?: ModuleDataGenerator[]
-
-  // Table generator definitions (for generating complete tables)
-  tableGenerators?: ModuleTableGenerator[]
-
-  // API routes
-  apiRoutes?: ModuleApiRoute[]
-
-  // Custom methods (for data sources, etc.)
-  [key: string]: unknown
-}
+export type ColumnBaseType = 'string' | 'number' | 'boolean' | 'json'
 
 /**
- * Context provided to modules during execution
+ * Column type definition - pure JSON, no executable code
  */
-export interface ModuleContext {
-  // Module identity
-  moduleId: string
-  version: string
-
-  // Current settings
-  settings: Record<string, unknown>
-
-  // Core services
-  db: ModuleDatabase
-  cache: ModuleCache
-  storage: ModuleStorage
-  http: ModuleHttp
-  logger: ModuleLogger
-
-  // Events
-  events: ModuleEvents
-
-  // Analytics
-  analytics: ModuleAnalyticsTracker
-
-  // Environment info
-  env: {
-    isDevelopment: boolean
-    isProduction: boolean
-    storeVersion: string
-  }
-}
-
-/**
- * Database interface for modules
- * Modules can only access their own tables (prefixed with moduleId)
- */
-export interface ModuleDatabase {
-  query<T = unknown>(sql: string, params?: unknown[]): Promise<T[]>
-  execute(sql: string, params?: unknown[]): Promise<{ changes: number }>
-  batch(statements: { sql: string; params?: unknown[] }[]): Promise<void>
-}
-
-/**
- * Cache interface for modules (KV-backed)
- */
-export interface ModuleCache {
-  get<T = unknown>(key: string): Promise<T | null>
-  set(key: string, value: unknown, ttlSeconds?: number): Promise<void>
-  delete(key: string): Promise<void>
-  list(prefix?: string): Promise<string[]>
-}
-
-/**
- * HTTP client for modules
- */
-export interface ModuleHttp {
-  fetch(url: string, options?: RequestInit): Promise<Response>
-}
-
-/**
- * Logger interface for modules
- */
-export interface ModuleLogger {
-  debug(message: string, data?: unknown): void
-  info(message: string, data?: unknown): void
-  warn(message: string, data?: unknown): void
-  error(message: string, error?: Error | unknown): void
-}
-
-/**
- * Event system for modules
- */
-export interface ModuleEvents {
-  emit(event: string, data?: unknown): void
-  on(event: string, handler: (data: unknown) => void): void
-  off(event: string, handler: (data: unknown) => void): void
-}
-
-/**
- * Storage interface for modules (R2-backed file storage)
- */
-export interface ModuleStorage {
-  /**
-   * Upload a file to module storage
-   */
-  put(key: string, data: ArrayBuffer | Blob | string, options?: StoragePutOptions): Promise<void>
-
-  /**
-   * Get a file from module storage
-   */
-  get(key: string): Promise<StorageObject | null>
-
-  /**
-   * Delete a file from module storage
-   */
-  delete(key: string): Promise<void>
-
-  /**
-   * List files in module storage
-   */
-  list(options?: StorageListOptions): Promise<StorageListResult>
-
-  /**
-   * Get a public URL for a file (if bucket is configured for public access)
-   */
-  getPublicUrl(key: string): string | null
-}
-
-/**
- * Options for storage put operation
- */
-export interface StoragePutOptions {
-  contentType?: string
-  metadata?: Record<string, string>
-  cacheControl?: string
-}
-
-/**
- * Storage object returned from get operation
- */
-export interface StorageObject {
-  key: string
-  data: ArrayBuffer
-  contentType: string
-  size: number
-  etag: string
-  uploaded: Date
-  metadata?: Record<string, string>
-}
-
-/**
- * Options for storage list operation
- */
-export interface StorageListOptions {
-  prefix?: string
-  limit?: number
-  cursor?: string
-}
-
-/**
- * Result of storage list operation
- */
-export interface StorageListResult {
-  objects: Array<{
-    key: string
-    size: number
-    uploaded: Date
-  }>
-  truncated: boolean
-  cursor?: string
-}
-
-/**
- * Analytics tracking for modules
- */
-export interface ModuleAnalyticsTracker {
-  /**
-   * Track a column type being used
-   */
-  trackColumnTypeUsage(typeId: string): Promise<void>
-
-  /**
-   * Track a data generator being invoked
-   */
-  trackGeneratorInvocation(): Promise<void>
-
-  /**
-   * Track an API call
-   */
-  trackApiCall(responseTimeMs: number): Promise<void>
-
-  /**
-   * Track a custom metric
-   */
-  trackCustomMetric(name: string, value: number): Promise<void>
-}
-
-// ============================================================================
-// COLUMN TYPES - Module-provided column type definitions
-// ============================================================================
-
-/**
- * Column type definition provided by a module
- */
-export interface ModuleColumnType {
+export interface ColumnTypeDefinition {
   // Identity
-  id: string                       // e.g., 'did', 'carrier', 'fish_breed'
-  displayName: string              // Human-readable name
-  description: string              // Shown in column type selector
-  icon?: string                    // Icon identifier
-  category: string                 // For grouping in UI
-
-  // Configuration options (shown when creating column)
-  options?: ColumnTypeOption[]
-
-  // Data source (for dynamic values like API-driven selects)
-  dataSource?: ColumnDataSource
-
-  // Validation function
-  validate(value: unknown, options?: Record<string, unknown>): ValidationResult
-
-  // Formatting function
-  format(value: unknown, options?: Record<string, unknown>): string
-
-  // Parsing function (from string input)
-  parse(input: string, options?: Record<string, unknown>): unknown
-
-  // Default value generator (optional)
-  getDefaultValue?(options?: Record<string, unknown>): unknown
-
-  // UI Components (optional - for custom editors)
-  editorComponent?: string         // React component ID for custom editor
-  viewerComponent?: string         // React component ID for custom viewer
-}
-
-/**
- * Column type configuration option
- */
-export interface ColumnTypeOption {
-  id: string
-  type: 'string' | 'number' | 'boolean' | 'select' | 'multiselect'
+  id: string // e.g., 'phone', 'voice', 'provider'
   displayName: string
   description?: string
+  icon?: string // Tabler icon name
+  category?: string // For grouping in UI
+
+  // Base storage type
+  baseType: ColumnBaseType
+
+  // Default value (static)
   default?: unknown
-  required?: boolean
-  options?: { value: string; label: string }[]  // For select types
-  min?: number                     // For number types
-  max?: number                     // For number types
-  validation?: string              // Regex pattern for string types
+
+  // Validation rules (uses built-in handlers)
+  validation?: ValidationRule
+
+  // Formatting rules (uses built-in handlers)
+  format?: FormatRule
+
+  // Data source for dynamic values (select fields, API data)
+  source?: DataSourceDefinition
+
+  // Configuration options shown when creating column
+  options?: ColumnOptionDefinition[]
 }
 
 /**
- * Data source for column values
+ * Validation rule - references built-in validation handlers
  */
-export interface ColumnDataSource {
-  type: 'static' | 'api' | 'module' | 'database'
+export type ValidationRule =
+  | { handler: 'required' }
+  | { handler: 'regex'; pattern: string; message?: string }
+  | { handler: 'phone'; allowExtension?: boolean }
+  | { handler: 'email' }
+  | { handler: 'url' }
+  | { handler: 'range'; min?: number; max?: number }
+  | { handler: 'length'; min?: number; max?: number }
+  | { handler: 'enum'; values: string[] }
+  | { handler: 'json-schema'; schema: Record<string, unknown> }
+  | { handler: 'composite'; rules: ValidationRule[]; mode: 'all' | 'any' }
 
-  // For static data - can be simple strings or value/label pairs
-  values?: string[] | { value: string; label: string }[]
+/**
+ * Format rule - references built-in format handlers
+ */
+export type FormatRule =
+  | { handler: 'none' }
+  | { handler: 'phone'; style?: 'e164' | 'national' | 'international' }
+  | { handler: 'currency'; currency?: string; decimals?: number }
+  | { handler: 'number'; decimals?: number; thousandsSeparator?: boolean }
+  | { handler: 'date'; format?: string }
+  | { handler: 'boolean'; trueLabel?: string; falseLabel?: string }
+  | { handler: 'json'; pretty?: boolean }
+  | { handler: 'uppercase' }
+  | { handler: 'lowercase' }
+  | { handler: 'template'; template: string }
+
+/**
+ * Data source for dynamic column values
+ */
+export interface DataSourceDefinition {
+  type: 'static' | 'api'
+
+  // For static data
+  values?: Array<string | { value: string; label: string }>
 
   // For API data
-  endpoint?: string
-  refreshInterval?: string         // e.g., '24h', '1h', '30m'
-  cacheKey?: string
+  endpoint?: string // Relative to API base or absolute URL
+  method?: 'GET' | 'POST'
+  headers?: Record<string, string>
+  valueField?: string // JSON path to value, e.g., 'id' or 'data.id'
+  labelField?: string // JSON path to label, e.g., 'name' or 'data.name'
+  cache?: string // Cache duration, e.g., '24h', '1h', '5m'
 
-  // For module-provided data
-  moduleId?: string
-  methodName?: string
-
-  // Transformation
-  transform?: {
-    valuePath: string              // JSONPath to value
-    labelPath: string              // JSONPath to label
-  }
+  // Refresh settings
+  refreshOn?: 'mount' | 'focus' | 'interval'
+  refreshInterval?: string
 }
 
 /**
- * Validation result
+ * Column option definition (configuration when creating column)
  */
-export interface ValidationResult {
-  valid: boolean
-  error?: string
-  warnings?: string[]
-  transformedValue?: unknown       // If validation also transforms
-}
-
-// ============================================================================
-// TABLE GENERATORS - Module-provided table generation templates
-// ============================================================================
-
-/**
- * Table generator definition - generates complete tables with schema and data
- * Different from ModuleDataGenerator which generates individual cell values
- */
-export interface ModuleTableGenerator {
-  // Identity
-  id: string                       // e.g., 'rental-tables', 'phone-rental-tables'
-  displayName: string              // e.g., 'Rental Tables', 'Phone Rental Tables'
-  description: string              // Shown in generator selection UI
-  icon?: string                    // Icon identifier (Tabler icon name)
-  category?: string                // For grouping (e.g., 'commerce', 'inventory')
-
-  // Table generation settings
-  tableType: 'sale' | 'rent' | 'default'  // What type of tables to generate
-  defaultTableCount: number               // Default number of tables
-  defaultRowCount: number                 // Default rows per table
-
-  // Color/style for UI
-  color?: 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'error'
-
-  // Optional: specific generator function (if not provided, uses built-in dummyTableGenerator)
-  // The function receives (userId, tableCount, rowCount) and returns generator result
-  customGenerator?: boolean  // If true, module must provide generate function
-}
-
-// ============================================================================
-// DATA GENERATORS - Module-provided fake data generators
-// ============================================================================
-
-/**
- * Data generator definition provided by a module
- */
-export interface ModuleDataGenerator {
-  // Identity
-  id: string                       // e.g., 'phone', 'fish', 'crm_lead'
-  displayName: string
-  description: string
-  icon?: string
-  category?: string
-  outputType?: string              // The column type this generator produces
-
-  // Column requirements (optional - for table-based generation)
-  requiredColumns?: ColumnRequirement[]
-  optionalColumns?: ColumnRequirement[]
-
-  // Column dependencies (for generation order)
-  // e.g., { carrier: 'country', areaCode: 'country' }
-  dependencies?: Record<string, string | null>
-
-  // Generation settings/options
-  settings?: GeneratorSetting[]
-  options?: GeneratorOption[]
-
-  // Generate function - supports both patterns:
-  // 1. Simple: generate(count, options) -> array of values
-  // 2. Context-based: generate(context, options) -> GeneratedRow
-  generate(
-    countOrContext: number | GeneratorContext,
-    options?: Record<string, unknown>
-  ): Promise<unknown[] | GeneratedRow> | unknown[] | GeneratedRow
-
-  // Batch generate for performance
-  generateBatch?(
-    context: GeneratorContext,
-    count: number,
-    options?: Record<string, unknown>
-  ): Promise<GeneratedRow[]> | GeneratedRow[]
-
-  // Preview function for showing sample output
-  preview?(options?: Record<string, unknown>): string
-}
-
-/**
- * Generator option (simpler than GeneratorSetting)
- */
-export interface GeneratorOption {
+export interface ColumnOptionDefinition {
   id: string
   type: 'string' | 'number' | 'boolean' | 'select'
   displayName: string
   description?: string
   default?: unknown
   required?: boolean
-  options?: { value: string; label: string }[]
+  options?: { value: string; label: string }[] // For select type
+}
+
+// ============================================================================
+// TABLE GENERATOR DEFINITIONS - For bulk table/data generation
+// ============================================================================
+
+/**
+ * Table generator definition - generates tables with predefined structure
+ */
+export interface TableGeneratorDefinition {
+  id: string // e.g., 'phone-rental-tables'
+  displayName: string // e.g., 'Phone Rental Tables'
+  description?: string
+  icon?: string // Tabler icon name
+  category?: string
+
+  // What type of tables to generate
+  tableType: 'sale' | 'rent' | 'default'
+
+  // Default counts
+  defaultTableCount: number
+  defaultRowCount: number
+
+  // UI styling
+  color?: 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'error'
+
+  // Column schema for generated tables
+  columns?: GeneratorColumnDefinition[]
 }
 
 /**
- * Column requirement for a generator
+ * Column definition for table generator
  */
-export interface ColumnRequirement {
-  name: string
+export interface GeneratorColumnDefinition {
+  name: string // Column name
   displayName: string
-  description?: string
-  defaultType: string              // Default column type
-  allowedTypes?: string[]          // Alternative types allowed
-}
-
-/**
- * Generator setting
- */
-export interface GeneratorSetting {
-  id: string
-  type: 'string' | 'number' | 'boolean' | 'select'
-  displayName: string
-  description?: string
+  type: string // Column type ID (from this module or built-in)
+  required?: boolean
   default?: unknown
-  options?: { value: string; label: string }[]
+
+  // Generation rules for fake data
+  generate?: GenerationRule
 }
 
 /**
- * Context provided to generator
+ * Generation rule for fake data
  */
-export interface GeneratorContext {
-  // Faker instance
-  faker: unknown                   // Faker.js instance
-
-  // Previously generated values in this row
-  row: Record<string, unknown>
-
-  // Column mappings
-  columns: Record<string, string>  // generator column -> table column name
-
-  // Settings for this generator
-  settings: Record<string, unknown>
-
-  // Module cache for lookups
-  cache: ModuleCache
-
-  // Row index (for batch generation)
-  index: number
-
-  // Total rows being generated
-  total: number
-}
-
-/**
- * Generated row output
- */
-export type GeneratedRow = Record<string, unknown>
+export type GenerationRule =
+  | { handler: 'static'; value: unknown }
+  | { handler: 'faker'; method: string; args?: unknown[] } // e.g., 'phone.number', 'company.name'
+  | { handler: 'random-int'; min: number; max: number }
+  | { handler: 'random-float'; min: number; max: number; decimals?: number }
+  | { handler: 'random-boolean'; probability?: number }
+  | { handler: 'random-enum'; values: unknown[] }
+  | { handler: 'sequence'; start?: number; step?: number }
+  | { handler: 'pattern'; pattern: string } // e.g., '+1 (###) ###-####'
+  | { handler: 'template'; template: string; data?: Record<string, GenerationRule> }
 
 // ============================================================================
-// API ROUTES - Module-provided API endpoints
+// INSTALLED MODULE - Runtime state stored in D1
 // ============================================================================
-
-/**
- * API route definition
- */
-export interface ModuleApiRoute {
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-  path: string                     // Relative to /api/modules/:moduleId/
-  handler: ModuleApiHandler
-  middleware?: ModuleApiMiddleware[]
-  description?: string
-  authentication?: 'required' | 'optional' | 'none'
-}
-
-/**
- * API request context
- */
-export interface ModuleApiRequest {
-  params: Record<string, string>
-  query: Record<string, string>
-  body: unknown
-  headers: Record<string, string>
-  moduleContext: ModuleContext
-}
-
-/**
- * API response helpers
- */
-export interface ModuleApiResponse {
-  json(data: unknown, status?: number): Response
-  text(data: string, status?: number): Response
-  error(message: string, status?: number): Response
-  redirect(url: string, status?: number): Response
-}
-
-/**
- * API handler function
- */
-export type ModuleApiHandler = (
-  req: ModuleApiRequest,
-  res: ModuleApiResponse
-) => Promise<Response> | Response
-
-/**
- * API middleware function
- */
-export type ModuleApiMiddleware = (
-  req: ModuleApiRequest,
-  next: () => Promise<Response>
-) => Promise<Response>
-
-// ============================================================================
-// MODULE REGISTRY - Installed module tracking
-// ============================================================================
-
-/**
- * Module source for installation
- */
-export interface ModuleSource {
-  type: 'npm' | 'git' | 'url' | 'local' | 'upload'
-  package?: string                 // For npm sources
-  url?: string                     // For git/url sources
-  path?: string                    // For local sources
-  version?: string
-  branch?: string                  // For git sources
-  auth?: {
-    token?: string
-    registry?: string              // For private npm registries
-  }
-}
 
 /**
  * Installed module record (stored in D1)
@@ -621,7 +244,7 @@ export interface InstalledModule {
   id: string
   name: string
   version: string
-  displayName: string
+  displayName?: string | null | undefined // Human-readable display name from manifest
   description: string
   author: ModuleAuthor
   source: ModuleSource
@@ -630,43 +253,85 @@ export interface InstalledModule {
   updatedAt: Date
   activatedAt: Date | null
   settings: Record<string, unknown>
-  manifest: ModuleManifest
+  manifest: ModuleManifest // The full JSON manifest
   error?: string | undefined
   errorAt?: Date | undefined
+}
+
+/**
+ * Module source for installation
+ */
+export interface ModuleSource {
+  type: 'local' | 'url' | 'upload'
+  path?: string // For local sources (e.g., 'modules/phone-numbers')
+  url?: string // For URL sources
+  manifest?: ModuleManifest // For upload sources - the manifest content directly
 }
 
 /**
  * Module status
  */
 export type ModuleStatus =
-  | 'installing'     // Being installed
-  | 'installed'      // Installed but not active
-  | 'activating'     // Being activated
-  | 'active'         // Running and available
-  | 'deactivating'   // Being deactivated
-  | 'disabled'       // Manually disabled
-  | 'error'          // Error state
-  | 'updating'       // Being updated
-  | 'uninstalling'   // Being removed
+  | 'installing' // Being installed
+  | 'installed' // Installed but not active
+  | 'active' // Running and available
+  | 'disabled' // Manually disabled
+  | 'error' // Error state
+  | 'updating' // Being updated
+  | 'uninstalling' // Being removed
 
 /**
  * Module lifecycle state machine
  */
 export const MODULE_STATUS_TRANSITIONS: Record<ModuleStatus, ModuleStatus[]> = {
   installing: ['installed', 'error'],
-  installed: ['activating', 'uninstalling'],
-  activating: ['active', 'error'],
-  active: ['deactivating', 'updating', 'error'],
-  deactivating: ['disabled', 'error'],
-  disabled: ['activating', 'uninstalling'],
-  error: ['installing', 'activating', 'uninstalling'],
+  installed: ['active', 'uninstalling'],
+  active: ['disabled', 'updating', 'error'],
+  disabled: ['active', 'uninstalling'],
+  error: ['installing', 'active', 'uninstalling'],
   updating: ['active', 'error'],
   uninstalling: [],
 }
 
 // ============================================================================
-// MODULE MANAGER - Installation and lifecycle
+// MODULE REGISTRY & MANAGER INTERFACES
 // ============================================================================
+
+/**
+ * Module registry interface
+ */
+export interface ModuleRegistry {
+  list(): Promise<InstalledModule[]>
+  get(moduleId: string): Promise<InstalledModule | null>
+  add(module: InstalledModule): Promise<void>
+  remove(moduleId: string): Promise<void>
+  update(moduleId: string, updates: Partial<InstalledModule>): Promise<void>
+  findByStatus(status: ModuleStatus): Promise<InstalledModule[]>
+  getColumnTypeProvider(typeId: string): Promise<InstalledModule | null>
+}
+
+/**
+ * Module manager interface
+ */
+export interface ModuleManager {
+  registry: ModuleRegistry
+
+  // Installation
+  install(source: ModuleSource): Promise<InstallResult>
+  uninstall(moduleId: string): Promise<void>
+
+  // Lifecycle (simplified - just enable/disable)
+  activate(moduleId: string): Promise<void>
+  deactivate(moduleId: string): Promise<void>
+
+  // Settings
+  getSettings(moduleId: string): Promise<Record<string, unknown>>
+  setSettings(moduleId: string, settings: Record<string, unknown>): Promise<void>
+
+  // Queries - returns JSON definitions, not executable code
+  getColumnTypes(): ColumnTypeDefinition[]
+  getTableGenerators(): TableGeneratorDefinition[]
+}
 
 /**
  * Installation result
@@ -678,107 +343,46 @@ export interface InstallResult {
   error?: string
 }
 
-/**
- * Update check result
- */
-export interface UpdateInfo {
-  moduleId: string
-  currentVersion: string
-  latestVersion: string
-  releaseNotes?: string
-  publishedAt?: Date
-}
+// ============================================================================
+// BUILT-IN HANDLER TYPES (for type safety in handler implementations)
+// ============================================================================
 
 /**
- * Update result
+ * Validation result from handlers
  */
-export interface UpdateResult {
-  success: boolean
-  moduleId: string
-  fromVersion: string
-  toVersion: string
+export interface ValidationResult {
+  valid: boolean
   error?: string
 }
 
 /**
- * Module registry interface
+ * Validation handler function signature
  */
-export interface ModuleRegistry {
-  // CRUD
-  list(): Promise<InstalledModule[]>
-  get(moduleId: string): Promise<InstalledModule | null>
-  add(module: InstalledModule): Promise<void>
-  remove(moduleId: string): Promise<void>
-  update(moduleId: string, updates: Partial<InstalledModule>): Promise<void>
-
-  // Queries
-  findByStatus(status: ModuleStatus): Promise<InstalledModule[]>
-  findByCapability(capability: ModuleCapabilityDeclaration): Promise<InstalledModule[]>
-  getColumnTypeProvider(typeId: string): Promise<InstalledModule | null>
-  getDataGeneratorProvider(generatorId: string): Promise<InstalledModule | null>
-}
+export type ValidationHandler = (
+  value: unknown,
+  rule: ValidationRule,
+  options?: Record<string, unknown>
+) => ValidationResult
 
 /**
- * Module manager interface
+ * Format handler function signature
  */
-export interface ModuleManager {
-  // Registry access
-  registry: ModuleRegistry
-
-  // Installation
-  install(source: ModuleSource): Promise<InstallResult>
-  uninstall(moduleId: string): Promise<void>
-
-  // Lifecycle
-  activate(moduleId: string): Promise<void>
-  deactivate(moduleId: string): Promise<void>
-  reload(moduleId: string): Promise<void>
-  reloadAll(): Promise<void>
-
-  // Updates
-  checkUpdates(): Promise<UpdateInfo[]>
-  checkModuleUpdate(moduleId: string): Promise<UpdateInfo | null>
-  update(moduleId: string, version?: string): Promise<UpdateResult>
-
-  // Settings
-  getSettings(moduleId: string): Promise<Record<string, unknown>>
-  setSettings(moduleId: string, settings: Record<string, unknown>): Promise<void>
-
-  // Queries
-  getColumnTypes(): ModuleColumnType[]
-  getDataGenerators(): ModuleDataGenerator[]
-  getApiRoutes(): Array<ModuleApiRoute & { moduleId: string }>
-
-  // Runtime
-  getModuleInstance(moduleId: string): StoreModule | null
-  getModuleContext(moduleId: string): ModuleContext | null
-}
-
-// ============================================================================
-// MODULE ANALYTICS
-// ============================================================================
+export type FormatHandler = (
+  value: unknown,
+  rule: FormatRule,
+  options?: Record<string, unknown>
+) => string
 
 /**
- * Module analytics data
+ * Generation handler function signature
  */
-export interface ModuleAnalytics {
-  moduleId: string
-  installCount: number
-  activeInstances: number
-  errorCount: number
-  lastError?: {
-    message: string
-    occurredAt: Date
-  } | undefined
-  avgActivationTimeMs: number
-  avgApiResponseTimeMs: number
-  columnTypeUsage: Record<string, number>
-  generatorInvocations: number
-  updatedAt: Date
-}
+export type GenerationHandler = (
+  rule: GenerationRule,
+  context: { index: number; total: number; row: Record<string, unknown> }
+) => unknown
 
 // ============================================================================
-// TRUST & CERTIFICATION
+// TRUST & HELPERS
 // ============================================================================
 
 /**
@@ -792,6 +396,25 @@ export type ModuleTrustLevel = 'official' | 'verified' | 'community' | 'unverifi
 export function getModuleTrustLevel(manifest: ModuleManifest): ModuleTrustLevel {
   if (manifest.trust?.official) return 'official'
   if (manifest.trust?.verified) return 'verified'
-  if (manifest.repository) return 'community'
   return 'unverified'
+}
+
+// ============================================================================
+// ANALYTICS (for repository compatibility)
+// ============================================================================
+
+/**
+ * Module analytics
+ */
+export interface ModuleAnalytics {
+  moduleId: string
+  installCount: number
+  activeInstances: number
+  errorCount: number
+  lastError?: { message: string; occurredAt: Date } | undefined
+  avgActivationTimeMs: number
+  avgApiResponseTimeMs: number
+  columnTypeUsage: Record<string, number>
+  generatorInvocations: number
+  updatedAt: Date
 }
