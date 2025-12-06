@@ -27,7 +27,7 @@ app.post('/install', adminOnlyMiddleware, async (c) => {
       return c.json({ error: 'Source with type is required' }, 400)
     }
 
-    const validTypes = ['npm', 'git', 'local', 'upload']
+    const validTypes = ['npm', 'git', 'url', 'local', 'upload']
     if (!validTypes.includes(source.type)) {
       return c.json({
         error: 'Invalid source type',
@@ -35,8 +35,15 @@ app.post('/install', adminOnlyMiddleware, async (c) => {
       }, 400)
     }
 
-    if ((source.type === 'npm' || source.type === 'git' || source.type === 'local') && !source.url) {
+    // Validate required fields based on source type
+    if (source.type === 'npm' && !source.package) {
+      return c.json({ error: 'Package name is required for npm source' }, 400)
+    }
+    if ((source.type === 'git' || source.type === 'url') && !source.url) {
       return c.json({ error: 'URL is required for this source type' }, 400)
+    }
+    if (source.type === 'local' && !source.path) {
+      return c.json({ error: 'Path is required for local source' }, 400)
     }
 
     const repository = new ModuleRepository(c.env)

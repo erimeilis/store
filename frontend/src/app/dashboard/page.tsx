@@ -7,7 +7,7 @@ import React from 'react'
 import {IPaginatedResponse} from '@/types/models'
 import {UserTable} from '@/types/dynamic-tables'
 import {IconTable} from '@tabler/icons-react'
-import {TableList} from '@/components/table-list'
+import {TableList} from '@/components/tables/list'
 
 export default function DashboardPage({
                                           tables,

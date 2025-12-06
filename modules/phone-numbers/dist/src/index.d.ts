@@ -13,6 +13,9 @@ import type { StoreModule } from '../types.js';
  * Data Generators:
  * - phone-number: Generate realistic phone numbers
  * - did-number: Generate DID numbers with carrier patterns
+ *
+ * Table Generators:
+ * - phone-rental-tables: Generate rental tables with phone data
  */
 declare const phoneNumbersModule: StoreModule;
 export default phoneNumbersModule;

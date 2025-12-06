@@ -24,8 +24,11 @@ export interface ColumnTypeOption {
  * Data source for dynamic column values
  */
 export interface ColumnDataSource {
-    type: 'static' | 'api' | 'database';
-    values?: string[];
+    type: 'static' | 'api' | 'module' | 'database';
+    values?: string[] | {
+        value: string;
+        label: string;
+    }[];
     endpoint?: string;
     query?: string;
 }
@@ -63,7 +66,7 @@ export interface GeneratorOption {
     }[];
 }
 /**
- * Data generator definition
+ * Data generator definition (for individual cell values)
  */
 export interface ModuleDataGenerator {
     id: string;
@@ -75,6 +78,21 @@ export interface ModuleDataGenerator {
     options?: GeneratorOption[];
     generate(count: number, options?: Record<string, unknown>): Promise<unknown[]> | unknown[];
     preview?(options?: Record<string, unknown>): string;
+}
+/**
+ * Table generator definition (for generating complete tables with schema and data)
+ */
+export interface ModuleTableGenerator {
+    id: string;
+    displayName: string;
+    description: string;
+    icon?: string;
+    category?: string;
+    tableType: 'sale' | 'rent' | 'default';
+    defaultTableCount: number;
+    defaultRowCount: number;
+    color?: 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'error';
+    customGenerator?: boolean;
 }
 /**
  * Module context for runtime operations
@@ -102,6 +120,7 @@ export interface StoreModule {
     version: string;
     columnTypes?: ModuleColumnType[];
     dataGenerators?: ModuleDataGenerator[];
+    tableGenerators?: ModuleTableGenerator[];
     onActivate?(context: ModuleContext): Promise<void> | void;
     onDeactivate?(context: ModuleContext): Promise<void> | void;
 }

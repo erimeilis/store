@@ -1,5 +1,6 @@
 import type { StoreModule, ModuleManifest, ModuleSource } from '@/types/modules.js'
 import type { Bindings } from '@/types/bindings.js'
+import { getLocalModule, hasLocalModule } from './localModuleRegistry.js'
 
 /**
  * Module loader interface
@@ -29,7 +30,7 @@ const loadedModules = new Map<string, StoreModule>()
 
 /**
  * Create a local file system module loader (for development)
- * Loads modules from ./modules/ directory
+ * Uses statically bundled modules from localModuleRegistry
  */
 export function createLocalModuleLoader(_env: Bindings): ModuleLoader {
   return {
@@ -39,26 +40,22 @@ export function createLocalModuleLoader(_env: Bindings): ModuleLoader {
         return loadedModules.get(moduleId)!
       }
 
-      // Convert module ID to path: @store/phone-numbers -> phone-numbers
+      // Convert module ID to path: @store/phone-numbers -> modules/phone-numbers
       const moduleName = moduleId.replace(/^@\w+\//, '')
+      const modulePath = `modules/${moduleName}`
 
-      try {
-        // Dynamic import from modules directory
-        // Note: In Cloudflare Workers, this would be different
-        const modulePath = `../../../modules/${moduleName}/dist/index.js`
-        const imported = await import(modulePath)
-
-        const module = imported.default || imported
-
-        if (!module.id || !module.version) {
-          throw new Error(`Module ${moduleId} is missing required id or version`)
-        }
-
-        loadedModules.set(moduleId, module)
-        return module
-      } catch (error) {
-        throw new Error(`Failed to load module ${moduleId}: ${error}`)
+      // Get module from static registry (bundled at build time)
+      const module = getLocalModule(modulePath)
+      if (!module) {
+        throw new Error(`Module ${moduleId} not found in local registry. Make sure it's added to localModuleRegistry.ts`)
       }
+
+      if (!module.id || !module.version) {
+        throw new Error(`Module ${moduleId} is missing required id or version`)
+      }
+
+      loadedModules.set(moduleId, module)
+      return module
     },
 
     async exists(moduleId: string): Promise<boolean> {
@@ -66,22 +63,22 @@ export function createLocalModuleLoader(_env: Bindings): ModuleLoader {
         return true
       }
 
-      // In development, check if the module directory exists
-      // This is a simplified check - real implementation would check file system
-      try {
-        await this.getManifest(moduleId)
-        return true
-      } catch {
-        return false
-      }
+      // Check if module exists in static registry
+      const moduleName = moduleId.replace(/^@\w+\//, '')
+      const modulePath = `modules/${moduleName}`
+      return hasLocalModule(modulePath)
     },
 
     async getManifest(moduleId: string): Promise<ModuleManifest | null> {
       const moduleName = moduleId.replace(/^@\w+\//, '')
+      const modulePath = `modules/${moduleName}`
+
+      // Check if module exists in registry
+      if (!hasLocalModule(modulePath)) {
+        return null
+      }
 
       try {
-        // In a real implementation, we'd read store-module.json
-        // For now, load the module and get manifest from it
         const module = await this.load(moduleId)
 
         // Build manifest from module
@@ -90,7 +87,7 @@ export function createLocalModuleLoader(_env: Bindings): ModuleLoader {
           name: moduleName,
           version: module.version,
           description: '',
-          author: { name: 'Unknown' },
+          author: { name: 'Local' },
           engines: {
             store: '>=1.0.0',
             moduleApi: 'v1',
@@ -105,7 +102,7 @@ export function createLocalModuleLoader(_env: Bindings): ModuleLoader {
               generatorId: dg.id,
             })) || []),
           ],
-          main: 'dist/index.js',
+          main: 'dist/src/index.js',
         }
       } catch {
         return null

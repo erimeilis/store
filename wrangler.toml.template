@@ -1,6 +1,7 @@
 name = "store-api"
 main = "src/index.ts"
 compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 
 # Disable workers.dev subdomain in production (using custom domain)
 workers_dev = false

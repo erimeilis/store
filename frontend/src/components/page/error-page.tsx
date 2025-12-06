@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from './ui/link'
+import { Link } from '@/components/ui/link'
 
 interface ErrorPageProps {
   errorCode: number

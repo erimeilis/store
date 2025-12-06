@@ -63,6 +63,104 @@ export function registerAuthRoutes(app: Hono<{ Bindings: Env; Variables: Variabl
     const { handleLogout } = await import('@/handlers/auth')
     return handleLogout(c)
   })
+
+  // DEV ONLY: Backdoor login for local development (bypasses Google OAuth)
+  app.get('/auth/dev-login', themeMiddleware, async (c) => {
+    const url = new URL(c.req.url)
+
+    // SECURITY: Only allow on localhost
+    if (!url.hostname.includes('localhost') && !url.hostname.includes('127.0.0.1')) {
+      return c.text('Dev login only available on localhost', 403)
+    }
+
+    const { createSessionCookie } = await import('@/lib/middleware')
+    const { setCookie } = await import('hono/cookie')
+    const { createAuthConfig } = await import('@/lib/auth')
+
+    const devAuthConfig = createAuthConfig(c.env)
+    const apiUrl = c.env?.API_URL || 'http://localhost:8787'
+    const adminToken = c.env?.ADMIN_ACCESS_TOKEN || ''
+
+    console.log('🔓 Dev login: Checking for existing admin user...')
+
+    // Try to find or create a dev admin user
+    let devUser = {
+      id: 'dev-admin-001',
+      name: 'Dev Admin',
+      email: 'admin@localhost.dev',
+      role: 'admin'
+    }
+
+    try {
+      // Check if dev admin user exists
+      const userResponse = await fetch(
+        `${apiUrl}/api/users?filterEmail=${encodeURIComponent(devUser.email)}&exact=true`,
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+
+      if (userResponse.ok) {
+        const userResult = await userResponse.json() as any
+        if (userResult.data && userResult.data.length > 0) {
+          // Use existing user
+          const dbUser = userResult.data[0]
+          devUser = {
+            id: dbUser.id,
+            name: dbUser.name,
+            email: dbUser.email,
+            role: dbUser.role || 'admin'
+          }
+          console.log('✅ Dev login: Found existing dev user:', devUser.email)
+        } else {
+          // Create dev admin user
+          console.log('📝 Dev login: Creating dev admin user...')
+          const createResponse = await fetch(`${apiUrl}/api/users`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${adminToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              email: devUser.email,
+              name: devUser.name,
+              role: 'admin'
+            })
+          })
+
+          if (createResponse.ok) {
+            const newUser = await createResponse.json() as any
+            devUser.id = newUser.id
+            devUser.role = newUser.role || 'admin'
+            console.log('✅ Dev login: Created dev admin user')
+          } else {
+            // User creation might fail due to email restrictions, that's ok
+            // We'll still create the session with mock data
+            console.log('⚠️ Dev login: Could not create user in DB, using mock session')
+          }
+        }
+      }
+    } catch (error) {
+      console.log('⚠️ Dev login: DB check failed, using mock session:', error)
+    }
+
+    // Create session cookie
+    const sessionCookie = createSessionCookie(devUser)
+
+    setCookie(c, devAuthConfig.session.cookieName, sessionCookie, {
+      httpOnly: true,
+      secure: false, // Local dev doesn't need secure
+      sameSite: 'Lax',
+      maxAge: devAuthConfig.session.maxAge,
+      path: '/'
+    })
+
+    console.log('🎯 Dev login: Session created, redirecting to dashboard...')
+    return c.redirect('/dashboard')
+  })
 }
 
 /**

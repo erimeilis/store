@@ -16,6 +16,7 @@ import type {
   UpdateInfo,
   UpdateResult,
 } from '@/types/modules.js'
+import modulesManifest from '@/data/modules-manifest.json'
 import { MODULE_STATUS_TRANSITIONS } from '@/types/modules.js'
 import { ModuleRepository } from '@/repositories/moduleRepository.js'
 import { createModuleContext } from './moduleContext.js'
@@ -26,6 +27,24 @@ import {
   unloadModule,
   unloadAllModules,
 } from './moduleLoader.js'
+
+/**
+ * Global module cache - persists across requests within a Worker isolate
+ * This prevents re-initializing modules on every request
+ *
+ * IMPORTANT: We use module IDs list as the "lock" to prevent races.
+ * Cloudflare Workers doesn't allow sharing I/O operations across requests,
+ * but we CAN share the final cached module instances (which are just JS objects).
+ *
+ * Strategy: Pre-populate moduleIds synchronously at Worker startup,
+ * then each request can check if modules are already cached.
+ */
+const globalModuleCache = {
+  instances: new Map<string, StoreModule>(),
+  // Use a string token as atomic initialization marker
+  // First request to successfully complete sets this to 'done'
+  initState: 'pending' as 'pending' | 'running' | 'done',
+}
 
 /**
  * Module Manager Service
@@ -355,8 +374,9 @@ export class ModuleManagerService implements ModuleManager {
       await this.deactivate(moduleId)
     }
 
-    // Clear cached module code
+    // Clear cached module code (both local and global)
     unloadModule(moduleId)
+    globalModuleCache.instances.delete(moduleId)
 
     if (wasActive) {
       await this.activate(moduleId)
@@ -376,8 +396,10 @@ export class ModuleManagerService implements ModuleManager {
       await this.deactivate(module.id)
     }
 
-    // Clear all cached modules
+    // Clear all cached modules (both local and global)
     unloadAllModules()
+    globalModuleCache.instances.clear()
+    globalModuleCache.initState = 'pending'
 
     // Reactivate all
     for (const module of activeModules) {
@@ -668,18 +690,95 @@ export class ModuleManagerService implements ModuleManager {
 
   /**
    * Initialize the module manager
-   * Activates all modules that were previously active
+   * Loads all modules that should be active (for use in request handlers)
+   * Uses global cache to avoid re-initializing on every request
+   *
+   * IMPORTANT: Due to Cloudflare Workers I/O isolation, we CANNOT share
+   * I/O operations across requests. Each request must use its own I/O context.
+   *
+   * Strategy:
+   * 1. If cache is 'done' → use cached instances immediately (no I/O)
+   * 2. If cache is 'running' → return empty (graceful degradation, retry next request)
+   * 3. If cache is 'pending' → this request does the initialization
    */
   async initialize(): Promise<void> {
-    const modules = await this.repository.list()
+    // Fast path: Already initialized - copy cached instances (no I/O needed)
+    if (globalModuleCache.initState === 'done') {
+      for (const [id, instance] of globalModuleCache.instances) {
+        if (!this.moduleInstances.has(id)) {
+          this.moduleInstances.set(id, instance)
+        }
+      }
+      return
+    }
+
+    // Concurrent path: Another request is initializing
+    // Return immediately WITHOUT any I/O to avoid cross-request I/O errors
+    // Trade-off: This request won't have module types, but won't crash either
+    if (globalModuleCache.initState === 'running') {
+      return
+    }
+
+    // First request path: Mark as running and do initialization
+    // Note: This isn't perfectly atomic, but it's good enough for cold start races
+    // Multiple requests might set this, but only one will complete first
+    globalModuleCache.initState = 'running'
+
+    try {
+      await this.doInitialize()
+      globalModuleCache.initState = 'done'
+    } catch (error) {
+      console.error('Module initialization failed:', error)
+      // Reset to pending so next request can try again
+      globalModuleCache.initState = 'pending'
+      // Don't throw - let the app work without modules
+    }
+  }
+
+  /**
+   * Internal initialization logic
+   */
+  private async doInitialize(): Promise<void> {
+    let modules: InstalledModule[]
+    try {
+      modules = await this.repository.list()
+    } catch (error) {
+      console.error('Failed to fetch module list:', error)
+      return // Continue without modules
+    }
 
     for (const module of modules) {
-      // Activate modules that should be active
-      if (module.status === 'active' || module.status === 'activating') {
+      // Load modules that should be active
+      if (module.status === 'active') {
         try {
-          await this.activate(module.id)
+          // Skip if already loaded in global cache
+          if (globalModuleCache.instances.has(module.id)) {
+            this.moduleInstances.set(module.id, globalModuleCache.instances.get(module.id)!)
+            continue
+          }
+
+          // Skip if already loaded in this instance
+          if (this.moduleInstances.has(module.id)) {
+            continue
+          }
+
+          // Load module code
+          const instance = await this.loader.load(module.id)
+          this.moduleInstances.set(module.id, instance)
+          globalModuleCache.instances.set(module.id, instance)
+
+          // Create module context
+          const context = createModuleContext(
+            this.env,
+            module.id,
+            module.version,
+            module.settings,
+            this.repository
+          )
+          this.moduleContexts.set(module.id, context)
         } catch (error) {
-          console.error(`Failed to activate module ${module.id}:`, error)
+          console.error(`Failed to load module ${module.id}:`, error)
+          // Continue loading other modules
         }
       }
     }
@@ -692,11 +791,11 @@ export class ModuleManagerService implements ModuleManager {
   private async resolveModuleId(source: ModuleSource): Promise<string> {
     // For npm packages, the ID is the package name
     if (source.type === 'npm') {
-      return source.url || ''
+      return source.package || ''
     }
 
-    // For git repos, try to fetch manifest and get ID
-    if (source.type === 'git') {
+    // For git/url repos, try to fetch manifest and get ID
+    if (source.type === 'git' || source.type === 'url') {
       const manifest = await this.fetchManifest(source)
       return manifest?.id || ''
     }
@@ -707,14 +806,40 @@ export class ModuleManagerService implements ModuleManager {
   }
 
   private async fetchManifest(source: ModuleSource): Promise<ModuleManifest | null> {
-    // This is a placeholder - real implementation would fetch from git/npm/etc
-    // For now, use the loader's getManifest
-    if (source.type === 'local' && source.url) {
+    // For local modules, use the full manifest from build-time scan
+    if (source.type === 'local' && source.path) {
+      // Find module in the bundled manifest (now includes full manifest data)
+      const scannedModule = modulesManifest.find(
+        (m: { path: string }) => m.path === source.path
+      ) as { path: string; manifest: ModuleManifest } | undefined
+
+      if (scannedModule?.manifest) {
+        return scannedModule.manifest
+      }
+
+      // Fallback: try to use loader's getManifest
+      const moduleName = source.path.replace(/^modules\//, '')
+      const moduleId = `@store/${moduleName}`
+      const loaderManifest = await this.loader.getManifest(moduleId)
+      if (loaderManifest) {
+        return loaderManifest
+      }
+
+      return null
+    }
+
+    // For url/git sources
+    if ((source.type === 'url' || source.type === 'git') && source.url) {
       return this.loader.getManifest(source.url)
     }
 
+    // For npm sources
+    if (source.type === 'npm' && source.package) {
+      // TODO: Fetch from npm registry
+      return null
+    }
+
     // For other sources, we'd need to implement fetching
-    // from git repos, npm registry, etc.
     return null
   }
 

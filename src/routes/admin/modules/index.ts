@@ -5,6 +5,7 @@ import type { HonoVariables } from '@/types/hono.js'
 // Import individual route handlers
 import getModules from './get.js'
 import getModuleById from './get.id.js'
+import getAvailableModules from './get.available.js'
 import postInstall from './post.install.js'
 import postModuleAction from './post.id.action.js'
 import patchModuleSettings from './patch.id.settings.js'
@@ -20,10 +21,11 @@ import postReloadAll from './post.reload.js'
  */
 const app = new Hono<{ Bindings: Bindings; Variables: HonoVariables }>()
 
-// Mount routes
+// Mount routes - specific paths before parameterized ones
 app.route('/', getModules)
-app.route('/', getModuleById)
+app.route('/', getAvailableModules)  // Must be before /:id routes
 app.route('/', postInstall)
+app.route('/', getModuleById)        // Parameterized routes last
 app.route('/', postModuleAction)
 app.route('/', patchModuleSettings)
 app.route('/', deleteModule)

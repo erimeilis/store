@@ -13,7 +13,7 @@ import {formatApiDate} from '@/lib/date-utils'
 import {clientApiRequest} from '@/lib/client-api'
 import {CountryDisplay, getCountryOptions} from '@/components/ui/country-select'
 import {BooleanCircle} from '@/components/ui/boolean-circle'
-import {TablePageHeader} from '@/components/table-page-header'
+import {TablePageHeader} from '@/components/tables/page-header'
 import {IconFlag, IconWand} from '@tabler/icons-react'
 import {toDisplayName} from '@/utils/column-name-utils'
 
@@ -352,7 +352,7 @@ export default function TableDataPage({
 
     if (isLoading) {
         return (
-            <div className="container mx-auto sm:p-4">
+            <div className="space-y-6">
                 <div className="flex justify-center items-center h-64">
                     <span className="loading loading-spinner loading-lg"></span>
                 </div>
@@ -362,7 +362,7 @@ export default function TableDataPage({
 
     if (error || !paginatedData) {
         return (
-            <div className="container mx-auto sm:p-4">
+            <div className="space-y-6">
                 <div className="alert alert-error">
                     <svg className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -411,7 +411,7 @@ export default function TableDataPage({
     })
 
     return (
-        <div className="container mx-auto sm:p-4">
+        <div className="space-y-6">
             <TablePageHeader
                 subtitle={<>View and manage data in <strong className="truncate">{table?.name}</strong></>}
                 description={table?.description || undefined}

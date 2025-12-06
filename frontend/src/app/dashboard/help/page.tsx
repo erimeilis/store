@@ -18,25 +18,24 @@ import {
     IconLock,
     IconPlus,
     IconShoppingCart,
-    IconTable,
     IconToggleLeft,
     IconUpload,
     IconUsers,
     IconWorld
 } from '@tabler/icons-react'
 import {Alert} from '@/components/ui/alert'
+import {PageHeader, createBreadcrumbs} from '@/components/page/page-header'
 
 export default function HelpPage() {
     return (
         <div className="space-y-6">
             {/* Help Header */}
-            <div className="flex items-center gap-3">
-                <IconHelpCircle className="h-8 w-8 text-base-content/70"/>
-                <div>
-                    <h1 className="text-2xl font-bold">Help & Documentation</h1>
-                    <p className="text-base-content/60">Learn how to use dynamic tables and store features</p>
-                </div>
-            </div>
+            <PageHeader
+                breadcrumbs={createBreadcrumbs.section('Help')}
+                icon={IconHelpCircle}
+                title="Help & Documentation"
+                subtitle="Learn how to use dynamic tables and store features"
+            />
 
             {/* Main Content - 2 columns on desktop */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

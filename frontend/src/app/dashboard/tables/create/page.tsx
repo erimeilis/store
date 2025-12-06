@@ -13,14 +13,14 @@ import {Input} from '@/components/ui/input'
 import {Select} from '@/components/ui/select'
 import {Checkbox} from '@/components/ui/checkbox'
 import {Alert} from '@/components/ui/alert'
-import {TableInfoForm} from '@/components/table-info-form'
+import {TableInfoForm} from '@/components/tables/info-form'
 import {
-    COLUMN_TYPE_OPTIONS,
     ColumnFormData,
     ColumnType,
     TableFormData,
     TableType
 } from '@/types/dynamic-tables'
+import {useColumnTypes} from '@/hooks/useColumnTypes'
 import {
     IconArrowDown,
     IconArrowUp,
@@ -45,6 +45,9 @@ interface ValidationErrors {
 export default function CreateTablePage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [errors, setErrors] = useState<ValidationErrors>({})
+
+    // Fetch column types from API (includes module types when modules are active)
+    const { columnTypes, builtInTypes, moduleTypes, isLoading: columnTypesLoading } = useColumnTypes()
 
     const [formData, setFormData] = useState<TableFormData>({
         name: '',
@@ -198,10 +201,10 @@ export default function CreateTablePage() {
     const isEcommerceTable = formData.tableType === 'sale' || formData.tableType === 'rent'
 
     return (
-        <div className="container mx-auto p-4 max-w-4xl">
+        <div className="space-y-6">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800">Create New Table</h1>
-                <p className="text-gray-600 mt-2">
+                <h1 className="text-3xl font-bold text-base-content">Create New Table</h1>
+                <p className="text-base-content/70 mt-2">
                     Design a custom data table with configurable columns and access controls.
                 </p>
             </div>
@@ -431,12 +434,28 @@ export default function CreateTablePage() {
                                                 <Select
                                                     value={column.type}
                                                     onChange={(e) => handleColumnChange(index, 'type', e.target.value as ColumnType)}
+                                                    disabled={columnTypesLoading}
                                                 >
-                                                    {COLUMN_TYPE_OPTIONS.map(option => (
-                                                        <option key={option.value} value={option.value}>
-                                                            {option.label}
-                                                        </option>
-                                                    ))}
+                                                    {/* Built-in types */}
+                                                    {builtInTypes.length > 0 && (
+                                                        <optgroup label="Built-in Types">
+                                                            {builtInTypes.map(option => (
+                                                                <option key={option.value} value={option.value}>
+                                                                    {option.label}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    )}
+                                                    {/* Module types (if any modules are active) */}
+                                                    {moduleTypes.length > 0 && (
+                                                        <optgroup label="Module Types">
+                                                            {moduleTypes.map(option => (
+                                                                <option key={option.value} value={option.value}>
+                                                                    {option.label} {option.moduleName ? `(${option.moduleName})` : ''}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    )}
                                                 </Select>
                                             </div>
 
@@ -467,7 +486,7 @@ export default function CreateTablePage() {
                                         </div>
                                         {/* Column type description */}
                                         <div className="mt-2 text-sm text-gray-600">
-                                            {COLUMN_TYPE_OPTIONS.find(opt => opt.value === column.type)?.description}
+                                            {columnTypes.find(opt => opt.value === column.type)?.description}
                                         </div>
                                     </CardBody>
                                 </Card>

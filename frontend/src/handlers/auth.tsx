@@ -4,8 +4,8 @@
 
 import type { Context } from 'hono'
 import { createAuthConfig, getGoogleAuthURL } from '@/lib/auth'
-import { LayoutProvider } from '@/components/LayoutProvider'
-import { LayoutRenderer } from '@/components/LayoutRenderer'
+import { LayoutProvider } from '@/components/layout/LayoutProvider'
+import { LayoutRenderer } from '@/components/layout/LayoutRenderer'
 import { layoutSystem } from '@/lib/layout-system'
 import LoginPage from '@/app/login/page'
 

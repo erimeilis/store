@@ -11,12 +11,13 @@ import {Alert} from '@/components/ui/alert'
 import {Badge} from '@/components/ui/badge'
 import {BooleanCircle} from '@/components/ui/boolean-circle'
 import {IconCopy, IconPlus, IconAlertTriangle, IconWand} from '@tabler/icons-react'
-import {COLUMN_TYPE_OPTIONS, getColumnTypeLabel, isProtectedColumn, getProtectionReason, TableColumn, TableSchema, TableType} from '@/types/dynamic-tables'
+import {getColumnTypeLabel, isProtectedColumn, getProtectionReason, TableColumn, TableSchema, TableType} from '@/types/dynamic-tables'
+import {useColumnTypes} from '@/hooks/useColumnTypes'
 import {IMassAction, IPaginatedResponse} from '@/types/models'
 import {formatApiDate} from '@/lib/date-utils'
 import {clientApiRequest} from '@/lib/client-api'
-import {ProtectedColumnBadge} from '@/components/protected-column-indicator'
-import {TablePageHeader} from '@/components/table-page-header'
+import {ProtectedColumnBadge} from '@/components/tables/protected-column-indicator'
+import {TablePageHeader} from '@/components/tables/page-header'
 import {toDisplayName, hasColumnNameIssues, getColumnNameIssues} from '@/utils/column-name-utils'
 
 interface TableColumnsPageProps {
@@ -34,6 +35,9 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
     const [schema, setSchema] = useState<TableSchema | null>(tableSchema)
     const [columnsData, setColumnsData] = useState<IPaginatedResponse<ColumnModel> | null>(null)
     const [error, setError] = useState<string | null>(null)
+
+    // Fetch column types from API (includes module types when modules are active)
+    const { columnTypes } = useColumnTypes()
 
     // Column name issues state
     const [columnIssues, setColumnIssues] = useState<{
@@ -242,7 +246,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             filterable: false,
             filterType: 'select',
             className: 'w-20 sm:w-24',
-            filterOptions: COLUMN_TYPE_OPTIONS.map(opt => ({value: opt.value, label: opt.label})),
+            filterOptions: columnTypes.map(opt => ({value: opt.value, label: opt.label})),
             render: (column) => (
                 <Badge color="primary" size="sm" className="text-xs whitespace-nowrap">
                     {getColumnTypeLabel(column.type)}
@@ -250,7 +254,11 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
             ),
             editableInline: true,
             editType: 'select',
-            editOptions: COLUMN_TYPE_OPTIONS.map(opt => ({value: opt.value, label: opt.label}))
+            editOptions: columnTypes.map(opt => ({
+                value: opt.value,
+                label: opt.label,
+                group: opt.moduleId ? 'Module Types' : 'Built-in Types'
+            }))
         },
         {
             key: 'isRequired',
@@ -516,7 +524,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
 
     if (isLoading) {
         return (
-            <div className="container mx-auto sm:p-4">
+            <div className="space-y-6">
                 <div className="flex justify-center items-center h-64">
                     <span className="loading loading-spinner loading-lg"></span>
                 </div>
@@ -526,7 +534,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
 
     if (error) {
         return (
-            <div className="container mx-auto sm:p-4">
+            <div className="space-y-6">
                 <Alert color="error">
                     {error}
                 </Alert>
@@ -536,7 +544,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
 
     if (!schema) {
         return (
-            <div className="container mx-auto sm:p-4">
+            <div className="space-y-6">
                 <Alert color="error">
                     Failed to load table schema. Please try again.
                 </Alert>
@@ -545,7 +553,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
     }
 
     return (
-        <div className="container mx-auto sm:p-4">
+        <div className="space-y-6">
             <TablePageHeader
                 subtitle={<>Column structure for <strong className="truncate">{schema.table.name}</strong></>}
                 description={schema.table.description || undefined}

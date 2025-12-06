@@ -1,55 +1,46 @@
 /**
  * Frontend Module System Types
- * Type definitions for module admin UI
+ * MUST match backend src/types/modules.ts exactly!
  */
 
-import type { BaseModel, PaginatedResponse } from './models'
+import type { PaginatedResponse } from './models'
+
+// ============================================================================
+// TYPES MATCHING BACKEND EXACTLY
+// ============================================================================
 
 /**
- * Module lifecycle states
+ * Module status - matches backend ModuleStatus
  */
-export type ModuleState =
-  | 'installing'
-  | 'installed'
-  | 'activating'
-  | 'active'
-  | 'deactivating'
-  | 'disabled'
-  | 'error'
-  | 'updating'
-  | 'uninstalling'
+export type ModuleStatus = 'installed' | 'active' | 'disabled' | 'error'
 
 /**
  * Module capability types
  */
-export type ModuleCapabilityType = 'columnType' | 'dataGenerator' | 'api' | 'widget' | 'theme'
+export type ModuleCapabilityType = 'columnType' | 'dataGenerator' | 'api'
 
 /**
- * Module capability
+ * Capability declaration - matches backend ModuleCapabilityDeclaration
  */
-export interface ModuleCapability {
-  type: ModuleCapabilityType
-  typeId?: string
-  generatorId?: string
-  route?: string
-  widgetId?: string
-  themeId?: string
+export type ModuleCapability =
+  | { type: 'columnType'; typeId: string }
+  | { type: 'dataGenerator'; generatorId: string }
+  | { type: 'api'; basePath: string }
+
+/**
+ * Module author - matches backend ModuleAuthor
+ */
+export interface ModuleAuthor {
+  name: string
+  email?: string
+  url?: string
 }
 
 /**
- * Module dependency
- */
-export interface ModuleDependency {
-  moduleId: string
-  version: string
-  optional?: boolean
-}
-
-/**
- * Module source
+ * Module source - matches backend ModuleSource
  */
 export interface ModuleSource {
-  type: 'builtin' | 'npm' | 'url' | 'local'
+  type: 'npm' | 'url' | 'local'
   package?: string
   version?: string
   url?: string
@@ -57,23 +48,31 @@ export interface ModuleSource {
 }
 
 /**
- * Module manifest
+ * Module manifest - matches backend ModuleManifest
  */
 export interface ModuleManifest {
   id: string
   name: string
   version: string
-  description?: string
-  author?: string
+  description: string
+  icon?: string
+  author: ModuleAuthor
   license?: string
-  homepage?: string
   repository?: string
-  keywords?: string[]
+  homepage?: string
+  engines: {
+    store: string
+    moduleApi: 'v1'
+  }
   capabilities: ModuleCapability[]
-  dependencies?: ModuleDependency[]
+  dependencies?: Record<string, string>
   settings?: ModuleSettingDefinition[]
+  main: string
+  trust?: {
+    official?: boolean
+    verified?: boolean
+  }
   permissions?: string[]
-  minStoreVersion?: string
 }
 
 /**
@@ -81,7 +80,7 @@ export interface ModuleManifest {
  */
 export interface ModuleSettingDefinition {
   id: string
-  type: 'string' | 'number' | 'boolean' | 'select' | 'multiselect'
+  type: 'string' | 'number' | 'boolean' | 'select' | 'secret'
   displayName: string
   description?: string
   default?: unknown
@@ -90,42 +89,59 @@ export interface ModuleSettingDefinition {
 }
 
 /**
- * Installed module record
+ * Installed module - matches backend InstalledModule exactly!
  */
-export interface InstalledModule extends BaseModel {
-  moduleId: string
+export interface InstalledModule {
+  id: string
+  name: string
   version: string
-  state: ModuleState
-  manifest: ModuleManifest
+  displayName: string
+  description: string
+  author: ModuleAuthor
   source: ModuleSource
+  status: ModuleStatus
+  manifest: ModuleManifest
   settings: Record<string, unknown>
-  installedAt: string
-  activatedAt?: string | null
-  lastError?: string | null
+  installedAt: string | Date
+  updatedAt: string | Date
+  activatedAt: string | Date | null
+  error?: string
+  errorAt?: string | Date
+  // Additional field from API (not in base InstalledModule)
+  analytics?: {
+    activationCount: number
+    errorCount: number
+    generatorInvocations: number
+  } | null
 }
 
 /**
  * Module event types
  */
 export type ModuleEventType =
-  | 'installed'
-  | 'activated'
-  | 'deactivated'
-  | 'uninstalled'
+  | 'install'
+  | 'activate'
+  | 'deactivate'
+  | 'update'
+  | 'uninstall'
   | 'error'
-  | 'settings_updated'
-  | 'custom'
+  | 'settings_change'
+  | 'reload'
 
 /**
  * Module event record
  */
-export interface ModuleEvent extends BaseModel {
+export interface ModuleEvent {
+  id: string
   moduleId: string
   eventType: ModuleEventType
-  message: string
-  data?: Record<string, unknown>
-  level: 'info' | 'warn' | 'error'
-  timestamp: string
+  previousVersion: string | null
+  newVersion: string | null
+  previousStatus: string | null
+  newStatus: string | null
+  details: Record<string, unknown> | null
+  createdBy: string | null
+  createdAt: string | Date
 }
 
 /**
@@ -133,15 +149,18 @@ export interface ModuleEvent extends BaseModel {
  */
 export interface ModuleAnalytics {
   moduleId: string
-  period: string
-  metrics: {
-    columnTypeUsage: Record<string, number>
-    generatorInvocations: number
-    apiCalls: number
-    averageResponseTime: number
-    errors: number
-    customMetrics: Record<string, number>
+  installCount: number
+  activeInstances: number
+  errorCount: number
+  lastError?: {
+    message: string
+    occurredAt: Date
   }
+  avgActivationTimeMs: number
+  avgApiResponseTimeMs: number
+  columnTypeUsage: Record<string, number>
+  generatorInvocations: number
+  updatedAt: Date
 }
 
 /**
@@ -150,20 +169,6 @@ export interface ModuleAnalytics {
 export interface ModuleInstallRequest {
   source: ModuleSource
   activate?: boolean
-}
-
-/**
- * Module action request
- */
-export interface ModuleActionRequest {
-  action: 'activate' | 'deactivate' | 'reload'
-}
-
-/**
- * Module settings update request
- */
-export interface ModuleSettingsUpdateRequest {
-  settings: Record<string, unknown>
 }
 
 /**
@@ -176,45 +181,28 @@ export type PaginatedModulesResponse = PaginatedResponse<InstalledModule>
  */
 export type PaginatedModuleEventsResponse = PaginatedResponse<ModuleEvent>
 
+// ============================================================================
+// UI HELPERS
+// ============================================================================
+
 /**
- * State badge color mapping
+ * Status badge color mapping
  */
-export const moduleStateBadgeVariant: Record<ModuleState, string> = {
-  installing: 'badge-info',
+export const moduleStatusBadgeVariant: Record<ModuleStatus, string> = {
   installed: 'badge-secondary',
-  activating: 'badge-info',
   active: 'badge-success',
-  deactivating: 'badge-warning',
   disabled: 'badge-ghost',
   error: 'badge-error',
-  updating: 'badge-info',
-  uninstalling: 'badge-warning',
 }
 
 /**
- * State display labels
+ * Status display labels
  */
-export const moduleStateLabel: Record<ModuleState, string> = {
-  installing: 'Installing',
+export const moduleStatusLabel: Record<ModuleStatus, string> = {
   installed: 'Installed',
-  activating: 'Activating',
   active: 'Active',
-  deactivating: 'Deactivating',
   disabled: 'Disabled',
   error: 'Error',
-  updating: 'Updating',
-  uninstalling: 'Uninstalling',
-}
-
-/**
- * Capability icon mapping
- */
-export const capabilityIcon: Record<ModuleCapabilityType, string> = {
-  columnType: 'IconColumn',
-  dataGenerator: 'IconWand',
-  api: 'IconApi',
-  widget: 'IconLayoutDashboard',
-  theme: 'IconPalette',
 }
 
 /**
@@ -224,6 +212,4 @@ export const capabilityLabel: Record<ModuleCapabilityType, string> = {
   columnType: 'Column Type',
   dataGenerator: 'Data Generator',
   api: 'API Extension',
-  widget: 'Widget',
-  theme: 'Theme',
 }
