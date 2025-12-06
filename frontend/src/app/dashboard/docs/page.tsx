@@ -4,6 +4,8 @@
  */
 
 import React, {useEffect, useRef} from 'react'
+import {PageHeader, createBreadcrumbs} from '@/components/page/page-header'
+import {IconApi} from '@tabler/icons-react'
 
 export default function DocsPage() {
     const swaggerUIRef = useRef<HTMLDivElement>(null)
@@ -113,16 +115,14 @@ export default function DocsPage() {
     }, [baseApiUrl])
 
     return (
-        <div className="container mx-auto px-4 py-4">
-            <div className="mb-4">
-                <h1 className="text-3xl font-bold mb-2">Store API Documentation</h1>
-                <p className="text-base-content/70 mb-4">
-                    Interactive API documentation with live testing capabilities
-                </p>
-                <div className="bg-info/10 p-4 rounded-lg text-sm">
-                    <strong>Authentication:</strong> Most endpoints require a Bearer token. Use the "Authorize" button below to add your token.
-                </div>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                breadcrumbs={createBreadcrumbs.section('API Docs')}
+                icon={IconApi}
+                title="Store API Documentation"
+                subtitle="Interactive API documentation with live testing capabilities"
+                description="Most endpoints require a Bearer token. Use the 'Authorize' button below to add your token."
+            />
 
             <div
                 id="swagger-ui"
@@ -130,7 +130,7 @@ export default function DocsPage() {
                 className="rounded-lg border border-base-300 min-h-[600px]"
             />
 
-            <div className="mt-4 text-center text-sm text-base-content/70">
+            <div className="text-center text-sm text-base-content/70">
                 <p>
                     Need a token? Get one from the{' '}
                     <a href="/dashboard/tokens" className="link link-primary">

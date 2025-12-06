@@ -12,13 +12,11 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Toggle } from '@/components/ui/toggle'
 import { Tabs, type TabItem } from '@/components/ui/tab'
+import { PageHeader, createBreadcrumbs } from '@/components/page/page-header'
 import {
-  IconArrowLeft,
   IconPlugConnected,
   IconPlug,
   IconPower,
-  IconRefresh,
-  IconTrash,
   IconAlertCircle,
   IconCheck,
   IconClock,
@@ -31,18 +29,19 @@ import {
   IconLicense,
   IconUser,
 } from '@tabler/icons-react'
+import { ModuleActions, type ModuleAction } from '@/components/modules/actions'
 import type {
   InstalledModule,
   ModuleEvent,
   ModuleAnalytics,
   ModuleSettingDefinition,
   ModuleCapability,
-  ModuleState,
+  ModuleStatus,
   PaginatedModuleEventsResponse,
 } from '@/types/modules'
 import {
-  moduleStateBadgeVariant,
-  moduleStateLabel,
+  moduleStatusBadgeVariant,
+  moduleStatusLabel,
   capabilityLabel,
 } from '@/types/modules'
 import { formatApiDate } from '@/lib/date-utils'
@@ -69,19 +68,32 @@ function getCapabilityIcon(type: string) {
   }
 }
 
+function getCapabilityId(cap: ModuleCapability): string | undefined {
+  if (cap.type === 'columnType') return cap.typeId
+  if (cap.type === 'dataGenerator') return cap.generatorId
+  if (cap.type === 'api') return cap.basePath
+  return undefined
+}
+
 function getEventIcon(eventType: string) {
   switch (eventType) {
-    case 'activated':
+    case 'activate':
       return <IconPower size={14} className="text-success" />
-    case 'deactivated':
+    case 'deactivate':
       return <IconPower size={14} className="text-warning" />
     case 'error':
       return <IconAlertCircle size={14} className="text-error" />
-    case 'installed':
+    case 'install':
       return <IconCheck size={14} className="text-info" />
     default:
       return <IconClock size={14} />
   }
+}
+
+function formatDate(date: string | Date | null | undefined): string {
+  if (!date) return 'N/A'
+  const d = typeof date === 'string' ? date : date.toISOString()
+  return formatApiDate(d)
 }
 
 function SettingsContent({
@@ -176,11 +188,11 @@ function SettingsContent({
           <div className="flex justify-end pt-4">
             <Button
               color="primary"
+              icon={IconCheck}
               onClick={handleSave}
               disabled={!hasChanges || isSaving}
               processing={isSaving}
             >
-              <IconCheck size={16} />
               Save Settings
             </Button>
           </div>
@@ -210,29 +222,26 @@ function EventsContent({ events }: { events: ModuleEvent[] }) {
             <div
               key={event.id}
               className={`flex items-start gap-3 p-3 rounded-lg bg-base-200 ${
-                event.level === 'error' ? 'border-l-4 border-error' : ''
+                event.eventType === 'error' ? 'border-l-4 border-error' : ''
               }`}
             >
               {getEventIcon(event.eventType)}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-sm">{event.eventType}</span>
-                  <Badge
-                    size="xs"
-                    variant={
-                      event.level === 'error'
-                        ? 'error'
-                        : event.level === 'warn'
-                        ? 'warning'
-                        : 'ghost'
-                    }
-                  >
-                    {event.level}
-                  </Badge>
+                  {event.newStatus && (
+                    <Badge size="xs" variant="ghost">
+                      {event.previousStatus} → {event.newStatus}
+                    </Badge>
+                  )}
                 </div>
-                <p className="text-sm text-base-content/70">{event.message}</p>
+                {event.details && (
+                  <p className="text-sm text-base-content/70">
+                    {JSON.stringify(event.details)}
+                  </p>
+                )}
                 <p className="text-xs text-base-content/50 mt-1">
-                  {formatApiDate(event.timestamp)}
+                  {formatDate(event.createdAt)}
                 </p>
               </div>
             </div>
@@ -254,43 +263,41 @@ function AnalyticsContent({ analytics }: { analytics: ModuleAnalytics | null }) 
     )
   }
 
-  const { metrics } = analytics
-
   return (
     <div className="space-y-4">
       {/* Summary stats */}
       <div className="stats stats-horizontal bg-base-100 shadow w-full">
         <div className="stat">
           <div className="stat-title">Generator Calls</div>
-          <div className="stat-value text-xl">{metrics.generatorInvocations}</div>
+          <div className="stat-value text-xl">{analytics.generatorInvocations}</div>
         </div>
         <div className="stat">
-          <div className="stat-title">API Calls</div>
-          <div className="stat-value text-xl">{metrics.apiCalls}</div>
+          <div className="stat-title">Activations</div>
+          <div className="stat-value text-xl">{analytics.activeInstances}</div>
         </div>
         <div className="stat">
-          <div className="stat-title">Avg Response</div>
-          <div className="stat-value text-xl">{metrics.averageResponseTime.toFixed(0)}ms</div>
+          <div className="stat-title">Avg API Response</div>
+          <div className="stat-value text-xl">{analytics.avgApiResponseTimeMs.toFixed(0)}ms</div>
         </div>
         <div className="stat">
           <div className="stat-title">Errors</div>
-          <div className="stat-value text-xl text-error">{metrics.errors}</div>
+          <div className="stat-value text-xl text-error">{analytics.errorCount}</div>
         </div>
       </div>
 
       {/* Column type usage */}
-      {Object.keys(metrics.columnTypeUsage).length > 0 && (
+      {Object.keys(analytics.columnTypeUsage).length > 0 && (
         <Card>
           <CardBody>
             <CardTitle className="mb-4">Column Type Usage</CardTitle>
             <div className="space-y-2">
-              {Object.entries(metrics.columnTypeUsage).map(([typeId, count]) => (
+              {Object.entries(analytics.columnTypeUsage).map(([typeId, count]) => (
                 <div key={typeId} className="flex items-center justify-between">
                   <span className="flex items-center gap-2">
                     <IconColumns size={14} />
                     {typeId}
                   </span>
-                  <Badge variant="ghost">{count} uses</Badge>
+                  <Badge variant="ghost">{String(count)} uses</Badge>
                 </div>
               ))}
             </div>
@@ -298,21 +305,14 @@ function AnalyticsContent({ analytics }: { analytics: ModuleAnalytics | null }) 
         </Card>
       )}
 
-      {/* Custom metrics */}
-      {Object.keys(metrics.customMetrics).length > 0 && (
-        <Card>
-          <CardBody>
-            <CardTitle className="mb-4">Custom Metrics</CardTitle>
-            <div className="space-y-2">
-              {Object.entries(metrics.customMetrics).map(([name, value]) => (
-                <div key={name} className="flex items-center justify-between">
-                  <span>{name}</span>
-                  <Badge variant="ghost">{value}</Badge>
-                </div>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
+      {/* Last error */}
+      {analytics.lastError && (
+        <Alert color="error">
+          <IconAlertCircle size={16} />
+          <span>
+            <strong>Last Error:</strong> {analytics.lastError.message}
+          </span>
+        </Alert>
       )}
     </div>
   )
@@ -330,17 +330,15 @@ export default function ModuleDetailPage({
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  const goBack = () => {
-    window.location.href = '/dashboard/modules'
-  }
-
   if (!moduleData) {
     return (
       <div className="space-y-6">
-        <Button style="ghost" onClick={goBack}>
-          <IconArrowLeft size={16} />
-          Back to Modules
-        </Button>
+        <PageHeader
+          breadcrumbs={createBreadcrumbs.detail('Modules', '/dashboard/modules', 'Not Found')}
+          icon={IconPlug}
+          title="Module Not Found"
+          subtitle={`The module "${moduleId}" could not be found`}
+        />
         <Alert color="error">
           <IconAlertCircle size={16} />
           <span>Module not found: {moduleId}</span>
@@ -349,11 +347,8 @@ export default function ModuleDetailPage({
     )
   }
 
-  const isActive = moduleData.state === 'active'
-  const isError = moduleData.state === 'error'
-  const isTransitioning = ['installing', 'activating', 'deactivating', 'updating', 'uninstalling'].includes(
-    moduleData.state
-  )
+  const isActive = moduleData.status === 'active'
+  const isError = moduleData.status === 'error'
 
   const handleAction = async (action: string) => {
     setActionLoading(action)
@@ -464,84 +459,33 @@ export default function ModuleDetailPage({
     },
   ]
 
+  const moduleName = moduleData.displayName || moduleData.manifest.name
+
   return (
     <div className="space-y-6">
-      {/* Back button */}
-      <Button style="ghost" onClick={goBack}>
-        <IconArrowLeft size={16} />
-        Back to Modules
-      </Button>
-
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <div
-            className={`p-3 rounded-lg ${
-              isActive ? 'bg-success/10 text-success' : 'bg-base-300'
-            }`}
-          >
-            {isActive ? <IconPlugConnected size={32} /> : <IconPlug size={32} />}
+      <PageHeader
+        breadcrumbs={createBreadcrumbs.detail('Modules', '/dashboard/modules', moduleName)}
+        icon={isActive ? IconPlugConnected : IconPlug}
+        title={moduleName}
+        subtitle={moduleData.description || `Module v${moduleData.version}`}
+        badge={
+          <div className="flex items-center gap-2">
+            <Badge className={moduleStatusBadgeVariant[moduleData.status as ModuleStatus]}>
+              {moduleStatusLabel[moduleData.status as ModuleStatus]}
+            </Badge>
+            <span className="text-sm text-base-content/60">v{moduleData.version}</span>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">{moduleData.manifest.name}</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge className={moduleStateBadgeVariant[moduleData.state as ModuleState]}>
-                {moduleStateLabel[moduleData.state as ModuleState]}
-              </Badge>
-              <span className="text-sm text-base-content/60">v{moduleData.version}</span>
-            </div>
-            {moduleData.manifest.description && (
-              <p className="text-base-content/70 mt-2 max-w-xl">
-                {moduleData.manifest.description}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          {isActive ? (
-            <Button
-              color="warning"
-              onClick={() => handleAction('deactivate')}
-              disabled={isTransitioning || actionLoading !== null}
-              processing={actionLoading === 'deactivate'}
-            >
-              <IconPower size={16} />
-              Deactivate
-            </Button>
-          ) : (
-            <Button
-              color="success"
-              onClick={() => handleAction('activate')}
-              disabled={isTransitioning || isError || actionLoading !== null}
-              processing={actionLoading === 'activate'}
-            >
-              <IconPower size={16} />
-              Activate
-            </Button>
-          )}
-          <Button
-            style="ghost"
-            onClick={() => handleAction('reload')}
-            disabled={actionLoading !== null}
-            processing={actionLoading === 'reload'}
-          >
-            <IconRefresh size={16} />
-            Reload
-          </Button>
-          <Button
-            color="error"
-            style="outline"
-            onClick={() => handleAction('uninstall')}
-            disabled={actionLoading !== null}
-            processing={actionLoading === 'uninstall'}
-          >
-            <IconTrash size={16} />
-            Uninstall
-          </Button>
-        </div>
-      </div>
+        }
+        actions={
+          <ModuleActions
+            isActive={isActive}
+            isError={isError}
+            actionLoading={actionLoading}
+            onAction={(action: ModuleAction) => handleAction(action)}
+          />
+        }
+      />
 
       {/* Error/Success alerts */}
       {error && (
@@ -557,11 +501,11 @@ export default function ModuleDetailPage({
       )}
 
       {/* Error details */}
-      {isError && moduleData.lastError && (
+      {isError && moduleData.error && (
         <Alert color="error">
           <IconAlertCircle size={16} />
           <span>
-            <strong>Module Error:</strong> {moduleData.lastError}
+            <strong>Module Error:</strong> {moduleData.error}
           </span>
         </Alert>
       )}
@@ -573,19 +517,22 @@ export default function ModuleDetailPage({
           <CardBody>
             <CardTitle className="text-sm mb-3">Capabilities</CardTitle>
             <div className="space-y-2">
-              {moduleData.manifest.capabilities.map((cap: ModuleCapability, idx: number) => (
-                <div key={idx} className="flex items-center gap-2">
-                  {getCapabilityIcon(cap.type)}
-                  <span className="text-sm">
-                    {capabilityLabel[cap.type]}
-                    {(cap.typeId || cap.generatorId) && (
-                      <span className="text-base-content/60 ml-1">
-                        ({cap.typeId || cap.generatorId})
-                      </span>
-                    )}
-                  </span>
-                </div>
-              ))}
+              {moduleData.manifest.capabilities.map((cap: ModuleCapability, idx: number) => {
+                const capId = getCapabilityId(cap)
+                return (
+                  <div key={idx} className="flex items-center gap-2">
+                    {getCapabilityIcon(cap.type)}
+                    <span className="text-sm">
+                      {capabilityLabel[cap.type]}
+                      {capId && (
+                        <span className="text-base-content/60 ml-1">
+                          ({capId})
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </CardBody>
         </Card>
@@ -595,10 +542,10 @@ export default function ModuleDetailPage({
           <CardBody>
             <CardTitle className="text-sm mb-3">Module Info</CardTitle>
             <div className="space-y-2">
-              {moduleData.manifest.author && (
+              {moduleData.author && (
                 <div className="flex items-center gap-2 text-sm">
                   <IconUser size={14} className="text-base-content/50" />
-                  {moduleData.manifest.author}
+                  {moduleData.author.name}
                 </div>
               )}
               {moduleData.manifest.license && (
@@ -641,12 +588,12 @@ export default function ModuleDetailPage({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-base-content/60">Installed</span>
-                <span>{formatApiDate(moduleData.installedAt)}</span>
+                <span>{formatDate(moduleData.installedAt)}</span>
               </div>
               {moduleData.activatedAt && (
                 <div className="flex justify-between">
                   <span className="text-base-content/60">Activated</span>
-                  <span>{formatApiDate(moduleData.activatedAt)}</span>
+                  <span>{formatDate(moduleData.activatedAt)}</span>
                 </div>
               )}
               <div className="flex justify-between">

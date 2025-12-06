@@ -1,6 +1,23 @@
-import type { StoreModule, ModuleContext } from '../types.js'
+import type { StoreModule, ModuleContext, ModuleTableGenerator } from '../types.js'
 import { didColumnType, phoneColumnType, carrierColumnType } from './columnTypes/did.js'
 import { phoneNumberGenerator, didNumberGenerator } from './generators/phoneNumber.js'
+
+/**
+ * Phone Rental Tables Generator
+ * Generates complete rental tables populated with phone number data
+ */
+const phoneRentalTablesGenerator: ModuleTableGenerator = {
+  id: 'phone-rental-tables',
+  displayName: 'Phone Rental Tables',
+  description: 'Generate rental tables with phone numbers, countries, carriers, and pricing',
+  icon: 'phone',
+  category: 'telecom',
+  tableType: 'rent',
+  defaultTableCount: 20,
+  defaultRowCount: 50,
+  color: 'info',
+  customGenerator: false, // Uses built-in generator with rent + phone detection
+}
 
 /**
  * @store/phone-numbers module
@@ -16,6 +33,9 @@ import { phoneNumberGenerator, didNumberGenerator } from './generators/phoneNumb
  * Data Generators:
  * - phone-number: Generate realistic phone numbers
  * - did-number: Generate DID numbers with carrier patterns
+ *
+ * Table Generators:
+ * - phone-rental-tables: Generate rental tables with phone data
  */
 const phoneNumbersModule: StoreModule = {
   id: '@store/phone-numbers',
@@ -32,6 +52,10 @@ const phoneNumbersModule: StoreModule = {
     didNumberGenerator,
   ],
 
+  tableGenerators: [
+    phoneRentalTablesGenerator,
+  ],
+
   async onActivate(context: ModuleContext): Promise<void> {
     context.logger.info('Phone Numbers module activated', {
       version: context.version,
@@ -46,6 +70,11 @@ const phoneNumbersModule: StoreModule = {
     // Log available generators
     context.logger.debug('Registered data generators', {
       generators: ['phone-number', 'did-number'],
+    })
+
+    // Log available table generators
+    context.logger.debug('Registered table generators', {
+      generators: ['phone-rental-tables'],
     })
   },
 

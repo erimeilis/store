@@ -25,7 +25,7 @@ export interface IColumnDefinition<T extends IModel> {
     /** Conditional inline editing - if provided, called with item to determine if cell is editable */
     isEditableInline?: (item: T) => boolean;
     editType?: 'text' | 'email' | 'number' | 'select' | 'date' | 'toggle';
-    editOptions?: { value: string; label: string }[];
+    editOptions?: { value: string; label: string; group?: string }[];
     editValidation?: {
         required?: boolean;
         minLength?: number;

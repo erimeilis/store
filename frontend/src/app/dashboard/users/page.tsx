@@ -2,6 +2,8 @@ import React from 'react';
 import { ModelList, IColumnDefinition } from '@/components/model/model-list';
 import { IPaginatedResponse } from '@/types/models';
 import { formatApiDate } from '@/lib/date-utils';
+import { PageHeader, createBreadcrumbs } from '@/components/page/page-header';
+import { IconUsers } from '@tabler/icons-react';
 
 // User interface matching our Prisma schema
 interface User {
@@ -150,5 +152,15 @@ export default function UsersPage({
     ...(isAdmin && { massActions: userMassActions })
   };
 
-  return <ModelList<User> {...modelListProps} />;
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={createBreadcrumbs.section('Users')}
+        icon={IconUsers}
+        title="Users Management"
+        subtitle="Manage user accounts and permissions"
+      />
+      <ModelList<User> {...modelListProps} />
+    </div>
+  );
 }

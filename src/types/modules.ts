@@ -109,18 +109,21 @@ export interface StoreModule {
   id: string
   version: string
 
-  // Lifecycle hooks
-  onInstall?(context: ModuleContext): Promise<void>
-  onActivate?(context: ModuleContext): Promise<void>
-  onDeactivate?(context: ModuleContext): Promise<void>
-  onUpgrade?(context: ModuleContext, fromVersion: string): Promise<void>
-  onUninstall?(context: ModuleContext): Promise<void>
+  // Lifecycle hooks (can be sync or async)
+  onInstall?(context: ModuleContext): Promise<void> | void
+  onActivate?(context: ModuleContext): Promise<void> | void
+  onDeactivate?(context: ModuleContext): Promise<void> | void
+  onUpgrade?(context: ModuleContext, fromVersion: string): Promise<void> | void
+  onUninstall?(context: ModuleContext): Promise<void> | void
 
   // Column type definitions
   columnTypes?: ModuleColumnType[]
 
-  // Data generator definitions
+  // Data generator definitions (for individual cell values)
   dataGenerators?: ModuleDataGenerator[]
+
+  // Table generator definitions (for generating complete tables)
+  tableGenerators?: ModuleTableGenerator[]
 
   // API routes
   apiRoutes?: ModuleApiRoute[]
@@ -364,10 +367,10 @@ export interface ColumnTypeOption {
  * Data source for column values
  */
 export interface ColumnDataSource {
-  type: 'static' | 'api' | 'module'
+  type: 'static' | 'api' | 'module' | 'database'
 
-  // For static data
-  values?: { value: string; label: string }[]
+  // For static data - can be simple strings or value/label pairs
+  values?: string[] | { value: string; label: string }[]
 
   // For API data
   endpoint?: string
@@ -396,6 +399,35 @@ export interface ValidationResult {
 }
 
 // ============================================================================
+// TABLE GENERATORS - Module-provided table generation templates
+// ============================================================================
+
+/**
+ * Table generator definition - generates complete tables with schema and data
+ * Different from ModuleDataGenerator which generates individual cell values
+ */
+export interface ModuleTableGenerator {
+  // Identity
+  id: string                       // e.g., 'rental-tables', 'phone-rental-tables'
+  displayName: string              // e.g., 'Rental Tables', 'Phone Rental Tables'
+  description: string              // Shown in generator selection UI
+  icon?: string                    // Icon identifier (Tabler icon name)
+  category?: string                // For grouping (e.g., 'commerce', 'inventory')
+
+  // Table generation settings
+  tableType: 'sale' | 'rent' | 'default'  // What type of tables to generate
+  defaultTableCount: number               // Default number of tables
+  defaultRowCount: number                 // Default rows per table
+
+  // Color/style for UI
+  color?: 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'error'
+
+  // Optional: specific generator function (if not provided, uses built-in dummyTableGenerator)
+  // The function receives (userId, tableCount, rowCount) and returns generator result
+  customGenerator?: boolean  // If true, module must provide generate function
+}
+
+// ============================================================================
 // DATA GENERATORS - Module-provided fake data generators
 // ============================================================================
 
@@ -408,23 +440,28 @@ export interface ModuleDataGenerator {
   displayName: string
   description: string
   icon?: string
+  category?: string
+  outputType?: string              // The column type this generator produces
 
-  // Column requirements
-  requiredColumns: ColumnRequirement[]
+  // Column requirements (optional - for table-based generation)
+  requiredColumns?: ColumnRequirement[]
   optionalColumns?: ColumnRequirement[]
 
   // Column dependencies (for generation order)
   // e.g., { carrier: 'country', areaCode: 'country' }
   dependencies?: Record<string, string | null>
 
-  // Generation settings
+  // Generation settings/options
   settings?: GeneratorSetting[]
+  options?: GeneratorOption[]
 
-  // Generate function
+  // Generate function - supports both patterns:
+  // 1. Simple: generate(count, options) -> array of values
+  // 2. Context-based: generate(context, options) -> GeneratedRow
   generate(
-    context: GeneratorContext,
+    countOrContext: number | GeneratorContext,
     options?: Record<string, unknown>
-  ): Promise<GeneratedRow> | GeneratedRow
+  ): Promise<unknown[] | GeneratedRow> | unknown[] | GeneratedRow
 
   // Batch generate for performance
   generateBatch?(
@@ -432,6 +469,22 @@ export interface ModuleDataGenerator {
     count: number,
     options?: Record<string, unknown>
   ): Promise<GeneratedRow[]> | GeneratedRow[]
+
+  // Preview function for showing sample output
+  preview?(options?: Record<string, unknown>): string
+}
+
+/**
+ * Generator option (simpler than GeneratorSetting)
+ */
+export interface GeneratorOption {
+  id: string
+  type: 'string' | 'number' | 'boolean' | 'select'
+  displayName: string
+  description?: string
+  default?: unknown
+  required?: boolean
+  options?: { value: string; label: string }[]
 }
 
 /**
@@ -549,8 +602,10 @@ export type ModuleApiMiddleware = (
  * Module source for installation
  */
 export interface ModuleSource {
-  type: 'npm' | 'git' | 'local' | 'upload'
-  url?: string
+  type: 'npm' | 'git' | 'url' | 'local' | 'upload'
+  package?: string                 // For npm sources
+  url?: string                     // For git/url sources
+  path?: string                    // For local sources
   version?: string
   branch?: string                  // For git sources
   auth?: {
