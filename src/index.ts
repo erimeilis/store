@@ -21,6 +21,7 @@ import importRoutes from '@/routes/import/index.js'
 import uploadRoutes from '@/routes/upload/index.js'
 import publicRoutes from '@/routes/public/index.js'
 import adminRoutes from '@/routes/admin/index.js'
+import schemaRoutes from '@/routes/schema/index.js'
 import { generateOpenAPISpec } from '@/openapi/spec.js'
 
 /**
@@ -87,6 +88,9 @@ app.route('/api/public', publicRoutes)
 
 // Admin operations
 app.route('/api/admin', adminRoutes)
+
+// Schema information (column types, generators)
+app.route('/api/schema', schemaRoutes)
 
 // =============================================================================
 // ERROR HANDLING

@@ -12,8 +12,9 @@ import {Input} from '@/components/ui/input'
 import {Textarea} from '@/components/ui/textarea'
 import {Checkbox} from '@/components/ui/checkbox'
 import {Alert} from '@/components/ui/alert'
-import {Breadcrumbs} from '@/components/ui/breadcrumbs'
 import InputError from '@/components/ui/input-error'
+import {PageHeader} from '@/components/page/page-header'
+import {IconEdit} from '@tabler/icons-react'
 import {CountrySelect} from '@/components/ui/country-select'
 import {ParsedTableData, TableColumn, TableDataRow, TableSchema, UpdateTableDataRequest, validateColumnValue} from '@/types/dynamic-tables'
 import {clientApiRequest} from '@/lib/client-api'
@@ -268,7 +269,7 @@ export default function TableDataEditPage({
 
     if (isLoading) {
         return (
-            <div className="container mx-auto sm:p-4">
+            <div className="space-y-6">
                 <div className="flex justify-center items-center h-64">
                     <span className="loading loading-spinner loading-lg"></span>
                 </div>
@@ -278,7 +279,7 @@ export default function TableDataEditPage({
 
     if (!tableSchema || !rowData) {
         return (
-            <div className="container mx-auto sm:p-4">
+            <div className="space-y-6">
                 <Alert color="error">
                     Failed to load table data. Please try again.
                 </Alert>
@@ -287,32 +288,18 @@ export default function TableDataEditPage({
     }
 
     return (
-        <div className="container mx-auto sm:p-4">
-            {/* Header */}
-            <div className="mb-6">
-                <Breadcrumbs
-                    className="mb-2"
-                    items={[
-                        {
-                            label: 'Dynamic Tables',
-                            href: '/dashboard/tables'
-                        },
-                        {
-                            label: tableSchema.table.name,
-                            href: `/dashboard/tables/${tableId}/data`
-                        },
-                        {
-                            label: 'Edit Row',
-                            current: true
-                        }
-                    ]}
-                />
-
-                <h1 className="text-3xl font-bold">Edit Row</h1>
-                <p className="text-gray-600 mt-2">
-                    Update data for this row in {tableSchema.table.name}.
-                </p>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                breadcrumbs={[
+                    { label: 'Dashboard', href: '/dashboard' },
+                    { label: 'Tables', href: '/dashboard/tables' },
+                    { label: tableSchema.table.name, href: `/dashboard/tables/${tableId}/data` },
+                    { label: 'Edit Row', current: true }
+                ]}
+                icon={IconEdit}
+                title="Edit Row"
+                subtitle={`Update data for this row in ${tableSchema.table.name}`}
+            />
 
             {errors.general && (
                 <Alert color="error" className="mb-6">

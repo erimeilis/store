@@ -4,8 +4,8 @@
  */
 
 import { hydrateRoot } from 'react-dom/client'
-import { LayoutProvider } from '@/components/LayoutProvider'
-import { LayoutRenderer } from '@/components/LayoutRenderer'
+import { LayoutProvider } from '@/components/layout/LayoutProvider'
+import { LayoutRenderer } from '@/components/layout/LayoutRenderer'
 import { layoutSystem } from '@/lib/layout-system'
 import { useThemeStore } from '@/stores/useThemeStore'
 import { initializeLayoutSystem } from '@/lib/layout-setup'

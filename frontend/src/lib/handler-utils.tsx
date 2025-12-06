@@ -89,8 +89,8 @@ export async function renderDashboardPage(
   pageProps: Record<string, any>
 ) {
   const { layoutSystem } = await import('@/lib/layout-system')
-  const { LayoutProvider } = await import('@/components/LayoutProvider')
-  const { LayoutRenderer } = await import('@/components/LayoutRenderer')
+  const { LayoutProvider } = await import('@/components/layout/LayoutProvider')
+  const { LayoutRenderer } = await import('@/components/layout/LayoutRenderer')
   
   const { layouts, route: resolvedRoute } = layoutSystem.resolveLayoutHierarchy(route)
   const params = {}

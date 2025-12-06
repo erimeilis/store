@@ -201,6 +201,20 @@ export const routes: RouteConfig[] = [
     layout: 'dashboard',
     segment: 'demo',
     requiresAuth: true
+  },
+  {
+    path: '/dashboard/modules',
+    handler: async (c) => (await import('@/handlers/modules')).handleModulesPage(c),
+    layout: 'dashboard',
+    segment: 'modules',
+    requiresAuth: true
+  },
+  {
+    path: '/dashboard/modules/:id',
+    handler: async (c) => (await import('@/handlers/modules')).handleModuleDetailPage(c),
+    layout: 'dashboard',
+    segment: 'module-detail',
+    requiresAuth: true
   }
 ]
 
@@ -247,5 +261,7 @@ export const pageComponents = {
   '/dashboard/sales/analytics': async () => (await import('@/app/dashboard/sales/analytics/page')).default,
   '/dashboard/sales/inventory': async () => (await import('@/app/dashboard/sales/inventory/page')).default,
   '/dashboard/sales/inventory/alerts': async () => (await import('@/app/dashboard/sales/inventory/alerts/page')).default,
-  '/demo': async () => (await import('@/app/demo/page')).default
+  '/demo': async () => (await import('@/app/demo/page')).default,
+  '/dashboard/modules': async () => (await import('@/app/dashboard/modules/page')).default,
+  '/dashboard/modules/[id]': async () => (await import('@/app/dashboard/modules/[id]/page')).default
 }
