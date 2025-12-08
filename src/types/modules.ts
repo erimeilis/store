@@ -155,8 +155,27 @@ export interface DataSourceDefinition {
   endpoint?: string // Relative to API base or absolute URL
   method?: 'GET' | 'POST'
   headers?: Record<string, string>
-  valueField?: string // JSON path to value, e.g., 'id' or 'data.id'
-  labelField?: string // JSON path to label, e.g., 'name' or 'data.name'
+
+  // Authentication - references module setting by name
+  auth?: {
+    type: 'bearer' | 'basic' | 'header'
+    // Reference to module setting: "$settings.apiToken" or static value
+    token?: string
+    // For header auth: header name
+    headerName?: string
+  }
+
+  // Response mapping
+  responseSchema?: {
+    // JSON path to array of items, e.g., 'data', 'items', 'results'
+    dataPath?: string
+    // Example response for documentation
+    example?: unknown
+  }
+  valueField?: string // JSON path to value in each item, e.g., 'id'
+  labelField?: string // JSON path to label in each item, e.g., 'name'
+
+  // Cache settings
   cache?: string // Cache duration, e.g., '24h', '1h', '5m'
 
   // Refresh settings
@@ -211,12 +230,29 @@ export interface TableGeneratorDefinition {
 export interface GeneratorColumnDefinition {
   name: string // Column name
   displayName: string
-  type: string // Column type ID (from this module or built-in)
+  type: string // Column type ID (from this module or built-in): 'string' | 'number' | 'boolean' | 'json' or module type
   required?: boolean
   default?: unknown
 
   // Generation rules for fake data
   generate?: GenerationRule
+
+  // Inter-column constraints for generation logic
+  constraints?: GeneratorColumnConstraints
+}
+
+/**
+ * Constraints for generator column relationships
+ */
+export interface GeneratorColumnConstraints {
+  // This column excludes these columns (mutually exclusive)
+  excludes?: string[]
+  // This column implies these columns must be true
+  implies?: string[]
+  // This column is required if any of these columns are true
+  requiredIf?: { any?: string[]; all?: string[] }
+  // This column should be null/empty if any of these columns are true
+  nullIf?: { any?: string[]; all?: string[] }
 }
 
 /**

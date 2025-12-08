@@ -125,6 +125,17 @@ function SettingsContent({
                 <Input
                   value={(settings[def.id] as string) || (def.default as string) || ''}
                   onChange={(e) => handleChange(def.id, e.target.value)}
+                  autoComplete="off"
+                />
+              )}
+
+              {def.type === 'secret' && (
+                <Input
+                  type="password"
+                  value={(settings[def.id] as string) || ''}
+                  onChange={(e) => handleChange(def.id, e.target.value)}
+                  placeholder="Enter secret value..."
+                  autoComplete="new-password"
                 />
               )}
 

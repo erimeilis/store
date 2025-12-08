@@ -4,11 +4,12 @@ import type { Bindings } from '@/types/bindings.js'
 
 /**
  * Database Service
- * Creates and manages Prisma client instances with D1 adapter for Cloudflare Workers
- * Supports both local SQLite (development) and D1 (preview/production)
+ * Creates Prisma client instances with D1 adapter for Cloudflare Workers
+ *
+ * IMPORTANT: In Cloudflare Workers, D1 bindings are request-scoped.
+ * We MUST create a new PrismaClient for each request when using D1.
+ * Caching PrismaClient across requests causes "Cannot perform I/O on behalf of a different request" errors.
  */
-
-let prismaClient: PrismaClient | null = null
 
 /**
  * Initialize Prisma client with D1 adapter
@@ -27,27 +28,28 @@ export function createPrismaClient(binding?: D1Database): PrismaClient {
 }
 
 /**
- * Get or create Prisma client instance
- * Provides singleton pattern for database connections
+ * Get Prisma client instance for the current request
+ *
+ * IMPORTANT: Always creates a new instance when D1 binding is provided.
+ * D1 bindings are request-scoped in Cloudflare Workers, so we cannot
+ * cache the PrismaClient across requests.
+ *
  * @param env - Cloudflare Workers environment bindings
  * @returns Prisma client instance
  */
 export function getPrismaClient(env?: Bindings): PrismaClient {
-  if (!prismaClient) {
-    prismaClient = createPrismaClient(env?.DB)
-  }
-  return prismaClient
+  // Always create fresh client when D1 binding exists (Workers environment)
+  // This prevents "Cannot perform I/O on behalf of a different request" errors
+  return createPrismaClient(env?.DB)
 }
 
 /**
  * Close Prisma client connection
- * Should be called during Worker cleanup
+ * Note: In Workers environment with per-request clients, this is typically not needed
+ * as each request creates its own client that is cleaned up when the request ends.
  */
 export async function closePrismaClient(): Promise<void> {
-  if (prismaClient) {
-    await prismaClient.$disconnect()
-    prismaClient = null
-  }
+  // No-op: Per-request clients are automatically cleaned up
 }
 
 /**

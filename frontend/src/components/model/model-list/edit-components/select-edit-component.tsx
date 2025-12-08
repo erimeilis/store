@@ -60,15 +60,15 @@ export function SelectEditComponent<T extends IModel>({
                 Object.entries(groupedOptions).map(([groupName, options]) => (
                     groupName === '__default__' ? (
                         // Options without a group - render directly
-                        options!.map((option) => (
-                            <option key={option.value} value={option.value}>
+                        options!.map((option, idx) => (
+                            <option key={`${option.value}-${idx}`} value={option.value}>
                                 {option.label}
                             </option>
                         ))
                     ) : (
                         <optgroup key={groupName} label={groupName}>
-                            {options!.map((option) => (
-                                <option key={option.value} value={option.value}>
+                            {options!.map((option, idx) => (
+                                <option key={`${option.value}-${idx}`} value={option.value}>
                                     {option.label}
                                 </option>
                             ))}
@@ -77,8 +77,8 @@ export function SelectEditComponent<T extends IModel>({
                 ))
             ) : (
                 // Flat options without groups
-                column.editOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
+                column.editOptions.map((option, idx) => (
+                    <option key={`${option.value}-${idx}`} value={option.value}>
                         {option.label}
                     </option>
                 ))
