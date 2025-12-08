@@ -70,6 +70,9 @@ export default function TableDataPage({
     const [isFixingCountries, setIsFixingCountries] = useState(false)
     const [countryFixResult, setCountryFixResult] = useState<string | null>(null)
 
+    // Module column type options for inline editing (includes raw for business indicator)
+    const [moduleTypeOptions, setModuleTypeOptions] = useState<Record<string, Array<{ value: string; label: string; raw?: Record<string, unknown> }>>>({})
+
     // Get tableId from URL if not passed as prop (client-side)
     const currentTableId = tableId || (typeof window !== 'undefined' ? window.location.pathname.split('/')[3] : undefined)
 
@@ -89,6 +92,122 @@ export default function TableDataPage({
             loadTableData()
         }
     }, [typeof window !== 'undefined' ? window.location.search : ''])
+
+    // Load module type options when columns are available
+    // Use a ref to track which columns we've started loading to avoid stale closure issues
+    const loadedOptionsRef = React.useRef<Set<string>>(new Set())
+
+    useEffect(() => {
+        const metaData = (paginatedData as any)?._meta
+        const cols = metaData?.columns || []
+
+        // Load options for any module column that hasn't been loaded yet
+        cols.forEach((column: TableColumn) => {
+            if (isModuleColumnType(column.type) && !loadedOptionsRef.current.has(column.name)) {
+                loadedOptionsRef.current.add(column.name)
+                loadModuleTypeOptions(column)
+            }
+        })
+    }, [paginatedData])
+
+    // Clear the ref when component unmounts so options reload on remount
+    useEffect(() => {
+        return () => {
+            loadedOptionsRef.current.clear()
+        }
+    }, [])
+
+    // Helper to check if column type is from a module
+    const isModuleColumnType = (type: string): boolean => {
+        return type.includes(':')
+    }
+
+    // Helper to get business indicator from option
+    // Returns 'business' for true, 'personal' for false, null for null (meaning both)
+    const getBusinessIndicator = (option: { raw?: Record<string, unknown> }): 'business' | 'personal' | null => {
+        if (!option.raw || !('business' in option.raw)) {
+            return null
+        }
+        if (option.raw.business === null) {
+            return null // null means it could be either business or personal
+        }
+        return option.raw.business === true ? 'business' : 'personal'
+    }
+
+    // Process module options: add [P]/[B] prefixes and duplicate null business options
+    const processModuleOptions = (options: Array<{ value: string; label: string; raw?: Record<string, unknown> }>) => {
+        const processedOptions: Array<{ value: string; label: string; raw?: Record<string, unknown> }> = []
+
+        for (const opt of options) {
+            const indicator = getBusinessIndicator(opt)
+
+            if (indicator === 'business') {
+                // Business option - add [B] prefix
+                processedOptions.push({
+                    ...opt,
+                    label: `[B] ${opt.label}`
+                })
+            } else if (indicator === 'personal') {
+                // Personal option - add [P] prefix
+                processedOptions.push({
+                    ...opt,
+                    label: `[P] ${opt.label}`
+                })
+            } else if (opt.raw && 'business' in opt.raw && opt.raw.business === null) {
+                // Null business - duplicate as both [P] and [B]
+                processedOptions.push({
+                    value: opt.value,
+                    label: `[P] ${opt.label}`,
+                    raw: { ...opt.raw, business: false }
+                })
+                processedOptions.push({
+                    value: opt.value,
+                    label: `[B] ${opt.label}`,
+                    raw: { ...opt.raw, business: true }
+                })
+            } else {
+                // No business indicator - keep as is
+                processedOptions.push(opt)
+            }
+        }
+
+        return processedOptions
+    }
+
+    // Load options for a module column type
+    const loadModuleTypeOptions = async (column: TableColumn) => {
+        if (!isModuleColumnType(column.type)) return
+        // Note: duplicate load prevention is now handled by loadedOptionsRef in useEffect
+
+        try {
+            const [moduleId, columnTypeId] = column.type.split(':')
+            const response = await clientApiRequest(
+                `/api/admin/modules/${encodeURIComponent(moduleId)}/column-types/${encodeURIComponent(columnTypeId)}/options`
+            )
+
+            if (response.ok) {
+                const result = await response.json() as { data?: Array<{ value: string; label: string; raw?: Record<string, unknown> }>; options?: Array<{ value: string; label: string; raw?: Record<string, unknown> }> }
+                const rawOptions = result.data || result.options || []
+
+                // Map options with raw field included
+                const mappedOptions = Array.isArray(rawOptions) ? rawOptions.map((opt: any) => ({
+                    value: opt.value || opt.id || opt,
+                    label: opt.label || opt.name || opt.value || opt,
+                    raw: opt.raw
+                })) : []
+
+                // Process options to add [P]/[B] prefixes and duplicate null business options
+                const processedOptions = processModuleOptions(mappedOptions)
+
+                setModuleTypeOptions(prev => ({
+                    ...prev,
+                    [column.name]: processedOptions
+                }))
+            }
+        } catch (error) {
+            console.error(`Error loading module type options for ${column.name}:`, error)
+        }
+    }
 
     const loadTableData = async () => {
         if (!currentTableId) {
@@ -230,6 +349,29 @@ export default function TableDataPage({
                 }))
             }
 
+            // Add edit options for module column types
+            if (isModuleColumnType(column.type)) {
+                const options = moduleTypeOptions[column.name]
+                if (options && options.length > 0) {
+                    // Use multiselect for doc_type columns (docs:doc_type, etc.)
+                    const isDocType = column.type.includes('doc_type')
+                    if (isDocType) {
+                        columnDef.editType = 'multiselect'
+                        columnDef.editOptions = options
+                    }
+                    // Only set select for columns that aren't phone/email/number/date
+                    // (those should keep their specialized input types)
+                    const specializedTypes = ['phone', 'email', 'number', 'date']
+                    const baseType = column.type.split(':').pop() || ''
+                    if (!isDocType && !specializedTypes.includes(baseType)) {
+                        columnDef.editType = 'select'
+                        columnDef.editOptions = options
+                    }
+                    columnDef.filterType = 'select'
+                    columnDef.filterOptions = options
+                }
+            }
+
             return columnDef
         })
     }
@@ -245,21 +387,31 @@ export default function TableDataPage({
         }
     }
 
-    const getEditType = (columnType: string): 'text' | 'email' | 'number' | 'select' | 'date' | 'toggle' => {
+    const getEditType = (columnType: string): 'text' | 'email' | 'number' | 'phone' | 'select' | 'multiselect' | 'date' | 'toggle' => {
+        // Handle exact matches first
         switch (columnType) {
             case 'email':
                 return 'email'
             case 'number':
                 return 'number'
+            case 'phone':
+                return 'phone'
             case 'date':
                 return 'date'
             case 'boolean':
                 return 'toggle'
             case 'country':
                 return 'select'
-            default:
-                return 'text'
         }
+        // Handle module types (e.g., docs:phone, docs:email) by extracting the base type
+        if (columnType.includes(':')) {
+            const baseType = columnType.split(':').pop() || ''
+            if (baseType === 'phone') return 'phone'
+            if (baseType === 'email') return 'email'
+            if (baseType === 'number') return 'number'
+            if (baseType === 'date') return 'date'
+        }
+        return 'text'
     }
 
     const renderCellValue = (column: TableColumn, value: any) => {
@@ -457,7 +609,7 @@ export default function TableDataPage({
                 items={transformedPaginatedData}
                 filters={urlFilters}
                 columns={columnDefinitions}
-                createRoute={undefined}
+                createRoute={`/dashboard/tables/${currentTableId}/data/add`}
                 editRoute={(id) => `/dashboard/tables/${currentTableId}/data/edit/${id}`}
                 deleteRoute={(id) => `/api/tables/${currentTableId}/data/${id}`}
                 inlineEditRoute={(id) => `/api/tables/${currentTableId}/data/${id}`}

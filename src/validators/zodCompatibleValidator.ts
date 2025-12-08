@@ -8,22 +8,65 @@ import type {
   TableDataMassAction,
   ParsedTableData
 } from '@/types/dynamic-tables.js'
+import { BUILT_IN_COLUMN_TYPES } from '@/config/columnTypes.js'
 
 /**
  * Zod schemas that match existing types exactly
  */
 
-// Valid column types matching the existing enum
-const validColumnTypes = ['text', 'number', 'date', 'boolean', 'email', 'url', 'textarea', 'country'] as const
+/**
+ * Create a column type validator with optional module types
+ * @param moduleColumnTypes - Additional column types from installed modules
+ */
+export function createColumnTypeValidator(moduleColumnTypes: string[] = []) {
+  const allValidTypes = [...BUILT_IN_COLUMN_TYPES, ...moduleColumnTypes]
 
-const ColumnSchema = z.object({
-  name: z.string().min(1, 'Column name is required'),
-  type: z.enum(validColumnTypes, { message: `Column type must be one of: ${validColumnTypes.join(', ')}` }),
-  isRequired: z.boolean().default(false),
-  allowDuplicates: z.boolean().default(true),
-  defaultValue: z.any().optional(),
-  position: z.number().optional() // For compatibility with existing schema
-})
+  return z.string()
+    .min(1, 'Column type is required')
+    .refine(
+      (val: string) => allValidTypes.includes(val),
+      { message: `Invalid column type. Valid types: ${allValidTypes.join(', ')}` }
+    )
+}
+
+// Default validator uses built-in types only
+const columnTypeValidator = createColumnTypeValidator()
+
+/**
+ * Create column schema with given column types
+ */
+function createColumnSchema(moduleColumnTypes: string[] = []) {
+  return z.object({
+    name: z.string().min(1, 'Column name is required'),
+    type: createColumnTypeValidator(moduleColumnTypes),
+    isRequired: z.boolean().default(false),
+    allowDuplicates: z.boolean().default(true),
+    defaultValue: z.any().optional(),
+    position: z.number().optional()
+  })
+}
+
+// Default column schema uses built-in types only
+const ColumnSchema = createColumnSchema()
+
+/**
+ * Create table request schema with given module column types
+ */
+function createCreateTableRequestSchema(moduleColumnTypes: string[] = []) {
+  return z.object({
+    name: z.string().min(1, 'Table name is required'),
+    description: z.string().optional(),
+    visibility: z.enum(['private', 'public', 'shared'], {
+      message: "Visibility must be one of: private, public, shared"
+    }).default('private'),
+    tableType: z.enum(['default', 'sale', 'rent'], {
+      message: "Table type must be one of: default, sale, rent"
+    }).default('default'),
+    forSale: z.boolean().optional(),
+    user_id: z.string().optional(),
+    columns: z.array(createColumnSchema(moduleColumnTypes)).min(1, 'At least one column is required')
+  })
+}
 
 const CreateTableRequestSchema = z.object({
   name: z.string().min(1, 'Table name is required'),
@@ -69,11 +112,24 @@ const UpdateTableDataRequestSchema = z.object({
  */
 export class ZodCompatibleValidator {
   /**
-   * Validate create table request
+   * Validate create table request (built-in types only)
    */
   validateCreateRequest(data: unknown): { valid: boolean; errors: string[] } {
+    return this.validateCreateRequestWithModuleTypes(data, [])
+  }
+
+  /**
+   * Validate create table request with module column types
+   * @param data - Request data to validate
+   * @param moduleColumnTypes - Additional column types from installed modules
+   */
+  validateCreateRequestWithModuleTypes(
+    data: unknown,
+    moduleColumnTypes: string[]
+  ): { valid: boolean; errors: string[] } {
     try {
-      CreateTableRequestSchema.parse(data)
+      const schema = createCreateTableRequestSchema(moduleColumnTypes)
+      schema.parse(data)
       return { valid: true, errors: [] }
     } catch (error) {
       if (error instanceof z.ZodError) {

@@ -1,6 +1,6 @@
 {
   "name": "store-frontend",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Store dashboard - React SSR on Cloudflare Workers",
   "private": true,
   "type": "module",

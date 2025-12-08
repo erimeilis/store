@@ -148,8 +148,8 @@ function AddNewRowComponent<T extends IModel>({
                         required={column.editValidation?.required}
                     >
                         <option value="">Select...</option>
-                        {column.editOptions?.map((option) => (
-                            <option key={option.value} value={option.value}>
+                        {column.editOptions?.map((option, idx) => (
+                            <option key={`${option.value}-${idx}`} value={option.value}>
                                 {option.label}
                             </option>
                         ))}

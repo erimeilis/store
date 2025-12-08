@@ -6,6 +6,7 @@ import type { ZodCompatibleValidator } from '@/validators/zodCompatibleValidator
 import { getUserInfo, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
 import { DEFAULT_SALE_COLUMNS, DEFAULT_RENT_COLUMNS, TableType, getDefaultColumns, hasSpecialColumns } from '@/types/dynamic-tables.js'
 import { InventoryTrackingService } from '@/services/inventoryTrackingService/index.js'
+import { ModuleRepository } from '@/repositories/moduleRepository.js'
 
 /**
  * Create new table
@@ -18,8 +19,12 @@ export async function createTable(
   data: CreateTableRequest
 ) {
   try {
-    // Validate request
-    const validation = validator.validateCreateRequest(data)
+    // Get module column types for validation
+    const moduleRepo = new ModuleRepository(c.env)
+    const moduleColumnTypes = await moduleRepo.getAllColumnTypeIds()
+
+    // Validate request with module column types
+    const validation = validator.validateCreateRequestWithModuleTypes(data, moduleColumnTypes)
     if (!validation.valid) {
       return createErrorResponse('Validation failed', validation.errors.join(', '), 400)
     }
