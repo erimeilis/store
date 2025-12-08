@@ -13,6 +13,7 @@ import deleteModule from './delete.id.js'
 import getModuleEvents from './get.id.events.js'
 import getModuleAnalytics from './get.id.analytics.js'
 import postReloadAll from './post.reload.js'
+import getColumnTypeOptions from './get.id.column-types.typeId.options.js'
 
 /**
  * Admin Module Routes
@@ -25,12 +26,13 @@ const app = new Hono<{ Bindings: Bindings; Variables: HonoVariables }>()
 app.route('/', getModules)
 app.route('/', getAvailableModules)  // Must be before /:id routes
 app.route('/', postInstall)
+app.route('/', postReloadAll)
+app.route('/', getColumnTypeOptions) // More specific path before /:id
 app.route('/', getModuleById)        // Parameterized routes last
 app.route('/', postModuleAction)
 app.route('/', patchModuleSettings)
 app.route('/', deleteModule)
 app.route('/', getModuleEvents)
 app.route('/', getModuleAnalytics)
-app.route('/', postReloadAll)
 
 export default app

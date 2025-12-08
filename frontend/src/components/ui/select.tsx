@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const selectVariants = cva(
-    'select',
+    'select w-full',
     {
         variants: {
             // Color variants
@@ -74,7 +74,7 @@ function Select({
     const effectiveColor = error ? 'error' : color
 
     return (
-        <div className="form-control w-full">
+        <>
             <select
                 className={cn(selectVariants({
                     color: effectiveColor,
@@ -109,7 +109,7 @@ function Select({
                     <span className="label-text-alt text-error">{error}</span>
                 </div>
             )}
-        </div>
+        </>
     )
 }
 

@@ -233,6 +233,111 @@ export async function handleTableDataEditPage(c: Context<{ Bindings: Env; Variab
 }
 
 /**
+ * Handler for table data add page (/dashboard/tables/[id]/data/add)
+ * Prefetches table schema and module column type options to avoid client-side race conditions
+ */
+export async function handleTableDataAddPage(c: Context<{ Bindings: Env; Variables: Variables }>) {
+  const user = c.get('user')
+  const tableId = c.req.param('id')
+
+  if (!tableId) {
+    throw new Error('Table ID is required')
+  }
+
+  const apiUrl = c.env?.API_URL || 'http://localhost:8787'
+  const token = c.env?.ADMIN_ACCESS_TOKEN || ''
+
+  // Fetch table schema directly (non-paginated endpoint)
+  let tableSchema: any = null
+  try {
+    const tableResponse = await fetch(`${apiUrl}/api/tables/${tableId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...(user?.email && { 'X-User-Email': user.email }),
+        ...(user?.name && { 'X-User-Name': user.name }),
+        ...(user?.id && { 'X-User-Id': user.id })
+      }
+    })
+    if (tableResponse.ok) {
+      const data = await tableResponse.json() as { table?: any }
+      tableSchema = data.table
+    }
+  } catch (err) {
+    console.error('Failed to fetch table schema:', err)
+  }
+
+  // Fetch columns directly (get the data array from response)
+  let columnsData: any[] = []
+  try {
+    const columnsResponse = await fetch(`${apiUrl}/api/tables/${tableId}/columns`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...(user?.email && { 'X-User-Email': user.email }),
+        ...(user?.name && { 'X-User-Name': user.name }),
+        ...(user?.id && { 'X-User-Id': user.id })
+      }
+    })
+    if (columnsResponse.ok) {
+      const data = await columnsResponse.json() as { data?: any[] }
+      columnsData = data.data || []
+    }
+  } catch (err) {
+    console.error('Failed to fetch columns:', err)
+  }
+
+  // Prefetch module column type options
+  const moduleColumnTypeOptions: Record<string, Array<{ value: string; label: string; raw?: any }>> = {}
+
+  if (Array.isArray(columnsData) && columnsData.length > 0) {
+    for (const column of columnsData) {
+      if (column.type && column.type.includes(':')) {
+        // This is a module column type (format: "moduleId:columnTypeId")
+        const [moduleId, columnTypeId] = column.type.split(':')
+        try {
+          const optionsResponse = await fetch(
+            `${apiUrl}/api/admin/modules/${encodeURIComponent(moduleId)}/column-types/${encodeURIComponent(columnTypeId)}/options`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                ...(user?.email && { 'X-User-Email': user.email }),
+                ...(user?.name && { 'X-User-Name': user.name }),
+                ...(user?.id && { 'X-User-Id': user.id })
+              }
+            }
+          )
+          if (optionsResponse.ok) {
+            const data = await optionsResponse.json() as { options?: any[]; data?: any[] }
+            const optionsData = data.options || data.data || []
+            if (Array.isArray(optionsData)) {
+              moduleColumnTypeOptions[column.name] = optionsData.map((opt: any) => ({
+                value: opt.value || opt.id || opt,
+                label: opt.label || opt.name || opt.value || opt,
+                raw: opt.raw
+              }))
+            }
+          }
+        } catch (err) {
+          console.error(`Failed to prefetch options for ${column.type}:`, err)
+        }
+      }
+    }
+  }
+
+  const addProps = buildPageProps(user, c, {
+    tableId,
+    tableSchema,
+    columns: columnsData,
+    moduleColumnTypeOptions,
+    params: { id: tableId }
+  })
+
+  return renderDashboardPage(c, `/dashboard/tables/${tableId}/data/add`, addProps)
+}
+
+/**
  * Handler for table import page (/dashboard/tables/[id]/import)
  */
 export async function handleTableImportPage(c: Context<{ Bindings: Env; Variables: Variables }>) {

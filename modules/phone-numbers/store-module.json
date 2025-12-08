@@ -1,8 +1,8 @@
 {
   "id": "@store/phone-numbers",
   "name": "Phone Numbers",
-  "version": "1.0.0",
-  "description": "Phone rental table columns for DID management, pricing, and provider integration",
+  "version": "1.3.0",
+  "description": "Phone rental table generator with DID management and provider integration",
   "icon": "phone",
 
   "author": {
@@ -23,33 +23,32 @@
 
   "settings": [
     {
-      "id": "defaultCountry",
-      "type": "select",
-      "displayName": "Default Country",
-      "description": "Default country for phone number validation and formatting",
-      "default": "US",
-      "options": [
-        { "value": "US", "label": "United States (+1)" },
-        { "value": "GB", "label": "United Kingdom (+44)" },
-        { "value": "DE", "label": "Germany (+49)" },
-        { "value": "FR", "label": "France (+33)" },
-        { "value": "AU", "label": "Australia (+61)" },
-        { "value": "JP", "label": "Japan (+81)" }
-      ]
+      "id": "providerApiUrl",
+      "type": "string",
+      "displayName": "Provider API URL",
+      "description": "Full URL for providers endpoint",
+      "required": true
     },
     {
-      "id": "providersApiUrl",
-      "type": "string",
-      "displayName": "Providers API URL",
-      "description": "API endpoint to fetch provider list",
-      "default": "/api/providers"
+      "id": "providerApiToken",
+      "type": "secret",
+      "displayName": "Provider API Token",
+      "description": "Bearer token for providers API",
+      "required": true
     },
     {
-      "id": "docsApiUrl",
+      "id": "docTypeApiUrl",
       "type": "string",
-      "displayName": "Documentation API URL",
-      "description": "API endpoint to fetch provider documentation",
-      "default": "/api/docs"
+      "displayName": "Document Type API URL",
+      "description": "Full URL for document types endpoint",
+      "required": true
+    },
+    {
+      "id": "docTypeApiToken",
+      "type": "secret",
+      "displayName": "Document Type API Token",
+      "description": "Bearer token for document types API",
+      "required": true
     }
   ],
 
@@ -68,100 +67,6 @@
       "format": {
         "handler": "phone",
         "style": "international"
-      },
-      "options": [
-        {
-          "id": "country",
-          "type": "select",
-          "displayName": "Country",
-          "default": "US",
-          "options": [
-            { "value": "US", "label": "United States" },
-            { "value": "GB", "label": "United Kingdom" },
-            { "value": "DE", "label": "Germany" },
-            { "value": "FR", "label": "France" },
-            { "value": "AU", "label": "Australia" },
-            { "value": "JP", "label": "Japan" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "voice",
-      "displayName": "Voice",
-      "description": "Indicates if number supports voice calls",
-      "icon": "phone-call",
-      "category": "Telecom",
-      "baseType": "boolean",
-      "default": true,
-      "format": {
-        "handler": "boolean",
-        "trueLabel": "Yes",
-        "falseLabel": "No"
-      }
-    },
-    {
-      "id": "sms",
-      "displayName": "SMS",
-      "description": "Indicates if number supports SMS messaging",
-      "icon": "message",
-      "category": "Telecom",
-      "baseType": "boolean",
-      "default": true,
-      "format": {
-        "handler": "boolean",
-        "trueLabel": "Yes",
-        "falseLabel": "No"
-      }
-    },
-    {
-      "id": "tollfree",
-      "displayName": "Toll-Free",
-      "description": "Indicates if number is toll-free",
-      "icon": "coin-off",
-      "category": "Telecom",
-      "baseType": "boolean",
-      "default": false,
-      "format": {
-        "handler": "boolean",
-        "trueLabel": "Yes",
-        "falseLabel": "No"
-      }
-    },
-    {
-      "id": "incoming_per_minute",
-      "displayName": "Incoming $/min",
-      "description": "Price per minute for incoming calls",
-      "icon": "currency-dollar",
-      "category": "Pricing",
-      "baseType": "number",
-      "default": 0.0,
-      "validation": {
-        "handler": "range",
-        "min": 0
-      },
-      "format": {
-        "handler": "currency",
-        "currency": "USD",
-        "decimals": 4
-      }
-    },
-    {
-      "id": "incoming_sms_price",
-      "displayName": "Incoming SMS $",
-      "description": "Price per incoming SMS message",
-      "icon": "currency-dollar",
-      "category": "Pricing",
-      "baseType": "number",
-      "default": 0.0,
-      "validation": {
-        "handler": "range",
-        "min": 0
-      },
-      "format": {
-        "handler": "currency",
-        "currency": "USD",
-        "decimals": 4
       }
     },
     {
@@ -173,27 +78,56 @@
       "baseType": "string",
       "source": {
         "type": "api",
-        "endpoint": "/api/providers",
-        "valueField": "id",
+        "endpoint": "$settings.providerApiUrl",
+        "method": "GET",
+        "auth": {
+          "type": "bearer",
+          "token": "$settings.providerApiToken"
+        },
+        "responseSchema": {
+          "dataPath": "data",
+          "example": {
+            "success": true,
+            "data": [
+              { "id": 10, "name": "Anveo", "did_key": "anveo", "key": "anveo" },
+              { "id": 30, "name": "Twillio", "did_key": "twi", "key": "twillio" }
+            ]
+          }
+        },
+        "valueField": "key",
         "labelField": "name",
         "cache": "24h"
       }
     },
     {
-      "id": "docs",
-      "displayName": "Documentation",
-      "description": "Provider documentation and requirements",
+      "id": "doc_type",
+      "displayName": "Document Type",
+      "description": "Required documentation type for number registration",
       "icon": "file-text",
-      "category": "Reference",
-      "baseType": "json",
+      "category": "Documentation",
+      "baseType": "string",
       "source": {
         "type": "api",
-        "endpoint": "/api/docs",
-        "cache": "1h"
-      },
-      "format": {
-        "handler": "json",
-        "pretty": true
+        "endpoint": "$settings.docTypeApiUrl",
+        "method": "GET",
+        "auth": {
+          "type": "bearer",
+          "token": "$settings.docTypeApiToken"
+        },
+        "responseSchema": {
+          "dataPath": "data",
+          "example": {
+            "success": true,
+            "data": [
+              { "id": 1, "name": "First Name & Last Name", "slug": "name-lastname", "business": null },
+              { "id": 7, "name": "Passport or ID", "slug": "pass-or-id", "business": null },
+              { "id": 16, "name": "Company Name", "slug": "company-name", "business": true }
+            ]
+          }
+        },
+        "valueField": "slug",
+        "labelField": "name",
+        "cache": "24h"
       }
     }
   ],
@@ -223,50 +157,78 @@
         {
           "name": "voice",
           "displayName": "Voice",
-          "type": "voice",
+          "type": "boolean",
           "generate": {
             "handler": "random-boolean",
             "probability": 0.9
+          },
+          "constraints": {
+            "nullIf": { "any": ["tollfree"] }
           }
         },
         {
           "name": "sms",
           "displayName": "SMS",
-          "type": "sms",
+          "type": "boolean",
           "generate": {
             "handler": "random-boolean",
             "probability": 0.85
+          },
+          "constraints": {
+            "nullIf": { "any": ["tollfree"] }
+          }
+        },
+        {
+          "name": "reg",
+          "displayName": "Registration",
+          "type": "boolean",
+          "generate": {
+            "handler": "random-boolean",
+            "probability": 0.7
+          },
+          "constraints": {
+            "implies": ["sms"],
+            "nullIf": { "any": ["tollfree"] }
           }
         },
         {
           "name": "tollfree",
           "displayName": "Toll-Free",
-          "type": "tollfree",
+          "type": "boolean",
           "generate": {
             "handler": "random-boolean",
             "probability": 0.15
+          },
+          "constraints": {
+            "excludes": ["voice", "sms", "reg"]
           }
         },
         {
           "name": "incoming_per_minute",
           "displayName": "Incoming $/min",
-          "type": "incoming_per_minute",
+          "type": "number",
           "generate": {
             "handler": "random-float",
             "min": 0.001,
             "max": 0.05,
             "decimals": 4
+          },
+          "constraints": {
+            "requiredIf": { "any": ["voice", "tollfree"] }
           }
         },
         {
           "name": "incoming_sms_price",
           "displayName": "Incoming SMS $",
-          "type": "incoming_sms_price",
+          "type": "number",
           "generate": {
             "handler": "random-float",
             "min": 0.005,
             "max": 0.02,
             "decimals": 4
+          },
+          "constraints": {
+            "requiredIf": { "any": ["sms"] }
           }
         },
         {
@@ -275,7 +237,7 @@
           "type": "provider",
           "generate": {
             "handler": "random-enum",
-            "values": ["twilio", "vonage", "bandwidth", "telnyx", "plivo"]
+            "values": ["anveo", "twillio", "didww", "nexmo", "sipmarket"]
           }
         }
       ]

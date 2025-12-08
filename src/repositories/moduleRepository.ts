@@ -147,6 +147,27 @@ export class ModuleRepository {
     return manifests
   }
 
+  /**
+   * Get all column type IDs from active modules
+   * Returns array of fully qualified column type identifiers (e.g., ['@store/phone-numbers:provider'])
+   * Format matches what moduleManager.getColumnTypes() returns
+   */
+  async getAllColumnTypeIds(): Promise<string[]> {
+    const manifests = await this.getActiveManifests()
+    const columnTypeIds: string[] = []
+
+    for (const [moduleId, manifest] of manifests.entries()) {
+      if (manifest.columnTypes) {
+        for (const columnType of manifest.columnTypes) {
+          // Prefix with moduleId to match the format used by moduleManager
+          columnTypeIds.push(`${moduleId}:${columnType.id}`)
+        }
+      }
+    }
+
+    return columnTypeIds
+  }
+
   // ============================================================================
   // R2 OPERATIONS - Large module data storage
   // ============================================================================

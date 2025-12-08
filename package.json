@@ -1,6 +1,6 @@
 {
   "name": "store-api",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Serverless inventory management platform on Cloudflare's edge",
   "type": "module",
   "main": "src/index.ts",
