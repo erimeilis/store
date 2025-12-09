@@ -5,6 +5,7 @@ import type { TableRepository } from '@/repositories/tableRepository.js'
 import type { ZodCompatibleValidator } from '@/validators/zodCompatibleValidator.js'
 import { getUserInfo, isUserAdmin, createErrorResponse, createSuccessResponse } from '@/utils/common.js'
 import { validateColumnName } from '@/utils/column-name-utils.js'
+import { ModuleRepository } from '@/repositories/moduleRepository.js'
 
 /**
  * Add new column to table
@@ -36,6 +37,16 @@ export async function addColumn(
     // Validate column data
     if (!data.name || !data.type) {
       return createErrorResponse('Validation failed', 'Column name and type are required', 400)
+    }
+
+    // Validate module column type configuration if it's a module type
+    if (data.type.includes(':')) {
+      const moduleRepo = new ModuleRepository(c.env)
+      const configResult = await moduleRepo.validateColumnTypeConfiguration(data.type)
+
+      if (!configResult.valid && configResult.error) {
+        return createErrorResponse('Module configuration error', configResult.error, 400)
+      }
     }
 
     // Validate and convert column name to camelCase

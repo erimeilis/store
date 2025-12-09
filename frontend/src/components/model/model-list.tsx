@@ -48,6 +48,7 @@ export function ModelList<T extends IModel>({
                                                 compactPagination,
                                                 renderItem,
                                                 renderHeader,
+                                                onCustomMassAction,
                                             }: ModelListComponentProps<T>) {
     // Use custom hooks for state management
     const {
@@ -247,7 +248,18 @@ export function ModelList<T extends IModel>({
                                                         size="sm"
                                                         color={action.name === 'delete' ? 'error' : 'primary'}
                                                         style="soft"
-                                                        onClick={() => openMassActionModal(action)}
+                                                        onClick={() => {
+                                                            // Check if this is a custom action
+                                                            if (action.custom && onCustomMassAction) {
+                                                                onCustomMassAction(
+                                                                    action,
+                                                                    Array.from(selectedItems),
+                                                                    isAllPagesSelected
+                                                                )
+                                                            } else {
+                                                                openMassActionModal(action)
+                                                            }
+                                                        }}
                                                         icon={action.name === 'delete' ? IconTrash : undefined}
                                                     >
                                                         {action.label}

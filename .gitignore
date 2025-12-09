@@ -20,6 +20,9 @@ wrangler.toml
 !wrangler.toml.template
 !/frontend/wrangler.toml.template
 
+# Auto-generated module manifest (regenerated from modules/*.json on startup)
+src/data/modules-manifest.json
+
 /src/generated/prisma
 /Store.iml
 /.wrangler/

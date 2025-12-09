@@ -492,23 +492,25 @@ export function ToastProvider({
         toast.remove(id)
     }
 
+    const displayToasts = toasts.slice(0, maxToasts)
+
     return (
         <>
             {children}
-            <ToastContainer
-                toasts={toasts}
-                position={position}
-                maxToasts={maxToasts}
-                {...props}
-            >
-                {toasts.slice(0, maxToasts).map((toastMessage) => (
-                    <Toast
-                        key={toastMessage.id}
-                        toast={toastMessage}
-                        onDismiss={handleDismiss}
-                    />
-                ))}
-            </ToastContainer>
+            {displayToasts.length > 0 && (
+                <div
+                    className={cn(toastVariants({ position }), 'z-[9999] fixed')}
+                    {...props}
+                >
+                    {displayToasts.map((toastMessage) => (
+                        <Toast
+                            key={toastMessage.id}
+                            toast={toastMessage}
+                            onDismiss={handleDismiss}
+                        />
+                    ))}
+                </div>
+            )}
         </>
     )
 }

@@ -85,14 +85,7 @@
           "token": "$settings.providerApiToken"
         },
         "responseSchema": {
-          "dataPath": "data",
-          "example": {
-            "success": true,
-            "data": [
-              { "id": 10, "name": "Anveo", "did_key": "anveo", "key": "anveo" },
-              { "id": 30, "name": "Twillio", "did_key": "twi", "key": "twillio" }
-            ]
-          }
+          "dataPath": "data"
         },
         "valueField": "key",
         "labelField": "name",
@@ -100,12 +93,13 @@
       }
     },
     {
-      "id": "doc_type",
+      "id": "docType",
       "displayName": "Document Type",
       "description": "Required documentation type for number registration",
       "icon": "file-text",
       "category": "Documentation",
       "baseType": "string",
+      "multiValue": true,
       "source": {
         "type": "api",
         "endpoint": "$settings.docTypeApiUrl",
@@ -115,15 +109,7 @@
           "token": "$settings.docTypeApiToken"
         },
         "responseSchema": {
-          "dataPath": "data",
-          "example": {
-            "success": true,
-            "data": [
-              { "id": 1, "name": "First Name & Last Name", "slug": "name-lastname", "business": null },
-              { "id": 7, "name": "Passport or ID", "slug": "pass-or-id", "business": null },
-              { "id": 16, "name": "Company Name", "slug": "company-name", "business": true }
-            ]
-          }
+          "dataPath": "data"
         },
         "valueField": "slug",
         "labelField": "name",
@@ -236,8 +222,7 @@
           "displayName": "Provider",
           "type": "provider",
           "generate": {
-            "handler": "random-enum",
-            "values": ["anveo", "twillio", "didww", "nexmo", "sipmarket"]
+            "handler": "from-source"
           }
         }
       ]

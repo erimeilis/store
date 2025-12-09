@@ -19,6 +19,7 @@ import type {
 } from '@/types/modules.js'
 import { MODULE_STATUS_TRANSITIONS } from '@/types/modules.js'
 import { ModuleRepository } from '@/repositories/moduleRepository.js'
+import { DataSourceService } from '@/services/moduleService/dataSourceService.js'
 
 /**
  * Global module cache - persists across requests within a Worker isolate
@@ -154,6 +155,10 @@ export class ModuleManagerService implements ModuleManager {
       previousStatus: module.status,
       newStatus: 'uninstalling',
     })
+
+    // Invalidate KV API cache for this module's column types
+    const dataSourceService = new DataSourceService(this.env)
+    await dataSourceService.invalidateModuleCache(moduleId)
 
     // Remove from registry
     await this.repository.remove(moduleId)
@@ -414,14 +419,19 @@ export class ModuleManagerService implements ModuleManager {
 
   private async fetchManifest(source: ModuleSource): Promise<ModuleManifest | null> {
     // For local modules, read from bundled manifest data
+    // Note: The manifest is auto-generated from modules/*/store-module.json
     if (source.type === 'local' && source.path) {
       try {
         // Import the modules manifest that was scanned at build time
         const { default: modulesManifest } = await import('@/data/modules-manifest.json')
 
-        const scannedModule = modulesManifest.find(
-          (m: { path: string }) => m.path === source.path
-        ) as { path: string; manifest: ModuleManifest } | undefined
+        // New structure has _meta and modules properties
+        const manifest = modulesManifest as {
+          _meta: { generated: string; source: string; warning: string }
+          modules: Array<{ path: string; manifest: ModuleManifest }>
+        }
+
+        const scannedModule = manifest.modules.find((m) => m.path === source.path)
 
         if (scannedModule?.manifest) {
           return scannedModule.manifest

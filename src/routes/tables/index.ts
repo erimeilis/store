@@ -32,6 +32,11 @@ import importData from './post.id.import-data.js';
 import previewTypeChange from './post.id.preview-type-change.js';
 import applyTypeChange from './post.id.apply-type-change.js';
 
+// Validation routes
+import validateTable from './get.id.validate.js';
+import deleteInvalidRows from './delete.id.invalid-rows.js';
+import previewColumnType from './post.id.columns.columnId.preview-type.js';
+
 /**
  * Table Management Routes
  */
@@ -69,6 +74,11 @@ app.route('/', importData);           // POST /:id/import-data
 // Type change routes (before /:id single table routes)
 app.route('/', previewTypeChange);    // POST /:id/preview-type-change
 app.route('/', applyTypeChange);      // POST /:id/apply-type-change
+
+// Validation routes (before /:id single table routes)
+app.route('/', validateTable);        // GET /:id/validate, GET /:id/validate/rules
+app.route('/', deleteInvalidRows);    // DELETE /:id/invalid-rows
+app.route('/', previewColumnType);    // POST /:id/columns/:columnId/preview-type
 
 // Single table routes (must be last - /:id is catch-all)
 app.route('/', getTable);             // GET /:id

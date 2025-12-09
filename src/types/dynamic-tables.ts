@@ -53,6 +53,8 @@ export type ColumnType =
   | 'select'
   | 'rating'
   | 'color'
+  // Module-specific types (e.g., @store/phone-numbers:provider, @store/phone-numbers:doc-types)
+  | `@${string}:${string}`
 
 /**
  * Table visibility levels
