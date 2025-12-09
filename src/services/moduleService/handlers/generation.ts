@@ -13,6 +13,10 @@ export interface GenerationContext {
   index: number
   total: number
   row: Record<string, unknown>
+  /** Maps column type id to array of values (for from-source handler) */
+  sourceData?: Record<string, unknown[]>
+  /** Current column's type (for from-source handler) */
+  columnType?: string
 }
 
 /**
@@ -37,6 +41,9 @@ export function generate(rule: GenerationRule, context: GenerationContext): unkn
 
     case 'random-enum':
       return generateRandomEnum(rule.values)
+
+    case 'from-source':
+      return generateFromSource(context)
 
     case 'sequence':
       return generateSequence(context.index, rule.start, rule.step)
@@ -131,6 +138,27 @@ function generateRandomEnum(values: unknown[]): unknown {
 }
 
 /**
+ * Generate a value from pre-fetched source data
+ * Looks up the column type in context.sourceData and picks a random value
+ */
+function generateFromSource(context: GenerationContext): unknown {
+  const { columnType, sourceData } = context
+
+  if (!columnType || !sourceData) {
+    console.warn('from-source handler requires columnType and sourceData in context')
+    return null
+  }
+
+  const values = sourceData[columnType]
+  if (!values || !values.length) {
+    console.warn(`No source data found for column type: ${columnType}`)
+    return null
+  }
+
+  return values[Math.floor(Math.random() * values.length)]
+}
+
+/**
  * Generate sequential value
  */
 function generateSequence(index: number, start?: number, step?: number): number {
@@ -219,15 +247,19 @@ function generateTemplate(
  * Generate a complete row of data using column definitions
  */
 export function generateRow(
-  columns: Array<{ name: string; generate?: GenerationRule }>,
+  columns: Array<{ name: string; type?: string; generate?: GenerationRule }>,
   context: GenerationContext
 ): Record<string, unknown> {
   const row: Record<string, unknown> = {}
 
   for (const column of columns) {
     if (column.generate) {
-      // Update context with current row state
-      const colContext = { ...context, row }
+      // Update context with current row state and column type (for from-source handler)
+      const colContext: GenerationContext = {
+        ...context,
+        row,
+        ...(column.type !== undefined && { columnType: column.type }),
+      }
       row[column.name] = generate(column.generate, colContext)
     } else {
       row[column.name] = null
@@ -239,10 +271,14 @@ export function generateRow(
 
 /**
  * Generate multiple rows
+ * @param columns - Column definitions with type info for from-source handler
+ * @param count - Number of rows to generate
+ * @param sourceData - Pre-fetched source data mapped by column type id
  */
 export function generateRows(
-  columns: Array<{ name: string; generate?: GenerationRule }>,
-  count: number
+  columns: Array<{ name: string; type?: string; generate?: GenerationRule }>,
+  count: number,
+  sourceData?: Record<string, unknown[]>
 ): Record<string, unknown>[] {
   const rows: Record<string, unknown>[] = []
 
@@ -251,6 +287,7 @@ export function generateRows(
       index: i,
       total: count,
       row: {},
+      ...(sourceData !== undefined && { sourceData }),
     }
     rows.push(generateRow(columns, context))
   }
@@ -269,6 +306,7 @@ export function getGenerationHandlers(): string[] {
     'random-float',
     'random-boolean',
     'random-enum',
+    'from-source',
     'sequence',
     'pattern',
     'template',

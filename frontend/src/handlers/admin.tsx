@@ -110,9 +110,14 @@ export async function generateDummyTables(
     const data = await response.json() as GenerateDummyTablesResponse
 
     if (!response.ok) {
+      // Combine error and details for a complete error message
+      let errorMessage = data.error || 'Failed to generate dummy tables'
+      if (data.details && data.details !== data.error) {
+        errorMessage = data.details
+      }
       return {
         success: false,
-        error: data.error || data.details || 'Failed to generate dummy tables'
+        error: errorMessage
       }
     }
 

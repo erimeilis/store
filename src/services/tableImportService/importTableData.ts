@@ -2,13 +2,15 @@
  * Import data into dynamic tables
  * Main import logic with transaction handling and validation
  * Refactored to use Prisma ORM instead of raw SQL
+ * Enhanced with "Warn-Don't-Block" validation pattern
  */
 
 import type { Bindings } from '@/types/bindings.js'
-import type { ImportOptions, ImportResult, ColumnInfo, TableColumn } from '@/types/table-import.js'
+import type { ImportOptions, ImportResult, ColumnInfo, TableColumn, ImportValidationWarning } from '@/types/table-import.js'
 import { convertValueToColumnType } from './convertValueToColumnType.js'
 import { applyDefaultValues } from '@/utils/applyDefaultValues.js'
 import { getPrismaClient } from '@/lib/database.js'
+import { validateValue } from '@/services/validationService.js'
 
 export async function importTableData(
     env: Bindings,
@@ -77,6 +79,8 @@ export async function importTableData(
     let importedRows = 0
     let skippedRows = 0
     const errors: string[] = []
+    const warnings: ImportValidationWarning[] = []
+    const columnWarnings: Record<string, number> = {}
 
     try {
         // Use Prisma transaction instead of raw SQL
@@ -119,6 +123,24 @@ export async function importTableData(
                         if (convertedValue !== null && convertedValue !== undefined) {
                             hasValidData = true
                             rowData[targetColumn] = convertedValue
+
+                            // Validate value against column type (Warn-Don't-Block pattern)
+                            // Data is still imported, but warnings are collected
+                            const validationResult = validateValue(convertedValue, targetColumn, columnInfo.type)
+                            if (!validationResult.isValid) {
+                                // Limit warnings to 100 max for performance
+                                if (warnings.length < 100) {
+                                    warnings.push({
+                                        row: rowIndex + 1,
+                                        column: targetColumn,
+                                        value: convertedValue,
+                                        error: validationResult.error || 'Invalid value',
+                                        suggestion: validationResult.suggestion
+                                    })
+                                }
+                                // Track per-column warning counts
+                                columnWarnings[targetColumn] = (columnWarnings[targetColumn] || 0) + 1
+                            }
                         }
                     }
 
@@ -199,11 +221,18 @@ export async function importTableData(
         throw error
     }
 
-    // Return results
+    // Return results with validation summary
+    const totalWarnings = Object.values(columnWarnings).reduce((sum, count) => sum + count, 0)
+
     const result: ImportResult = {
         importedRows,
         skippedRows,
-        errors: errors.slice(0, 10) // Limit errors to first 10
+        errors: errors.slice(0, 10), // Limit errors to first 10
+        warnings: warnings.slice(0, 50), // Limit detailed warnings to first 50
+        validationSummary: totalWarnings > 0 ? {
+            totalWarnings,
+            columnWarnings
+        } : undefined
     }
 
     if (importedRows === 0 && errors.length > 0) {

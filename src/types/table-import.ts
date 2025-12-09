@@ -10,10 +10,23 @@ export interface ImportOptions {
     hasHeaders: boolean
 }
 
+export interface ImportValidationWarning {
+    row: number
+    column: string
+    value: unknown
+    error: string
+    suggestion?: string | undefined
+}
+
 export interface ImportResult {
     importedRows: number
     skippedRows: number
     errors: string[]
+    warnings?: ImportValidationWarning[] | undefined
+    validationSummary?: {
+        totalWarnings: number
+        columnWarnings: Record<string, number>
+    } | undefined
 }
 
 export interface ColumnInfo {

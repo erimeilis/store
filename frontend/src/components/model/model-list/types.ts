@@ -66,6 +66,18 @@ export interface ModelListComponentProps<T extends IModel> extends IModelListPro
     // Legacy props for backward compatibility
     renderItem?: (item: T) => React.ReactNode;
     renderHeader?: () => React.ReactNode;
+    /**
+     * Callback for custom mass actions (actions with `custom: true`).
+     * Called instead of opening the standard modal when a custom action is clicked.
+     * @param action The mass action that was clicked
+     * @param selectedIds Array of selected item IDs
+     * @param isAllPagesSelected Whether all pages are selected (Gmail-style)
+     */
+    onCustomMassAction?: (
+        action: IMassAction,
+        selectedIds: Array<string | number>,
+        isAllPagesSelected: boolean
+    ) => void;
 }
 
 // Inline editing state interfaces

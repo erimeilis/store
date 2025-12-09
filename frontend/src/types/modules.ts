@@ -44,6 +44,7 @@ export interface ColumnTypeDefinition {
   icon?: string
   category?: string
   baseType: 'string' | 'number' | 'boolean' | 'json'
+  multiValue?: boolean // For multiselect fields
 }
 
 /**

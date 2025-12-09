@@ -1,6 +1,7 @@
 /**
  * Dummy Table Generator Service
  * Generates realistic test tables with faker data for development/testing
+ * Enhanced with type validation for generated values
  */
 
 import { faker } from '@faker-js/faker'
@@ -8,6 +9,8 @@ import type { Bindings } from '@/types/bindings'
 import type { ColumnType, CreateTableRequest, CreateColumnRequest, TableType } from '@/types/dynamic-tables'
 import { DEFAULT_SALE_COLUMNS, DEFAULT_RENT_COLUMNS, getDefaultColumns } from '@/types/dynamic-tables'
 import { getPrismaClient } from '@/lib/database'
+import { validateValue, type ValueValidationResult } from '@/services/validationService'
+import { createDataSourceService } from '@/services/moduleService/dataSourceService'
 
 /**
  * Available column types with their faker generators
@@ -51,7 +54,9 @@ const COLUMN_NAME_TEMPLATES: Record<ColumnType, string[]> = {
  * Generate random realistic column name for a given type
  */
 function generateColumnName(type: ColumnType, existingNames: Set<string>): string {
-  const templates = COLUMN_NAME_TEMPLATES[type]
+  // Handle module-specific types (e.g., @store/phone-numbers:provider) by using 'text' templates as fallback
+  const baseType = type.startsWith('@') ? 'text' : type
+  const templates = COLUMN_NAME_TEMPLATES[baseType as keyof typeof COLUMN_NAME_TEMPLATES] || COLUMN_NAME_TEMPLATES['text']
   let name = faker.helpers.arrayElement(templates)
 
   // Ensure unique name by adding suffix if needed
@@ -183,13 +188,28 @@ function generateSaleColumns(startPosition: number, existingNames: Set<string>):
 }
 
 /**
- * Phone number provider names for realistic data
+ * Phone number provider values - loaded from module API source at runtime
+ * These must be fetched from the provider API endpoint defined in modules/phone-numbers/store-module.json
+ * Generation FAILS if providers cannot be loaded - we never generate invalid data
  */
-const PHONE_PROVIDERS = [
-  'Twilio', 'Vonage', 'Bandwidth', 'Plivo', 'Telnyx', 'Sinch',
-  'MessageBird', 'Infobip', 'Clickatell', 'Nexmo', 'RingCentral',
-  'Grasshopper', 'Google Voice', 'Skype', 'Zoom Phone'
-]
+let PHONE_PROVIDERS: string[] = []
+
+/**
+ * Set phone provider values from external source (e.g., API)
+ */
+export function setPhoneProviders(providers: string[]): void {
+  if (providers.length > 0) {
+    PHONE_PROVIDERS = providers
+    console.log(`📱 Phone providers set: ${providers.length} values`)
+  }
+}
+
+/**
+ * Get current phone providers (for testing/debugging)
+ */
+export function getPhoneProviders(): string[] {
+  return [...PHONE_PROVIDERS]
+}
 
 /**
  * Generate phone number table columns
@@ -258,7 +278,7 @@ function generatePhoneTableColumns(existingNames: Set<string>, tableType: TableT
   // Core phone columns
   columns.push({
     name: 'number',
-    type: 'text',
+    type: '@store/phone-numbers:phone',  // Matches module columnTypes.id
     isRequired: true,
     allowDuplicates: false, // Phone numbers should be unique
     position: position++
@@ -345,7 +365,7 @@ function generatePhoneTableColumns(existingNames: Set<string>, tableType: TableT
   // Info columns - docs contains required document types (comma-separated)
   columns.push({
     name: 'docs',
-    type: 'text',
+    type: '@store/phone-numbers:docType',  // Matches module columnTypes.id
     isRequired: false,
     allowDuplicates: true,
     position: position++
@@ -362,13 +382,13 @@ function generatePhoneTableColumns(existingNames: Set<string>, tableType: TableT
   existingNames.add('description')
 
   columns.push({
-    name: 'providerName',
-    type: 'text',
+    name: 'provider',
+    type: '@store/phone-numbers:provider',
     isRequired: true,
     allowDuplicates: true,
     position: position++
   })
-  existingNames.add('providerName')
+  existingNames.add('provider')
 
   return columns
 }
@@ -587,8 +607,9 @@ function generatePhoneDataRow(tableType: TableType = 'sale'): Record<string, any
     row.description = `Phone number for ${row.area}, ${row.country}. Supports ${features.join(', ') || 'basic features'}.`
   }
 
-  // Provider name
-  row.providerName = faker.helpers.arrayElement(PHONE_PROVIDERS)
+  // Provider name - providers MUST be loaded from API before calling this function
+  // generateDummyTables() ensures this by failing early if providers unavailable
+  row.provider = faker.helpers.arrayElement(PHONE_PROVIDERS)
 
   return row
 }
@@ -751,13 +772,39 @@ function generateRentValue(columnName: string): string | number | boolean {
 }
 
 /**
+ * Validate a generated row against column types
+ * Used for debugging and ensuring data quality
+ * @returns Array of validation warnings (empty if all valid)
+ */
+export function validateGeneratedRow(
+  row: Record<string, any>,
+  columns: Array<{ name: string; type: ColumnType }>
+): ValueValidationResult[] {
+  const warnings: ValueValidationResult[] = []
+
+  for (const column of columns) {
+    const value = row[column.name]
+    if (value !== undefined && value !== null) {
+      const result = validateValue(value, column.name, column.type)
+      if (!result.isValid) {
+        warnings.push(result)
+      }
+    }
+  }
+
+  return warnings
+}
+
+/**
  * Generate data row for a table based on its columns
  * @param columns - Column definitions
  * @param tableType - Type of table ('default', 'sale', 'rent') for specialized value generation
+ * @param validateOutput - Optional: validate generated values (useful for debugging)
  */
 export function generateDataRow(
   columns: Array<{ name: string; type: ColumnType; isRequired: boolean; defaultValue: string | number | boolean | null }>,
-  tableType: TableType = 'default'
+  tableType: TableType = 'default',
+  validateOutput: boolean = false
 ): Record<string, any> {
   const row: Record<string, any> = {}
 
@@ -789,6 +836,16 @@ export function generateDataRow(
     row[column.name] = generateFakerValue(column.type)
   }
 
+  // Optional validation for debugging
+  if (validateOutput) {
+    const warnings = validateGeneratedRow(row, columns)
+    if (warnings.length > 0) {
+      console.warn(`⚠️ Generated row has ${warnings.length} validation warning(s):`,
+        warnings.map(w => `${w.columnName}: ${w.error}`).join(', ')
+      )
+    }
+  }
+
   return row
 }
 
@@ -814,6 +871,36 @@ export async function generateDummyTables(
 
     const typeLabel = forceTableType ? ` (${forceTableType.toUpperCase()} ONLY)` : ''
     console.log(`🎲 Starting generation of ${tableCount} tables with ${rowsPerTable} rows each${typeLabel}...`)
+
+    // Pre-fetch phone providers from module API source
+    // This ensures generated data uses valid provider values from the actual API
+    // FAIL if API unavailable - we must not generate invalid data
+    const dataSourceService = createDataSourceService(env)
+    const providerResult = await dataSourceService.fetchColumnTypeOptions('@store/phone-numbers', 'provider')
+    if (!providerResult.success) {
+      // Provide human-readable error message for common configuration issues
+      let errorMsg = providerResult.error || 'Unknown error'
+
+      // Check for common setting configuration errors and provide helpful messages
+      if (errorMsg.includes('is not configured')) {
+        const settingMatch = errorMsg.match(/Setting "(\w+)" is not configured/)
+        const settingName = settingMatch?.[1] || 'required setting'
+        errorMsg = `Module "@store/phone-numbers" is not properly configured. The "${settingName}" setting is missing. Please configure this module in Admin → Modules before generating phone tables.`
+      } else if (errorMsg.includes('Module not found')) {
+        errorMsg = 'The phone-numbers module is not installed. Please install and activate the module in Admin → Modules.'
+      } else if (errorMsg.includes('Column type not found')) {
+        errorMsg = 'The phone-numbers module configuration is invalid. Please reinstall the module.'
+      }
+
+      console.error(`❌ ${errorMsg}`)
+      return { success: false, error: errorMsg }
+    }
+    if (providerResult.options.length === 0) {
+      const errorMsg = 'Provider API returned no options. Please check that the provider API URL is correct and the API is returning data.'
+      console.error(`❌ ${errorMsg}`)
+      return { success: false, error: errorMsg }
+    }
+    setPhoneProviders(providerResult.options.map(opt => opt.value))
 
     for (let i = 1; i <= tableCount; i++) {
       try {

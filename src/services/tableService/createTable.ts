@@ -29,6 +29,31 @@ export async function createTable(
       return createErrorResponse('Validation failed', validation.errors.join(', '), 400)
     }
 
+    // Validate that all module column types are properly configured
+    // This prevents creating tables with columns that reference unconfigured modules
+    const moduleColumnTypeIds = data.columns
+      .map(col => col.type)
+      .filter(type => type.includes(':'))
+
+    if (moduleColumnTypeIds.length > 0) {
+      const configValidationResults = await moduleRepo.validateColumnTypeConfigurations(moduleColumnTypeIds)
+
+      const configErrors: string[] = []
+      for (const [typeId, result] of configValidationResults) {
+        if (!result.valid && result.error) {
+          configErrors.push(result.error)
+        }
+      }
+
+      if (configErrors.length > 0) {
+        return createErrorResponse(
+          'Module configuration error',
+          configErrors.join('; '),
+          400
+        )
+      }
+    }
+
     const { userId, userEmail } = getUserInfo(c, user)
 
     // Handle legacy forSale field - convert to tableType

@@ -8,6 +8,7 @@ import { LayoutProps } from '@/types/layout'
 import { Navbar, NavbarBrand } from '@/components/ui/navbar'
 import { Button } from '@/components/ui/button'
 import { HorizontalMenu, MenuItem, MenuDetails } from '@/components/ui/menu'
+import { ToastProvider } from '@/components/ui/toast'
 import { IconLogout, IconLayoutDashboard, IconUsers, IconKey, IconMail, IconBox, IconUser, IconTable, IconApi, IconMenu2, IconX, IconShoppingCart, IconHelpCircle, IconPlug } from '@tabler/icons-react'
 import { useThemeStore } from '@/stores/useThemeStore'
 
@@ -35,6 +36,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
   const closeMobileMenu = () => setIsMobileMenuOpen(false)
 
   return (
+    <ToastProvider position="top-end">
     <div className="min-h-screen bg-base-200">
       <Navbar
         color="base100"
@@ -379,6 +381,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
         {children}
       </div>
     </div>
+    </ToastProvider>
   )
 }
 

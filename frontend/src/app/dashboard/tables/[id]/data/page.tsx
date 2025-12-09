@@ -7,13 +7,16 @@
 
 import React, {useEffect, useState} from 'react'
 import {IColumnDefinition, ModelList} from '@/components/model/model-list'
-import {IPaginatedResponse} from '@/types/models'
+import {IMassAction, IPaginatedResponse} from '@/types/models'
 import {TableColumn, TableDataRow} from '@/types/dynamic-tables'
 import {formatApiDate} from '@/lib/date-utils'
 import {clientApiRequest} from '@/lib/client-api'
 import {CountryDisplay, getCountryOptions} from '@/components/ui/country-select'
 import {BooleanCircle} from '@/components/ui/boolean-circle'
+import {ValidationWarning} from '@/components/ui/validation-warning'
+import {ValidationSummaryBanner} from '@/components/tables/validation-summary'
 import {TablePageHeader} from '@/components/tables/page-header'
+import {SetColumnValueModal, ColumnInfo} from '@/components/model/model-list/modal-components/set-column-value-modal'
 import {IconFlag, IconWand} from '@tabler/icons-react'
 import {toDisplayName} from '@/utils/column-name-utils'
 
@@ -70,8 +73,19 @@ export default function TableDataPage({
     const [isFixingCountries, setIsFixingCountries] = useState(false)
     const [countryFixResult, setCountryFixResult] = useState<string | null>(null)
 
+    // Set Column Value modal state
+    const [setColumnValueModalOpen, setSetColumnValueModalOpen] = useState(false)
+    const [setColumnValueSelectedIds, setSetColumnValueSelectedIds] = useState<Array<string | number>>([])
+    const [setColumnValueIsAllPages, setSetColumnValueIsAllPages] = useState(false)
+    const [setColumnValueLoading, setSetColumnValueLoading] = useState(false)
+    const [setColumnValueError, setSetColumnValueError] = useState<string>('')
+
     // Module column type options for inline editing (includes raw for business indicator)
-    const [moduleTypeOptions, setModuleTypeOptions] = useState<Record<string, Array<{ value: string; label: string; raw?: Record<string, unknown> }>>>({})
+    // Also tracks multiValue metadata from module manifest
+    const [moduleTypeOptions, setModuleTypeOptions] = useState<Record<string, {
+        options: Array<{ value: string; label: string; raw?: Record<string, unknown> }>;
+        multiValue: boolean;
+    }>>({})
 
     // Get tableId from URL if not passed as prop (client-side)
     const currentTableId = tableId || (typeof window !== 'undefined' ? window.location.pathname.split('/')[3] : undefined)
@@ -186,8 +200,13 @@ export default function TableDataPage({
             )
 
             if (response.ok) {
-                const result = await response.json() as { data?: Array<{ value: string; label: string; raw?: Record<string, unknown> }>; options?: Array<{ value: string; label: string; raw?: Record<string, unknown> }> }
+                const result = await response.json() as {
+                    data?: Array<{ value: string; label: string; raw?: Record<string, unknown> }>;
+                    options?: Array<{ value: string; label: string; raw?: Record<string, unknown> }>;
+                    multiValue?: boolean;
+                }
                 const rawOptions = result.data || result.options || []
+                const multiValue = result.multiValue || false
 
                 // Map options with raw field included
                 const mappedOptions = Array.isArray(rawOptions) ? rawOptions.map((opt: any) => ({
@@ -201,7 +220,10 @@ export default function TableDataPage({
 
                 setModuleTypeOptions(prev => ({
                     ...prev,
-                    [column.name]: processedOptions
+                    [column.name]: {
+                        options: processedOptions,
+                        multiValue: multiValue
+                    }
                 }))
             }
         } catch (error) {
@@ -351,11 +373,12 @@ export default function TableDataPage({
 
             // Add edit options for module column types
             if (isModuleColumnType(column.type)) {
-                const options = moduleTypeOptions[column.name]
-                if (options && options.length > 0) {
-                    // Use multiselect for doc_type columns (docs:doc_type, etc.)
-                    const isDocType = column.type.includes('doc_type')
-                    if (isDocType) {
+                const moduleTypeData = moduleTypeOptions[column.name]
+                if (moduleTypeData && moduleTypeData.options && moduleTypeData.options.length > 0) {
+                    const { options, multiValue } = moduleTypeData
+
+                    // Use multiselect for columns with multiValue flag from module manifest
+                    if (multiValue) {
                         columnDef.editType = 'multiselect'
                         columnDef.editOptions = options
                     }
@@ -363,7 +386,7 @@ export default function TableDataPage({
                     // (those should keep their specialized input types)
                     const specializedTypes = ['phone', 'email', 'number', 'date']
                     const baseType = column.type.split(':').pop() || ''
-                    if (!isDocType && !specializedTypes.includes(baseType)) {
+                    if (!multiValue && !specializedTypes.includes(baseType)) {
                         columnDef.editType = 'select'
                         columnDef.editOptions = options
                     }
@@ -415,12 +438,19 @@ export default function TableDataPage({
     }
 
     const renderCellValue = (column: TableColumn, value: any) => {
+        // Helper to wrap content with validation warning
+        const withValidation = (content: React.ReactNode) => (
+            <ValidationWarning value={value} columnType={column.type}>
+                {content}
+            </ValidationWarning>
+        )
+
         // Check if this is a price column in a for sale table
         if (column.name.toLowerCase() === 'price' && table?.forSale && column.type === 'number' && value != null) {
-            return (
+            return withValidation(
                 <span className="font-mono">
-          ${Number(value).toFixed(2)}
-        </span>
+                    ${Number(value).toFixed(2)}
+                </span>
             )
         }
 
@@ -436,23 +466,29 @@ export default function TableDataPage({
                     </div>
                 )
             case 'date':
-                return value ? formatApiDate(value) : '-'
+                return value ? withValidation(formatApiDate(value)) : '-'
             case 'url':
-                return value ? (
+                return value ? withValidation(
                     <a href={value} target="_blank" rel="noopener noreferrer" className="link link-primary">
                         {value}
                     </a>
                 ) : '-'
             case 'email':
-                return value ? (
+                return value ? withValidation(
                     <a href={`mailto:${value}`} className="link link-primary">
                         {value}
                     </a>
                 ) : '-'
+            case 'phone':
+                return value ? withValidation(
+                    <a href={`tel:${value}`} className="link link-primary">
+                        {value}
+                    </a>
+                ) : '-'
             case 'country':
-                return value ? <CountryDisplay countryCode={value}/> : '-'
+                return value ? withValidation(<CountryDisplay countryCode={value}/>) : '-'
             default:
-                return value || '-'
+                return value ? withValidation(value) : '-'
         }
     }
 
@@ -465,42 +501,85 @@ export default function TableDataPage({
     console.log('🔍 Fixed extraction - columns.length:', columns.length)
 
     // Mass actions for table data
-    const dataMassActions = [
+    const dataMassActions: IMassAction[] = [
+        {
+            name: 'set_column_value',
+            label: 'Set Column Value',
+            custom: true // This action uses a custom modal
+        },
         {
             name: 'delete',
             label: 'Delete Rows',
             confirmMessage: 'Are you sure you want to delete the selected rows? This action cannot be undone.'
-        },
-        // Add populate actions for forSale tables
-        ...(table?.forSale ? [
-            {
-                name: 'set_field_value',
-                label: 'Set Price',
-                confirmMessage: 'Enter the price value to set for all selected rows.',
-                requiresInput: true,
-                fieldName: 'price',
-                inputConfig: {
-                    type: 'currency' as const,
-                    label: 'Price',
-                    placeholder: 'Enter price...',
-                    min: 0
-                }
-            },
-            {
-                name: 'set_field_value',
-                label: 'Set Quantity',
-                confirmMessage: 'Enter the quantity value to set for all selected rows.',
-                requiresInput: true,
-                fieldName: 'qty',
-                inputConfig: {
-                    type: 'integer' as const,
-                    label: 'Quantity',
-                    placeholder: 'Enter quantity...',
-                    min: 0
-                }
-            }
-        ] : [])
+        }
     ]
+
+    // Handler for custom mass actions (like Set Column Value)
+    const handleCustomMassAction = (
+        action: IMassAction,
+        selectedIds: Array<string | number>,
+        isAllPagesSelected: boolean
+    ) => {
+        if (action.name === 'set_column_value') {
+            setSetColumnValueSelectedIds(selectedIds)
+            setSetColumnValueIsAllPages(isAllPagesSelected)
+            setSetColumnValueError('')
+            setSetColumnValueModalOpen(true)
+        }
+    }
+
+    // Handler for confirming the Set Column Value action
+    const handleSetColumnValueConfirm = async (columnName: string, value: string | number | boolean) => {
+        if (!currentTableId) return
+
+        setSetColumnValueLoading(true)
+        setSetColumnValueError('')
+
+        try {
+            const requestBody: Record<string, any> = {
+                action: 'set_field_value',
+                ids: setColumnValueSelectedIds,
+                fieldName: columnName,
+                value: value
+            }
+
+            // Add selectAll flag for all-pages selection
+            if (setColumnValueIsAllPages) {
+                requestBody.selectAll = true
+            }
+
+            const response = await clientApiRequest(
+                `/api/tables/${currentTableId}/data/mass-action`,
+                {
+                    method: 'POST',
+                    body: JSON.stringify(requestBody)
+                }
+            )
+
+            if (response.ok) {
+                setSetColumnValueModalOpen(false)
+                setSetColumnValueSelectedIds([])
+                setSetColumnValueIsAllPages(false)
+                // Refresh data
+                await loadTableData()
+            } else {
+                const errorData = await response.json() as { message?: string; error?: string }
+                setSetColumnValueError(errorData.message || errorData.error || 'Failed to update rows')
+            }
+        } catch (err) {
+            setSetColumnValueError(err instanceof Error ? err.message : 'An unexpected error occurred')
+        } finally {
+            setSetColumnValueLoading(false)
+        }
+    }
+
+    // Prepare column info for the SetColumnValueModal
+    const columnInfoForModal: ColumnInfo[] = columns.map((col: TableColumn) => ({
+        name: col.name,
+        label: toDisplayName(col.name),
+        type: col.type,
+        isRequired: col.isRequired
+    }))
 
     if (isLoading) {
         return (
@@ -604,6 +683,11 @@ export default function TableDataPage({
                 </div>
             )}
 
+            {/* Validation Summary Banner */}
+            {currentTableId && (
+                <ValidationSummaryBanner tableId={currentTableId} onDataChanged={loadTableData} />
+            )}
+
             <ModelList<ExtendedTableDataRow>
                 title="Table Data"
                 items={transformedPaginatedData}
@@ -618,6 +702,22 @@ export default function TableDataPage({
                 onEditSuccess={loadTableData}
                 dataEndpoint={`/api/tables/${currentTableId}/data`}
                 compactPagination={true}
+                onCustomMassAction={handleCustomMassAction}
+            />
+
+            {/* Set Column Value Modal */}
+            <SetColumnValueModal
+                isOpen={setColumnValueModalOpen}
+                isLoading={setColumnValueLoading}
+                selectedCount={setColumnValueIsAllPages ? (paginatedData?.total || 0) : setColumnValueSelectedIds.length}
+                columns={columnInfoForModal}
+                error={setColumnValueError}
+                onClose={() => {
+                    setSetColumnValueModalOpen(false)
+                    setSetColumnValueError('')
+                }}
+                onConfirm={handleSetColumnValueConfirm}
+                moduleTypeOptions={moduleTypeOptions}
             />
         </div>
     )

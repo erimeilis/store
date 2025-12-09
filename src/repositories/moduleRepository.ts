@@ -341,6 +341,116 @@ export class ModuleRepository {
   }
 
   /**
+   * Validate that a module column type has all required settings configured
+   * @param typeId - Full column type ID in format 'moduleId:columnTypeId'
+   * @returns Validation result with success flag and any missing settings
+   */
+  async validateColumnTypeConfiguration(typeId: string): Promise<{
+    valid: boolean
+    moduleId: string | null
+    missingSettings: string[]
+    error?: string
+  }> {
+    // Parse typeId which is in format 'moduleId:columnTypeId'
+    const colonIndex = typeId.indexOf(':')
+    if (colonIndex === -1) {
+      // Not a module column type - always valid
+      return { valid: true, moduleId: null, missingSettings: [] }
+    }
+
+    const moduleId = typeId.substring(0, colonIndex)
+    const columnTypeId = typeId.substring(colonIndex + 1)
+
+    // Get the module
+    const module = await this.get(moduleId)
+    if (!module) {
+      return {
+        valid: false,
+        moduleId,
+        missingSettings: [],
+        error: `Module "${moduleId}" is not installed`
+      }
+    }
+
+    if (module.status !== 'active') {
+      return {
+        valid: false,
+        moduleId,
+        missingSettings: [],
+        error: `Module "${moduleId}" is not active (status: ${module.status})`
+      }
+    }
+
+    // Find the column type definition
+    const columnType = module.manifest.columnTypes?.find(ct => ct.id === columnTypeId)
+    if (!columnType) {
+      return {
+        valid: false,
+        moduleId,
+        missingSettings: [],
+        error: `Column type "${columnTypeId}" not found in module "${moduleId}"`
+      }
+    }
+
+    // Check if column type has a data source that requires settings
+    const missingSettings: string[] = []
+
+    if (columnType.source?.type === 'api') {
+      // Extract setting references from endpoint
+      const endpointSettingRefs = columnType.source.endpoint?.match(/\$settings\.(\w+)/g) || []
+      for (const ref of endpointSettingRefs) {
+        const settingName = ref.replace('$settings.', '')
+        if (module.settings[settingName] === undefined || module.settings[settingName] === null || module.settings[settingName] === '') {
+          missingSettings.push(settingName)
+        }
+      }
+
+      // Extract setting references from auth token
+      if (columnType.source.auth?.token?.startsWith('$settings.')) {
+        const settingName = columnType.source.auth.token.replace('$settings.', '')
+        if (module.settings[settingName] === undefined || module.settings[settingName] === null || module.settings[settingName] === '') {
+          missingSettings.push(settingName)
+        }
+      }
+    }
+
+    if (missingSettings.length > 0) {
+      return {
+        valid: false,
+        moduleId,
+        missingSettings,
+        error: `Module "${moduleId}" is missing required settings: ${missingSettings.join(', ')}. Please configure the module in Admin → Modules.`
+      }
+    }
+
+    return { valid: true, moduleId, missingSettings: [] }
+  }
+
+  /**
+   * Validate multiple column types at once
+   * @param typeIds - Array of column type IDs to validate
+   * @returns Map of type IDs to their validation results
+   */
+  async validateColumnTypeConfigurations(typeIds: string[]): Promise<Map<string, {
+    valid: boolean
+    moduleId: string | null
+    missingSettings: string[]
+    error?: string
+  }>> {
+    const results = new Map()
+
+    // Deduplicate to avoid checking the same module multiple times
+    const uniqueTypeIds = [...new Set(typeIds)]
+
+    for (const typeId of uniqueTypeIds) {
+      const result = await this.validateColumnTypeConfiguration(typeId)
+      results.set(typeId, result)
+    }
+
+    return results
+  }
+
+  /**
    * Get all active modules
    */
   async getActiveModules(): Promise<InstalledModule[]> {

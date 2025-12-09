@@ -105,6 +105,11 @@ export interface MassAction {
   inputConfig?: InputConfig;
   /** Field name to update (for bulk update actions) */
   fieldName?: string;
+  /**
+   * If true, this action is handled by a custom callback instead of the standard modal.
+   * When clicked, `onCustomMassAction` callback will be called with the action and selected IDs.
+   */
+  custom?: boolean;
 }
 
 // Base props interface for model lists

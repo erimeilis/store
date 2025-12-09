@@ -3,6 +3,7 @@ import type { Bindings } from '@/types/bindings.js'
 import type { HonoVariables } from '@/types/hono.js'
 import { adminOnlyMiddleware } from '@/middleware/admin.js'
 import { DataSourceService } from '@/services/moduleService/dataSourceService.js'
+import { ModuleRepository } from '@/repositories/moduleRepository.js'
 
 const app = new Hono<{ Bindings: Bindings; Variables: HonoVariables }>()
 
@@ -22,10 +23,16 @@ app.get('/:id/column-types/:typeId/options', adminOnlyMiddleware, async (c) => {
       return c.json({ error: result.error }, 400)
     }
 
+    // Get column type metadata from module manifest
+    const moduleRepo = new ModuleRepository(c.env)
+    const module = await moduleRepo.get(moduleId)
+    const columnType = module?.manifest?.columnTypes?.find(ct => ct.id === typeId)
+
     return c.json({
       moduleId,
       columnTypeId: typeId,
       options: result.options,
+      multiValue: columnType?.multiValue || false,
       cached: result.cached || false,
       cachedAt: result.cachedAt,
     })
