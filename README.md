@@ -8,7 +8,7 @@
 
 Built with Hono + React 19 • Deployed on Cloudflare Workers
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/erimeilis/store)
+[![Version](https://img.shields.io/badge/version-2.4.0-blue)](https://github.com/erimeilis/store)
 [![Deployed on Cloudflare Workers](https://img.shields.io/badge/Deployed%20on-Cloudflare%20Workers-F38020?logo=cloudflare&logoColor=white)](https://workers.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -68,25 +68,29 @@ npm install && cd frontend && npm install && cd ..
 ### 💻 Local Development
 
 ```bash
-npm run dev:fullstack:local
+npm run dev          # Local D1 database
+npm run dev:remote   # Remote preview D1 database
 ```
 
 This starts both workers with:
 - 🎨 **Frontend**: http://localhost:5173
 - 🔧 **Backend API**: http://localhost:8787
-- 💾 **Local D1 Database**: `.wrangler/state/`
+- 💾 **Database**: Local `.wrangler/state/` or remote preview D1
 
 The script automatically:
-- 🔍 Checks and kills any processes on ports 5173 and 8787
+- 🔄 Updates wrangler to latest version
+- 🔍 Scans and loads modules
+- ⚙️ Generates configuration files
 - 🚀 Starts both workers with shared database
-- 📊 Shows logs from both services
 
 Press `Ctrl+C` to stop both services.
 
 ### 🚀 Deployment
 
 ```bash
-npm run deploy:fullstack
+npm run deploy           # Deploy both backend and frontend
+npm run deploy:backend   # Deploy backend only
+npm run deploy:frontend  # Deploy frontend only
 ```
 
 ---
@@ -133,26 +137,24 @@ Before first deployment, set up Cloudflare resources:
 ### 💻 Development
 
 ```bash
-npm run dev:fullstack:local    # Local database
-npm run dev:fullstack:preview  # Remote preview database
+npm run dev                    # Local D1 database
+npm run dev:remote             # Remote preview D1 database
 ```
 
 ### 🚀 Deployment
 
 ```bash
-npm run deploy                 # Deploy backend only
+npm run deploy                 # Deploy both backend and frontend
+npm run deploy:backend         # Deploy backend only
 npm run deploy:frontend        # Deploy frontend only
-npm run deploy:fullstack       # Deploy both
-npm run deploy:dry-run         # Preview deployment
 ```
 
 ### 💾 Database Management
 
 ```bash
-npm run db:reset:local         # Reset local D1
-npm run db:reset:preview       # Reset preview D1
-npm run db:reset:production    # Reset production D1
-npm run db:seed:generate       # Generate test data
+tsx scripts/db-reset.ts local       # Reset local D1
+tsx scripts/db-reset.ts preview     # Reset preview D1
+tsx scripts/db-reset.ts production  # Reset production D1 (with confirmation)
 ```
 
 ### 🔍 Quality
@@ -174,9 +176,19 @@ npm run lint:fix               # Auto-fix lint issues
 
 ### 📊 Dynamic Tables
 - ✅ Create any table structure on the fly
-- ✅ 17 column types (text, number, date, boolean, email, url, phone, country, etc.)
+- ✅ 17+ column types (text, number, date, boolean, email, url, phone, country, etc.)
 - ✅ Column validation and constraints
 - ✅ Required fields and default values
+- ✅ Inline editing with type-aware inputs
+- ✅ Mass actions: delete, set column value (with validation)
+- ✅ Table cloning with data
+
+### 🧩 Module System
+- ✅ Extensible column types via JSON modules
+- ✅ Phone number formatting and validation
+- ✅ Multiselect fields with grouped options
+- ✅ KV caching for module data
+- ✅ Admin UI for module management
 
 ### 🛒 Sale Tables
 - ✅ Protected `price` and `qty` columns
@@ -196,6 +208,7 @@ npm run lint:fix               # Auto-fix lint issues
 - ✅ Import from Google Sheets
 - ✅ Column mapping with auto-detection
 - ✅ Preview before import
+- ✅ Data validation with error reporting
 
 ### 🔐 Authentication & Authorization
 - ✅ Google OAuth for dashboard
@@ -209,6 +222,7 @@ npm run lint:fix               # Auto-fix lint issues
 - ✅ Bearer token authentication
 - ✅ Public endpoints for integrations
 - ✅ Purchase and rental operations
+- ✅ Search and filtering with pagination
 
 ---
 
@@ -233,6 +247,11 @@ GET    /api/tables/:id/data           # List rows (paginated)
 POST   /api/tables/:id/data           # Add row
 PUT    /api/tables/:id/data/:rowId    # Update row
 DELETE /api/tables/:id/data/:rowId    # Delete row
+POST   /api/tables/:id/data/mass      # Mass actions (delete, set_field_value)
+
+# Validation
+GET    /api/tables/:id/validate       # Validate all rows
+DELETE /api/tables/:id/invalid-rows   # Delete invalid rows
 
 # Import
 POST   /api/tables/:id/parse-import-file   # Parse XLS/CSV
@@ -259,18 +278,20 @@ Authorization: Bearer YOUR_TOKEN
 ├── 🔧 src/                    # Backend API
 │   ├── routes/                # API route handlers
 │   ├── services/              # Business logic layer
+│   │   └── moduleService/     # Module system
 │   ├── repositories/          # Data access layer
 │   ├── middleware/            # Auth & validation
 │   ├── types/                 # TypeScript definitions
 │   ├── validators/            # Zod schemas
-│   ├── openapi/               # OpenAPI specs
 │   └── utils/                 # Utility functions
 ├── 🎨 frontend/               # React SSR frontend
 │   └── src/
 │       ├── app/               # Page components
 │       ├── components/        # UI components
+│       ├── handlers/          # SSR route handlers
 │       ├── lib/               # Client utilities
 │       └── types/             # Frontend types
+├── 🧩 modules/                # Extension modules (JSON)
 ├── 💾 prisma/                 # Database
 │   └── migrations/            # D1 migrations
 ├── 🌱 seeds/                  # Test data generators
@@ -291,6 +312,7 @@ Migrations are located in `prisma/migrations/`:
 | 004_commerce | Sales, inventory transactions, rentals |
 | 005_ecommerce_settings | Product ID column, rental periods |
 | 006_token_admin | Token metadata and permissions |
+| 007_modules | Installed modules tracking |
 
 ---
 
@@ -320,9 +342,9 @@ npm install && cd frontend && npm install
 
 - [ ] **Billing System** - Invoice generation, payment tracking, billing cycles
 - [ ] Webhooks for external integrations
-- [ ] Multi-tenant support
 - [ ] Advanced analytics dashboard
-- [ ] Bulk operations API
+- [ ] Custom field validators via modules
+- [ ] Export to Excel/CSV
 
 ---
 

@@ -96,6 +96,9 @@ export interface ColumnTypeDefinition {
   // Base storage type
   baseType: ColumnBaseType
 
+  // Multi-value support (for multiselect fields)
+  multiValue?: boolean
+
   // Default value (static)
   default?: unknown
 
@@ -265,6 +268,7 @@ export type GenerationRule =
   | { handler: 'random-float'; min: number; max: number; decimals?: number }
   | { handler: 'random-boolean'; probability?: number }
   | { handler: 'random-enum'; values: unknown[] }
+  | { handler: 'from-source' } // Fetches values from column type's API data source
   | { handler: 'sequence'; start?: number; step?: number }
   | { handler: 'pattern'; pattern: string } // e.g., '+1 (###) ###-####'
   | { handler: 'template'; template: string; data?: Record<string, GenerationRule> }

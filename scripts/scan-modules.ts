@@ -1,9 +1,10 @@
 #!/usr/bin/env tsx
 /**
- * Scan /modules directory and generate modules-manifest.json
+ * Scan /modules directory for JSON module files and generate modules-manifest.json
  * Run this before starting dev server or deploying
  *
  * Modules are pure JSON - no TypeScript compilation needed
+ * Structure: modules/moduleName.json (flat files, no folders)
  */
 
 import * as fs from 'node:fs'
@@ -51,21 +52,17 @@ function scanModules(): ScannedModule[] {
   const modules: ScannedModule[] = []
 
   for (const entry of entries) {
-    if (!entry.isDirectory()) continue
+    // Only process .json files (flat structure)
+    if (!entry.isFile() || !entry.name.endsWith('.json')) continue
 
-    const modulePath = path.join(MODULES_DIR, entry.name)
-    const manifestPath = path.join(modulePath, 'store-module.json')
-
-    if (!fs.existsSync(manifestPath)) {
-      console.log(`⚠️  Skipping ${entry.name} - no store-module.json`)
-      continue
-    }
+    const manifestPath = path.join(MODULES_DIR, entry.name)
 
     try {
       const manifestContent = fs.readFileSync(manifestPath, 'utf-8')
       const manifest = JSON.parse(manifestContent) as ModuleManifest
 
       // Store the full manifest - it's all JSON, no code to bundle
+      // Path is the full file path: modules/moduleName.json
       modules.push({
         path: `modules/${entry.name}`,
         manifest,
@@ -78,11 +75,20 @@ function scanModules(): ScannedModule[] {
           `(${columnTypeCount} column types, ${generatorCount} generators)`
       )
     } catch (err) {
-      console.log(`⚠️  Invalid manifest in ${entry.name}:`, err)
+      console.log(`⚠️  Invalid JSON in ${entry.name}:`, err)
     }
   }
 
   return modules
+}
+
+interface ManifestOutput {
+  _meta: {
+    generated: string
+    source: string
+    warning: string
+  }
+  modules: ScannedModule[]
 }
 
 function main() {
@@ -96,8 +102,18 @@ function main() {
     fs.mkdirSync(outputDir, { recursive: true })
   }
 
+  // Create output with metadata
+  const output: ManifestOutput = {
+    _meta: {
+      generated: new Date().toISOString(),
+      source: 'modules/*.json',
+      warning: 'AUTO-GENERATED FILE - DO NOT EDIT. Edit modules/*.json files instead.',
+    },
+    modules,
+  }
+
   // Write manifest
-  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(modules, null, 2))
+  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2))
 
   console.log(`\n✅ Found ${modules.length} module(s)`)
   console.log(`📄 Written to: ${OUTPUT_FILE}`)

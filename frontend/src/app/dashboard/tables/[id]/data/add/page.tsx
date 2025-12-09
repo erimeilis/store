@@ -23,6 +23,11 @@ interface ModuleColumnTypeOption {
   raw?: Record<string, unknown>
 }
 
+interface ModuleTypeData {
+  options: ModuleColumnTypeOption[]
+  multiValue: boolean
+}
+
 /**
  * Normalize phone number to digits only (with optional leading +)
  * Accepts formats like +1 (555) 123-4567, (555) 123-4567, 555.123.4567
@@ -35,7 +40,7 @@ function normalizePhoneNumber(value: string): string {
   return hasPlus ? `+${digits}` : digits
 }
 
-// Helper to determine if an option is for business (from doc_type's business field)
+// Helper to determine if an option is for business (from option's raw.business field)
 // Returns 'business' for true, 'personal' for false, null for null (meaning both)
 function getBusinessIndicator(option: ModuleColumnTypeOption): 'business' | 'personal' | null {
   if (!option.raw || !('business' in option.raw)) {
@@ -92,12 +97,16 @@ function processModuleOptions(options: ModuleColumnTypeOption[]): ModuleColumnTy
 // Process prefetched options if available
 function processPreFetchedModuleOptions(
   prefetched: Record<string, ModuleColumnTypeOption[]> | undefined
-): Record<string, ModuleColumnTypeOption[]> {
+): Record<string, ModuleTypeData> {
   if (!prefetched) return {}
 
-  const processed: Record<string, ModuleColumnTypeOption[]> = {}
+  const processed: Record<string, ModuleTypeData> = {}
   for (const [columnName, options] of Object.entries(prefetched)) {
-    processed[columnName] = processModuleOptions(options)
+    // Legacy prefetched data doesn't have multiValue, default to false
+    processed[columnName] = {
+      options: processModuleOptions(options),
+      multiValue: false
+    }
   }
   return processed
 }
@@ -122,7 +131,7 @@ export default function AddRowPage({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(!prefetchedColumns)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [moduleTypeOptions, setModuleTypeOptions] = useState<Record<string, ModuleColumnTypeOption[]>>(() => processPreFetchedModuleOptions(prefetchedModuleOptions))
+  const [moduleTypeOptions, setModuleTypeOptions] = useState<Record<string, ModuleTypeData>>(() => processPreFetchedModuleOptions(prefetchedModuleOptions))
   const [loadingModuleTypes, setLoadingModuleTypes] = useState<Set<string>>(new Set())
 
   // Use tableId from params
@@ -238,8 +247,13 @@ export default function AddRowPage({
       const response = await clientApiRequest(`/api/admin/modules/${encodeURIComponent(moduleId)}/column-types/${encodeURIComponent(columnTypeId)}/options`)
 
       if (response.ok) {
-        const result = await response.json() as { data?: Array<{ value: string; label: string; raw?: Record<string, unknown> }>; options?: Array<{ value: string; label: string; raw?: Record<string, unknown> }> }
+        const result = await response.json() as {
+          data?: Array<{ value: string; label: string; raw?: Record<string, unknown> }>;
+          options?: Array<{ value: string; label: string; raw?: Record<string, unknown> }>;
+          multiValue?: boolean;
+        }
         const rawOptions = result.data || result.options || []
+        const multiValue = result.multiValue || false
 
         // Map options with raw field included
         const mappedOptions = Array.isArray(rawOptions) ? rawOptions.map((opt: any) => ({
@@ -253,7 +267,10 @@ export default function AddRowPage({
 
         setModuleTypeOptions(prev => ({
           ...prev,
-          [column.name]: processedOptions
+          [column.name]: {
+            options: processedOptions,
+            multiValue: multiValue
+          }
         }))
       } else {
         // Retry on server errors
@@ -265,7 +282,7 @@ export default function AddRowPage({
         console.error(`Failed to load options for ${column.type}:`, await response.text())
         setModuleTypeOptions(prev => ({
           ...prev,
-          [column.name]: []
+          [column.name]: { options: [], multiValue: false }
         }))
       }
     } catch (error) {
@@ -278,10 +295,10 @@ export default function AddRowPage({
       console.error(`Error loading module type options for ${column.name}:`, error)
       setModuleTypeOptions(prev => ({
         ...prev,
-        [column.name]: []
+        [column.name]: { options: [], multiValue: false }
       }))
     } finally {
-      if (retryCount === 0 || retryCount >= maxRetries || moduleTypeOptions[column.name]?.length) {
+      if (retryCount === 0 || retryCount >= maxRetries || moduleTypeOptions[column.name]?.options?.length) {
         setLoadingModuleTypes(prev => {
           const next = new Set(prev)
           next.delete(column.name)
@@ -360,10 +377,12 @@ export default function AddRowPage({
 
     // Handle module column types
     if (isModuleColumnType(column.type)) {
-      const options = moduleTypeOptions[column.name] || []
+      const moduleTypeData = moduleTypeOptions[column.name]
+      const options = moduleTypeData?.options || []
+      const multiValue = moduleTypeData?.multiValue || false
       const isLoadingOptions = loadingModuleTypes.has(column.name)
 
-      // Check if any option has business indicator (for doc_type columns)
+      // Check if any option has business indicator (for styling with [B]/[P] badges)
       const hasBusinessIndicator = options.some(opt => getBusinessIndicator(opt) !== null)
 
       // Convert options to ChipSelectOption format
@@ -374,7 +393,7 @@ export default function AddRowPage({
         raw: opt.raw
       }))
 
-      // For multi-select fields (like doc_type), value should be an array
+      // For multi-select fields (multiValue from module manifest), value should be an array
       const arrayValue = Array.isArray(value) ? value : (value ? [value] : [])
 
       // Only span full width for ChipSelect (multi-select with business indicator)
@@ -400,14 +419,14 @@ export default function AddRowPage({
               <span className="text-base-content/60">Loading options...</span>
             </div>
           ) : options.length > 0 ? (
-            hasBusinessIndicator ? (
-              // Multi-select with chips for doc_type columns
+            // Use ChipSelect for multiValue columns (from module manifest) OR columns with business indicators
+            multiValue || hasBusinessIndicator ? (
               <ChipSelect
                 options={chipOptions}
                 value={arrayValue}
                 onChange={(values) => handleChange(column.name, values)}
                 placeholder={`Select ${displayName.toLowerCase()}...`}
-                showGroupBadges={true}
+                showGroupBadges={hasBusinessIndicator}
                 error={error}
               />
             ) : (
@@ -427,7 +446,7 @@ export default function AddRowPage({
               color={error ? 'error' : 'default'}
             />
           )}
-          {error && !hasBusinessIndicator && (
+          {error && !(multiValue || hasBusinessIndicator) && (
             <label className="label">
               <span className="label-text-alt text-error">{error}</span>
             </label>

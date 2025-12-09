@@ -13,17 +13,29 @@ interface ScannedModule {
   }
 }
 
+interface ModulesManifest {
+  _meta: {
+    generated: string
+    source: string
+    warning: string
+  }
+  modules: ScannedModule[]
+}
+
 const app = new Hono<{ Bindings: Bindings; Variables: HonoVariables }>()
 
 /**
  * GET /api/admin/modules/available
  * List available local modules that can be installed
  *
- * The manifest is generated at build time by: npm run scan:modules
+ * The manifest is auto-generated at build time by: npm run scan:modules
+ * Source of truth: modules/[name]/store-module.json
  */
 app.get('/available', adminOnlyMiddleware, async (c) => {
-  // Transform from new structure { path, manifest } to frontend expected { path, name, version, description }
-  const availableModules = (modulesManifest as ScannedModule[]).map((m) => ({
+  const manifest = modulesManifest as ModulesManifest
+
+  // Transform from { path, manifest } to frontend expected { path, name, version, description }
+  const availableModules = manifest.modules.map((m) => ({
     path: m.path,
     name: m.manifest.name,
     version: m.manifest.version,

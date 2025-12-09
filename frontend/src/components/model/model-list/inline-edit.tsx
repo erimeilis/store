@@ -16,7 +16,7 @@ export function InlineEditComponent<T extends IModel>(props: InlineEditComponent
         return <SelectEditComponent {...props} />;
     }
 
-    // Multiselect field (for doc_type and similar multi-value columns)
+    // Multiselect field (for docType and similar multi-value columns)
     if (column.editType === 'multiselect' && column.editOptions) {
         return <MultiselectEditComponent {...props} />;
     }
