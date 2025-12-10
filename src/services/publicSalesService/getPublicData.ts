@@ -40,7 +40,46 @@ export interface FlatPublicItem {
 }
 
 /**
+ * Check if a value looks like a grouped multiselect string
+ * e.g., "address:personal,name-lastname:business,address-city:business"
+ */
+function isGroupedMultiselectValue(value: unknown): boolean {
+  if (typeof value !== 'string' || !value) return false
+  return value.includes(':personal') || value.includes(':business')
+}
+
+/**
+ * Parse a grouped multiselect value into structured object
+ * Input: "address:personal,name-lastname:business,address-city:business"
+ * Output: { personal: ["address"], business: ["name-lastname", "address-city"] }
+ */
+function parseGroupedMultiselect(value: string): { personal: string[]; business: string[] } {
+  const result: { personal: string[]; business: string[] } = {
+    personal: [],
+    business: []
+  }
+
+  if (!value) return result
+
+  const items = value.split(',').map(v => v.trim()).filter(Boolean)
+
+  for (const item of items) {
+    if (item.endsWith(':personal')) {
+      result.personal.push(item.replace(/:personal$/, ''))
+    } else if (item.endsWith(':business')) {
+      result.business.push(item.replace(/:business$/, ''))
+    } else {
+      // No suffix - could be legacy data, add to personal
+      result.personal.push(item)
+    }
+  }
+
+  return result
+}
+
+/**
  * Convert PublicItem to FlatPublicItem
+ * Transforms grouped multiselect values (with :personal/:business suffixes) into structured objects
  */
 export function flattenPublicItem(
   item: PublicItem,
@@ -60,11 +99,15 @@ export function flattenPublicItem(
     updatedAt: item.updatedAt
   }
 
-  // Spread all data fields to top level
+  // Spread all data fields to top level, transforming grouped multiselect values
   for (const [key, value] of Object.entries(item.data)) {
     // Don't override existing keys
     if (!(key in flat)) {
-      flat[key] = value
+      if (isGroupedMultiselectValue(value)) {
+        flat[key] = parseGroupedMultiselect(value as string)
+      } else {
+        flat[key] = value
+      }
     }
   }
 

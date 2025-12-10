@@ -11,8 +11,48 @@ const app = new Hono<{
 }>();
 
 /**
+ * Check if a value looks like a grouped multiselect string
+ * e.g., "address:personal,name-lastname:business,address-city:business"
+ */
+function isGroupedMultiselectValue(value: unknown): boolean {
+  if (typeof value !== 'string' || !value) return false
+  // Must contain at least one :personal or :business suffix
+  return value.includes(':personal') || value.includes(':business')
+}
+
+/**
+ * Parse a grouped multiselect value into structured object
+ * Input: "address:personal,name-lastname:business,address-city:business"
+ * Output: { personal: ["address"], business: ["name-lastname", "address-city"] }
+ */
+function parseGroupedMultiselect(value: string): { personal: string[]; business: string[] } {
+  const result: { personal: string[]; business: string[] } = {
+    personal: [],
+    business: []
+  }
+
+  if (!value) return result
+
+  const items = value.split(',').map(v => v.trim()).filter(Boolean)
+
+  for (const item of items) {
+    if (item.endsWith(':personal')) {
+      result.personal.push(item.replace(/:personal$/, ''))
+    } else if (item.endsWith(':business')) {
+      result.business.push(item.replace(/:business$/, ''))
+    } else {
+      // No suffix - could be legacy data, add to both or default to personal
+      result.personal.push(item)
+    }
+  }
+
+  return result
+}
+
+/**
  * Flattens data fields to top level in record
  * Moves data.* fields (number, country, area, etc.) to top level
+ * Transforms grouped multiselect values (with :personal/:business suffixes) into structured objects
  */
 function flattenRecord(row: any, tableInfo: { id: string; name: string; tableType: string }): any {
   const data = row.data as Record<string, any>;
@@ -25,9 +65,14 @@ function flattenRecord(row: any, tableInfo: { id: string; name: string; tableTyp
     tableType: tableInfo.tableType,
   };
 
-  // Flatten all data fields to top level
+  // Flatten all data fields to top level, transforming grouped multiselect values
   for (const [key, value] of Object.entries(data)) {
-    flattened[key] = value;
+    if (isGroupedMultiselectValue(value)) {
+      // Transform grouped multiselect into structured object
+      flattened[key] = parseGroupedMultiselect(value as string)
+    } else {
+      flattened[key] = value
+    }
   }
 
   // Add metadata at the end
@@ -68,6 +113,16 @@ function flattenRecord(row: any, tableInfo: { id: string; name: string; tableTyp
  *   "area": "London",         // was data.area
  *   "price": 100,             // was data.price
  *   ...
+ * }
+ *
+ * Grouped multiselect values (with :personal/:business suffixes) are transformed:
+ * Input (stored): "address:personal,name-lastname:business,address-city:business"
+ * Output (API):
+ * {
+ *   "docs": {
+ *     "personal": ["address"],
+ *     "business": ["name-lastname", "address-city"]
+ *   }
  * }
  */
 app.get('/records', async (c) => {
