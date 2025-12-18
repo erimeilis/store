@@ -42,6 +42,10 @@ api/src/data/modules-manifest.json
 /admin/dist/
 /admin/node_modules/
 /admin/.wrangler/
+/api/.wrangler/
+/api/node_modules/
+/public-api/.wrangler/
+/public-api/node_modules/
 
 *storybook.log
 storybook-static
