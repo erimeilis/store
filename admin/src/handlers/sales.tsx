@@ -20,6 +20,38 @@ const _SALES_API_ENDPOINTS = {
 };
 
 /**
+ * Extract a display name from item snapshot data
+ */
+function extractItemName(snapshot: Record<string, any> | null | undefined): string {
+  if (!snapshot) return 'Unknown Item';
+
+  // Common name fields to try first
+  const nameFields = ['name', 'productName', 'itemName', 'title', 'description'];
+  for (const field of nameFields) {
+    if (snapshot[field] && typeof snapshot[field] === 'string') {
+      return snapshot[field];
+    }
+  }
+
+  // For phone numbers: combine number with country/area
+  if (snapshot.number) {
+    const parts = [snapshot.number];
+    if (snapshot.country) parts.push(`(${snapshot.country})`);
+    else if (snapshot.area) parts.push(`(${snapshot.area})`);
+    return parts.join(' ');
+  }
+
+  // If no common name field, use first string field
+  for (const [key, value] of Object.entries(snapshot)) {
+    if (typeof value === 'string' && value.trim() && key !== 'id') {
+      return value;
+    }
+  }
+
+  return 'Unknown Item';
+}
+
+/**
  * Convert a sale to unified transaction format
  */
 function saleToUnified(sale: Sale): UnifiedTransaction {
@@ -30,7 +62,8 @@ function saleToUnified(sale: Sale): UnifiedTransaction {
     tableId: sale.tableId,
     tableName: sale.tableName,
     itemId: sale.itemId,
-    itemName: sale.itemSnapshot?.name || 'Unknown Item',
+    itemName: extractItemName(sale.itemSnapshot),
+    itemSnapshot: sale.itemSnapshot,
     customerId: sale.customerId,
     unitPrice: sale.unitPrice,
     quantity: sale.quantitySold,
@@ -46,28 +79,67 @@ function saleToUnified(sale: Sale): UnifiedTransaction {
 
 /**
  * Convert a rental to unified transaction format
+ * Returns array of transactions (1 for active, 2 for released - rent + release events)
  */
-function rentalToUnified(rental: Rental): UnifiedTransaction {
-  return {
-    id: rental.id,
+function rentalToUnified(rental: Rental): UnifiedTransaction[] {
+  const transactions: UnifiedTransaction[] = [];
+  const itemName = extractItemName(rental.itemSnapshot);
+  const rentId = `${rental.id}-rent`;
+  const releaseId = `${rental.id}-release`;
+
+  // Always create the rent event
+  transactions.push({
+    id: rentId,
     transactionNumber: rental.rentalNumber,
     transactionType: 'rental',
+    eventType: 'rent',
     tableId: rental.tableId,
     tableName: rental.tableName,
     itemId: rental.itemId,
-    itemName: rental.itemSnapshot?.name || 'Unknown Item',
+    itemName,
+    itemSnapshot: rental.itemSnapshot,
     customerId: rental.customerId,
     unitPrice: rental.unitPrice,
-    quantity: 1, // Rentals are always qty 1
+    quantity: 1,
     totalAmount: rental.unitPrice,
     status: rental.rentalStatus,
     paymentMethod: null,
     notes: rental.notes,
     transactionDate: rental.rentedAt,
     releasedAt: rental.releasedAt,
+    relatedTransactionId: rental.releasedAt ? releaseId : undefined,
     createdAt: rental.createdAt,
     updatedAt: rental.updatedAt
-  };
+  });
+
+  // If released, also create the release event
+  if (rental.releasedAt) {
+    transactions.push({
+      id: releaseId,
+      transactionNumber: rental.rentalNumber,
+      transactionType: 'rental',
+      eventType: 'release',
+      tableId: rental.tableId,
+      tableName: rental.tableName,
+      itemId: rental.itemId,
+      itemName,
+      itemSnapshot: rental.itemSnapshot,
+      customerId: rental.customerId,
+      unitPrice: 0, // Release doesn't cost anything
+      quantity: 1,
+      totalAmount: 0,
+      status: 'released',
+      paymentMethod: null,
+      notes: rental.notes,
+      transactionDate: rental.releasedAt,
+      releasedAt: rental.releasedAt,
+      relatedTransactionId: rentId,
+      createdAt: rental.createdAt,
+      updatedAt: rental.updatedAt
+    });
+  }
+
+  return transactions;
 }
 
 /**
@@ -132,7 +204,8 @@ export async function handleSalesListPage(c: Context<{ Bindings: Env; Variables:
   const rentalsData = (rentalsResponse as any)?.data || [];
 
   const unifiedSales: UnifiedTransaction[] = salesData.map((sale: Sale) => saleToUnified(sale));
-  const unifiedRentals: UnifiedTransaction[] = rentalsData.map((rental: Rental) => rentalToUnified(rental));
+  // flatMap because rentalToUnified returns array (rent + optional release events)
+  const unifiedRentals: UnifiedTransaction[] = rentalsData.flatMap((rental: Rental) => rentalToUnified(rental));
 
   // Combine and sort by transaction date
   const allTransactions = [...unifiedSales, ...unifiedRentals].sort((a, b) => {

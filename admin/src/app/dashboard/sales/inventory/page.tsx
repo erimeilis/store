@@ -7,6 +7,7 @@ import React from 'react'
 import {IColumnDefinition, ModelList} from '@/components/model/model-list'
 import {IPaginatedResponse} from '@/types/models'
 import {formatApiDate} from '@/lib/date-utils'
+import {buildItemUrl} from '@/lib/utils'
 import {IconAdjustments, IconEdit, IconMinus, IconPlus, IconShoppingCart, IconClockDollar, IconClockX} from '@tabler/icons-react'
 import {Alert} from '@/components/ui/alert'
 import {Button} from '@/components/ui/button'
@@ -117,13 +118,12 @@ const inventoryColumns: IColumnDefinition<InventoryTransaction>[] = [
                 return null
             }
 
-            const itemName = extractItemName(transaction.newData) ||
-                extractItemName(transaction.previousData) ||
-                'Unknown Item'
+            const itemData = transaction.newData || transaction.previousData
+            const itemName = extractItemName(itemData) || 'Unknown Item'
 
             return (
                 <a
-                    href={`/dashboard/tables/${transaction.tableId}/data?search=${encodeURIComponent(transaction.itemId)}`}
+                    href={buildItemUrl(transaction.tableId, transaction.itemId, itemData)}
                     className="flex flex-col link-hover group"
                     title={`View item in ${transaction.tableName}`}
                 >

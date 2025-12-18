@@ -149,16 +149,23 @@ export const RENTAL_STATUS_CONFIG: Record<RentalStatus, {
 export type TransactionType = 'sale' | 'rental'
 
 /**
+ * Event type for rentals (rent vs release)
+ */
+export type RentalEventType = 'rent' | 'release'
+
+/**
  * Unified transaction record combining sales and rentals
  */
 export interface UnifiedTransaction {
   id: string
   transactionNumber: string // saleNumber or rentalNumber
   transactionType: TransactionType
+  eventType?: RentalEventType // 'rent' or 'release' for rentals
   tableId: string
   tableName: string
   itemId: string
   itemName: string
+  itemSnapshot?: Record<string, any> // Full item data for display
   customerId: string
   unitPrice: number
   quantity: number // quantitySold for sales, 1 for rentals
@@ -168,6 +175,7 @@ export interface UnifiedTransaction {
   notes: string | null
   transactionDate: string // createdAt for sales, rentedAt for rentals
   releasedAt?: string | null // only for rentals
+  relatedTransactionId?: string // For linking rent/release events
   createdAt: string
   updatedAt: string
 }

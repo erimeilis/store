@@ -35,7 +35,24 @@ export async function getTableColumns(
     // Convert columns object to array format expected by frontend
     const columnsArray = Object.values(columns)
 
-    return createSuccessResponse({ data: columnsArray }, 'Columns retrieved successfully')
+    // Sort by position for consistent ordering
+    columnsArray.sort((a: any, b: any) => a.position - b.position)
+
+    // Return with pagination structure for ModelList compatibility
+    const total = columnsArray.length
+    return createSuccessResponse({
+      data: columnsArray,
+      currentPage: 1,
+      lastPage: 1,
+      perPage: total,
+      total,
+      from: total > 0 ? 1 : 0,
+      to: total,
+      links: [],
+      prevPageUrl: null,
+      nextPageUrl: null,
+      lastPageUrl: null
+    }, 'Columns retrieved successfully')
   } catch (error) {
     return createErrorResponse(
       'Failed to get table columns',
