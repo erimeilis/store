@@ -1,6 +1,7 @@
 /node_modules/
 .dev.vars
-/frontend/.dev.vars
+/admin/.dev.vars
+/api/.dev.vars
 
 # Environment files (keep examples for public)
 .env
@@ -15,28 +16,36 @@
 CLAUDE.md
 
 # Generated config files (keep templates for public)
-wrangler.toml
-/frontend/wrangler.toml
-!wrangler.toml.template
-!/frontend/wrangler.toml.template
+/api/wrangler.toml
+/admin/wrangler.toml
+/public-api/wrangler.toml
+!/api/wrangler.toml.template
+!/admin/wrangler.toml.template
+!/public-api/wrangler.toml.template
+
+# Rust/WASM build artifacts
+/public-api/build/
+/public-api/target/
+/public-api/Cargo.lock
 
 # Auto-generated module manifest (regenerated from modules/*.json on startup)
-src/data/modules-manifest.json
+api/src/data/modules-manifest.json
 
-/src/generated/prisma
+/api/src/generated/prisma
 /Store.iml
 /.wrangler/
+/.wrangler-shared/
 /.playwright-mcp/
 /.junie/
 /.idea/
 /.claude/
-/frontend/dist/
-/frontend/node_modules/
-/frontend/.wrangler/
+/admin/dist/
+/admin/node_modules/
+/admin/.wrangler/
 
 *storybook.log
 storybook-static
-frontend/src/config/is_prod.ts
-frontend/src/config/build_time.ts
-frontend/tsconfig.tsbuildinfo
+admin/src/config/is_prod.ts
+admin/src/config/build_time.ts
+admin/tsconfig.tsbuildinfo
 /docs/

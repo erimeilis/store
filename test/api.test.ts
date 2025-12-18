@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import app from '../src/index'
+import app from '../api/src/index'
 import { createTestBindings } from './test-bindings'
 
 // Create test bindings for each test

@@ -20,7 +20,7 @@ const ROOT_DIR = join(__dirname, '..')
 
 const PACKAGE_FILES = [
   join(ROOT_DIR, 'package.json'),
-  join(ROOT_DIR, 'frontend', 'package.json')
+  join(ROOT_DIR, 'admin', 'package.json')
 ]
 
 function readPackageJson(filePath) {

@@ -1,0 +1,264 @@
+{
+  "_meta": {
+    "generated": "2025-12-11T14:45:04.381Z",
+    "source": "modules/*.json",
+    "warning": "AUTO-GENERATED FILE - DO NOT EDIT. Edit modules/*.json files instead."
+  },
+  "modules": [
+    {
+      "path": "modules/phoneNumbers.json",
+      "manifest": {
+        "id": "@store/phone-numbers",
+        "name": "Phone Numbers",
+        "version": "1.3.0",
+        "description": "Phone rental table generator with DID management and provider integration",
+        "icon": "phone",
+        "author": {
+          "name": "Store Team",
+          "email": "team@store.app"
+        },
+        "license": "MIT",
+        "engines": {
+          "store": ">=1.0.0",
+          "moduleApi": "v1"
+        },
+        "trust": {
+          "official": true,
+          "verified": true
+        },
+        "settings": [
+          {
+            "id": "providerApiUrl",
+            "type": "string",
+            "displayName": "Provider API URL",
+            "description": "Full URL for providers endpoint",
+            "required": true
+          },
+          {
+            "id": "providerApiToken",
+            "type": "secret",
+            "displayName": "Provider API Token",
+            "description": "Bearer token for providers API",
+            "required": true
+          },
+          {
+            "id": "docTypeApiUrl",
+            "type": "string",
+            "displayName": "Document Type API URL",
+            "description": "Full URL for document types endpoint",
+            "required": true
+          },
+          {
+            "id": "docTypeApiToken",
+            "type": "secret",
+            "displayName": "Document Type API Token",
+            "description": "Bearer token for document types API",
+            "required": true
+          }
+        ],
+        "columnTypes": [
+          {
+            "id": "phone",
+            "displayName": "Phone Number",
+            "description": "Phone number with E.164 validation and formatting",
+            "icon": "phone",
+            "category": "Telecom",
+            "baseType": "string",
+            "validation": {
+              "handler": "phone",
+              "allowExtension": false
+            },
+            "format": {
+              "handler": "phone",
+              "style": "international"
+            }
+          },
+          {
+            "id": "provider",
+            "displayName": "Provider",
+            "description": "Telecom provider/carrier",
+            "icon": "building",
+            "category": "Telecom",
+            "baseType": "string",
+            "source": {
+              "type": "api",
+              "endpoint": "$settings.providerApiUrl",
+              "method": "GET",
+              "auth": {
+                "type": "bearer",
+                "token": "$settings.providerApiToken"
+              },
+              "responseSchema": {
+                "dataPath": "data"
+              },
+              "valueField": "key",
+              "labelField": "name",
+              "cache": "24h"
+            }
+          },
+          {
+            "id": "docType",
+            "displayName": "Document Type",
+            "description": "Required documentation type for number registration",
+            "icon": "file-text",
+            "category": "Documentation",
+            "baseType": "string",
+            "multiValue": true,
+            "source": {
+              "type": "api",
+              "endpoint": "$settings.docTypeApiUrl",
+              "method": "GET",
+              "auth": {
+                "type": "bearer",
+                "token": "$settings.docTypeApiToken"
+              },
+              "responseSchema": {
+                "dataPath": "data"
+              },
+              "valueField": "slug",
+              "labelField": "name",
+              "cache": "24h"
+            }
+          }
+        ],
+        "tableGenerators": [
+          {
+            "id": "phone-rental-tables",
+            "displayName": "Phone Rental Tables",
+            "description": "Generate rental tables with phone numbers, pricing, and provider data",
+            "icon": "phone",
+            "category": "Telecom",
+            "tableType": "rent",
+            "defaultTableCount": 20,
+            "defaultRowCount": 50,
+            "color": "info",
+            "columns": [
+              {
+                "name": "phone",
+                "displayName": "Phone Number",
+                "type": "phone",
+                "required": true,
+                "generate": {
+                  "handler": "faker",
+                  "method": "phone.number"
+                }
+              },
+              {
+                "name": "voice",
+                "displayName": "Voice",
+                "type": "boolean",
+                "generate": {
+                  "handler": "random-boolean",
+                  "probability": 0.9
+                },
+                "constraints": {
+                  "nullIf": {
+                    "any": [
+                      "tollfree"
+                    ]
+                  }
+                }
+              },
+              {
+                "name": "sms",
+                "displayName": "SMS",
+                "type": "boolean",
+                "generate": {
+                  "handler": "random-boolean",
+                  "probability": 0.85
+                },
+                "constraints": {
+                  "nullIf": {
+                    "any": [
+                      "tollfree"
+                    ]
+                  }
+                }
+              },
+              {
+                "name": "reg",
+                "displayName": "Registration",
+                "type": "boolean",
+                "generate": {
+                  "handler": "random-boolean",
+                  "probability": 0.7
+                },
+                "constraints": {
+                  "implies": [
+                    "sms"
+                  ],
+                  "nullIf": {
+                    "any": [
+                      "tollfree"
+                    ]
+                  }
+                }
+              },
+              {
+                "name": "tollfree",
+                "displayName": "Toll-Free",
+                "type": "boolean",
+                "generate": {
+                  "handler": "random-boolean",
+                  "probability": 0.15
+                },
+                "constraints": {
+                  "excludes": [
+                    "voice",
+                    "sms",
+                    "reg"
+                  ]
+                }
+              },
+              {
+                "name": "incoming_per_minute",
+                "displayName": "Incoming $/min",
+                "type": "number",
+                "generate": {
+                  "handler": "random-float",
+                  "min": 0.001,
+                  "max": 0.05,
+                  "decimals": 4
+                },
+                "constraints": {
+                  "requiredIf": {
+                    "any": [
+                      "voice",
+                      "tollfree"
+                    ]
+                  }
+                }
+              },
+              {
+                "name": "incoming_sms_price",
+                "displayName": "Incoming SMS $",
+                "type": "number",
+                "generate": {
+                  "handler": "random-float",
+                  "min": 0.005,
+                  "max": 0.02,
+                  "decimals": 4
+                },
+                "constraints": {
+                  "requiredIf": {
+                    "any": [
+                      "sms"
+                    ]
+                  }
+                }
+              },
+              {
+                "name": "provider",
+                "displayName": "Provider",
+                "type": "provider",
+                "generate": {
+                  "handler": "from-source"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

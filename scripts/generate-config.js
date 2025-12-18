@@ -4,17 +4,19 @@
  * Store - Configuration Generator
  *
  * Generates all config files from .env (single source of truth):
- *   - wrangler.toml (backend) from wrangler.toml.template
- *   - frontend/wrangler.toml from frontend/wrangler.toml.template
- *   - .dev.vars (backend secrets for Wrangler)
- *   - frontend/.dev.vars (frontend secrets for Wrangler)
+ *   - api/wrangler.toml (backend) from api/wrangler.toml.template
+ *   - public-api/wrangler.toml (Rust worker) from public-api/wrangler.toml.template
+ *   - admin/wrangler.toml from admin/wrangler.toml.template
+ *   - api/.dev.vars (backend secrets for Wrangler)
+ *   - admin/.dev.vars (admin UI secrets for Wrangler)
  *
  * This allows keeping all sensitive data in one .env file (gitignored).
  *
  * Usage:
- *   node scripts/generate-config.js         # Generate all configs
- *   node scripts/generate-config.js backend # Generate backend only
- *   node scripts/generate-config.js frontend # Generate frontend only
+ *   node scripts/generate-config.js            # Generate all configs
+ *   node scripts/generate-config.js api        # Generate api (backend) only
+ *   node scripts/generate-config.js public-api # Generate public-api (Rust) only
+ *   node scripts/generate-config.js admin      # Generate admin (frontend) only
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs'
@@ -160,13 +162,13 @@ function generateConfig(templatePath, outputPath, replacements) {
 }
 
 /**
- * Generate backend wrangler.toml
+ * Generate api (backend) wrangler.toml
  */
-function generateBackendConfig(env) {
-  log('\n📦 Generating backend wrangler.toml...', 'cyan')
+function generateApiConfig(env) {
+  log('\n📦 Generating api/wrangler.toml...', 'cyan')
 
-  const templatePath = resolve(ROOT_DIR, 'wrangler.toml.template')
-  const outputPath = resolve(ROOT_DIR, 'wrangler.toml')
+  const templatePath = resolve(ROOT_DIR, 'api/wrangler.toml.template')
+  const outputPath = resolve(ROOT_DIR, 'api/wrangler.toml')
 
   // Generate custom domain routes if API_DOMAIN is set
   // Routes are at root level (production is default deployment)
@@ -188,6 +190,8 @@ custom_domain = true`
     '{{KV_PREVIEW_NAMESPACE_ID}}': env.KV_PREVIEW_NAMESPACE_ID || '',
     '{{API_URL}}': env.API_DOMAIN ? `https://${env.API_DOMAIN}` : '',
     '{{FRONTEND_URL}}': env.FRONTEND_DOMAIN ? `https://${env.FRONTEND_DOMAIN}` : '',
+    '{{PREVIEW_API_URL}}': env.PREVIEW_API_DOMAIN ? `https://${env.PREVIEW_API_DOMAIN}` : '',
+    '{{PREVIEW_FRONTEND_URL}}': env.PREVIEW_FRONTEND_DOMAIN ? `https://${env.PREVIEW_FRONTEND_DOMAIN}` : '',
     '{{PAGE_SIZE}}': env.PAGE_SIZE || '20',
     '{{PAGE_SIZE_PREVIEW}}': env.PAGE_SIZE_PREVIEW || '10',
     '{{PAGE_SIZE_LOCAL}}': env.PAGE_SIZE_LOCAL || '5',
@@ -196,20 +200,64 @@ custom_domain = true`
   }
 
   if (generateConfig(templatePath, outputPath, replacements)) {
-    logSuccess('Generated wrangler.toml')
+    logSuccess('Generated api/wrangler.toml')
     return true
   }
   return false
 }
 
 /**
- * Generate frontend wrangler.toml
+ * Generate public-api (Rust worker) wrangler.toml
+ * Uses Routes (not Custom Domains) to enable path-based routing.
+ * Routes with zone_name support wildcards like /api/public/*
+ * Routes take precedence over Custom Domains on the same hostname.
  */
-function generateFrontendConfig(env) {
-  log('\n🎨 Generating frontend wrangler.toml...', 'cyan')
+function generatePublicApiConfig(env) {
+  log('\n🦀 Generating public-api wrangler.toml...', 'cyan')
 
-  const templatePath = resolve(ROOT_DIR, 'frontend/wrangler.toml.template')
-  const outputPath = resolve(ROOT_DIR, 'frontend/wrangler.toml')
+  const templatePath = resolve(ROOT_DIR, 'public-api/wrangler.toml.template')
+  const outputPath = resolve(ROOT_DIR, 'public-api/wrangler.toml')
+
+  // Generate Routes (not Custom Domains) for path-based routing
+  // Routes support wildcards and take precedence over Custom Domains
+  // See: https://developers.cloudflare.com/workers/configuration/routing/routes/
+  let publicApiRoutes = '# No route configured - using *.workers.dev'
+  if (env.API_DOMAIN && env.ZONE_NAME) {
+    publicApiRoutes = `# Routes take precedence over Custom Domains on the same hostname
+# This routes /api/public/* to this Rust worker while other paths go to the main API
+[[routes]]
+pattern = "${env.API_DOMAIN}/api/public/*"
+zone_name = "${env.ZONE_NAME}"`
+  } else if (env.API_DOMAIN) {
+    logWarning('ZONE_NAME not set - public-api will use workers.dev subdomain')
+    logWarning('Add ZONE_NAME=your-domain.com to .env for path-based routing')
+  }
+
+  const replacements = {
+    '{{D1_DATABASE_NAME}}': env.D1_DATABASE_NAME || 'store-database',
+    '{{D1_DATABASE_ID}}': env.D1_DATABASE_ID || '',
+    '{{D1_PREVIEW_DATABASE_NAME}}': env.D1_PREVIEW_DATABASE_NAME || 'store-database-preview',
+    '{{D1_PREVIEW_DATABASE_ID}}': env.D1_PREVIEW_DATABASE_ID || '',
+    '{{KV_NAMESPACE_ID}}': env.KV_NAMESPACE_ID || '',
+    '{{KV_PREVIEW_NAMESPACE_ID}}': env.KV_PREVIEW_NAMESPACE_ID || '',
+    '{{PUBLIC_API_ROUTES}}': publicApiRoutes,
+  }
+
+  if (generateConfig(templatePath, outputPath, replacements)) {
+    logSuccess('Generated public-api/wrangler.toml')
+    return true
+  }
+  return false
+}
+
+/**
+ * Generate admin wrangler.toml
+ */
+function generateAdminConfig(env) {
+  log('\n🎨 Generating admin/wrangler.toml...', 'cyan')
+
+  const templatePath = resolve(ROOT_DIR, 'admin/wrangler.toml.template')
+  const outputPath = resolve(ROOT_DIR, 'admin/wrangler.toml')
 
   // Generate custom domain routes if FRONTEND_DOMAIN is set
   // Routes are at root level (production is default deployment)
@@ -230,20 +278,20 @@ custom_domain = true`
   }
 
   if (generateConfig(templatePath, outputPath, replacements)) {
-    logSuccess('Generated frontend/wrangler.toml')
+    logSuccess('Generated admin/wrangler.toml')
     return true
   }
   return false
 }
 
 /**
- * Generate backend .dev.vars (secrets for Wrangler)
+ * Generate api .dev.vars (secrets for Wrangler)
  * In dev mode, loads tokens from token-manager files
  */
-function generateBackendDevVars(env, forDev = false, tokenEnv = 'local') {
-  log('\n🔐 Generating backend .dev.vars...', 'cyan')
+function generateApiDevVars(env, forDev = false, tokenEnv = 'local') {
+  log('\n🔐 Generating api/.dev.vars...', 'cyan')
 
-  const outputPath = resolve(ROOT_DIR, '.dev.vars')
+  const outputPath = resolve(ROOT_DIR, 'api/.dev.vars')
   const secrets = []
 
   // In dev mode, load tokens from token-manager (single source of truth)
@@ -260,7 +308,7 @@ function generateBackendDevVars(env, forDev = false, tokenEnv = 'local') {
   }
 
   if (secrets.length === 0) {
-    logWarning('No secrets found - skipping .dev.vars generation')
+    logWarning('No secrets found - skipping api/.dev.vars generation')
     logWarning('Run db-reset to generate tokens: npm run db:reset:local')
     return true
   }
@@ -270,18 +318,18 @@ ${secrets.join('\n')}
 `
 
   writeFileSync(outputPath, content)
-  logSuccess('Generated .dev.vars')
+  logSuccess('Generated api/.dev.vars')
   return true
 }
 
 /**
- * Generate frontend .dev.vars (secrets for Wrangler)
+ * Generate admin .dev.vars (secrets for Wrangler)
  * In dev mode, loads tokens from token-manager files
  */
-function generateFrontendDevVars(env, forDev = false, tokenEnv = 'local') {
-  log('\n🔐 Generating frontend .dev.vars...', 'cyan')
+function generateAdminDevVars(env, forDev = false, tokenEnv = 'local') {
+  log('\n🔐 Generating admin/.dev.vars...', 'cyan')
 
-  const outputPath = resolve(ROOT_DIR, 'frontend/.dev.vars')
+  const outputPath = resolve(ROOT_DIR, 'admin/.dev.vars')
   const secrets = []
 
   // In dev mode, load tokens from token-manager (single source of truth)
@@ -302,7 +350,7 @@ function generateFrontendDevVars(env, forDev = false, tokenEnv = 'local') {
   if (env.GOOGLE_CLIENT_SECRET) secrets.push(`GOOGLE_CLIENT_SECRET=${env.GOOGLE_CLIENT_SECRET}`)
 
   if (secrets.length === 0) {
-    logWarning('No secrets found - skipping frontend/.dev.vars generation')
+    logWarning('No secrets found - skipping admin/.dev.vars generation')
     return true
   }
 
@@ -311,7 +359,7 @@ ${secrets.join('\n')}
 `
 
   writeFileSync(outputPath, content)
-  logSuccess('Generated frontend/.dev.vars')
+  logSuccess('Generated admin/.dev.vars')
   return true
 }
 
@@ -364,14 +412,18 @@ function main() {
   // Generate configs based on target
   let success = true
 
-  if (!target || target === 'backend') {
-    success = generateBackendConfig(env) && success
-    success = generateBackendDevVars(env, forDev, tokenEnv) && success
+  if (!target || target === 'api' || target === 'backend') {
+    success = generateApiConfig(env) && success
+    success = generateApiDevVars(env, forDev, tokenEnv) && success
   }
 
-  if (!target || target === 'frontend') {
-    success = generateFrontendConfig(env) && success
-    success = generateFrontendDevVars(env, forDev, tokenEnv) && success
+  if (!target || target === 'public-api') {
+    success = generatePublicApiConfig(env) && success
+  }
+
+  if (!target || target === 'admin' || target === 'frontend') {
+    success = generateAdminConfig(env) && success
+    success = generateAdminDevVars(env, forDev, tokenEnv) && success
   }
 
   if (success) {

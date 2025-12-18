@@ -12,12 +12,22 @@
  * 5. Upload secrets to Cloudflare
  * 6. Deploy workers
  *
+ * Project Structure:
+ *   - api/         Backend TypeScript API (store-api)
+ *   - admin/       Frontend Admin UI (store-admin)
+ *   - public-api/  Rust Public API Worker (store-public-api)
+ *
  * Usage:
- *   node scripts/deploy.js                    # Deploy both backend and frontend
- *   node scripts/deploy.js backend            # Deploy backend only
- *   node scripts/deploy.js frontend           # Deploy frontend only
+ *   node scripts/deploy.js                    # Deploy all workers
+ *   node scripts/deploy.js api                # Deploy api (backend) only
+ *   node scripts/deploy.js admin              # Deploy admin (frontend) only
+ *   node scripts/deploy.js public-api         # Deploy public-api (Rust) only
  *   node scripts/deploy.js --dry-run          # Show what would be deployed
  *   node scripts/deploy.js --skip-migrations  # Skip database migrations
+ *
+ * Legacy aliases (for backwards compatibility):
+ *   node scripts/deploy.js backend            # Same as 'api'
+ *   node scripts/deploy.js frontend           # Same as 'admin'
  */
 
 import { execSync, spawnSync } from 'child_process'
@@ -28,6 +38,11 @@ import { fileURLToPath } from 'url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT_DIR = resolve(__dirname, '..')
 const TOKENS_DIR = resolve(__dirname, 'tokens')
+
+// Directory paths for each worker
+const API_DIR = resolve(ROOT_DIR, 'api')
+const ADMIN_DIR = resolve(ROOT_DIR, 'admin')
+const PUBLIC_API_DIR = resolve(ROOT_DIR, 'public-api')
 
 // Colors for console output
 const colors = {
@@ -84,7 +99,9 @@ function updateWrangler() {
 
   const directories = [
     { name: 'root', path: ROOT_DIR },
-    { name: 'frontend', path: resolve(ROOT_DIR, 'frontend') },
+    { name: 'api', path: API_DIR },
+    { name: 'admin', path: ADMIN_DIR },
+    { name: 'public-api', path: PUBLIC_API_DIR },
   ]
 
   for (const dir of directories) {
@@ -187,13 +204,13 @@ function generateConfig(templatePath, outputPath, replacements) {
 }
 
 /**
- * Generate backend wrangler.toml
+ * Generate api (backend) wrangler.toml
  */
-function generateBackendConfig(env) {
-  log('  Generating backend wrangler.toml...', 'blue')
+function generateApiConfig(env, appVersion) {
+  log('  Generating api/wrangler.toml...', 'blue')
 
-  const templatePath = resolve(ROOT_DIR, 'wrangler.toml.template')
-  const outputPath = resolve(ROOT_DIR, 'wrangler.toml')
+  const templatePath = resolve(API_DIR, 'wrangler.toml.template')
+  const outputPath = resolve(API_DIR, 'wrangler.toml')
 
   let apiRoutes = '# No custom domain configured - using *.workers.dev'
   if (env.API_DOMAIN) {
@@ -211,27 +228,30 @@ function generateBackendConfig(env) {
     '{{KV_PREVIEW_NAMESPACE_ID}}': env.KV_PREVIEW_NAMESPACE_ID || '',
     '{{API_URL}}': env.API_DOMAIN ? `https://${env.API_DOMAIN}` : '',
     '{{FRONTEND_URL}}': env.FRONTEND_DOMAIN ? `https://${env.FRONTEND_DOMAIN}` : '',
+    '{{PREVIEW_API_URL}}': env.PREVIEW_API_DOMAIN ? `https://${env.PREVIEW_API_DOMAIN}` : '',
+    '{{PREVIEW_FRONTEND_URL}}': env.PREVIEW_FRONTEND_DOMAIN ? `https://${env.PREVIEW_FRONTEND_DOMAIN}` : '',
     '{{PAGE_SIZE}}': env.PAGE_SIZE || '20',
     '{{PAGE_SIZE_PREVIEW}}': env.PAGE_SIZE_PREVIEW || '10',
     '{{PAGE_SIZE_LOCAL}}': env.PAGE_SIZE_LOCAL || '5',
+    '{{APP_VERSION}}': appVersion,
     '{{API_ROUTES}}': apiRoutes,
   }
 
   if (generateConfig(templatePath, outputPath, replacements)) {
-    logSuccess('Generated wrangler.toml')
+    logSuccess('Generated api/wrangler.toml')
     return true
   }
   return false
 }
 
 /**
- * Generate frontend wrangler.toml
+ * Generate admin (frontend) wrangler.toml
  */
-function generateFrontendConfig(env) {
-  log('  Generating frontend wrangler.toml...', 'blue')
+function generateAdminConfig(env) {
+  log('  Generating admin/wrangler.toml...', 'blue')
 
-  const templatePath = resolve(ROOT_DIR, 'frontend/wrangler.toml.template')
-  const outputPath = resolve(ROOT_DIR, 'frontend/wrangler.toml')
+  const templatePath = resolve(ADMIN_DIR, 'wrangler.toml.template')
+  const outputPath = resolve(ADMIN_DIR, 'wrangler.toml')
 
   let frontendRoutes = '# No custom domain configured - using *.workers.dev'
   if (env.FRONTEND_DOMAIN) {
@@ -240,6 +260,7 @@ function generateFrontendConfig(env) {
 
   const replacements = {
     '{{KV_NAMESPACE_ID}}': env.KV_NAMESPACE_ID || '',
+    '{{KV_PREVIEW_NAMESPACE_ID}}': env.KV_PREVIEW_NAMESPACE_ID || '',
     '{{KV_FRONTEND_DEV_ID}}': env.KV_FRONTEND_DEV_ID || env.KV_PREVIEW_NAMESPACE_ID || '',
     '{{API_URL}}': env.API_DOMAIN ? `https://${env.API_DOMAIN}` : '',
     '{{FRONTEND_URL}}': env.FRONTEND_DOMAIN ? `https://${env.FRONTEND_DOMAIN}` : '',
@@ -247,7 +268,51 @@ function generateFrontendConfig(env) {
   }
 
   if (generateConfig(templatePath, outputPath, replacements)) {
-    logSuccess('Generated frontend/wrangler.toml')
+    logSuccess('Generated admin/wrangler.toml')
+    return true
+  }
+  return false
+}
+
+/**
+ * Generate public-api (Rust worker) wrangler.toml
+ * Uses Routes (not Custom Domains) to enable path-based routing.
+ * Routes with zone_name support wildcards like /api/public/*
+ * Routes take precedence over Custom Domains on the same hostname.
+ */
+function generatePublicApiConfig(env) {
+  log('  Generating public-api/wrangler.toml...', 'blue')
+
+  const templatePath = resolve(PUBLIC_API_DIR, 'wrangler.toml.template')
+  const outputPath = resolve(PUBLIC_API_DIR, 'wrangler.toml')
+
+  // Generate Routes (not Custom Domains) for path-based routing
+  // Routes support wildcards and take precedence over Custom Domains
+  // See: https://developers.cloudflare.com/workers/configuration/routing/routes/
+  let publicApiRoutes = '# No route configured - using *.workers.dev'
+  if (env.API_DOMAIN && env.ZONE_NAME) {
+    publicApiRoutes = `# Routes take precedence over Custom Domains on the same hostname
+# This routes /api/public/* to this Rust worker while other paths go to the main API
+[[routes]]
+pattern = "${env.API_DOMAIN}/api/public/*"
+zone_name = "${env.ZONE_NAME}"`
+  } else if (env.API_DOMAIN) {
+    logWarning('ZONE_NAME not set - public-api will use workers.dev subdomain')
+    logWarning('Add ZONE_NAME=your-domain.com to .env for path-based routing')
+  }
+
+  const replacements = {
+    '{{D1_DATABASE_NAME}}': env.D1_DATABASE_NAME || 'store-database',
+    '{{D1_DATABASE_ID}}': env.D1_DATABASE_ID || '',
+    '{{D1_PREVIEW_DATABASE_NAME}}': env.D1_PREVIEW_DATABASE_NAME || 'store-database-preview',
+    '{{D1_PREVIEW_DATABASE_ID}}': env.D1_PREVIEW_DATABASE_ID || '',
+    '{{KV_NAMESPACE_ID}}': env.KV_NAMESPACE_ID || '',
+    '{{KV_PREVIEW_NAMESPACE_ID}}': env.KV_PREVIEW_NAMESPACE_ID || '',
+    '{{PUBLIC_API_ROUTES}}': publicApiRoutes,
+  }
+
+  if (generateConfig(templatePath, outputPath, replacements)) {
+    logSuccess('Generated public-api/wrangler.toml')
     return true
   }
   return false
@@ -256,13 +321,13 @@ function generateFrontendConfig(env) {
 /**
  * Upload a secret to a worker
  */
-function uploadSecret(workerName, secretName, secretValue) {
+function uploadSecret(workerName, secretName, secretValue, cwd = ROOT_DIR) {
   if (!secretValue || secretValue.includes('your_') || secretValue.includes('example')) {
     return false
   }
 
   const result = spawnSync('wrangler', ['secret', 'put', secretName, '--name', workerName], {
-    cwd: ROOT_DIR,
+    cwd,
     input: secretValue,
     encoding: 'utf-8',
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -272,10 +337,10 @@ function uploadSecret(workerName, secretName, secretValue) {
 }
 
 /**
- * Upload secrets to backend worker
+ * Upload secrets to api (backend) worker
  */
-function uploadBackendSecrets(env, dryRun = false) {
-  log('  Uploading backend secrets...', 'blue')
+function uploadApiSecrets(env, dryRun = false) {
+  log('  Uploading api secrets...', 'blue')
 
   const secrets = {
     ADMIN_ACCESS_TOKEN: env.ADMIN_ACCESS_TOKEN,
@@ -287,7 +352,7 @@ function uploadBackendSecrets(env, dryRun = false) {
   )
 
   if (validSecrets.length === 0) {
-    logWarning('No valid backend secrets found in .env')
+    logWarning('No valid api secrets found in .env')
     return
   }
 
@@ -295,7 +360,7 @@ function uploadBackendSecrets(env, dryRun = false) {
     if (dryRun) {
       logSuccess(`Would upload ${key} to store-api`)
     } else {
-      if (uploadSecret('store-api', key, value)) {
+      if (uploadSecret('store-api', key, value, API_DIR)) {
         logSuccess(`Uploaded ${key} to store-api`)
       } else {
         logWarning(`Failed to upload ${key}`)
@@ -305,10 +370,10 @@ function uploadBackendSecrets(env, dryRun = false) {
 }
 
 /**
- * Upload secrets to frontend worker
+ * Upload secrets to admin (frontend) worker
  */
-function uploadFrontendSecrets(env, dryRun = false) {
-  log('  Uploading frontend secrets...', 'blue')
+function uploadAdminSecrets(env, dryRun = false) {
+  log('  Uploading admin secrets...', 'blue')
 
   const secrets = {
     GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID,
@@ -322,16 +387,16 @@ function uploadFrontendSecrets(env, dryRun = false) {
   )
 
   if (validSecrets.length === 0) {
-    logWarning('No valid frontend secrets found in .env')
+    logWarning('No valid admin secrets found in .env')
     return
   }
 
   for (const [key, value] of validSecrets) {
     if (dryRun) {
-      logSuccess(`Would upload ${key} to store-frontend`)
+      logSuccess(`Would upload ${key} to store-admin`)
     } else {
-      if (uploadSecret('store-frontend', key, value)) {
-        logSuccess(`Uploaded ${key} to store-frontend`)
+      if (uploadSecret('store-admin', key, value, ADMIN_DIR)) {
+        logSuccess(`Uploaded ${key} to store-admin`)
       } else {
         logWarning(`Failed to upload ${key}`)
       }
@@ -380,52 +445,76 @@ function applyMigrations(dryRun = false) {
 }
 
 /**
- * Deploy backend worker
+ * Deploy api (backend) worker
  */
-function deployBackend(appVersion, dryRun = false) {
-  log('  Deploying backend worker...', 'blue')
+function deployApi(appVersion, dryRun = false) {
+  log('  Deploying api worker...', 'blue')
 
   const dryRunFlag = dryRun ? ' --dry-run' : ''
 
   try {
     // Use --env="" to explicitly target top-level (production) environment
-    exec(`wrangler deploy --env="" --var APP_VERSION:${appVersion}${dryRunFlag}`, { cwd: ROOT_DIR })
+    exec(`wrangler deploy --env="" --var APP_VERSION:${appVersion}${dryRunFlag}`, { cwd: API_DIR })
     logSuccess('Deployed store-api')
     return true
   } catch (error) {
-    logError(`Backend deployment failed: ${error.message}`)
+    logError(`API deployment failed: ${error.message}`)
     return false
   }
 }
 
 /**
- * Deploy frontend worker
+ * Deploy admin (frontend) worker
  */
-function deployFrontend(dryRun = false) {
-  log('  Building and deploying frontend worker...', 'blue')
+function deployAdmin(dryRun = false) {
+  log('  Building and deploying admin worker...', 'blue')
 
-  const frontendDir = resolve(ROOT_DIR, 'frontend')
   const dryRunFlag = dryRun ? ' --dry-run' : ''
 
   try {
-    // Build frontend
+    // Build admin
     log('    Running version script...', 'cyan')
-    exec('npm run version', { cwd: frontendDir, silent: true })
+    exec('npm run version', { cwd: ADMIN_DIR, silent: true })
 
     log('    Building CSS...', 'cyan')
-    exec('npm run build:css', { cwd: frontendDir, silent: true })
+    exec('npm run build:css', { cwd: ADMIN_DIR, silent: true })
 
     log('    Building client bundle...', 'cyan')
-    exec('npm run build:client', { cwd: frontendDir, silent: true })
+    exec('npm run build:client', { cwd: ADMIN_DIR, silent: true })
 
     log('    Deploying to Cloudflare...', 'cyan')
     // Use --env="" to explicitly target top-level (production) environment
-    exec(`wrangler deploy --env=""${dryRunFlag}`, { cwd: frontendDir })
+    exec(`wrangler deploy --env=""${dryRunFlag}`, { cwd: ADMIN_DIR })
 
-    logSuccess('Deployed store-frontend')
+    logSuccess('Deployed store-admin')
     return true
   } catch (error) {
-    logError(`Frontend deployment failed: ${error.message}`)
+    logError(`Admin deployment failed: ${error.message}`)
+    return false
+  }
+}
+
+/**
+ * Deploy public-api (Rust) worker
+ */
+function deployPublicApi(dryRun = false) {
+  log('  Building and deploying public-api (Rust) worker...', 'blue')
+
+  const dryRunFlag = dryRun ? ' --dry-run' : ''
+
+  try {
+    // Build Rust worker with worker-build
+    log('    Building Rust worker with worker-build...', 'cyan')
+    exec('worker-build --release', { cwd: PUBLIC_API_DIR })
+
+    log('    Deploying to Cloudflare...', 'cyan')
+    // Use --env="" to explicitly target top-level (production) environment
+    exec(`wrangler deploy --env=""${dryRunFlag}`, { cwd: PUBLIC_API_DIR })
+
+    logSuccess('Deployed store-public-api')
+    return true
+  } catch (error) {
+    logError(`Public API deployment failed: ${error.message}`)
     return false
   }
 }
@@ -436,14 +525,39 @@ function deployFrontend(dryRun = false) {
 async function main() {
   const args = process.argv.slice(2)
   const dryRun = args.includes('--dry-run')
-  const target = args.find(arg => !arg.startsWith('--')) // backend, frontend, or undefined (both)
-
-  const deployBackendFlag = !target || target === 'backend'
-  const deployFrontendFlag = !target || target === 'frontend'
   const skipMigrations = args.includes('--skip-migrations')
 
-  // Calculate total steps: config + modules + migrations (if backend) + secrets + deploy for each target
-  const totalSteps = 1 + (deployBackendFlag ? 1 : 0) + (deployBackendFlag && !skipMigrations ? 1 : 0) + (deployBackendFlag ? 2 : 0) + (deployFrontendFlag ? 2 : 0)
+  // Get target, handling legacy names
+  let target = args.find(arg => !arg.startsWith('--'))
+
+  // Map legacy names to new names
+  if (target === 'backend') target = 'api'
+  if (target === 'frontend') target = 'admin'
+
+  const deployApiFlag = !target || target === 'api'
+  const deployAdminFlag = !target || target === 'admin'
+  const deployPublicApiFlag = !target || target === 'public-api'
+
+  // Calculate total steps dynamically
+  let totalSteps = 1 // Step 0: update wrangler
+  totalSteps += 1 // Generate configs
+
+  if (deployApiFlag) {
+    totalSteps += 1 // Scan modules
+    if (!skipMigrations) totalSteps += 1 // Migrations
+    totalSteps += 1 // Upload secrets
+    totalSteps += 1 // Deploy
+  }
+
+  if (deployAdminFlag) {
+    totalSteps += 1 // Upload secrets
+    totalSteps += 1 // Deploy
+  }
+
+  if (deployPublicApiFlag) {
+    totalSteps += 1 // Deploy (no secrets needed for public-api)
+  }
+
   let currentStep = 0
 
   log('\n========================================', 'bright')
@@ -451,10 +565,15 @@ async function main() {
   if (dryRun) {
     log('  (DRY RUN - no changes will be made)', 'yellow')
   }
+  if (target) {
+    log(`  Target: ${target}`, 'cyan')
+  } else {
+    log('  Target: all workers (api, admin, public-api)', 'cyan')
+  }
   log('========================================\n', 'bright')
 
   // Step 0: Update wrangler
-  logStep(0, totalSteps, 'Updating wrangler...')
+  logStep(currentStep, totalSteps, 'Updating wrangler...')
   updateWrangler()
 
   // Load environment
@@ -465,18 +584,22 @@ async function main() {
   logSuccess(`App version: ${appVersion}`)
 
   // Generate configs
-  logStep(++currentStep, totalSteps + 1, 'Generating configuration files...')
+  logStep(++currentStep, totalSteps, 'Generating configuration files...')
 
-  if (deployBackendFlag) {
-    generateBackendConfig(env)
+  if (deployApiFlag) {
+    generateApiConfig(env, appVersion)
   }
 
-  if (deployFrontendFlag) {
-    generateFrontendConfig(env)
+  if (deployAdminFlag) {
+    generateAdminConfig(env)
   }
 
-  // Deploy backend
-  if (deployBackendFlag) {
+  if (deployPublicApiFlag) {
+    generatePublicApiConfig(env)
+  }
+
+  // Deploy API
+  if (deployApiFlag) {
     // Scan modules (JSON manifests, no compilation needed)
     logStep(++currentStep, totalSteps, 'Scanning modules...')
     scanModules(dryRun)
@@ -489,22 +612,30 @@ async function main() {
       logWarning('Skipping database migrations (--skip-migrations flag)')
     }
 
-    logStep(++currentStep, totalSteps, 'Uploading backend secrets...')
-    uploadBackendSecrets(env, dryRun)
+    logStep(++currentStep, totalSteps, 'Uploading api secrets...')
+    uploadApiSecrets(env, dryRun)
 
-    logStep(++currentStep, totalSteps, 'Deploying backend...')
-    if (!deployBackend(appVersion, dryRun)) {
+    logStep(++currentStep, totalSteps, 'Deploying api...')
+    if (!deployApi(appVersion, dryRun)) {
       process.exit(1)
     }
   }
 
-  // Deploy frontend
-  if (deployFrontendFlag) {
-    logStep(++currentStep, totalSteps + 1, 'Uploading frontend secrets...')
-    uploadFrontendSecrets(env, dryRun)
+  // Deploy Admin
+  if (deployAdminFlag) {
+    logStep(++currentStep, totalSteps, 'Uploading admin secrets...')
+    uploadAdminSecrets(env, dryRun)
 
-    logStep(++currentStep, totalSteps + 1, 'Deploying frontend...')
-    if (!deployFrontend(dryRun)) {
+    logStep(++currentStep, totalSteps, 'Deploying admin...')
+    if (!deployAdmin(dryRun)) {
+      process.exit(1)
+    }
+  }
+
+  // Deploy Public API (Rust)
+  if (deployPublicApiFlag) {
+    logStep(++currentStep, totalSteps, 'Deploying public-api (Rust)...')
+    if (!deployPublicApi(dryRun)) {
       process.exit(1)
     }
   }
@@ -515,10 +646,11 @@ async function main() {
   log('========================================\n', 'bright')
 
   if (env.API_DOMAIN) {
-    log(`  Backend API: https://${env.API_DOMAIN}`, 'cyan')
+    log(`  API:         https://${env.API_DOMAIN}`, 'cyan')
+    log(`  Public API:  https://${env.API_DOMAIN}/api/public/*`, 'cyan')
   }
   if (env.FRONTEND_DOMAIN) {
-    log(`  Frontend:    https://${env.FRONTEND_DOMAIN}`, 'cyan')
+    log(`  Admin:       https://${env.FRONTEND_DOMAIN}`, 'cyan')
   }
   log('')
 }

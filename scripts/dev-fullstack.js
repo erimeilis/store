@@ -2,14 +2,19 @@
 
 /**
  * Full-Stack Development Script
- * Runs both backend and frontend simultaneously
+ * Runs all three workers simultaneously with shared database
  *
  * Usage: npm run dev          (local D1)
  *        npm run dev:remote   (remote preview D1)
+ *
+ * Architecture:
+ * - API Worker (TypeScript): http://localhost:8787 - Main backend API
+ * - Public API Worker (Rust): http://localhost:8788 - Public read-only API
+ * - Admin Worker (TypeScript): http://localhost:5173 - Admin UI
  */
 
 import { spawn, execSync } from 'child_process';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 
 // Colors for console output
 const colors = {
@@ -41,33 +46,46 @@ function logWarning(message) {
 }
 
 const PORTS = {
-  backend: 8787,
-  frontend: 5173,
+  api: 8787,
+  publicApi: 8788,
+  admin: 5173,
+  // Wrangler inspector/debugger ports
+  inspector1: 9229,
+  inspector2: 9230,
 };
+
+// Shared persistence path for local D1 state (ensures all workers share same database)
+const PERSIST_PATH = '.wrangler-shared';
 
 // Check for --remote flag
 const isRemote = process.argv.includes('--remote');
 
 // Environment configurations
 const config = isRemote ? {
-  backendCmd: 'npm run dev:backend:remote',
-  frontendCmd: 'cd frontend && npm run dev:preview',
-  description: 'Remote Development (preview D1 + remote KV frontend)',
+  apiCmd: `wrangler dev --config api/wrangler.toml --env preview --remote --port ${PORTS.api}`,
+  publicApiCmd: `wrangler dev --config public-api/wrangler.toml --env preview --remote --port ${PORTS.publicApi}`,
+  adminCmd: 'npm run dev:preview',
+  adminCwd: './admin',
+  description: 'Remote Development (preview D1 + remote KV)',
   mode: 'Remote Preview D1'
 } : {
-  backendCmd: 'npm run dev:backend',
-  frontendCmd: 'cd frontend && npm run dev',
-  description: 'Local Development (local D1 + local frontend)',
+  apiCmd: `wrangler dev --config api/wrangler.toml --env local --port ${PORTS.api} --persist-to ${PERSIST_PATH}`,
+  publicApiCmd: `wrangler dev --config public-api/wrangler.toml --env local --port ${PORTS.publicApi} --persist-to ${PERSIST_PATH}`,
+  adminCmd: 'npm run dev',
+  adminCwd: './admin',
+  description: 'Local Development (local D1)',
   mode: 'Local D1'
 };
 
-// Update wrangler to latest version
-function updateWrangler() {
+// Update wrangler to latest version in all worker directories
+async function updateWrangler() {
   logStep('0', 'Updating wrangler to latest version');
 
   const directories = [
     { name: 'root', path: '.' },
-    { name: 'frontend', path: './frontend' },
+    { name: 'api', path: './api' },
+    { name: 'admin', path: './admin' },
+    { name: 'public-api', path: './public-api' },
   ];
 
   for (const dir of directories) {
@@ -140,11 +158,14 @@ async function killExistingProcesses() {
     });
   };
 
-  await killPort(PORTS.backend, 'backend');
-  await killPort(PORTS.frontend, 'frontend');
+  await killPort(PORTS.api, 'api');
+  await killPort(PORTS.publicApi, 'public-api');
+  await killPort(PORTS.admin, 'admin');
+  await killPort(PORTS.inspector1, 'inspector');
+  await killPort(PORTS.inspector2, 'inspector');
 
   // Wait for processes to die
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 1500));
   logSuccess('Ports cleared');
 }
 
@@ -152,33 +173,53 @@ async function killExistingProcesses() {
 function applyMigrations() {
   logStep('4', 'Applying database migrations');
   try {
-    execSync('npm run db:migrate', { stdio: 'inherit' });
+    // Apply migrations using the api wrangler.toml config with shared persistence
+    // Must use --env local to pick up the migrations_dir from env.local section
+    if (isRemote) {
+      execSync('npm run db:migrate:preview', { stdio: 'inherit' });
+    } else {
+      execSync(`wrangler d1 migrations apply store-database-preview --env local --local --persist-to ${PERSIST_PATH} --config api/wrangler.toml`, { stdio: 'inherit' });
+    }
     logSuccess('Migrations applied');
   } catch (error) {
     logWarning('Migration had issues, continuing anyway');
   }
 }
 
-// Start both services
+// Build Rust public-api worker
+function buildPublicApi() {
+  logStep('5', 'Building public-api (Rust)');
+  try {
+    execSync('cd public-api && worker-build --release', { stdio: 'inherit' });
+    logSuccess('Rust worker built');
+  } catch (error) {
+    logWarning('Public-api build failed - public-api will not be available');
+  }
+}
+
+// Start all services
 function startServices() {
-  logStep('5', 'Starting backend');
+  logStep('6', 'Starting development servers');
 
   const processes = [];
-  let backendReady = false;
-  let frontendReady = false;
+  let apiReady = false;
+  let publicApiReady = false;
+  let adminReady = false;
   let bannerShown = false;
 
   function showReadyBanner() {
-    if (backendReady && frontendReady && !bannerShown) {
+    if (apiReady && publicApiReady && adminReady && !bannerShown) {
       bannerShown = true;
       log('\n' + '═'.repeat(60), 'bright');
       log('  Store - Development Environment Ready!', 'green');
       log('═'.repeat(60), 'bright');
       log('');
-      log(`  Frontend:  http://localhost:${PORTS.frontend}`, 'cyan');
-      log(`  Backend:   http://localhost:${PORTS.backend}`, 'cyan');
+      log(`  Admin UI:     http://localhost:${PORTS.admin}`, 'cyan');
+      log(`  API:          http://localhost:${PORTS.api}`, 'cyan');
+      log(`  Public API:   http://localhost:${PORTS.publicApi}  (Rust)`, 'cyan');
       log('');
-      log(`  Mode:      ${config.mode}`, 'dim');
+      log(`  Database:     ${isRemote ? 'Remote Preview D1' : `./${PERSIST_PATH}/ (local D1)`}`, 'dim');
+      log(`  Mode:         ${config.mode}`, 'dim');
       log('');
       log('═'.repeat(60), 'bright');
       log('  Press Ctrl+C to stop all services', 'yellow');
@@ -186,59 +227,85 @@ function startServices() {
     }
   }
 
-  // Start backend
-  log('  → Starting backend...', 'dim');
-  const backend = spawn('sh', ['-c', config.backendCmd], {
+  // Start API worker
+  log('  → Starting API worker...', 'dim');
+  const api = spawn('sh', ['-c', config.apiCmd], {
     stdio: ['inherit', 'pipe', 'pipe']
   });
 
-  backend.stdout.on('data', (data) => {
+  api.stdout.on('data', (data) => {
     const text = data.toString();
     if (text.includes('Ready') || text.includes('localhost')) {
-      backendReady = true;
+      apiReady = true;
       showReadyBanner();
     }
-    process.stdout.write(`${colors.blue}[BACKEND]${colors.reset} ${text}`);
+    process.stdout.write(`${colors.blue}[API]${colors.reset} ${text}`);
   });
 
-  backend.stderr.on('data', (data) => {
-    process.stderr.write(`${colors.blue}[BACKEND]${colors.reset} ${data.toString()}`);
+  api.stderr.on('data', (data) => {
+    process.stderr.write(`${colors.blue}[API]${colors.reset} ${data.toString()}`);
   });
 
-  processes.push({ name: 'backend', process: backend });
+  processes.push({ name: 'api', process: api });
 
-  // Start frontend after a short delay
+  // Start public-api (Rust worker) after a short delay
   setTimeout(() => {
-    logStep('6', 'Starting frontend');
-    log('  → Starting frontend...', 'dim');
+    log('  → Starting public-api worker...', 'dim');
 
-    const frontend = spawn('sh', ['-c', config.frontendCmd], {
+    const publicApi = spawn('sh', ['-c', config.publicApiCmd], {
       stdio: ['inherit', 'pipe', 'pipe']
     });
 
-    frontend.stdout.on('data', (data) => {
+    publicApi.stdout.on('data', (data) => {
       const text = data.toString();
       if (text.includes('Ready') || text.includes('localhost')) {
-        frontendReady = true;
+        publicApiReady = true;
         showReadyBanner();
       }
-      process.stdout.write(`${colors.magenta}[FRONTEND]${colors.reset} ${text}`);
+      process.stdout.write(`${colors.yellow}[PUBLIC-API]${colors.reset} ${text}`);
     });
 
-    frontend.stderr.on('data', (data) => {
-      process.stderr.write(`${colors.magenta}[FRONTEND]${colors.reset} ${data.toString()}`);
+    publicApi.stderr.on('data', (data) => {
+      process.stderr.write(`${colors.yellow}[PUBLIC-API]${colors.reset} ${data.toString()}`);
     });
 
-    processes.push({ name: 'frontend', process: frontend });
+    processes.push({ name: 'public-api', process: publicApi });
+  }, 1000);
+
+  // Start admin after public-api
+  setTimeout(() => {
+    log('  → Starting admin worker...', 'dim');
+
+    const admin = spawn('npm', ['run', config.adminCmd.replace('npm run ', '')], {
+      cwd: config.adminCwd,
+      stdio: ['inherit', 'pipe', 'pipe'],
+      shell: true
+    });
+
+    admin.stdout.on('data', (data) => {
+      const text = data.toString();
+      if (text.includes('Ready') || text.includes('localhost')) {
+        adminReady = true;
+        showReadyBanner();
+      }
+      process.stdout.write(`${colors.magenta}[ADMIN]${colors.reset} ${text}`);
+    });
+
+    admin.stderr.on('data', (data) => {
+      process.stderr.write(`${colors.magenta}[ADMIN]${colors.reset} ${data.toString()}`);
+    });
+
+    processes.push({ name: 'admin', process: admin });
 
     // Fallback: show banner after timeout if not detected
     setTimeout(() => {
       if (!bannerShown) {
-        backendReady = true;
-        frontendReady = true;
+        apiReady = true;
+        publicApiReady = true;
+        adminReady = true;
         showReadyBanner();
       }
-    }, 8000);
+    }, 15000);
 
     // Handle process cleanup
     process.on('SIGINT', () => {
@@ -289,8 +356,8 @@ async function main() {
 
   log(`  Environment: ${config.description}`, 'dim');
 
-  // Step 0: Update wrangler
-  updateWrangler();
+  // Step 0: Update wrangler to latest version
+  await updateWrangler();
 
   // Step 1: Scan modules
   scanModules();
@@ -304,7 +371,10 @@ async function main() {
   // Step 4: Apply database migrations
   applyMigrations();
 
-  // Step 5-6: Start all workers
+  // Step 5: Build Rust public-api worker
+  buildPublicApi();
+
+  // Step 6: Start all workers (api, public-api, admin)
   startServices();
 }
 

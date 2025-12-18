@@ -22,24 +22,27 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@/types/*": ["src/types/*"],
-      "@/utils/*": ["src/utils/*"],
-      "@/lib/*": ["src/lib/*"],
-      "@/middleware/*": ["src/middleware/*"],
-      "@/services/*": ["src/services/*"],
-      "@/repositories/*": ["src/repositories/*"],
-      "@/validators/*": ["src/validators/*"],
-      "@/routes/*": ["src/routes/*"]
+      "@/*": ["api/src/*"],
+      "@/types/*": ["api/src/types/*"],
+      "@/utils/*": ["api/src/utils/*"],
+      "@/lib/*": ["api/src/lib/*"],
+      "@/middleware/*": ["api/src/middleware/*"],
+      "@/services/*": ["api/src/services/*"],
+      "@/repositories/*": ["api/src/repositories/*"],
+      "@/validators/*": ["api/src/validators/*"],
+      "@/routes/*": ["api/src/routes/*"]
     }
   },
   "include": [
-    "src/**/*",
+    "api/src/**/*",
     "test/**/*",
-    "prisma/**/*"
+    "api/prisma/**/*",
+    "scripts/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "admin",
+    "public-api"
   ]
 }

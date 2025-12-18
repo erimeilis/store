@@ -43,8 +43,8 @@ interface EnvironmentConfig {
 }
 
 export function loadWranglerConfigs(): WranglerConfig {
-  const backendToml = readFileSync('./wrangler.toml', 'utf8');
-  const frontendToml = readFileSync('./frontend/wrangler.toml', 'utf8');
+  const backendToml = readFileSync('./api/wrangler.toml', 'utf8');
+  const frontendToml = readFileSync('./admin/wrangler.toml', 'utf8');
 
   return {
     backendConfig: toml.parse(backendToml),

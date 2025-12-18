@@ -100,6 +100,11 @@
       "category": "Documentation",
       "baseType": "string",
       "multiValue": true,
+      "validation": {
+        "handler": "regex",
+        "pattern": "^[a-z0-9-]+:(personal|business)$",
+        "message": "Each value must end with :personal or :business"
+      },
       "source": {
         "type": "api",
         "endpoint": "$settings.docTypeApiUrl",
