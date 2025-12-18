@@ -40,7 +40,7 @@ interface ModuleManifest {
 
 const ROOT_DIR = path.resolve(import.meta.dirname, '..')
 const MODULES_DIR = path.join(ROOT_DIR, 'modules')
-const OUTPUT_FILE = path.join(ROOT_DIR, 'src/data/modules-manifest.json')
+const OUTPUT_FILE = path.join(ROOT_DIR, 'api/src/data/modules-manifest.json')
 
 function scanModules(): ScannedModule[] {
   if (!fs.existsSync(MODULES_DIR)) {

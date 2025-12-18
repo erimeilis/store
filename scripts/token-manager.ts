@@ -74,15 +74,15 @@ export function saveTokensToEnvFile(tokenSet: TokenSet): void {
   // For local environment, we can save to .dev.vars
   if (environment === 'local') {
     const devVarsPath = './.dev.vars';
-    const frontendDevVarsPath = './frontend/.dev.vars';
+    const adminDevVarsPath = './admin/.dev.vars';
 
     // Update backend .dev.vars with both tokens
     updateEnvFile(devVarsPath, 'FRONTEND_ACCESS_TOKEN', frontendToken);
     updateEnvFile(devVarsPath, 'ADMIN_ACCESS_TOKEN', adminToken);
 
-    // Update frontend .dev.vars (needs both tokens - ADMIN for API proxy, FRONTEND for client)
-    updateEnvFile(frontendDevVarsPath, 'FRONTEND_ACCESS_TOKEN', frontendToken);
-    updateEnvFile(frontendDevVarsPath, 'ADMIN_ACCESS_TOKEN', adminToken);
+    // Update admin .dev.vars (needs both tokens - ADMIN for API proxy, FRONTEND for client)
+    updateEnvFile(adminDevVarsPath, 'FRONTEND_ACCESS_TOKEN', frontendToken);
+    updateEnvFile(adminDevVarsPath, 'ADMIN_ACCESS_TOKEN', adminToken);
 
     console.log(`💾 Updated .dev.vars files with tokens`);
   } else {
@@ -103,15 +103,15 @@ export function saveTokensToDevVars(environment: string, frontendToken: string, 
   }
 
   const devVarsPath = './.dev.vars';
-  const frontendDevVarsPath = './frontend/.dev.vars';
+  const adminDevVarsPath = './admin/.dev.vars';
 
   // Update backend .dev.vars with both tokens
   updateEnvFile(devVarsPath, 'FRONTEND_ACCESS_TOKEN', frontendToken);
   updateEnvFile(devVarsPath, 'ADMIN_ACCESS_TOKEN', adminToken);
 
-  // Update frontend .dev.vars (needs both tokens - ADMIN for API proxy, FRONTEND for client)
-  updateEnvFile(frontendDevVarsPath, 'FRONTEND_ACCESS_TOKEN', frontendToken);
-  updateEnvFile(frontendDevVarsPath, 'ADMIN_ACCESS_TOKEN', adminToken);
+  // Update admin .dev.vars (needs both tokens - ADMIN for API proxy, FRONTEND for client)
+  updateEnvFile(adminDevVarsPath, 'FRONTEND_ACCESS_TOKEN', frontendToken);
+  updateEnvFile(adminDevVarsPath, 'ADMIN_ACCESS_TOKEN', adminToken);
 
   console.log(`💾 Updated .dev.vars files with new tokens`);
 }

@@ -76,13 +76,19 @@ async function confirmProductionReset(): Promise<boolean> {
   });
 }
 
+// Shared persistence path for local D1 state (matches dev-fullstack.js)
+const PERSIST_PATH = '.wrangler-shared';
+
 function buildWranglerCommand(command: string, useFile = false): string {
   const base = `wrangler d1 execute ${config.dbName}`;
   // Production uses default config (no --env flag), other envs use --env flag
   const env = envArg === 'production' ? '' : ` --env ${envArg}`;
   const remote = config.useRemote ? ' --remote' : ' --local';
+  // Local uses shared persistence path to match dev-fullstack.js
+  const persistTo = !config.useRemote ? ` --persist-to ${PERSIST_PATH}` : '';
   const fileFlag = useFile ? ` --file="${command}"` : ` --command="${command}"`;
-  return `${base}${env}${remote}${fileFlag}`;
+  const configFlag = ' --config api/wrangler.toml';
+  return `${base}${env}${remote}${persistTo}${fileFlag}${configFlag}`;
 }
 
 async function discoverTables(): Promise<string[]> {
@@ -154,8 +160,8 @@ async function dropAllTables(tables: string[]): Promise<void> {
 
 function applyMigrations(): void {
   console.log('📦 Applying database migrations...');
-  
-  const migrationsDir = './prisma/migrations';
+
+  const migrationsDir = './api/prisma/migrations';
   if (!existsSync(migrationsDir)) {
     throw new Error('Migrations directory not found');
   }
@@ -224,9 +230,14 @@ async function main(): Promise<void> {
     // Handle local development special case
     if (config.clearWranglerState) {
       console.log('🗑️  Clearing local Wrangler D1 state...');
+      // Clear both legacy .wrangler/state/ and new shared .wrangler-shared/
       if (existsSync('./.wrangler/state/')) {
         execSync('rm -rf ./.wrangler/state/');
-        console.log('   ✓ Local D1 state cleared');
+        console.log('   ✓ Legacy local D1 state cleared');
+      }
+      if (existsSync('./.wrangler-shared/')) {
+        execSync('rm -rf ./.wrangler-shared/');
+        console.log('   ✓ Shared D1 state cleared');
       }
     }
     

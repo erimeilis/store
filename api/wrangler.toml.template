@@ -1,0 +1,103 @@
+name = "store-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Disable workers.dev subdomain in production (using custom domain)
+workers_dev = false
+
+# Production Database (default deployment target)
+[[d1_databases]]
+binding = "DB"
+database_name = "{{D1_DATABASE_NAME}}"
+database_id = "{{D1_DATABASE_ID}}"
+migrations_dir = "prisma/migrations"
+
+# Production R2 Bucket
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "{{R2_BUCKET_NAME}}"
+preview_bucket_name = "{{R2_PREVIEW_BUCKET_NAME}}"
+
+# Production KV Namespace
+[[kv_namespaces]]
+binding = "KV"
+id = "{{KV_NAMESPACE_ID}}"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+# Production vars (default deployment target)
+# Secrets are set via `wrangler secret put`
+[vars]
+NODE_ENV = "production"
+APP_VERSION = "3.0.0"
+API_URL = "{{API_URL}}"
+ALLOWED_ORIGINS = "{{FRONTEND_URL}},{{API_URL}}"
+PAGE_SIZE = "{{PAGE_SIZE}}"
+
+# Production routes (default deployment)
+{{API_ROUTES}}
+
+# =============================================================================
+# Development Environments (use --env flag)
+# =============================================================================
+
+# Local Environment (--env local)
+# Uses local D1 in .wrangler/state/
+[env.local]
+workers_dev = true
+
+[[env.local.d1_databases]]
+binding = "DB"
+database_name = "{{D1_PREVIEW_DATABASE_NAME}}"
+database_id = "{{D1_PREVIEW_DATABASE_ID}}"
+migrations_dir = "prisma/migrations"
+
+[[env.local.r2_buckets]]
+binding = "BUCKET"
+bucket_name = "{{R2_PREVIEW_BUCKET_NAME}}"
+
+[[env.local.kv_namespaces]]
+binding = "KV"
+id = "{{KV_PREVIEW_NAMESPACE_ID}}"
+
+[env.local.vars]
+NODE_ENV = "development"
+APP_VERSION = "3.0.0"
+API_URL = "http://localhost:8787"
+ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:8787"
+PAGE_SIZE = "{{PAGE_SIZE_LOCAL}}"
+
+# Preview Environment (--env preview)
+# Uses remote preview D1 on Cloudflare
+[env.preview]
+workers_dev = true
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "{{D1_PREVIEW_DATABASE_NAME}}"
+database_id = "{{D1_PREVIEW_DATABASE_ID}}"
+preview_database_id = "{{D1_PREVIEW_DATABASE_ID}}"
+
+[[env.preview.r2_buckets]]
+binding = "BUCKET"
+bucket_name = "{{R2_PREVIEW_BUCKET_NAME}}"
+preview_bucket_name = "{{R2_PREVIEW_BUCKET_NAME}}"
+
+[[env.preview.kv_namespaces]]
+binding = "KV"
+id = "{{KV_PREVIEW_NAMESPACE_ID}}"
+preview_id = "{{KV_PREVIEW_NAMESPACE_ID}}"
+
+[env.preview.vars]
+NODE_ENV = "preview"
+APP_VERSION = "3.0.0"
+API_URL = "http://localhost:8787"
+ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:8787,{{PREVIEW_API_URL}},{{PREVIEW_FRONTEND_URL}}"
+PAGE_SIZE = "{{PAGE_SIZE_PREVIEW}}"
+
+[env.preview.observability]
+enabled = true
+head_sampling_rate = 1
