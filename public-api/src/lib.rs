@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use wasm_bindgen::JsValue;
 use worker::*;
-use std::collections::HashMap;
 
 mod utils;
 
@@ -431,6 +431,51 @@ async fn cache_set_query_results(
                 .expiration_ttl(CACHE_TTL_QUERY_RESULTS)
                 .execute()
                 .await;
+        }
+    }
+}
+
+// ============================================================================
+// PROXY HELPER
+// ============================================================================
+
+/// Proxy a request to the TypeScript API worker via service binding
+async fn proxy_to_api(mut req: Request, env: &Env) -> Result<Response> {
+    // Get service binding
+    let api = match env.service("API") {
+        Ok(s) => s,
+        Err(e) => {
+            console_error!("Service binding error: {:?}", e);
+            return error_response("Service binding not available", 503);
+        }
+    };
+
+    // Clone the original request to forward it
+    let url = req.url()?;
+    let method = req.method();
+    let headers = req.headers().clone();
+
+    // For POST requests, get the body as text (JSON)
+    let body_text = req.text().await?;
+
+    // Create a new request with the same properties
+    let mut init = RequestInit::new();
+    init.with_method(method);
+    init.with_headers(headers);
+
+    // Set body if present
+    if !body_text.is_empty() {
+        init.with_body(Some(JsValue::from_str(&body_text)));
+    }
+
+    let proxy_req = Request::new_with_init(url.as_str(), &init)?;
+
+    // Forward to TypeScript API
+    match api.fetch_request(proxy_req).await {
+        Ok(response) => Ok(response),
+        Err(e) => {
+            console_error!("Proxy fetch error: {:?}", e);
+            error_response(&format!("Proxy error: {:?}", e), 502)
         }
     }
 }
@@ -1180,9 +1225,9 @@ async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
         }
         Method::Post => {
             // POST endpoints (buy, rent, release) are write operations
-            // For now, return error - these should stay in TypeScript for complex business logic
+            // Proxy these to the TypeScript API which has the business logic
             if path == "/api/public/buy" || path == "/api/public/rent" || path == "/api/public/release" {
-                return error_response("Write operations are not supported in the Rust worker. Use the main API.", 501);
+                return proxy_to_api(req, &env).await;
             }
             error_response("Not found", 404)
         }

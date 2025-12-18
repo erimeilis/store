@@ -9,8 +9,9 @@ import { IPaginatedResponse } from '@/types/models';
 import { SALE_STATUS_CONFIG, PAYMENT_METHOD_LABELS } from '@/types/sales';
 import { RENTAL_STATUS_CONFIG, UnifiedTransaction } from '@/types/rentals';
 import { formatApiDate, formatCurrency } from '@/lib/date-utils';
+import { buildItemUrl } from '@/lib/utils';
 import { Card, CardBody } from '@/components/ui/card';
-import { IconShoppingCart, IconClockDollar } from '@tabler/icons-react';
+import { IconShoppingCart, IconClockDollar, IconClockX, IconLink } from '@tabler/icons-react';
 
 // Transaction type display configuration
 const TRANSACTION_TYPE_CONFIG = {
@@ -27,6 +28,24 @@ const TRANSACTION_TYPE_CONFIG = {
     colorClass: 'text-info',
     bgClass: 'bg-info/20',
     badgeClass: 'badge-info'
+  }
+};
+
+// Event type display configuration (for rentals: rent vs release)
+const RENTAL_EVENT_CONFIG = {
+  rent: {
+    label: 'Rented',
+    icon: IconClockDollar,
+    colorClass: 'text-accent',
+    bgClass: 'bg-accent/20',
+    badgeClass: 'badge-accent'
+  },
+  release: {
+    label: 'Released',
+    icon: IconClockX,
+    colorClass: 'text-secondary',
+    bgClass: 'bg-secondary/20',
+    badgeClass: 'badge-secondary'
   }
 };
 
@@ -57,13 +76,22 @@ const transactionColumns: IColumnDefinition<UnifiedTransaction>[] = [
       { value: 'rental', label: 'Rental' }
     ],
     render: (transaction) => {
-      const config = TRANSACTION_TYPE_CONFIG[transaction.transactionType];
+      // For rentals, show rent/release event type; for sales, show sale
+      const isRental = transaction.transactionType === 'rental';
+      const eventType = isRental && transaction.eventType;
+
+      const config = isRental && eventType
+        ? RENTAL_EVENT_CONFIG[eventType as keyof typeof RENTAL_EVENT_CONFIG]
+        : TRANSACTION_TYPE_CONFIG[transaction.transactionType];
+
       const IconComponent = config.icon;
+      const label = config.label;
+
       return (
         <div className="flex items-center justify-center">
           <div
             className="tooltip tooltip-right"
-            data-tip={config.label}
+            data-tip={label}
           >
             <div className={`
               flex items-center justify-center w-8 h-8 rounded-full
@@ -108,9 +136,13 @@ const transactionColumns: IColumnDefinition<UnifiedTransaction>[] = [
     filterable: true,
     filterType: 'text',
     render: (transaction) => (
-      <span className="badge badge-outline">
+      <a
+        href={`/dashboard/tables/${transaction.tableId}/data`}
+        className="badge badge-outline hover:badge-primary cursor-pointer transition-colors"
+        title={`View ${transaction.tableName} table`}
+      >
         {transaction.tableName}
-      </span>
+      </a>
     )
   },
   {
@@ -120,16 +152,26 @@ const transactionColumns: IColumnDefinition<UnifiedTransaction>[] = [
     filterable: true,
     filterType: 'text',
     render: (transaction) => (
-      <div className="flex flex-col">
-        <span className="font-medium truncate max-w-[120px]" title={transaction.itemName}>
+      <a
+        href={buildItemUrl(transaction.tableId, transaction.itemId, transaction.itemSnapshot)}
+        className="flex flex-col link-hover group"
+        title={`View item in ${transaction.tableName}`}
+      >
+        <span className="font-medium truncate max-w-[150px] group-hover:text-primary" title={transaction.itemName}>
           {transaction.itemName || 'Unknown Item'}
         </span>
         {transaction.quantity > 1 && (
-          <span className="text-xs text-base-content/60">
+          <span className="text-xs text-base-content/60 group-hover:text-primary/70">
             Qty: {transaction.quantity}
           </span>
         )}
-      </div>
+        {transaction.relatedTransactionId && (
+          <span className="text-xs text-base-content/50 flex items-center gap-1">
+            <IconLink size={10} />
+            {transaction.eventType === 'rent' ? 'Has release' : 'Has rent'}
+          </span>
+        )}
+      </a>
     )
   },
   {

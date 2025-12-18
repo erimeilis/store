@@ -18,7 +18,7 @@ import {formatApiDate} from '@/lib/date-utils'
 import {clientApiRequest} from '@/lib/client-api'
 import {ProtectedColumnBadge} from '@/components/tables/protected-column-indicator'
 import {TablePageHeader} from '@/components/tables/page-header'
-import {toDisplayName, hasColumnNameIssues, getColumnNameIssues} from '@/utils/column-name-utils'
+import {toDisplayName, toInternalName, hasColumnNameIssues, getColumnNameIssues} from '@/utils/column-name-utils'
 
 interface TableColumnsPageProps {
     tableSchema?: TableSchema | null;
@@ -221,7 +221,7 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                         />
                         {hasIssues && (
                             <span
-                                className="tooltip tooltip-warning"
+                                className="tooltip tooltip-right tooltip-warning"
                                 data-tip={`Issues: ${issues.join(', ')}`}
                             >
                                 <IconAlertTriangle className="h-4 w-4 text-warning" />
@@ -237,7 +237,11 @@ export default function TableColumnsPage({tableSchema = null, tableId}: TableCol
                 required: true,
                 minLength: 1,
                 maxLength: 100
-            }
+            },
+            // Show display name when editing (e.g., "Incoming Per Minute" instead of "incomingPerMinute")
+            getEditValue: (column) => toDisplayName(column.name),
+            // Convert back to camelCase when saving
+            transformEditValue: (value) => toInternalName(value)
         },
         {
             key: 'type',

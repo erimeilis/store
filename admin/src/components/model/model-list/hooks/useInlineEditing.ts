@@ -46,13 +46,20 @@ export function useInlineEditing<T extends IModel>({
         if (!column.editableInline) return
 
         const columnKey = String(column.key)
+        setEditingCell({itemId: item.id, columnKey})
+
+        // Use custom getEditValue if provided
+        if (column.getEditValue) {
+            setEditValue(column.getEditValue(item))
+            setEditingError('')
+            return
+        }
+
         // Check if this is a dynamic table data row (has nested data property)
         const isDynamicTableData = 'data' in item && typeof (item as any).data === 'object'
         const currentValue = isDynamicTableData
             ? (item as any).data[columnKey]
             : item[column.key as keyof T]
-
-        setEditingCell({itemId: item.id, columnKey})
 
         // For select/toggle fields with boolean values, convert properly
         let editValueToSet: string
@@ -142,7 +149,12 @@ export function useInlineEditing<T extends IModel>({
         }
 
         // Use provided value or fall back to current editValue
-        const currentValue = valueToSave ?? editValue
+        let currentValue = valueToSave ?? editValue
+
+        // Apply transform if provided (e.g., convert display name to internal format)
+        if (column.transformEditValue) {
+            currentValue = column.transformEditValue(currentValue)
+        }
 
         const validationError = validateEditValue(column, currentValue)
         if (validationError) {

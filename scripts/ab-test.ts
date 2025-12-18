@@ -318,8 +318,9 @@ async function detectPublicTableId(baseUrl: string, token: string): Promise<stri
       return publicTable.id
     }
     // Fallback to first table if no public table found
-    if (tables.length > 0) {
-      return tables[0].id
+    const firstTable = tables[0]
+    if (firstTable) {
+      return firstTable.id
     }
   }
 

@@ -84,7 +84,7 @@ export function ProtectedColumnIndicator({
   }
 
   return (
-    <div className="tooltip tooltip-top" data-tip={message}>
+    <div className="tooltip tooltip-right" data-tip={message}>
       {indicator}
     </div>
   );

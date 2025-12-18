@@ -32,6 +32,10 @@ export interface IColumnDefinition<T extends IModel> {
         maxLength?: number;
         pattern?: RegExp;
     };
+    /** Transform raw value to display value when editing starts */
+    getEditValue?: (item: T) => string;
+    /** Transform user input back to internal format before saving */
+    transformEditValue?: (value: string) => string;
     onSave?: (item: T, newValue: string) => Promise<void> | void;
 }
 

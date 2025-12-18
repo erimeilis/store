@@ -669,8 +669,32 @@ export class InventoryRepository {
       }
     })
 
+    // Get unique table IDs to check their types
+    const uniqueTableIds = Array.from(new Set(transactionsByItem.map(g => g.tableId)))
+
+    // Fetch table types to exclude 'rent' tables (stock doesn't apply to rentals)
+    const tables = await this.prisma.userTable.findMany({
+      where: {
+        id: { in: uniqueTableIds }
+      },
+      select: {
+        id: true,
+        tableType: true
+      }
+    })
+
+    // Create a map of tableId -> tableType for quick lookup
+    const tableTypeMap = new Map(tables.map(t => [t.id, t.tableType]))
+
+    // Filter out rent tables - stock alerts don't make sense for rentals
+    // (rented + released = 0 stock, but item is actually available)
+    const saleTableTransactions = transactionsByItem.filter(group => {
+      const tableType = tableTypeMap.get(group.tableId)
+      return tableType !== 'rent'
+    })
+
     // Get sample data for each item to extract names
-    const itemDataPromises = transactionsByItem.map(async (group) => {
+    const itemDataPromises = saleTableTransactions.map(async (group) => {
       // Get the most recent transaction for this item that has data
       const sampleTransaction = await this.prisma.inventoryTransaction.findFirst({
         where: {
@@ -701,7 +725,8 @@ export class InventoryRepository {
 
           if (data) {
             // Helper function to extract item name from data
-            const nameFields = ['name', 'product_name', 'item_name', 'title', 'description']
+            // Priority: common name fields first
+            const nameFields = ['name', 'productName', 'itemName', 'title', 'description']
             for (const field of nameFields) {
               if (data[field] && typeof data[field] === 'string') {
                 itemName = data[field]
@@ -709,10 +734,19 @@ export class InventoryRepository {
               }
             }
 
-            // If no common name field, use first string field
+            // Handle phone numbers: combine number with country/area
+            if (itemName === 'Unknown Item' && data.number) {
+              const parts = [String(data.number)]
+              if (data.country) parts.push(`(${data.country})`)
+              else if (data.area) parts.push(`(${data.area})`)
+              itemName = parts.join(' ')
+            }
+
+            // If still no name, use first string field (but skip price-like fields)
             if (itemName === 'Unknown Item') {
+              const skipFields = ['id', 'price', 'fee', 'cost', 'amount']
               for (const [key, value] of Object.entries(data)) {
-                if (typeof value === 'string' && value.trim() && key !== 'id') {
+                if (typeof value === 'string' && value.trim() && !skipFields.includes(key.toLowerCase())) {
                   itemName = value
                   break
                 }

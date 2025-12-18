@@ -147,6 +147,10 @@ export function getRequestDomain(request: Request): string | null {
  * Parse token permissions from comma-separated string
  */
 export function parseTokenPermissions(permissionsString: string): TokenPermissions[] {
+  if (!permissionsString) {
+    console.error('parseTokenPermissions called with undefined/null permissions')
+    return ['read'] as TokenPermissions[] // Safe default
+  }
   return permissionsString.split(',').map(p => p.trim()) as TokenPermissions[]
 }
 
