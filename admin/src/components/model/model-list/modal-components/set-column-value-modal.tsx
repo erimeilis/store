@@ -10,8 +10,11 @@
 
 import { MassActionConfirmation } from '@/components/shared/mass-action-confirmation'
 import { InputFieldType } from '@/types/models'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { getCountryOptions } from '@/components/ui/country-select'
+import { IconX, IconChevronDown } from '@tabler/icons-react'
+import { cn } from '@/lib/utils'
+import { createPortal } from 'react-dom'
 
 export interface ColumnInfo {
     name: string
@@ -44,6 +47,79 @@ export interface SetColumnValueModalProps {
  */
 function isModuleColumnType(type: string): boolean {
     return type.includes(':')
+}
+
+/**
+ * Parse comma-separated values into array
+ */
+function parseMultiValue(value: string): string[] {
+    if (!value) return []
+    return value.split(',').map(v => v.trim()).filter(Boolean)
+}
+
+/**
+ * Join array values into comma-separated string
+ */
+function joinMultiValue(values: string[]): string {
+    return values.join(',')
+}
+
+/**
+ * Get business indicator from option's raw.business field
+ * - true: business only
+ * - false: personal only
+ * - null/undefined: both variants needed
+ */
+function getBusinessIndicator(opt: { raw?: Record<string, unknown> }): 'business' | 'personal' | 'both' {
+    const business = opt.raw?.business
+    if (business === true) return 'business'
+    if (business === false) return 'personal'
+    return 'both' // null or undefined means both variants
+}
+
+/**
+ * Process options to add business/personal indicators
+ */
+function processOptionsWithIndicators(
+    options: Array<{ value: string; label: string; raw?: Record<string, unknown> }>
+): Array<{ value: string; label: string; indicator?: 'business' | 'personal' | null }> {
+    const result: Array<{ value: string; label: string; indicator?: 'business' | 'personal' | null }> = []
+
+    options.forEach(opt => {
+        const indicator = getBusinessIndicator(opt)
+
+        if (indicator === 'business') {
+            result.push({
+                value: opt.value.endsWith(':business') ? opt.value : `${opt.value}:business`,
+                label: opt.label.startsWith('[B] ') ? opt.label : `[B] ${opt.label}`,
+                indicator: 'business'
+            })
+        } else if (indicator === 'personal') {
+            result.push({
+                value: opt.value.endsWith(':personal') ? opt.value : `${opt.value}:personal`,
+                label: opt.label.startsWith('[P] ') ? opt.label : `[P] ${opt.label}`,
+                indicator: 'personal'
+            })
+        } else {
+            // Both variants needed (raw.business === null)
+            if (opt.value.endsWith(':business') || opt.value.endsWith(':personal')) {
+                result.push({ ...opt, indicator: null })
+            } else {
+                result.push({
+                    value: `${opt.value}:personal`,
+                    label: `[P] ${opt.label.replace(/^\[(B|P)\]\s*/, '')}`,
+                    indicator: 'personal'
+                })
+                result.push({
+                    value: `${opt.value}:business`,
+                    label: `[B] ${opt.label.replace(/^\[(B|P)\]\s*/, '')}`,
+                    indicator: 'business'
+                })
+            }
+        }
+    })
+
+    return result
 }
 
 /**
@@ -172,18 +248,70 @@ export function SetColumnValueModal({
     const [selectedColumn, setSelectedColumn] = useState<string>('')
     const [inputValue, setInputValue] = useState<string>('')
 
+    // Multiselect state
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+    const [searchQuery, setSearchQuery] = useState('')
+    const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null)
+    const multiselectContainerRef = useRef<HTMLDivElement>(null)
+    const searchInputRef = useRef<HTMLInputElement>(null)
+
+    // Calculate dropdown position
+    const updateDropdownPosition = useCallback(() => {
+        if (multiselectContainerRef.current) {
+            const rect = multiselectContainerRef.current.getBoundingClientRect()
+            setDropdownPosition({
+                top: rect.bottom + window.scrollY + 4,
+                left: rect.left + window.scrollX,
+                width: Math.max(rect.width, 250)
+            })
+        }
+    }, [])
+
     // Reset state when modal opens/closes
     useEffect(() => {
         if (isOpen) {
             setSelectedColumn('')
             setInputValue('')
+            setIsDropdownOpen(false)
+            setSearchQuery('')
         }
     }, [isOpen])
 
     // Reset input value when column changes
     useEffect(() => {
         setInputValue('')
+        setIsDropdownOpen(false)
+        setSearchQuery('')
     }, [selectedColumn])
+
+    // Update dropdown position when opening
+    useEffect(() => {
+        if (isDropdownOpen) {
+            updateDropdownPosition()
+            const handleUpdate = () => updateDropdownPosition()
+            window.addEventListener('scroll', handleUpdate, true)
+            window.addEventListener('resize', handleUpdate)
+            return () => {
+                window.removeEventListener('scroll', handleUpdate, true)
+                window.removeEventListener('resize', handleUpdate)
+            }
+        }
+    }, [isDropdownOpen, updateDropdownPosition])
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Node
+            const dropdownPortal = document.getElementById('mass-action-multiselect-portal')
+            if (multiselectContainerRef.current && !multiselectContainerRef.current.contains(target) &&
+                (!dropdownPortal || !dropdownPortal.contains(target))) {
+                setIsDropdownOpen(false)
+                setSearchQuery('')
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
 
     // Get the selected column info
     const selectedColumnInfo = useMemo(() => {
@@ -209,6 +337,70 @@ export function SetColumnValueModal({
         if (!selectedColumnInfo) return false
         return isModuleColumnType(selectedColumnInfo.type)
     }, [selectedColumnInfo])
+
+    // Process options with business/personal indicators for multiselect
+    const processedOptions = useMemo(() => {
+        if (!columnOptions?.options) return []
+        return processOptionsWithIndicators(columnOptions.options)
+    }, [columnOptions])
+
+    // Parse current value into array for multiselect
+    const selectedValues = useMemo(() => parseMultiValue(inputValue), [inputValue])
+
+    // Filter options based on search and selection for multiselect
+    const availableOptions = useMemo(() => {
+        return processedOptions.filter(opt =>
+            !selectedValues.includes(opt.value) &&
+            opt.label.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    }, [processedOptions, selectedValues, searchQuery])
+
+    // Get selected options for display in multiselect
+    const selectedOptionsDisplay = useMemo(() => {
+        return selectedValues.map(value => {
+            const opt = processedOptions.find(o => o.value === value)
+            return opt || { value, label: value, indicator: null }
+        })
+    }, [selectedValues, processedOptions])
+
+    // Multiselect handlers
+    const handleMultiselectAdd = (optionValue: string) => {
+        const newValues = [...selectedValues, optionValue]
+        setInputValue(joinMultiValue(newValues))
+        setSearchQuery('')
+        searchInputRef.current?.focus()
+    }
+
+    const handleMultiselectRemove = (optionValue: string, e: React.MouseEvent) => {
+        e.stopPropagation()
+        const newValues = selectedValues.filter(v => v !== optionValue)
+        setInputValue(joinMultiValue(newValues))
+    }
+
+    const handleMultiselectKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Backspace' && searchQuery === '' && selectedValues.length > 0) {
+            const newValues = selectedValues.slice(0, -1)
+            setInputValue(joinMultiValue(newValues))
+        }
+        if (e.key === 'Escape') {
+            setIsDropdownOpen(false)
+            setSearchQuery('')
+        }
+        if (e.key === 'Enter' && availableOptions.length > 0) {
+            e.preventDefault()
+            handleMultiselectAdd(availableOptions[0].value)
+        }
+    }
+
+    const getChipColor = (indicator?: 'business' | 'personal' | null) => {
+        if (indicator === 'business') return 'badge-primary'
+        if (indicator === 'personal') return 'badge-ghost'
+        return 'badge-neutral'
+    }
+
+    const getCleanLabel = (label: string) => {
+        return label.replace(/^\[(B|P)\]\s*/, '')
+    }
 
     const handleConfirm = async () => {
         if (!selectedColumn) return
@@ -257,12 +449,121 @@ export function SetColumnValueModal({
         const htmlType = getHtmlInputType(inputType)
         const step = getStepValue(inputType)
 
-        // Handle module types with options (select dropdown)
+        // Handle module types with options
         if (columnOptions) {
             const { options, multiValue } = columnOptions
 
-            // Note: For mass update, we only support single value selection
-            // even if the column supports multiValue
+            // For multiValue columns, render a chip-based multiselect
+            if (multiValue) {
+                return (
+                    <div className="mb-4">
+                        <label className="label">
+                            <span className="label-text font-medium">
+                                New Value for {selectedColumnInfo.label}
+                            </span>
+                        </label>
+                        <div
+                            ref={multiselectContainerRef}
+                            className={cn(
+                                'min-h-[42px] rounded-lg border bg-base-100 px-3 py-2 cursor-pointer flex flex-wrap gap-1.5 items-center',
+                                'border-base-300 focus-within:border-primary',
+                                isLoading && 'opacity-50 pointer-events-none'
+                            )}
+                            onClick={() => {
+                                setIsDropdownOpen(true)
+                                searchInputRef.current?.focus()
+                            }}
+                        >
+                            {/* Selected chips */}
+                            {selectedOptionsDisplay.map((option) => (
+                                <span
+                                    key={option.value}
+                                    className={cn('badge badge-sm gap-0.5', getChipColor(option.indicator))}
+                                >
+                                    {option.indicator && (
+                                        <span className="opacity-70 font-bold">
+                                            {option.indicator === 'business' ? 'B' : 'P'}
+                                        </span>
+                                    )}
+                                    {getCleanLabel(option.label)}
+                                    <button
+                                        type="button"
+                                        onClick={(e) => handleMultiselectRemove(option.value, e)}
+                                        className="hover:text-error ml-0.5"
+                                    >
+                                        <IconX size={12} />
+                                    </button>
+                                </span>
+                            ))}
+
+                            {/* Search input */}
+                            <input
+                                ref={searchInputRef}
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onFocus={() => setIsDropdownOpen(true)}
+                                onKeyDown={handleMultiselectKeyDown}
+                                placeholder={selectedValues.length === 0 ? 'Select values...' : ''}
+                                className="flex-1 min-w-[80px] bg-transparent outline-none text-sm"
+                                disabled={isLoading}
+                            />
+
+                            <IconChevronDown
+                                size={16}
+                                className={cn(
+                                    'text-base-content/50 transition-transform',
+                                    isDropdownOpen && 'rotate-180'
+                                )}
+                            />
+                        </div>
+
+                        {/* Dropdown Portal */}
+                        {isDropdownOpen && dropdownPosition && typeof document !== 'undefined' && createPortal(
+                            <div
+                                id="mass-action-multiselect-portal"
+                                className="fixed z-[9999] max-h-60 overflow-auto rounded-lg border border-base-300 bg-base-100 shadow-lg"
+                                style={{
+                                    top: dropdownPosition.top,
+                                    left: dropdownPosition.left,
+                                    width: dropdownPosition.width,
+                                }}
+                            >
+                                {availableOptions.length === 0 ? (
+                                    <div className="px-3 py-2 text-base-content/50 text-sm">
+                                        {searchQuery ? 'No matches' : 'No more options'}
+                                    </div>
+                                ) : (
+                                    availableOptions.map((option) => (
+                                        <div
+                                            key={option.value}
+                                            onClick={() => handleMultiselectAdd(option.value)}
+                                            className="px-3 py-2 cursor-pointer hover:bg-base-200 flex items-center gap-2 text-sm"
+                                        >
+                                            {option.indicator && (
+                                                <span className={cn(
+                                                    'badge badge-xs',
+                                                    option.indicator === 'business' ? 'badge-primary' : 'badge-ghost'
+                                                )}>
+                                                    {option.indicator === 'business' ? 'B' : 'P'}
+                                                </span>
+                                            )}
+                                            <span>{getCleanLabel(option.label)}</span>
+                                        </div>
+                                    ))
+                                )}
+                            </div>,
+                            document.body
+                        )}
+
+                        <label className="label">
+                            <span className="label-text-alt">Select one or more values</span>
+                        </label>
+                    </div>
+                )
+            }
+
+            // For single-value columns, render a standard select dropdown
             return (
                 <div className="mb-4">
                     <label className="label">
@@ -281,11 +582,6 @@ export function SetColumnValueModal({
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                     </select>
-                    {multiValue && (
-                        <label className="label">
-                            <span className="label-text-alt">Note: Only a single value can be set via mass update</span>
-                        </label>
-                    )}
                 </div>
             )
         }

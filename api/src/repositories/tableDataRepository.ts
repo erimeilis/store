@@ -53,19 +53,11 @@ export class TableDataRepository {
                         ]
                     }
                 } else {
-                    // For string values, implement partial matching
-                    // We need to find JSON like: "columnName":"somevalue containing filterValue"
-                    // Since SQLite contains is case-sensitive, we'll use a simpler approach
-
-                    // Use raw SQL query for more flexible matching
-                    // This will match any JSON that contains the column and partial value
+                    // For string values, use proper JSON value matching
+                    // Match exact value in the specific column: "columnName":"value"
+                    // This prevents matching substrings in other fields (e.g., "AT" in "Rotterdam")
                     return {
-                        AND: [
-                            // Must have the column
-                            {data: {contains: `"${columnName}":`}},
-                            // Must contain the search value somewhere in the JSON
-                            {data: {contains: filterValue}}
-                        ]
+                        data: {contains: `"${columnName}":"${filterValue}"`}
                     }
                 }
             })
