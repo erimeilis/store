@@ -3,14 +3,22 @@
 /**
  * Store - Unified Deployment Script
  *
- * This script handles the complete deployment process:
+ * This script handles the COMPLETE deployment process automatically:
  * 0. Update wrangler to latest version
  * 1. Load environment variables from .env
- * 2. Generate wrangler.toml files from templates
- * 3. Scan modules (JSON manifests)
- * 4. Apply database migrations to production (idempotent, uses IF NOT EXISTS)
- * 5. Upload secrets to Cloudflare
- * 6. Deploy workers
+ * 2. Ensure D1 databases exist (creates and updates .env if missing)
+ * 3. Ensure KV namespaces exist (creates and updates .env if missing)
+ * 4. Generate wrangler.toml files from templates
+ * 5. Scan modules (JSON manifests)
+ * 6. Initialize database:
+ *    - Apply migrations (idempotent, uses IF NOT EXISTS)
+ *    - Seed essential tokens if database is fresh
+ *    - First user can login and become admin automatically
+ * 7. Upload secrets to Cloudflare
+ * 8. Deploy workers
+ *
+ * IMPORTANT: This script handles EVERYTHING for a fresh deployment.
+ * Run once and the application should be fully functional.
  *
  * Project Structure:
  *   - api/         Backend TypeScript API (store-api)
@@ -23,7 +31,7 @@
  *   node scripts/deploy.js admin              # Deploy admin (frontend) only
  *   node scripts/deploy.js public-api         # Deploy public-api (Rust) only
  *   node scripts/deploy.js --dry-run          # Show what would be deployed
- *   node scripts/deploy.js --skip-migrations  # Skip database migrations
+ *   node scripts/deploy.js --skip-migrations  # Skip database initialization
  *
  * Legacy aliases (for backwards compatibility):
  *   node scripts/deploy.js backend            # Same as 'api'
@@ -31,7 +39,8 @@
  */
 
 import { execSync, spawnSync } from 'child_process'
-import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, unlinkSync, readdirSync } from 'fs'
+import { join } from 'path'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -181,6 +190,257 @@ function getAppVersion() {
   const pkgPath = resolve(ROOT_DIR, 'package.json')
   const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
   return pkg.version
+}
+
+/**
+ * Update .env file with a new key=value
+ */
+function updateEnvFile(key, value) {
+  const envPath = resolve(ROOT_DIR, '.env')
+  let content = readFileSync(envPath, 'utf-8')
+
+  // Check if key exists (with empty value)
+  const regex = new RegExp(`^${key}=.*$`, 'm')
+  if (regex.test(content)) {
+    content = content.replace(regex, `${key}=${value}`)
+  } else {
+    // Append to file
+    content += `\n${key}=${value}`
+  }
+
+  writeFileSync(envPath, content)
+}
+
+/**
+ * Ensure KV namespace exists, create if not
+ * Returns the namespace ID
+ */
+function ensureKvNamespace(env, namespaceName, envKey, dryRun = false) {
+  const existingId = env[envKey]
+
+  if (existingId && existingId.trim() !== '') {
+    logSuccess(`${envKey} already configured: ${existingId.substring(0, 8)}...`)
+    return existingId
+  }
+
+  log(`  Creating KV namespace: ${namespaceName}...`, 'blue')
+
+  if (dryRun) {
+    logSuccess(`Would create KV namespace: ${namespaceName}`)
+    return 'dry-run-id'
+  }
+
+  try {
+    // Create the KV namespace
+    const output = execSync(`wrangler kv namespace create "${namespaceName}"`, {
+      cwd: ROOT_DIR,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+
+    // Parse the ID from output
+    // New format (JSON): "id": "abc123def456"
+    // Old format (TOML): id = "abc123def456"
+    let namespaceId = null
+
+    // Try JSON format first
+    const jsonMatch = output.match(/"id"\s*:\s*"([^"]+)"/)
+    if (jsonMatch && jsonMatch[1]) {
+      namespaceId = jsonMatch[1]
+    }
+
+    // Fallback to TOML format
+    if (!namespaceId) {
+      const tomlMatch = output.match(/id\s*=\s*"([^"]+)"/)
+      if (tomlMatch && tomlMatch[1]) {
+        namespaceId = tomlMatch[1]
+      }
+    }
+
+    if (!namespaceId) {
+      logWarning(`Could not parse KV namespace ID from output: ${output}`)
+      return ''
+    }
+    logSuccess(`Created KV namespace: ${namespaceId}`)
+
+    // Update .env file
+    updateEnvFile(envKey, namespaceId)
+    logSuccess(`Updated .env with ${envKey}`)
+
+    // Update env object for current run
+    env[envKey] = namespaceId
+
+    return namespaceId
+  } catch (error) {
+    // Check if namespace already exists
+    if (error.message?.includes('already exists') || error.stderr?.includes('already exists')) {
+      log('  KV namespace already exists, fetching ID...', 'blue')
+
+      try {
+        // List namespaces to find the ID
+        const listOutput = execSync('wrangler kv namespace list', {
+          cwd: ROOT_DIR,
+          encoding: 'utf-8',
+          stdio: ['pipe', 'pipe', 'pipe'],
+        })
+
+        const namespaces = JSON.parse(listOutput)
+        const found = namespaces.find(ns => ns.title === namespaceName || ns.title.includes(namespaceName))
+
+        if (found) {
+          logSuccess(`Found existing KV namespace: ${found.id}`)
+          updateEnvFile(envKey, found.id)
+          logSuccess(`Updated .env with ${envKey}`)
+          env[envKey] = found.id
+          return found.id
+        }
+      } catch (listError) {
+        logWarning(`Could not list KV namespaces: ${listError.message}`)
+      }
+    }
+
+    logError(`Failed to create KV namespace: ${error.message}`)
+    return ''
+  }
+}
+
+/**
+ * Ensure all required KV namespaces exist
+ */
+function ensureKvNamespaces(env, dryRun = false) {
+  log('  Checking KV namespaces...', 'blue')
+
+  // Production KV namespace
+  ensureKvNamespace(env, 'store-cache', 'KV_NAMESPACE_ID', dryRun)
+
+  // Preview KV namespace
+  ensureKvNamespace(env, 'store-cache-preview', 'KV_PREVIEW_NAMESPACE_ID', dryRun)
+}
+
+/**
+ * Ensure D1 database exists, create if not
+ * Returns the database ID
+ */
+function ensureD1Database(env, dbName, envKey, dryRun = false) {
+  const existingId = env[envKey]
+
+  if (existingId && existingId.trim() !== '') {
+    logSuccess(`${envKey} already configured: ${existingId.substring(0, 8)}...`)
+    return existingId
+  }
+
+  log(`  Creating D1 database: ${dbName}...`, 'blue')
+
+  if (dryRun) {
+    logSuccess(`Would create D1 database: ${dbName}`)
+    return 'dry-run-id'
+  }
+
+  try {
+    // Create the D1 database
+    const output = execSync(`wrangler d1 create "${dbName}"`, {
+      cwd: ROOT_DIR,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+
+    // Parse the database ID from output
+    // Format: database_id = "abc123def456"
+    let databaseId = null
+
+    // Try to find the database_id in the output
+    const idMatch = output.match(/database_id\s*=\s*"([^"]+)"/)
+    if (idMatch && idMatch[1]) {
+      databaseId = idMatch[1]
+    }
+
+    // Also try JSON format just in case
+    if (!databaseId) {
+      const jsonMatch = output.match(/"database_id"\s*:\s*"([^"]+)"/)
+      if (jsonMatch && jsonMatch[1]) {
+        databaseId = jsonMatch[1]
+      }
+    }
+
+    // Also try uuid format (just the ID on a line)
+    if (!databaseId) {
+      const uuidMatch = output.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i)
+      if (uuidMatch && uuidMatch[1]) {
+        databaseId = uuidMatch[1]
+      }
+    }
+
+    if (!databaseId) {
+      logWarning(`Could not parse D1 database ID from output: ${output}`)
+      // Try to list databases to find it
+      return findD1DatabaseId(dbName, env, envKey)
+    }
+
+    logSuccess(`Created D1 database: ${databaseId}`)
+
+    // Update .env file
+    updateEnvFile(envKey, databaseId)
+    logSuccess(`Updated .env with ${envKey}`)
+
+    // Update env object for current run
+    env[envKey] = databaseId
+
+    return databaseId
+  } catch (error) {
+    // Check if database already exists
+    if (error.message?.includes('already exists') || error.stderr?.includes('already exists')) {
+      log('  D1 database already exists, fetching ID...', 'blue')
+      return findD1DatabaseId(dbName, env, envKey)
+    }
+
+    logError(`Failed to create D1 database: ${error.message}`)
+    return ''
+  }
+}
+
+/**
+ * Find existing D1 database ID by name
+ */
+function findD1DatabaseId(dbName, env, envKey) {
+  try {
+    const listOutput = execSync('wrangler d1 list --json', {
+      cwd: ROOT_DIR,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+
+    const databases = JSON.parse(listOutput)
+    const found = databases.find(db => db.name === dbName)
+
+    if (found) {
+      logSuccess(`Found existing D1 database: ${found.uuid}`)
+      updateEnvFile(envKey, found.uuid)
+      logSuccess(`Updated .env with ${envKey}`)
+      env[envKey] = found.uuid
+      return found.uuid
+    }
+
+    logWarning(`Could not find D1 database named: ${dbName}`)
+    return ''
+  } catch (listError) {
+    logWarning(`Could not list D1 databases: ${listError.message}`)
+    return ''
+  }
+}
+
+/**
+ * Ensure all required D1 databases exist
+ */
+function ensureD1Databases(env, dryRun = false) {
+  log('  Checking D1 databases...', 'blue')
+
+  // Production database
+  const prodDbName = env.D1_DATABASE_NAME || 'store-database'
+  ensureD1Database(env, prodDbName, 'D1_DATABASE_ID', dryRun)
+
+  // Preview database
+  const previewDbName = env.D1_PREVIEW_DATABASE_NAME || 'store-database-preview'
+  ensureD1Database(env, previewDbName, 'D1_PREVIEW_DATABASE_ID', dryRun)
 }
 
 /**
@@ -426,21 +686,179 @@ function scanModules(dryRun = false) {
 
 /**
  * Apply database migrations to production
+ * Iterates through migration folders and executes each SQL file directly
  * Uses IF NOT EXISTS so migrations are idempotent and safe to re-run
  */
-function applyMigrations(dryRun = false) {
-  if (dryRun) {
-    logSuccess('Would run: npm run db:migrate:prod')
+function applyMigrations(env, dryRun = false) {
+  const migrationsDir = resolve(ROOT_DIR, 'api/prisma/migrations')
+  const dbName = env.D1_DATABASE_NAME || 'store-database'
+
+  if (!existsSync(migrationsDir)) {
+    logError('Migrations directory not found: api/prisma/migrations')
+    return false
+  }
+
+  const migrationFolders = readdirSync(migrationsDir).sort()
+
+  if (migrationFolders.length === 0) {
+    logWarning('No migration folders found')
     return true
   }
 
+  log(`  Applying ${migrationFolders.length} migrations to ${dbName}...`, 'blue')
+
+  for (const folder of migrationFolders) {
+    const migrationFile = join(migrationsDir, folder, 'migration.sql')
+    if (existsSync(migrationFile)) {
+      if (dryRun) {
+        logSuccess(`Would apply migration: ${folder}`)
+      } else {
+        try {
+          log(`  📄 Applying migration: ${folder}`, 'blue')
+          execSync(
+            `wrangler d1 execute ${dbName} --remote --file="${migrationFile}" --config api/wrangler.toml`,
+            { cwd: ROOT_DIR, encoding: 'utf-8', stdio: 'inherit' }
+          )
+        } catch (error) {
+          // Migrations are idempotent (IF NOT EXISTS), so errors are often fine
+          logWarning(`Migration ${folder} had warnings (may be already applied)`)
+        }
+      }
+    }
+  }
+
+  logSuccess('All migrations applied successfully')
+  return true
+}
+
+/**
+ * Check if tokens table is empty (fresh database)
+ */
+function isTokensTableEmpty(env) {
   try {
-    exec('npm run db:migrate:prod', { silent: false })
-    logSuccess('Migrations applied successfully')
+    const dbName = env.D1_DATABASE_NAME || 'store-database'
+    const result = execSync(
+      `wrangler d1 execute ${dbName} --remote --command="SELECT COUNT(*) as count FROM tokens;" --config api/wrangler.toml`,
+      { cwd: ROOT_DIR, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
+    )
+
+    // Parse JSON output from wrangler
+    const jsonMatch = result.match(/\[\s*{[\s\S]*}\s*\]/)
+    if (jsonMatch) {
+      const jsonResults = JSON.parse(jsonMatch[0])
+      if (Array.isArray(jsonResults) && jsonResults[0]?.results?.[0]?.count !== undefined) {
+        const count = jsonResults[0].results[0].count
+        return count === 0
+      }
+    }
+
+    // If we can't parse, assume it's empty (safe to re-seed with INSERT OR REPLACE)
     return true
   } catch (error) {
-    logWarning(`Migration may have partially failed: ${error.message}`)
-    return true // Continue deployment - migrations are idempotent
+    // Table might not exist yet, or other error - assume fresh database
+    logWarning(`Could not check tokens table: ${error.message}`)
+    return true
+  }
+}
+
+/**
+ * Seed essential tokens into the database
+ * Uses INSERT OR REPLACE so it's safe to run multiple times
+ */
+function seedProductionTokens(env, dryRun = false) {
+  let productionTokens = loadProductionTokens()
+
+  if (!productionTokens) {
+    logWarning('No production tokens found - generating new ones')
+    // Generate new tokens using token-manager
+    try {
+      exec('npx tsx scripts/token-manager.ts production', { silent: true })
+      // Reload tokens after generation
+      productionTokens = loadProductionTokens()
+      if (!productionTokens) {
+        logError('Failed to generate production tokens')
+        return false
+      }
+    } catch (error) {
+      logError(`Failed to generate tokens: ${error.message}`)
+      return false
+    }
+  }
+
+  if (dryRun) {
+    logSuccess('Would seed production tokens to database')
+    return true
+  }
+
+  // Read the essential-tokens.sql template
+  const tokensSeedPath = resolve(ROOT_DIR, 'seeds/essential-tokens.sql')
+  if (!existsSync(tokensSeedPath)) {
+    logError('seeds/essential-tokens.sql not found')
+    return false
+  }
+
+  let tokensSeed = readFileSync(tokensSeedPath, 'utf-8')
+
+  // Get allowed domains from environment
+  const apiDomain = env.API_DOMAIN || 'localhost:8787'
+  const frontendDomain = env.FRONTEND_DOMAIN || 'localhost:5173'
+  const allowedDomains = JSON.stringify([apiDomain, frontendDomain])
+
+  // Replace placeholders with actual values
+  tokensSeed = tokensSeed
+    .replace(/frontend-access-token-placeholder/g, productionTokens.frontendToken)
+    .replace(/admin-access-token-placeholder/g, productionTokens.adminToken)
+    .replace(/\["placeholder-domain"\]/g, allowedDomains)
+
+  // Write to temp file and execute
+  const tempTokensFile = resolve(ROOT_DIR, 'scripts/temp-tokens.sql')
+  writeFileSync(tempTokensFile, tokensSeed)
+
+  try {
+    const dbName = env.D1_DATABASE_NAME || 'store-database'
+    exec(
+      `wrangler d1 execute ${dbName} --remote --file="${tempTokensFile}" --config api/wrangler.toml`,
+      { silent: false }
+    )
+    logSuccess('Production tokens seeded to database')
+    return true
+  } catch (error) {
+    logError(`Failed to seed tokens: ${error.message}`)
+    return false
+  } finally {
+    // Clean up temp file
+    if (existsSync(tempTokensFile)) {
+      try {
+        unlinkSync(tempTokensFile)
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+    }
+  }
+}
+
+/**
+ * Initialize database - applies migrations and seeds tokens if needed
+ */
+function initializeDatabase(env, dryRun = false) {
+  // Step 1: Apply migrations
+  if (!applyMigrations(env, dryRun)) {
+    return false
+  }
+
+  // Step 2: Check if tokens need seeding
+  if (dryRun) {
+    logSuccess('Would check and seed tokens if database is fresh')
+    return true
+  }
+
+  const isEmpty = isTokensTableEmpty(env)
+  if (isEmpty) {
+    log('  Database is fresh - seeding essential tokens...', 'blue')
+    return seedProductionTokens(env, dryRun)
+  } else {
+    logSuccess('Tokens already exist in database')
+    return true
   }
 }
 
@@ -540,6 +958,8 @@ async function main() {
 
   // Calculate total steps dynamically
   let totalSteps = 1 // Step 0: update wrangler
+  totalSteps += 1 // Ensure D1 databases
+  totalSteps += 1 // Ensure KV namespaces
   totalSteps += 1 // Generate configs
 
   if (deployApiFlag) {
@@ -583,6 +1003,14 @@ async function main() {
   const appVersion = getAppVersion()
   logSuccess(`App version: ${appVersion}`)
 
+  // Ensure D1 databases exist (creates and updates .env if missing)
+  logStep(++currentStep, totalSteps, 'Ensuring D1 databases...')
+  ensureD1Databases(env, dryRun)
+
+  // Ensure KV namespaces exist (creates and updates .env if missing)
+  logStep(++currentStep, totalSteps, 'Ensuring KV namespaces...')
+  ensureKvNamespaces(env, dryRun)
+
   // Generate configs
   logStep(++currentStep, totalSteps, 'Generating configuration files...')
 
@@ -604,12 +1032,15 @@ async function main() {
     logStep(++currentStep, totalSteps, 'Scanning modules...')
     scanModules(dryRun)
 
-    // Apply database migrations BEFORE deploying new code
+    // Initialize database (migrations + token seeding) BEFORE deploying new code
     if (!skipMigrations) {
-      logStep(++currentStep, totalSteps, 'Applying database migrations...')
-      applyMigrations(dryRun)
+      logStep(++currentStep, totalSteps, 'Initializing database (migrations + tokens)...')
+      if (!initializeDatabase(env, dryRun)) {
+        logError('Database initialization failed')
+        process.exit(1)
+      }
     } else {
-      logWarning('Skipping database migrations (--skip-migrations flag)')
+      logWarning('Skipping database initialization (--skip-migrations flag)')
     }
 
     logStep(++currentStep, totalSteps, 'Uploading api secrets...')

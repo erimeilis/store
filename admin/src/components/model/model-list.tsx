@@ -170,7 +170,9 @@ export function ModelList<T extends IModel>({
         onEditSuccess,
         // All pages selection support
         isAllPagesSelected,
-        setIsAllPagesSelected
+        setIsAllPagesSelected,
+        // Pass current filters for mass actions with selectAll
+        filters
     })
 
     const {

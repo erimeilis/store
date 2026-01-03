@@ -37,6 +37,8 @@ export function TextFilterCell<T extends IModel>({ column, filterValue, onColumn
         onColumnFilter(columnKey, '', 'text');
     };
 
+    const isActive = filterValue !== '';
+
     return (
         <TableCell key={columnKey}>
             <Input
@@ -46,6 +48,7 @@ export function TextFilterCell<T extends IModel>({ column, filterValue, onColumn
                 placeholder={`Filter ${column.label.toLowerCase()}...`}
                 defaultValue={filterValue}
                 onChange={handleInputChange}
+                color={isActive ? 'info' : 'default'}
                 suffix={
                     <button
                         type="button"

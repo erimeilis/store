@@ -22,6 +22,7 @@ export function DateFilterCell<T extends IModel>({
     onToggleDateFilter,
 }: DateFilterCellProps<T>) {
     const columnKey = String(column.key);
+    const isActive = filterValue !== '';
 
     return (
         <TableCell key={columnKey}>
@@ -43,6 +44,7 @@ export function DateFilterCell<T extends IModel>({
                     value={filterValue ? formatApiDate(filterValue) : ''}
                     onClick={() => onToggleDateFilter(columnKey)}
                     readOnly
+                    color={isActive ? 'info' : 'default'}
                     suffix={
                         filterValue ? (
                             <button

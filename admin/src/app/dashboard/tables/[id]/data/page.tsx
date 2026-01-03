@@ -195,9 +195,9 @@ export default function TableDataPage({
 
         try {
             const [moduleId, columnTypeId] = column.type.split(':')
-            const response = await clientApiRequest(
-                `/api/admin/modules/${encodeURIComponent(moduleId)}/column-types/${encodeURIComponent(columnTypeId)}/options`
-            )
+            const apiUrl = `/api/admin/modules/${encodeURIComponent(moduleId)}/column-types/${encodeURIComponent(columnTypeId)}/options`
+
+            const response = await clientApiRequest(apiUrl)
 
             if (response.ok) {
                 const result = await response.json() as {
@@ -225,9 +225,15 @@ export default function TableDataPage({
                         multiValue: multiValue
                     }
                 }))
+            } else {
+                // API call failed - log the error and remove from ref so it can be retried
+                console.error(`[loadModuleTypeOptions] API failed for ${column.name}:`, response.status, response.statusText)
+                loadedOptionsRef.current.delete(column.name)
             }
         } catch (error) {
-            console.error(`Error loading module type options for ${column.name}:`, error)
+            console.error(`[loadModuleTypeOptions] Error loading options for ${column.name}:`, error)
+            // Remove from ref so it can be retried
+            loadedOptionsRef.current.delete(column.name)
         }
     }
 
@@ -528,6 +534,23 @@ export default function TableDataPage({
         }
     }
 
+    // Helper to extract current filters from URL (for passing to mass actions)
+    const getCurrentFilters = (): Record<string, string> => {
+        if (typeof window === 'undefined') return {}
+        const params = new URLSearchParams(window.location.search)
+        const filters: Record<string, string> = {}
+        params.forEach((value, key) => {
+            // Only include filter parameters (filterXxx format)
+            if (key.startsWith('filter') && key !== 'filter') {
+                // Convert filterColumnName to columnName (remove 'filter' prefix and lowercase first letter)
+                const columnName = key.slice(6) // Remove 'filter'
+                const normalizedColumnName = columnName.charAt(0).toLowerCase() + columnName.slice(1)
+                filters[normalizedColumnName] = value
+            }
+        })
+        return filters
+    }
+
     // Handler for confirming the Set Column Value action
     const handleSetColumnValueConfirm = async (columnName: string, value: string | number | boolean) => {
         if (!currentTableId) return
@@ -543,9 +566,14 @@ export default function TableDataPage({
                 value: value
             }
 
-            // Add selectAll flag for all-pages selection
+            // Add selectAll flag and current filters for all-pages selection
             if (setColumnValueIsAllPages) {
                 requestBody.selectAll = true
+                // Pass current filters so mass action only affects filtered rows
+                const currentFilters = getCurrentFilters()
+                if (Object.keys(currentFilters).length > 0) {
+                    requestBody.filters = currentFilters
+                }
             }
 
             const response = await clientApiRequest(

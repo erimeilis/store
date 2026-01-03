@@ -8,7 +8,7 @@
 
 Built with Hono + Rust + React 19 • Deployed on Cloudflare Workers
 
-[![Version](https://img.shields.io/badge/version-3.0.0-blue)](https://github.com/erimeilis/store)
+[![Version](https://img.shields.io/badge/version-3.0.2-blue)](https://github.com/erimeilis/store)
 [![Deployed on Cloudflare Workers](https://img.shields.io/badge/Deployed%20on-Cloudflare%20Workers-F38020?logo=cloudflare&logoColor=white)](https://workers.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -18,8 +18,8 @@ Built with Hono + Rust + React 19 • Deployed on Cloudflare Workers
 
 ## Why I Built This
 
-We have a company. We sell our own stuff, but also resell products from various providers. Some of these providers have normal APIs, but most just give us Excel files. Every damn
-time.
+There was a company. It sold it's own stuff, but also reselled products from various providers. Some of these providers have normal APIs, but most just give Excel files. Every
+damn time.
 
 Someone had to manually load these XLS files into our billing system. It was a mess - inconsistent formats, human errors, no way to track what's in stock.
 
@@ -27,6 +27,8 @@ So I built Store. It's basically a "provider for providers" - a unified place wh
 our billing system and everything syncs automatically.
 
 The best part? It runs on Cloudflare Workers. No servers to rent. No DevOps guy to hire. Just deploy and forget.
+
+Could this be another WooCommerce? Probably. But I didn't build it to compete with anyone - I built it because solving real problems is fun, and Cloudflare's edge platform is a joy to work with.
 
 ---
 
@@ -106,38 +108,38 @@ npm run deploy:admin        # Deploy frontend only
 
 ## ⚙️ Initial Configuration
 
-Before first deployment, set up Cloudflare resources:
+The deployment script handles everything automatically. Just configure `.env`:
 
-1. **Create D1 database**:
+1. **Copy environment template**:
    ```bash
-   wrangler d1 create store-database
-   ```
-   Copy the database ID to `wrangler.toml` files.
-
-2. **Create R2 bucket** (for file storage):
-   ```bash
-   wrangler r2 bucket create store-bucket
+   cp .env.example .env
    ```
 
-3. **Create KV namespace** (for cache):
-   ```bash
-   wrangler kv:namespace create CACHE
+2. **Set required values in `.env`**:
+   ```env
+   CLOUDFLARE_ACCOUNT_ID=your-account-id
+   ZONE_NAME=yourdomain.com
+   API_DOMAIN=api.yourdomain.com
+   FRONTEND_DOMAIN=admin.yourdomain.com
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
    ```
 
-4. **Run migrations**:
+3. **Deploy** (creates D1 databases, KV namespaces, applies migrations, seeds tokens, uploads secrets):
    ```bash
-   npm run db:reset:local      # For local development
-   npm run db:reset:preview    # For preview environment
-   npm run db:reset:production # For production
+   wrangler login
+   npm run deploy
    ```
 
-5. **Set secrets**:
-   ```bash
-   cd frontend
-   wrangler secret put GOOGLE_CLIENT_ID
-   wrangler secret put GOOGLE_CLIENT_SECRET
-   wrangler secret put FRONTEND_ACCESS_TOKEN
-   ```
+That's it! The deploy script automatically:
+- Creates D1 databases if they don't exist
+- Ensures KV namespaces are configured
+- Applies all database migrations
+- Seeds authentication tokens
+- Uploads secrets to Cloudflare
+- Deploys all workers
+
+First user to login becomes admin automatically.
 
 ---
 
@@ -207,11 +209,33 @@ npx tsx scripts/ab-test.ts --env=production
 
 ### 🧩 Module System
 
-- ✅ Extensible column types via JSON modules
-- ✅ Phone number formatting and validation
-- ✅ Multiselect fields with grouped options
-- ✅ KV caching for module data
-- ✅ Admin UI for module management
+Extend Store with JSON-based modules - no code execution, just pure configuration:
+
+- ✅ **Custom Column Types**: Define new column types with validation, formatting, and data sources
+- ✅ **External API Integration**: Fetch entities from any external API (providers, catalogs, inventories)
+  - Bearer, Basic, and custom header authentication
+  - Response mapping with JSON path selectors
+  - Configurable caching (5m to 7d)
+  - Settings references for dynamic configuration
+- ✅ **Table Generators**: Auto-generate tables with predefined schemas and fake data
+- ✅ **Built-in Types**: Phone numbers, multiselect with grouped options, and more
+- ✅ **KV Caching**: All external API responses are cached in Cloudflare KV
+- ✅ **Admin UI**: Install, configure, and manage modules from the dashboard
+
+**Example: Fetch products from external provider API**
+```json
+{
+  "source": {
+    "type": "api",
+    "endpoint": "$settings.providerApiUrl/products",
+    "auth": { "type": "bearer", "token": "$settings.apiToken" },
+    "responseSchema": { "dataPath": "data.items" },
+    "valueField": "sku",
+    "labelField": "name",
+    "cache": "1h"
+  }
+}
+```
 
 ### 🛒 Sale Tables
 

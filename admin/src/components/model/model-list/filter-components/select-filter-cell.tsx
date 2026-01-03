@@ -13,13 +13,19 @@ export function SelectFilterCell<T extends IModel>({ column, filterValue, onColu
     if (!column.filterOptions) return <TableCell key={String(column.key)} />;
 
     const columnKey = String(column.key);
+    const isActive = filterValue !== '';
 
     return (
         <TableCell key={columnKey}>
-            <Select size="sm" value={filterValue} onChange={(e) => onColumnFilter(columnKey, e.target.value, 'select')}>
+            <Select
+                size="sm"
+                value={filterValue}
+                onChange={(e) => onColumnFilter(columnKey, e.target.value, 'select')}
+                color={isActive ? 'info' : 'default'}
+            >
                 <option value="">All</option>
                 {column.filterOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
+                    <option key={`${option.value}-${option.label}`} value={option.value}>
                         {option.label}
                     </option>
                 ))}

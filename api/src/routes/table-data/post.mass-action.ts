@@ -24,7 +24,8 @@ app.post('/:tableId/data/mass-action', adminWriteAuthMiddleware, async (c) => {
   const options = {
     fieldName: body.fieldName,
     value: body.value,
-    selectAll: body.selectAll // Gmail-style select all pages
+    selectAll: body.selectAll, // Gmail-style select all pages
+    filters: body.filters // Filters to apply when selectAll is true (respects current filter context)
   };
 
   const result = await service.executeMassAction(c, user, tableId, body.action, body.ids || [], options);

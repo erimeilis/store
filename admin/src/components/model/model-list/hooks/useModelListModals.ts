@@ -12,6 +12,8 @@ interface UseModelListModalsProps {
     // All pages selection support
     isAllPagesSelected?: boolean
     setIsAllPagesSelected?: React.Dispatch<React.SetStateAction<boolean>>
+    // Current filters (for passing to mass action when selectAll is true)
+    filters?: Record<string, string | number | undefined>
 }
 
 interface UseModelListModalsReturn<T extends IModel> {
@@ -40,7 +42,8 @@ export function useModelListModals<T extends IModel>({
     setSelectedItems,
     onEditSuccess,
     isAllPagesSelected,
-    setIsAllPagesSelected
+    setIsAllPagesSelected,
+    filters
 }: UseModelListModalsProps): UseModelListModalsReturn<T> {
     // Delete modal state
     const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false)
@@ -146,6 +149,25 @@ export function useModelListModals<T extends IModel>({
             // Add selectAll flag for all-pages selection (Gmail-style)
             if (isAllPagesSelected) {
                 requestBody.selectAll = true
+                // Include current filters so mass action respects the filtered view
+                if (filters && Object.keys(filters).length > 0) {
+                    // Convert filters to the format expected by backend
+                    // URL params come as filterColumnName (e.g., filterCountry)
+                    // Backend expects columnName (e.g., country)
+                    const filterParams: Record<string, string> = {}
+                    Object.entries(filters).forEach(([key, value]) => {
+                        // Only include filter parameters (filterXxx format), skip pagination/sort
+                        if (key.startsWith('filter') && key !== 'filter' && value !== undefined && value !== '') {
+                            // Convert filterColumnName to columnName (remove 'filter' prefix and lowercase first letter)
+                            const columnName = key.slice(6) // Remove 'filter'
+                            const normalizedColumnName = columnName.charAt(0).toLowerCase() + columnName.slice(1)
+                            filterParams[normalizedColumnName] = String(value)
+                        }
+                    })
+                    if (Object.keys(filterParams).length > 0) {
+                        requestBody.filters = filterParams
+                    }
+                }
             }
 
             // Add field name and value for actions that require input

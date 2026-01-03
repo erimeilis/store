@@ -14,6 +14,8 @@ export interface MassActionOptions {
   value?: string | number
   /** When true, apply action to ALL rows in the table (Gmail-style select all) */
   selectAll?: boolean
+  /** Filters to apply when selectAll is true (respects current filter context) */
+  filters?: Record<string, string>
 }
 
 export async function executeMassAction(
@@ -45,13 +47,14 @@ export async function executeMassAction(
       )
     }
 
-    // Handle selectAll flag - fetch all row IDs for the table
+    // Handle selectAll flag - fetch all row IDs for the table (respecting filters if provided)
     let targetIds = ids
     if (options?.selectAll) {
-      const allRows = await repository.getAllRowIds(tableId)
+      // Pass filters to getAllRowIds so mass action only affects filtered rows
+      const allRows = await repository.getAllRowIds(tableId, options.filters)
       targetIds = allRows
       if (targetIds.length === 0) {
-        return createErrorResponse('No rows found', 'The table has no rows to process', 400)
+        return createErrorResponse('No rows found', 'The table has no rows to process (with current filters)', 400)
       }
     }
 

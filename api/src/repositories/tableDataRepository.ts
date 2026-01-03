@@ -333,10 +333,45 @@ export class TableDataRepository {
 
     /**
      * Get all row IDs for a table (used for "select all" functionality)
+     * Supports optional filters to get only filtered row IDs (for mass actions with filters)
      */
-    async getAllRowIds(tableId: string): Promise<string[]> {
+    async getAllRowIds(tableId: string, filters?: Record<string, string>): Promise<string[]> {
+        // Build where clause
+        const where: any = { tableId }
+
+        // Apply filters using the same logic as findTableData
+        if (filters && Object.keys(filters).length > 0) {
+            const filterConditions = Object.entries(filters).map(([columnName, filterValue]) => {
+                // Check if filter value is numeric/boolean for exact matching
+                const numericValue = parseFloat(filterValue)
+                const isNumeric = !isNaN(numericValue) && filterValue.trim() !== ''
+                const isBooleanLike = filterValue.toLowerCase() === 'true' || filterValue.toLowerCase() === 'false'
+
+                if (isNumeric || isBooleanLike) {
+                    // For numeric/boolean values, use exact matching
+                    return {
+                        OR: [
+                            // Numeric values without quotes
+                            { data: { contains: `"${columnName}":${filterValue}` } },
+                            // String representation with quotes (for backwards compatibility)
+                            { data: { contains: `"${columnName}":"${filterValue}"` } }
+                        ]
+                    }
+                } else {
+                    // For string values, use proper JSON value matching
+                    return {
+                        data: { contains: `"${columnName}":"${filterValue}"` }
+                    }
+                }
+            })
+
+            if (filterConditions.length > 0) {
+                where.AND = filterConditions
+            }
+        }
+
         const rows = await this.prisma.tableData.findMany({
-            where: { tableId },
+            where,
             select: { id: true }
         })
         return rows.map(row => row.id)
